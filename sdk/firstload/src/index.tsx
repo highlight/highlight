@@ -139,6 +139,7 @@ const H: HighlightPublicInterface = {
 						tracingOrigins: options?.tracingOrigins,
 						serviceName:
 							options?.serviceName ?? 'highlight-browser',
+						instrumentations: options?.otel?.instrumentations,
 					})
 					getTracer = otelGetTracer
 

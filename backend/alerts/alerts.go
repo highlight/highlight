@@ -33,7 +33,7 @@ type SendErrorAlertEvent struct {
 func SendErrorAlert(ctx context.Context, event SendErrorAlertEvent) error {
 	payload := integrations.ErrorAlertPayload{
 		ErrorCount:      event.ErrorCount,
-		ErrorTitle:      event.ErrorGroup.Event,
+		ErrorTitle:      event.ErrorObject.Event,
 		UserIdentifier:  event.Session.Identifier,
 		ErrorURL:        getErrorURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
 		ErrorResolveURL: getErrorResolveURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),

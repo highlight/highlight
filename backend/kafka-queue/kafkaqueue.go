@@ -5,6 +5,9 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -15,9 +18,8 @@ import (
 	"github.com/segmentio/kafka-go/sasl"
 	"github.com/segmentio/kafka-go/sasl/scram"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"strings"
-	"time"
 )
 
 // KafkaOperationTimeout The timeout for all kafka send/receive operations.
@@ -60,7 +62,7 @@ type Queue struct {
 
 type MessageQueue interface {
 	Stop(context.Context)
-	Receive(context.Context) RetryableMessage
+	Receive(context.Context) (context.Context, RetryableMessage)
 	Submit(context.Context, string, ...RetryableMessage) error
 	LogStats()
 }
@@ -113,6 +115,29 @@ func getLogger(mode, topic string, level log.Level) kafka.LoggerFunc {
 		return lg.Errorf
 	}
 	return lg.Debugf
+}
+
+type KafkaCarrier struct {
+	Headers []kafka.Header
+}
+
+func (c *KafkaCarrier) Get(key string) string {
+	for _, header := range c.Headers {
+		if header.Key == key {
+			return string(header.Value)
+		}
+	}
+	return ""
+}
+
+func (c *KafkaCarrier) Set(key, value string) {
+	c.Headers = append(c.Headers, kafka.Header{Key: key, Value: []byte(value)})
+}
+
+func (c *KafkaCarrier) Keys() []string {
+	return lo.Map(c.Headers, func(header kafka.Header, _ int) string {
+		return header.Key
+	})
 }
 
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
@@ -326,6 +351,10 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...Ret
 		partitionKey = util.GenerateRandomString(32)
 	}
 
+	carrier := KafkaCarrier{}
+	propagator := otel.GetTextMapPropagator()
+	propagator.Inject(ctx, &carrier)
+
 	var kMessages []kafka.Message
 	for _, msg := range messages {
 		msg.SetMaxRetries(TaskRetries)
@@ -338,8 +367,9 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...Ret
 			log.WithContext(ctx).WithField("topic", p.Topic).WithField("partitionKey", partitionKey).WithField("msgBytes", len(msgBytes)).Warn("large kafka message")
 		}
 		kMessages = append(kMessages, kafka.Message{
-			Key:   []byte(partitionKey),
-			Value: msgBytes,
+			Key:     []byte(partitionKey),
+			Value:   msgBytes,
+			Headers: carrier.Headers,
 		})
 		hmetric.Incr(ctx, p.metricPrefix()+"produce.count", nil, 1)
 	}
@@ -355,26 +385,36 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...Ret
 	return nil
 }
 
-func (p *Queue) Receive(ctx context.Context) (msg RetryableMessage) {
+func (p *Queue) Receive(ctx context.Context) (context.Context, RetryableMessage) {
 	start := time.Now()
-	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
+
+	rxCtx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
 	defer cancel()
-	m, err := p.kafkaC.FetchMessage(ctx)
+
+	// clear timeout to return a context with no deadline
+	ctx = context.WithoutCancel(ctx)
+
+	m, err := p.kafkaC.FetchMessage(rxCtx)
 	if err != nil {
 		if err.Error() != "context deadline exceeded" {
 			log.WithContext(ctx).Error(errors.Wrap(err, "failed to receive message"))
 		}
-		return nil
+		return ctx, nil
 	}
-	msg, err = p.deserializeMessage(m.Value)
+
+	carrier := KafkaCarrier{Headers: m.Headers}
+	propagator := otel.GetTextMapPropagator()
+	ctx = propagator.Extract(ctx, &carrier)
+
+	msg, err := p.deserializeMessage(m.Value)
 	if err != nil {
 		log.WithContext(ctx).WithField("topic", p.Topic).WithField("partition", m.Partition).WithField("msgBytes", len(m.Value)).Error(errors.Wrap(err, "failed to deserialize message"))
-		return nil
+		return ctx, nil
 	}
 	msg.SetKafkaMessage(&m)
 	hmetric.Incr(ctx, p.metricPrefix()+"consume.count", nil, 1)
 	hmetric.Histogram(ctx, p.metricPrefix()+"receive.sec", time.Since(start).Seconds(), nil, 1)
-	return
+	return ctx, msg
 }
 
 func (p *Queue) Rewind(ctx context.Context, dur time.Duration) error {

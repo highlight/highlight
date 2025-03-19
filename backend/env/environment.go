@@ -91,11 +91,11 @@ type Configuration struct {
 	LinearClientSecret          string `mapstructure:"LINEAR_CLIENT_SECRET"`
 	MicrosoftTeamsBotId         string `mapstructure:"MICROSOFT_TEAMS_BOT_ID"`
 	MicrosoftTeamsBotPassword   string `mapstructure:"MICROSOFT_TEAMS_BOT_PASSWORD"`
+	OAuthAllowedDomains         string `mapstructure:"OAUTH_ALLOWED_DOMAINS"` // comma separated domains
 	OAuthClientID               string `mapstructure:"OAUTH_CLIENT_ID"`
 	OAuthClientSecret           string `mapstructure:"OAUTH_CLIENT_SECRET"`
 	OAuthProviderUrl            string `mapstructure:"OAUTH_PROVIDER_URL"`
 	OAuthRedirectUrl            string `mapstructure:"OAUTH_REDIRECT_URL"`
-	OAuthAllowedDomains         string `mapstructure:"OAUTH_ALLOWED_DOMAINS"` // comma separated domains, regex allowed
 	OTLPDogfoodEndpoint         string `mapstructure:"OTLP_DOGFOOD_ENDPOINT"`
 	OTLPEndpoint                string `mapstructure:"OTLP_ENDPOINT"`
 	ObjectStorageFS             string `mapstructure:"OBJECT_STORAGE_FS"`
@@ -178,12 +178,19 @@ func GetEnterpriseEnvPublicKey() string {
 	return Config.EnterpriseEnvPublicKey
 }
 
-func GetFrontendDomain() (string, error) {
+func GetFrontendCookieDomain() (string, error) {
 	u, err := url.Parse(Config.FrontendUri)
 	if err != nil {
 		return "", err
 	}
-	return u.Hostname(), nil
+
+	domain := u.Hostname()
+	parts := strings.Split(domain, ".")
+	if len(parts) >= 2 {
+		domain = strings.Join(parts[len(parts)-2:], ".")
+	}
+
+	return "." + domain, nil
 }
 
 func IsDevEnv() bool {

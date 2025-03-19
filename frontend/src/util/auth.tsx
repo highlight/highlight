@@ -6,6 +6,10 @@ import 'firebase/compat/auth'
 import Firebase from 'firebase/compat/app'
 
 import { AUTH_MODE, PRIVATE_GRAPH_URI } from '@/constants'
+import { getCookie, Cookies } from '@/util/cookie'
+
+const SIGN_IN_ROUTE = '/sign_in'
+export const EXPECTED_REDIRECT = new Error('Redirected')
 
 interface User {
 	email: string | null
@@ -163,8 +167,8 @@ class PasswordAuth implements SimpleAuth {
 		if (response.status !== 200) {
 			await this.signOut()
 			// only redirect if we are already not on the sign_in route
-			if (!window.location.href.endsWith('/sign_in')) {
-				window.location.href = `${window.location.origin}/sign_in`
+			if (!window.location.href.endsWith(SIGN_IN_ROUTE)) {
+				window.location.href = `${window.location.origin}${SIGN_IN_ROUTE}`
 			}
 			return false
 		}
@@ -279,7 +283,7 @@ class OAuth extends PasswordAuth implements SimpleAuth {
 
 	async signInWithPopup(): Promise<Firebase.auth.UserCredential> {
 		window.location.href = `${PRIVATE_GRAPH_URI}/oauth/login`
-		throw new Error('Redirected')
+		throw EXPECTED_REDIRECT
 	}
 
 	async validateUser(): Promise<boolean> {
@@ -291,10 +295,10 @@ class OAuth extends PasswordAuth implements SimpleAuth {
 		if (response.status !== 200) {
 			// only redirect if we are already not on the sign_in route and not on invite route
 			if (
-				window.location.href.indexOf('/sign_in') === -1 &&
+				window.location.href.indexOf(SIGN_IN_ROUTE) === -1 &&
 				window.location.href.indexOf('/invite/') === -1
 			) {
-				window.location.href = `${window.location.origin}/sign_in`
+				window.location.href = `${window.location.origin}${SIGN_IN_ROUTE}`
 			}
 
 			if (this.onSignedIn) {
@@ -349,24 +353,26 @@ class OAuth extends PasswordAuth implements SimpleAuth {
 	}
 
 	async signOut() {
+		await super.signOut()
 		await fetch(`${PRIVATE_GRAPH_URI}/oauth/logout`, {
 			method: 'POST',
 			credentials: 'include',
 		})
-		await super.signOut()
+		// redirect to sign in page to reset apollo graph link token
+		window.location.href = `${window.location.origin}${SIGN_IN_ROUTE}`
 	}
 }
 
-export let auth: SimpleAuth
+let defaultAuth: SimpleAuth
 switch (AUTH_MODE) {
 	case 'simple':
-		auth = new SimpleAuth()
+		defaultAuth = new SimpleAuth()
 		break
 	case 'password':
-		auth = new PasswordAuth()
+		defaultAuth = new PasswordAuth()
 		break
 	case 'oauth':
-		auth = new OAuth()
+		defaultAuth = new OAuth()
 		break
 	default:
 		let firebaseConfig: any
@@ -396,7 +402,23 @@ switch (AUTH_MODE) {
 		Firebase.initializeApp(firebaseConfig)
 		const googleProvider = new Firebase.auth.GoogleAuthProvider()
 		const githubProvider = new Firebase.auth.GithubAuthProvider()
-		auth = Firebase.auth()
-		auth.googleProvider = googleProvider
-		auth.githubProvider = githubProvider
+		defaultAuth = Firebase.auth()
+		defaultAuth.googleProvider = googleProvider
+		defaultAuth.githubProvider = githubProvider
 }
+
+let oauth: OAuth
+export function getAuth() {
+	// different than the tokenCookieName cookie because this is not httponly
+	const clientID = getCookie(Cookies.OAuthClientID)
+	if (clientID && !(defaultAuth instanceof OAuth)) {
+		if (!oauth) {
+			oauth = new OAuth()
+		}
+		return oauth
+	} else {
+		return defaultAuth
+	}
+}
+
+export const auth = getAuth()

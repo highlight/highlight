@@ -302,6 +302,43 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 }
 
 func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueue.Message) error {
+	span, ctx := util.StartSpanFromContext(ctx, "worker.processPublicWorkerMessage")
+	defer span.Finish()
+
+	done := make(chan struct{})
+	defer func() {
+		close(done)
+	}()
+
+	go func() {
+		start := time.Now()
+		limit := 30 * time.Second
+		select {
+		case <-time.After(limit):
+		case <-done:
+			return
+		}
+
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-done:
+				return
+			case t := <-ticker.C:
+				duration := t.Sub(start)
+				log.WithContext(ctx).
+					WithField("key", string(task.KafkaMessage.Key)).
+					WithField("offset", task.KafkaMessage.Offset).
+					WithField("taskType", task.GetType()).
+					WithField("partition", task.KafkaMessage.Partition).
+					WithField("duration", duration).
+					Warnf("Long running task")
+			}
+		}
+	}()
+
 	switch task.Type {
 	case kafkaqueue.PushPayload:
 		if task.PushPayload == nil {
@@ -427,8 +464,9 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 	}
 
 	mainConfig := WorkerConfig{
-		Topic:   kafkaqueue.TopicTypeDefault,
-		Workers: sys.MainWorkers,
+		Topic:     kafkaqueue.TopicTypeDefault,
+		Workers:   sys.MainWorkers,
+		QueueSize: sys.MainQueueSize,
 	}
 	logsConfig := WorkerConfig{
 		Topic:        kafkaqueue.TopicTypeBatched,
@@ -491,10 +529,12 @@ func (w *Worker) PublicWorker(ctx context.Context, topic kafkaqueue.TopicType) {
 							kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}),
 							kafkaqueue.Consumer,
 							&kafkaqueue.ConfigOverride{
+								QueueCapacity:    pointy.Int(config.QueueSize),
 								MessageSizeBytes: config.MessageSizeBytes,
 								OnAssignGroups: func() {
 									w.PublicResolver.SessionCache.Purge()
-								}}),
+								},
+							}),
 						Worker:       w,
 						WorkerThread: workerId,
 					}
@@ -611,17 +651,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if len(accumulator.EventsForTimelineIndicator) > 0 {
 		var eventsForTimelineIndicator []*model.TimelineIndicatorEvent
 		for _, customEvent := range accumulator.EventsForTimelineIndicator {
-			var parsedData model.JSONB
-			err = json.Unmarshal(customEvent.Data, &parsedData)
-			if err != nil {
-				return e.Wrap(err, "error unmarshalling event chunk")
-			}
 			eventsForTimelineIndicator = append(eventsForTimelineIndicator, &model.TimelineIndicatorEvent{
 				SessionSecureID: s.SecureID,
 				Timestamp:       customEvent.TimestampRaw,
 				SID:             customEvent.SID,
 				Type:            int(customEvent.Type),
-				Data:            parsedData,
+				Data:            customEvent.Data,
 			})
 		}
 

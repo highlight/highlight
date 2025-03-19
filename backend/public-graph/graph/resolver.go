@@ -4,9 +4,23 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"hash/fnv"
+	"io"
+	"math"
+	"net"
+	"net/http"
+	"net/mail"
+	url2 "net/url"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/goccy/go-json"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
 	lru "github.com/hashicorp/golang-lru/v2"
@@ -55,18 +69,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"hash/fnv"
-	"io"
-	"math"
-	"net"
-	"net/http"
-	"net/mail"
-	url2 "net/url"
-	"regexp"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // This file will not be regenerated automatically.
@@ -742,28 +744,27 @@ func (r *Resolver) isWithinErrorQuota(ctx context.Context, workspace *model.Work
 
 // HandleErrorAndGroup caches the result of handleErrorAndGroup under the exact match of the error body + stacktrace.
 // Improves performance of handleErrorAndGroup by first checking if the exact error object has been grouped before.
-func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, timestamps []time.Time, structuredStackTrace []*privateModel.ErrorTrace, projectID int, workspace *model.Workspace) (*model.ErrorGroup, []*model.ErrorObject, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "HandleErrorAndGroup", util.Tag("projectID", projectID))
 	defer span.Finish()
 
 	if errorObj == nil {
-		return nil, e.New("error object was nil")
+		return nil, nil, e.New("error object was nil")
 	}
 	if errorObj.Event == "" {
-		return nil, e.New("error object event was empty")
+		return nil, nil, e.New("error object event was empty")
 	}
-
 	if errorObj.StackTrace == nil {
-		return nil, errors.New("error object stacktrace was empty")
+		return nil, nil, e.New("error object stacktrace was empty")
 	}
 
 	project, err := r.Store.GetProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, nil, e.Wrap(err, "error querying project")
 	}
 
 	if errorgroups.IsErrorTraceFiltered(*project, structuredStackTrace) {
-		return nil, ErrUserFilteredError
+		return nil, nil, ErrUserFilteredError
 	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
@@ -775,7 +776,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			structuredStackTrace = structuredStackTrace[:stacktraces.ERROR_STACK_MAX_FRAME_COUNT]
 			firstFrameBytes, err := json.Marshal(structuredStackTrace)
 			if err != nil {
-				return nil, e.Wrap(err, "Error marshalling first frame")
+				return nil, nil, e.Wrap(err, "Error marshalling first frame")
 			}
 
 			errorObj.StackTrace = ptr.String(string(firstFrameBytes))
@@ -790,7 +791,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	})
 	if eg == nil || err != nil {
 		log.WithContext(ctx).WithError(err).WithField("project_id", projectID).Error("failed to group error")
-		return eg, err
+		return nil, nil, err
 	}
 
 	// on cache hit, we want to run logic to update error group based on new error object
@@ -801,21 +802,33 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}, nil, false)
 		if eg == nil || err != nil {
 			log.WithContext(ctx).WithError(err).WithField("project_id", projectID).Error("failed to group error on cache hit")
-			return eg, err
+			return nil, nil, err
 		}
 	}
 
-	// save error object after grouping
-	errorObj.ErrorGroupID = eg.ID
-	if err := r.DB.WithContext(ctx).Create(errorObj).Error; err != nil {
-		return nil, e.Wrap(err, "Error performing error insert for error")
+	// After grouping / embedding logic, save as multiple error objects with different timestamps
+	newObjects := []*model.ErrorObject{}
+	for _, timestamp := range timestamps {
+		newObj := *errorObj
+		newObj.ErrorGroupID = eg.ID
+		newObj.Timestamp = timestamp
+		newObjects = append(newObjects, &newObj)
 	}
 
-	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorObj.ID), &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: errorObj.ID}}); err != nil {
-		return nil, err
+	// save error objects after grouping
+	if err := r.DB.WithContext(ctx).Create(&newObjects).Error; err != nil {
+		return nil, nil, e.Wrap(err, "Error performing error insert for error")
 	}
 
-	return eg, err
+	messages := lo.Map(newObjects, func(obj *model.ErrorObject, _ int) kafka_queue.RetryableMessage {
+		return &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: obj.ID}}
+	})
+
+	if err := r.DataSyncQueue.Submit(ctx, "", messages...); err != nil {
+		return nil, nil, err
+	}
+
+	return eg, newObjects, err
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
@@ -1709,6 +1722,10 @@ type AlertCountsGroupedByRecent struct {
 }
 
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
+	if projectID == 0 {
+		return
+	}
+
 	func() {
 		var errorAlerts []*model.ErrorAlert
 		if err := r.DB.WithContext(ctx).Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{AlertDeprecated: model.AlertDeprecated{ProjectID: projectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
@@ -2169,16 +2186,8 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).Error(e.Wrap(err, "Error marking backend error setup"))
 	}
 
-	// put errors in db
-	putErrorsToDBSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
-		util.ResourceName("db.errors"))
-	defer putErrorsToDBSpan.Finish()
-	groupedErrors := make(map[int][]*model.ErrorObject)
-	groups := make(map[int]struct {
-		Group      *model.ErrorGroup
-		VisitedURL string
-		SessionObj *model.Session
-	})
+	inputPairs := []*inputPair{}
+	span, _ := util.StartSpanFromContext(ctx, "MarshalErrors")
 	for _, v := range errorObjects {
 		_, err := json.Marshal(v.StackTrace)
 		if err != nil {
@@ -2211,33 +2220,63 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			ServiceVersion: v.Service.Version,
 		}
 
+		inputPairs = append(inputPairs, &inputPair{
+			ErrorObject:       errorToInsert,
+			BackendErrorInput: v,
+		})
+	}
+	span.Finish()
+
+	errorsDeduped := lo.GroupBy(inputPairs, func(p *inputPair) string {
+		return errorgroups.GetDedupingKey(p.ErrorObject.StackTrace, p.ErrorObject.Event)
+	})
+
+	// put errors in db
+	putErrorsToDBSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
+		util.ResourceName("db.errors"))
+	defer putErrorsToDBSpan.Finish()
+	groupedErrors := make(map[int][]*model.ErrorObject)
+	groups := make(map[int]struct {
+		Group      *model.ErrorGroup
+		VisitedURL string
+		SessionObj *model.Session
+	})
+
+	for _, pairs := range errorsDeduped {
+		firstObject := pairs[0].ErrorObject
+		firstInput := pairs[0].BackendErrorInput
+
+		timestamps := lo.Map(pairs, func(pair *inputPair, _ int) time.Time {
+			return pair.ErrorObject.Timestamp
+		})
+
 		var structuredStackTrace []*privateModel.ErrorTrace
 		var stackFrameInput []*publicModel.StackFrameInput
 
-		if err := json.Unmarshal([]byte(v.StackTrace), &stackFrameInput); err == nil {
-			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, errorToInsert)
+		if err := json.Unmarshal([]byte(firstInput.StackTrace), &stackFrameInput); err == nil {
+			mapped, structured, err := r.getMappedStackTraceString(ctx, stackFrameInput, projectID, firstObject)
 			if err != nil {
-				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
+				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", firstObject.StackTrace)
 			} else if mapped != nil && *mapped != "null" {
-				errorToInsert.MappedStackTrace = mapped
+				firstObject.MappedStackTrace = mapped
 				structuredStackTrace = structured
 			}
 		}
 
-		stack := errorToInsert.MappedStackTrace
+		stack := firstObject.MappedStackTrace
 		if stack == nil {
-			stack = &v.StackTrace
+			stack = &firstInput.StackTrace
 		}
 
-		mapped, structured, err := r.Store.EnhancedStackTrace(ctx, *stack, workspace, &project, errorToInsert, nil)
+		mapped, structured, err := r.Store.EnhancedStackTrace(ctx, *stack, workspace, &project, firstObject, nil)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Errorf("Failed to generate structured stacktrace %v", *stack)
 		} else if mapped != nil {
-			errorToInsert.MappedStackTrace = mapped
+			firstObject.MappedStackTrace = mapped
 			structuredStackTrace = structured
 		}
 
-		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, projectID, workspace)
+		group, objects, err := r.HandleErrorAndGroup(ctx, firstObject, timestamps, structuredStackTrace, projectID, workspace)
 		if err != nil {
 			if e.Is(err, ErrUserFilteredError) {
 				log.WithContext(ctx).WithError(err).Info("Will not update error group")
@@ -2251,8 +2290,8 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			Group      *model.ErrorGroup
 			VisitedURL string
 			SessionObj *model.Session
-		}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: session}
-		groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
+		}{Group: group, VisitedURL: firstObject.URL, SessionObj: session}
+		groupedErrors[group.ID] = append(groupedErrors[group.ID], objects...)
 	}
 
 	for _, errorInstances := range groupedErrors {
@@ -2314,14 +2353,18 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 
 	for _, event := range events.Events {
 		if event.Type == parse.Custom {
-			dataObject := struct {
-				Tag     string          `json:"tag"`
-				Payload json.RawMessage `json:"payload"`
-			}{}
-
-			if err := json.Unmarshal([]byte(event.Data), &dataObject); err != nil {
-				log.WithContext(ctx).WithField("session_id", sessionID).Error("error deserializing custom event properties")
+			tagStr, ok := event.Data["tag"].(string)
+			if !ok {
+				log.WithContext(ctx).WithField("session_id", sessionID).Error("expected string tag for custom event")
 				continue
+			}
+
+			dataObject := struct {
+				Tag     string      `json:"tag"`
+				Payload interface{} `json:"payload"`
+			}{
+				Tag:     tagStr,
+				Payload: event.Data["payload"],
 			}
 
 			trackEvent := strings.Contains(dataObject.Tag, "Track")
@@ -2338,23 +2381,16 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 				continue
 			}
 
-			payloadStr := string(dataObject.Payload)
-			if !clickEvent {
-				if err := json.Unmarshal(dataObject.Payload, &payloadStr); err != nil {
-					log.WithContext(ctx).WithField("session_id", sessionID).WithField("payloadStr", dataObject.Payload).Error("error deserializing session event payload into a string")
-					continue
-				}
-			}
-
 			if clickEvent {
-				propertiesObject := make(map[string]interface{})
-				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
+				var ok bool
+				var payloadMap map[string]interface{}
+				if payloadMap, ok = dataObject.Payload.(map[string]interface{}); !ok {
 					// older versions of the client send in the clickTarget as a string
-					propertiesObject["clickTarget"] = payloadStr
+					payloadMap = map[string]interface{}{"clickTarget": dataObject.Payload}
 				}
 
 				attributes := make(map[string]string)
-				for k, v := range propertiesObject {
+				for k, v := range payloadMap {
 					attributes[k] = fmt.Sprintf("%.*v", SESSION_FIELD_MAX_LENGTH, v)
 					if len(attributes[k]) > 0 {
 						fields = append(fields, AppendProperty{k, attributes[k], event.Timestamp})
@@ -2369,6 +2405,12 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if navigateEvent {
+				payloadStr, ok := dataObject.Payload.(string)
+				if !ok {
+					log.WithContext(ctx).WithField("session_id", sessionID).Error("expected string payload for navigate event")
+					continue
+				}
+
 				fields = append(fields, AppendProperty{"visited-url", payloadStr, event.Timestamp})
 
 				sessionEvents = append(sessionEvents,
@@ -2381,6 +2423,12 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if reloadEvent {
+				payloadStr, ok := dataObject.Payload.(string)
+				if !ok {
+					log.WithContext(ctx).WithField("session_id", sessionID).Error("expected string payload for reload event")
+					continue
+				}
+
 				sessionEvents = append(sessionEvents,
 					&clickhouse.SessionEventRow{
 						Event:     "Navigate",
@@ -2391,6 +2439,12 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 					},
 				)
 			} else if trackEvent {
+				payloadStr, ok := dataObject.Payload.(string)
+				if !ok {
+					log.WithContext(ctx).WithField("session_id", sessionID).Error("expected string payload for track event")
+					continue
+				}
+
 				propertiesObject := make(map[string]interface{})
 				if err := json.Unmarshal([]byte(payloadStr), &propertiesObject); err != nil {
 					log.WithContext(ctx).WithField("session_id", sessionID).WithField("payloadStr", payloadStr).Error("error deserializing track event properties")
@@ -2536,22 +2590,53 @@ type PushPayloadChunk struct {
 }
 
 func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID string, payloadID int, data string) error {
+	querySessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.decompress")
+
 	reader, err := gzip.NewReader(base64.NewDecoder(base64.StdEncoding, strings.NewReader(data)))
 	if err != nil {
+		querySessionSpan.Finish(err)
 		return err
 	}
 
 	js, err := io.ReadAll(reader)
 	if err != nil {
+		querySessionSpan.Finish(err)
 		return err
 	}
 
 	var payload kafka_queue.PushPayloadArgs
 	if err = json.Unmarshal(js, &payload); err != nil {
+		querySessionSpan.Finish(err)
 		return err
 	}
 
-	return r.ProcessPayload(ctx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, pointy.Int(payloadID))
+	querySessionSpan.Finish()
+
+	return r.ProcessPayload(sCtx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, pointy.Int(payloadID))
+}
+
+func TransformEvents(evs []*publicModel.ReplayEventInput) (*parse.ReplayEvents, error) {
+	events := &parse.ReplayEvents{
+		Events: []*parse.ReplayEvent{},
+	}
+
+	for _, ev := range evs {
+		events.Events = append(events.Events, &parse.ReplayEvent{
+			Timestamp:    parse.JavascriptToGolangTime(ev.Timestamp),
+			Type:         parse.EventType(ev.Type),
+			Data:         ev.Data.(map[string]interface{}),
+			TimestampRaw: ev.Timestamp,
+			SID:          ev.Sid,
+		})
+	}
+
+	return events, nil
+}
+
+type inputPair struct {
+	ErrorObject       *model.ErrorObject
+	ErrorInput        *publicModel.ErrorObjectInput
+	BackendErrorInput *publicModel.BackendErrorObjectInput
 }
 
 func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
@@ -2561,32 +2646,41 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	if webSocketEvents != nil {
 		webSocketEventsStr = *webSocketEvents
 	}
-	querySessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("db.querySession"))
-	querySessionSpan.SetAttribute("sessionSecureID", sessionSecureID)
-	querySessionSpan.SetAttribute("messagesLength", len(messages))
-	querySessionSpan.SetAttribute("resourcesLength", len(resources))
-	querySessionSpan.SetAttribute("webSocketEventsLength", len(webSocketEventsStr))
-	querySessionSpan.SetAttribute("numberOfErrors", len(errors))
-	querySessionSpan.SetAttribute("numberOfEvents", len(events.Events))
+
+	opts := []util.SpanOption{
+		util.Tag("sessionSecureID", sessionSecureID),
+		util.Tag("messagesLength", len(messages)),
+		util.Tag("resourcesLength", len(resources)),
+		util.Tag("webSocketEventsLength", len(webSocketEventsStr)),
+		util.Tag("numberOfErrors", len(errors)),
+		util.Tag("numberOfEvents", len(events.Events)),
+	}
+
+	span, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
+	defer span.Finish()
+
+	querySessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.query")
 	if highlightLogs != nil {
 		logsArray := strings.Split(*highlightLogs, "\n")
 		for _, clientLog := range logsArray {
 			if clientLog != "" {
-				log.WithContext(ctx).Warnf("[Client]%s", clientLog)
+				log.WithContext(sCtx).Warnf("[Client]%s", clientLog)
 			}
 		}
 	}
 	if sessionSecureID == "" {
-		return e.New("ProcessPayload called without secureID")
+		err := e.New("ProcessPayload called without secureID")
+		querySessionSpan.Finish(err)
+		return err
 	}
 
-	sessionObj, err := r.getSession(ctx, sessionSecureID)
+	sessionObj, err := r.getSession(sCtx, sessionSecureID)
 	if err != nil {
 		querySessionSpan.Finish(err)
 		return err
 	}
-	querySessionSpan.SetAttribute("secure_id", sessionObj.SecureID)
-	querySessionSpan.SetAttribute("project_id", sessionObj.ProjectID)
+	span.SetAttribute("session_id", sessionObj.ID)
+	span.SetAttribute("project_id", sessionObj.ProjectID)
 	querySessionSpan.Finish()
 	sessionID := sessionObj.ID
 
@@ -2605,12 +2699,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
 	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
+		resumedAfterProcessedSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateResumedAfterProcessedTime")
 		if sessionObj.ResumedAfterProcessedTime == nil {
 			now := time.Now()
-			if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ResumedAfterProcessedTime", &now).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session ResumedAfterProcessedTime"))
+			if err := r.DB.WithContext(sCtx).Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ResumedAfterProcessedTime", &now).Error; err != nil {
+				log.WithContext(sCtx).Error(e.Wrap(err, "error updating session ResumedAfterProcessedTime"))
 			}
 		}
+		resumedAfterProcessedSpan.Finish()
 	}
 
 	var g errgroup.Group
@@ -2622,43 +2718,41 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
-	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+
+	loadWorkspaceSettingsSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.loadWorkspaceSettings")
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(sCtx, projectID)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
+		log.WithContext(sCtx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
 	}
+	loadWorkspaceSettingsSpan.Finish()
 
 	g.Go(func() error {
 		defer util.Recover()
 
-		project, err := r.Store.GetProject(ctx, projectID)
+		referenceDataSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.referenceData", util.Tag("project_id", projectID))
+		project, err := r.Store.GetProject(sCtx, projectID)
 		if err != nil {
 			return err
 		}
 
-		workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
+		workspace, err := r.Store.GetWorkspace(sCtx, project.WorkspaceID)
 		if err != nil {
 			return e.Wrap(err, "error querying workspace")
 		}
 
-		if withinBillingQuota, _ := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
+		if withinBillingQuota, _ := r.IsWithinQuota(sCtx, model.PricingProductTypeSessions, workspace, time.Now()); !withinBillingQuota {
 			return nil
 		}
+		referenceDataSpan.Finish()
 
-		opts := []util.SpanOption{util.ResourceName("go.parseEvents"), util.Tag("project_id", projectID)}
-		if len(events.Events) > 1_000 {
-			opts = append(opts, util.WithSpanKind(trace.SpanKindServer))
-		}
-		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
+		opts := []util.SpanOption{util.Tag("project_id", projectID)}
+		parseEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.parseEvents", opts...)
 		defer parseEventsSpan.Finish()
 
 		if evs := events.Events; len(evs) > 0 {
-			// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
-			// should fix at some point.
-			eventBytes, err := json.Marshal(events)
-			if err != nil {
-				return e.Wrap(err, "error marshaling events from schema interfaces")
-			}
-			parsedEvents, err := parse.EventsFromString(string(eventBytes))
+			transformEventsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.transformEvents", util.Tag("project_id", projectID))
+			parsedEvents, err := TransformEvents(evs)
+			transformEventsSpan.Finish(err)
 			if err != nil {
 				return e.Wrap(err, "error parsing events from schema interfaces")
 			}
@@ -2671,53 +2765,53 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			hasFullSnapshot := false
 			hostUrl := parse.GetHostUrlFromEvents(parsedEvents.Events)
 
+			eventLoopSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.eventLoop", util.Tag("project_id", projectID))
 			for _, event := range parsedEvents.Events {
 				if event.Type == parse.FullSnapshot || event.Type == parse.IncrementalSnapshot {
 					snapshot, err := parse.NewSnapshot(event.Data, hostUrl)
 					if err != nil {
-						log.WithContext(ctx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithField("length", len([]byte(event.Data))).WithError(err).Error("Error unmarshalling snapshot")
+						log.WithContext(sCtx).WithField("projectID", projectID).WithField("sessionID", sessionID).WithError(err).Error("Error unmarshalling snapshot")
 						continue
 					}
 
 					// escape script tags in any javascript
-					err = snapshot.EscapeJavascript(ctx)
+					err = snapshot.EscapeJavascript(sCtx)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "Error escaping snapshot javascript"))
+						log.WithContext(sCtx).Error(e.Wrap(err, "Error escaping snapshot javascript"))
 					}
 
 					// Replace any static resources with our own, hosted in S3
 					if settings != nil && settings.ReplaceAssets {
-						project, err := r.Store.GetProject(ctx, projectID)
+						project, err := r.Store.GetProject(sCtx, projectID)
 						if err != nil {
 							return err
 						}
 
-						workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
+						workspace, err := r.Store.GetWorkspace(sCtx, project.WorkspaceID)
 						if err != nil {
 							return err
 						}
 
-						err = snapshot.ReplaceAssets(ctx, projectID, r.Store, workspace.GetRetentionPeriod())
+						err = snapshot.ReplaceAssets(sCtx, projectID, r.Store, workspace.GetRetentionPeriod())
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
+							log.WithContext(sCtx).Error(e.Wrap(err, "error replacing assets"))
 						}
 					}
 
 					if event.Type == parse.FullSnapshot {
 						hasFullSnapshot = true
-						stylesheetsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-							util.ResourceName("go.parseEvents.InjectStylesheets"), util.Tag("project_id", projectID))
+						stylesheetsSpan, tCtx := util.StartSpanFromContext(sCtx, "public-graph.pushPayload.parseEvents.InjectStylesheets", util.Tag("project_id", projectID))
 						// If we see a snapshot event, attempt to inject CORS stylesheets.
-						err := snapshot.InjectStylesheets(ctx)
+						err := snapshot.InjectStylesheets(tCtx)
 						stylesheetsSpan.Finish(err)
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "Error injecting snapshot stylesheets"))
+							log.WithContext(sCtx).Error(e.Wrap(err, "Error injecting snapshot stylesheets"))
 						}
 					}
 					if event.Type == parse.IncrementalSnapshot {
 						mouseInteractionEventData, err := parse.UnmarshallMouseInteractionEvent(event.Data)
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "Error unmarshalling incremental event"))
+							log.WithContext(sCtx).Error(e.Wrap(err, "Error unmarshalling incremental event"))
 						}
 						if userEvent := map[parse.EventSource]bool{
 							parse.MouseMove: true, parse.MouseInteraction: true, parse.Scroll: true,
@@ -2727,15 +2821,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						}
 					}
 
-					if event.Data, err = snapshot.Encode(); err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "Error encoding snapshot"))
-						continue
-					}
+					event.Data = snapshot.GetData()
 				}
 			}
+			eventLoopSpan.Finish()
 
-			remarshalSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-				util.ResourceName("go.parseEvents.remarshalEvents"), util.Tag("project_id", projectID))
+			remarshalSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.parseEvents.remarshalEvents",
+				util.Tag("project_id", projectID))
 			// Re-format as a string to write to the db.
 			b, err := json.Marshal(parsedEvents)
 			if err != nil {
@@ -2770,10 +2862,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// unmarshal messages
 	g.Go(func() error {
 		defer util.Recover()
-		unmarshalMessagesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			util.ResourceName("go.unmarshal.messages"), util.Tag("project_id", projectID), util.Tag("message_string_len", len(messages)), util.Tag("secure_session_id", sessionSecureID))
+		unmarshalMessagesSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.unmarshal.messages", util.Tag("project_id", projectID), util.Tag("message_string_len", len(messages)), util.Tag("secure_session_id", sessionSecureID))
 
-		err := r.submitFrontendConsoleMessages(ctx, sessionObj, messages)
+		err := r.submitFrontendConsoleMessages(sCtx, sessionObj, messages)
 		unmarshalMessagesSpan.Finish(err)
 		return err
 	})
@@ -2781,8 +2872,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// unmarshal resources
 	g.Go(func() error {
 		defer util.Recover()
-		unmarshalResourcesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			util.ResourceName("go.unmarshal.resources"), util.Tag("project_id", projectID))
+		unmarshalResourcesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.unmarshal.resources", util.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
 
 		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
@@ -2807,8 +2897,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	g.Go(func() error {
 		defer util.Recover()
 		if webSocketEventsStr != "" {
-			unmarshalWebSocketEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-				util.ResourceName("go.unmarshal.web_socket_events"), util.Tag("project_id", projectID))
+			unmarshalWebSocketEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.unmarshal.web_socket_events", util.Tag("project_id", projectID))
 			defer unmarshalWebSocketEventsSpan.Finish()
 
 			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
@@ -2856,6 +2945,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return r.IsFrontendErrorIngested(ctx, project.ID, sessionObj, item)
 		})
 
+		if len(errors) == 0 {
+			return nil
+		}
+
 		// increment daily error table
 		numErrors := int64(len(errors))
 		if numErrors > 0 {
@@ -2863,21 +2956,15 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 
 		// put errors in db
-		putErrorsToDBSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload",
-			util.ResourceName("db.errors"), util.Tag("project_id", projectID))
+		putErrorsToDBSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.insert.db.errors", util.Tag("project_id", projectID))
 		defer putErrorsToDBSpan.Finish()
-		groupedErrors := make(map[int][]*model.ErrorObject)
-		groups := make(map[int]struct {
-			Group      *model.ErrorGroup
-			VisitedURL string
-			SessionObj *model.Session
-		})
 
+		inputPairs := []*inputPair{}
+		span, sCtx := util.StartSpanFromContext(ctx, "MarshalErrors")
 		for _, v := range errors {
-			span, c := util.StartSpanFromContext(ctx, "MarshalError")
 			traceBytes, err := json.Marshal(v.StackTrace)
 			if err != nil {
-				log.WithContext(c).Errorf("Error marshaling trace: %v", v.StackTrace)
+				log.WithContext(sCtx).Errorf("Error marshaling trace: %v", v.StackTrace)
 				continue
 			}
 
@@ -2907,32 +2994,61 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				ServiceVersion: serviceVersion,
 				ServiceName:    sessionObj.ServiceName,
 			}
-			span.Finish()
+
+			inputPairs = append(inputPairs, &inputPair{
+				ErrorObject: errorToInsert,
+				ErrorInput:  v,
+			})
+		}
+		span.Finish()
+
+		errorsDeduped := lo.GroupBy(inputPairs, func(p *inputPair) string {
+			return errorgroups.GetDedupingKey(p.ErrorObject.StackTrace, p.ErrorObject.Event)
+		})
+
+		groupedErrors := make(map[int][]*model.ErrorObject)
+		groups := make(map[int]struct {
+			Group      *model.ErrorGroup
+			VisitedURL string
+			SessionObj *model.Session
+		})
+
+		for _, pairs := range errorsDeduped {
+			firstObject := pairs[0].ErrorObject
+			firstInput := pairs[0].ErrorInput
+
+			timestamps := lo.Map(pairs, func(pair *inputPair, _ int) time.Time {
+				return pair.ErrorObject.Timestamp
+			})
 
 			var structuredStackTrace []*privateModel.ErrorTrace
-			mapped, structured, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)
+			mapped, structured, err := r.getMappedStackTraceString(ctx, firstInput.StackTrace, projectID, firstObject)
 
 			if err != nil {
-				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
+				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", firstInput.StackTrace)
 			} else {
-				errorToInsert.MappedStackTrace = mapped
+				for _, pair := range pairs {
+					pair.ErrorObject.MappedStackTrace = mapped
+				}
 				structuredStackTrace = structured
 			}
 
-			stack := errorToInsert.MappedStackTrace
+			stack := firstObject.MappedStackTrace
 			if stack == nil {
-				stack = errorToInsert.StackTrace
+				stack = firstObject.StackTrace
 			}
 			// use github enhancement for frontend errors
-			mapped, structured, err = r.Store.EnhancedStackTrace(ctx, *stack, workspace, project, errorToInsert, nil)
+			mapped, structured, err = r.Store.EnhancedStackTrace(ctx, *stack, workspace, project, firstObject, nil)
 			if err != nil {
-				log.WithContext(ctx).WithError(err).WithField("stacktrace", v.StackTrace).Errorf("Failed to generate frontend structured stacktrace %v", v.StackTrace)
+				log.WithContext(ctx).WithError(err).WithField("stacktrace", firstInput.StackTrace).Errorf("Failed to generate frontend structured stacktrace %v", firstInput.StackTrace)
 			} else if mapped != nil {
-				errorToInsert.MappedStackTrace = mapped
+				for _, pair := range pairs {
+					pair.ErrorObject.MappedStackTrace = mapped
+				}
 				structuredStackTrace = structured
 			}
 
-			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, projectID, workspace)
+			group, objects, err := r.HandleErrorAndGroup(ctx, firstObject, timestamps, structuredStackTrace, projectID, workspace)
 			if err != nil {
 				if e.Is(err, ErrUserFilteredError) {
 					log.WithContext(ctx).WithError(err).Info("Will not update error group")
@@ -2946,8 +3062,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				Group      *model.ErrorGroup
 				VisitedURL string
 				SessionObj *model.Session
-			}{Group: group, VisitedURL: errorToInsert.URL, SessionObj: sessionObj}
-			groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
+			}{Group: group, VisitedURL: firstObject.URL, SessionObj: sessionObj}
+			groupedErrors[group.ID] = append(groupedErrors[group.ID], objects...)
 		}
 
 		for _, errorInstances := range groupedErrors {
@@ -2960,6 +3076,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	})
 
 	if err := g.Wait(); err != nil {
+		span.Finish(err)
 		return err
 	}
 
@@ -2993,7 +3110,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
-	updateSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("doSessionFieldsUpdate"))
+	updateSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.doSessionFieldsUpdate")
 	defer updateSpan.Finish()
 
 	excluded, reason := r.IsSessionExcluded(ctx, sessionObj, sessionHasErrors)
@@ -3002,23 +3119,34 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		elapsedSinceUpdate = now.Sub(*sessionObj.PayloadUpdatedAt)
 	}
 
-	// Update only if any of these fields are changing
-	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
-	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
-		elapsedSinceUpdate > 15*time.Second ||
-		beaconTime != nil ||
-		hasSessionUnloaded != sessionObj.HasUnloaded ||
-		(sessionObj.Processed != nil && *sessionObj.Processed) ||
-		(sessionObj.ObjectStorageEnabled != nil && *sessionObj.ObjectStorageEnabled) ||
-		(sessionObj.Chunked != nil && *sessionObj.Chunked) ||
-		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
+	// Update only the fields that may have changed
+	updateFields := []string{}
+	if sessionObj.PayloadUpdatedAt == nil || elapsedSinceUpdate > 15*time.Second {
+		updateFields = append(updateFields, "PayloadUpdatedAt")
+	}
+	if beaconTime != nil {
+		updateFields = append(updateFields, "BeaconTime")
+	}
+	if hasSessionUnloaded != sessionObj.HasUnloaded {
+		updateFields = append(updateFields, "HasUnloaded")
+	}
+	if sessionObj.Processed != nil && *sessionObj.Processed {
+		updateFields = append(updateFields, "Processed", "ObjectStorageEnabled", "DirectDownloadEnabled", "Chunked")
+	}
+	if sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors) {
+		updateFields = append(updateFields, "HasErrors")
+	}
+	if sessionObj.Excluded && !excluded {
+		updateFields = append(updateFields, "Excluded", "ExcludedReason")
+	}
 
-	if doUpdate && !excluded {
+	if len(updateFields) > 0 && !excluded {
+		updateSessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateSession", util.Tag("project_id", projectID))
 		// By default, GORM will not update non-zero fields. This is undesirable for boolean columns.
 		// By explicitly specifying the columns to update, we can override the behavior.
 		// See https://gorm.io/docs/update.html#Updates-multiple-columns
-		if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
-			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "ExcludedReason", "HasErrors").
+		if err := r.DB.WithContext(sCtx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
+			Select(updateFields).
 			Updates(&model.Session{
 				PayloadUpdatedAt:      &now,
 				BeaconTime:            beaconTime,
@@ -3031,9 +3159,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				ExcludedReason:        nil,
 				HasErrors:             &sessionHasErrors,
 			}).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error updating session"))
+			log.WithContext(sCtx).Error(e.Wrap(err, "error updating session"))
 			return err
 		}
+		updateSessionSpan.Finish()
+
 		updatedSession := *sessionObj
 		updatedSession.PayloadUpdatedAt = &now
 		updatedSession.BeaconTime = beaconTime
@@ -3047,6 +3177,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		updatedSession.HasErrors = &sessionHasErrors
 		r.SessionCache.Add(sessionSecureID, &updatedSession)
 	} else if excluded {
+		excludeSessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.excludeSession", util.Tag("project_id", projectID))
 		// Only update the excluded flag and reason if either have changed
 		var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
 		if sessionObj.ExcludedReason != nil {
@@ -3056,29 +3187,31 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			newReasonDeref = *reason
 		}
 		if sessionObj.Excluded != excluded || reasonDeref != newReasonDeref {
-			if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
+			if err := r.DB.WithContext(sCtx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
 				Select("Excluded", "ExcludedReason").Updates(&model.Session{
 				Excluded:       excluded,
 				ExcludedReason: reason,
 			}).Error; err != nil {
 				return err
 			}
-			if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
+			if err := r.DataSyncQueue.Submit(sCtx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 				return err
 			}
 		}
+		excludeSessionSpan.Finish()
+
 		updatedSession := *sessionObj
 		updatedSession.Excluded = excluded
 		updatedSession.ExcludedReason = reason
 		r.SessionCache.Add(sessionSecureID, &updatedSession)
 	}
 
-	opensearchSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", util.ResourceName("opensearch.update"))
-	defer opensearchSpan.Finish()
+	clickhouseSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.clickhouse.update")
+	defer clickhouseSpan.Finish()
 	// If the session was previously marked as processed, clear this
-	// in OpenSearch so that it's treated as a live session again.
+	// in ClickHouse so that it's treated as a live session again.
 	// If the session was previously excluded (as we do with new sessions by default),
-	// clear it so it is shown as live in OpenSearch since we now have data for it.
+	// clear it so it is shown as live in ClickHouse since we now have data for it.
 	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
 		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 			return err

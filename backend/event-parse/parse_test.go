@@ -74,7 +74,7 @@ func TestEventsFromString(t *testing.T) {
 				{
 					Timestamp: time.Date(1970, time.Month(1), 1, 0, 0, 0, 0, time.UTC),
 					Type:      Meta,
-					Data:      json.RawMessage(`{"test": 5}`),
+					Data:      map[string]interface{}{"test": 5.0},
 					SID:       1234,
 				},
 			}},
@@ -170,7 +170,13 @@ func TestInjectStyleSheets(t *testing.T) {
 		t.Fatalf("error reading: %v", err)
 	}
 
-	snapshot, err := NewSnapshot(inputBytes, nil)
+	var data map[string]interface{}
+	err = json.Unmarshal(inputBytes, &data)
+	if err != nil {
+		t.Fatalf("error unmarshaling: %v", err)
+	}
+
+	snapshot, err := NewSnapshot(data, nil)
 	if err != nil {
 		t.Fatalf("error parsing: %v", err)
 	}
@@ -215,7 +221,13 @@ func TestEscapeJavascript(t *testing.T) {
 		t.Fatalf("error reading: %v", err)
 	}
 
-	snapshot, err := NewSnapshot(inputBytes, nil)
+	var data map[string]interface{}
+	err = json.Unmarshal(inputBytes, &data)
+	if err != nil {
+		t.Fatalf("error unmarshaling: %v", err)
+	}
+
+	snapshot, err := NewSnapshot(data, nil)
 	if err != nil {
 		t.Fatalf("error parsing: %v", err)
 	}
@@ -244,7 +256,13 @@ func TestSnapshot_ReplaceAssets(t *testing.T) {
 		t.Fatalf("error reading: %v", err)
 	}
 
-	snapshot, err := NewSnapshot(inputBytes, nil)
+	var data map[string]interface{}
+	err = json.Unmarshal(inputBytes, &data)
+	if err != nil {
+		t.Fatalf("error unmarshaling: %v", err)
+	}
+
+	snapshot, err := NewSnapshot(data, nil)
 	if err != nil {
 		t.Fatalf("error parsing: %v", err)
 	}
@@ -327,7 +345,13 @@ func TestSnapshot_ReplaceAssets_Capacitor(t *testing.T) {
 		t.Fatalf("error reading: %v", err)
 	}
 
-	snapshot, err := NewSnapshot(inputBytes, nil)
+	var data map[string]interface{}
+	err = json.Unmarshal(inputBytes, &data)
+	if err != nil {
+		t.Fatalf("error unmarshaling: %v", err)
+	}
+
+	snapshot, err := NewSnapshot(data, nil)
 	if err != nil {
 		t.Fatalf("error parsing: %v", err)
 	}
@@ -380,7 +404,7 @@ func TestGetHostUrlFromEvents(t *testing.T) {
 				{
 					Timestamp:    now,
 					Type:         2,
-					Data:         []byte("{\"href\": \"https://www.google.com\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com"},
 					TimestampRaw: 2,
 					SID:          1,
 				},
@@ -392,7 +416,7 @@ func TestGetHostUrlFromEvents(t *testing.T) {
 				{
 					Timestamp:    now,
 					Type:         4,
-					Data:         []byte("{\"href\": \"https://www.google.com\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com"},
 					TimestampRaw: 2,
 					SID:          1,
 				},
@@ -404,7 +428,7 @@ func TestGetHostUrlFromEvents(t *testing.T) {
 				{
 					Timestamp:    now,
 					Type:         4,
-					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com?test=1#testHash"},
 					TimestampRaw: 2,
 					SID:          1,
 				},
@@ -416,14 +440,14 @@ func TestGetHostUrlFromEvents(t *testing.T) {
 				{
 					Timestamp:    now,
 					Type:         1,
-					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com?test=1#testHash"},
 					TimestampRaw: 2,
 					SID:          1,
 				},
 				{
 					Timestamp:    time.Date(1970, time.Month(1), 1, 1, 0, 0, 0, time.UTC),
 					Type:         4,
-					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com?test=1#testHash"},
 					TimestampRaw: 2,
 					SID:          1,
 				},
@@ -435,14 +459,14 @@ func TestGetHostUrlFromEvents(t *testing.T) {
 				{
 					Timestamp:    time.Date(1970, time.Month(1), 1, 1, 0, 0, 0, time.UTC),
 					Type:         4,
-					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com?test=1#testHash"},
 					TimestampRaw: 2,
 					SID:          1,
 				},
 				{
 					Timestamp:    now,
 					Type:         1,
-					Data:         []byte("{\"href\": \"https://www.google.com?test=1#testHash\"}"),
+					Data:         map[string]interface{}{"href": "https://www.google.com?test=1#testHash"},
 					TimestampRaw: 2,
 					SID:          1,
 				},

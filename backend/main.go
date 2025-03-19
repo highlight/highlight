@@ -29,7 +29,6 @@ import (
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/assets"
 	"github.com/highlight-run/highlight/backend/clickhouse"
-	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/enterprise"
 	"github.com/highlight-run/highlight/backend/env"
@@ -269,6 +268,11 @@ func main() {
 				WithError(err).
 				Error("failed to enable all workspace settings for enterprise deploy")
 		}
+		if err := model.LoadSSOClient(ctx, db); err != nil {
+			log.WithContext(ctx).
+				WithError(err).
+				Error("failed to load SSO client for enterprise deploy")
+		}
 	}
 
 	var pricingClient *pricing.Client
@@ -439,14 +443,12 @@ func main() {
 			privateEndpoint = "/"
 		}
 
-		r.Route("/oauth", func(r chi.Router) {
-			r.Use(highlightChi.Middleware)
-			r.Use(private.PrivateMiddleware)
-			r.HandleFunc("/token", oauthSrv.HandleTokenRequest)
-			r.HandleFunc("/authorize", oauthSrv.HandleAuthorizeRequest)
-			r.HandleFunc("/validate", oauthSrv.HandleValidate)
-			r.HandleFunc("/revoke", oauthSrv.HandleRevoke)
-		})
+		// OAuth server
+		r.HandleFunc("/oauth/token", oauthSrv.HandleTokenRequest)
+		r.HandleFunc("/oauth/authorize", oauthSrv.HandleAuthorizeRequest)
+		r.HandleFunc("/oauth/validate", oauthSrv.HandleValidate)
+		r.HandleFunc("/oauth/revoke", oauthSrv.HandleRevoke)
+
 		r.HandleFunc("/stripe-webhook", privateResolver.StripeWebhook(ctx, env.Config.StripeWebhookSecret))
 		r.HandleFunc("/callback/aws-mp", privateResolver.AWSMPCallback(ctx))
 		r.Route("/zapier", func(r chi.Router) {
@@ -465,6 +467,7 @@ func main() {
 			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
 
+			log.WithContext(ctx).WithField("private", privateEndpoint).Info("setting up private graph auth listeners")
 			private.AuthClient.SetupListeners(r)
 
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
@@ -607,16 +610,6 @@ func main() {
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
-			if !env.IsDevOrTestEnv() && !env.IsOnPrem() {
-				serviceName := string(handlerParsed)
-
-				log.WithContext(ctx).Info("Running dd client setup process...")
-				if err := dd.Start(serviceName); err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "error starting dd clients with error"))
-				} else {
-					defer dd.Stop()
-				}
-			}
 			w.GetHandler(ctx, handlerParsed)(ctx)
 		} else {
 			go func() {

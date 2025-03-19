@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
+	"regexp"
+	"time"
+
 	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -15,9 +19,6 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
-	"hash/fnv"
-	"regexp"
-	"time"
 )
 
 func (r *Resolver) IsMetricIngested(ctx context.Context, metric clickhouse.MetricRow) bool {
@@ -309,7 +310,7 @@ func (r *Resolver) isItemIngestedBySample(ctx context.Context, product privateMo
 		}
 		return 1.
 	}()
-	ingested := isIngestedBySample(ctx, key, rate)
+	ingested := IsIngestedBySample(ctx, key, rate)
 	return ingested
 }
 
@@ -389,7 +390,7 @@ func (r *Resolver) isItemIngestedByFilter(ctx context.Context, product privateMo
 	return !excluded
 }
 
-func isIngestedBySample(ctx context.Context, key string, rate float64) bool {
+func IsIngestedBySample(ctx context.Context, key string, rate float64) bool {
 	if rate >= 1 {
 		return true
 	}

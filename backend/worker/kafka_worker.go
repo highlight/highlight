@@ -10,10 +10,12 @@ import (
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/env"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	pubgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/util"
 	hmetric "github.com/highlight/highlight/sdk/highlight-go/metric"
 	e "github.com/pkg/errors"
@@ -64,12 +66,19 @@ func (k *KafkaWorker) ProcessMessages() {
 		func(ctx context.Context) {
 			var err error
 			defer util.Recover()
-			s, ctx := util.StartSpanFromContext(ctx, "worker.kafka.process", util.WithSpanKind(trace.SpanKindConsumer))
+
+			spanKind := trace.SpanKindConsumer
+			// sample-in 1/1000 of ProcessPayload calls
+			if env.IsProduction() && pubgraph.IsIngestedBySample(ctx, "", 1./1000) {
+				spanKind = trace.SpanKindServer
+			}
+
+			s, ctx := util.StartSpanFromContext(ctx, "worker.kafka.process", util.WithSpanKind(spanKind))
 			s.SetAttribute("worker.goroutine", k.WorkerThread)
 			defer s.Finish(err)
 
 			s1, _ := util.StartSpanFromContext(ctx, "worker.kafka.receiveMessage")
-			task := k.KafkaQueue.Receive(ctx)
+			ctx, task := k.KafkaQueue.Receive(ctx)
 			s1.Finish()
 
 			if task == nil {
@@ -79,10 +88,13 @@ func (k *KafkaWorker) ProcessMessages() {
 			}
 			s.SetAttribute("taskType", task.GetType())
 			s.SetAttribute("partition", task.GetKafkaMessage().Partition)
+			s.SetAttribute("offset", task.GetKafkaMessage().Offset)
 			s.SetAttribute("partitionKey", string(task.GetKafkaMessage().Key))
 			k.log(ctx, task, "received message")
 
-			s2, sCtx := util.StartSpanFromContext(ctx, "worker.kafka.processMessage")
+			// When the propagated span is extracted from the Kafka message, it is a non-recording span.
+			// Set the SpanKind here again.
+			s2, sCtx := util.StartSpanFromContext(ctx, "worker.kafka.processMessage", util.WithSpanKind(spanKind))
 			for i := 0; i <= task.GetMaxRetries(); i++ {
 				k.log(ctx, task, "starting processing ", i)
 				start := time.Now()
@@ -698,7 +710,7 @@ func (k *KafkaBatchWorker) ProcessMessages() {
 			// and restarting the receive call
 			receiveCtx, receiveCancel := context.WithTimeout(ctx, k.BatchedFlushTimeout)
 			defer receiveCancel()
-			task := k.KafkaQueue.Receive(receiveCtx)
+			ctx, task := k.KafkaQueue.Receive(receiveCtx)
 			s1.Finish()
 
 			if task != nil {

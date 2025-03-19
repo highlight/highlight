@@ -413,8 +413,8 @@ func (k *MockMessageQueue) Stop(context.Context) {
 
 }
 
-func (k *MockMessageQueue) Receive(context.Context) RetryableMessage {
-	return nil
+func (k *MockMessageQueue) Receive(context.Context) (context.Context, RetryableMessage) {
+	return context.TODO(), nil
 }
 
 func (k *MockMessageQueue) Submit(context.Context, string, ...RetryableMessage) error {

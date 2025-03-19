@@ -581,6 +581,7 @@ type AllWorkspaceSettings {
 	enable_network_traces: Boolean!
 	enable_project_level_access: Boolean!
 	enable_session_export: Boolean!
+	enable_sso: Boolean!
 	enable_unlisted_sharing: Boolean!
 	enable_jira_integration: Boolean!
 	enable_teams_integration: Boolean!
@@ -1086,6 +1087,7 @@ enum ReservedErrorObjectKey {
 enum ReservedErrorGroupKey {
 	event
 	secure_id
+	snoozed_until
 	status
 	tag
 	type
@@ -1104,6 +1106,7 @@ enum ReservedErrorsJoinedKey {
 	secure_session_id
 	service_name
 	service_version
+	snoozed_until
 	timestamp
 	trace_id
 	visited_url
@@ -2083,6 +2086,11 @@ type OAuthClient {
 	app_name: String!
 }
 
+type SSOLogin {
+	domain: String!
+	client_id: String!
+}
+
 type SystemConfiguration {
 	maintenance_start: Timestamp
 	maintenance_end: Timestamp
@@ -2189,6 +2197,12 @@ input VariableInput {
 	field: String
 }
 
+enum DashboardTemplateType {
+	None
+	FrontendMetrics
+	AWSMetrics
+}
+
 input VisualizationInput {
 	id: ID
 	projectId: ID!
@@ -2196,6 +2210,7 @@ input VisualizationInput {
 	graphIds: [ID!]
 	timePreset: String
 	variables: [VariableInput!]
+	dashboardTemplateType: DashboardTemplateType
 }
 
 scalar Upload
@@ -2432,7 +2447,7 @@ type Query {
 	api_key_to_org_id(api_key: String!): ID
 	get_source_map_upload_urls(api_key: String!, paths: [String!]!): [String!]!
 	customer_portal_url(workspace_id: ID!): String!
-	subscription_details(workspace_id: ID!): SubscriptionDetails!
+	subscription_details(workspace_id: ID!): SubscriptionDetails
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
 	metric_tags(
 		project_id: ID!
@@ -2454,6 +2469,7 @@ type Query {
 	sourcemap_files(project_id: ID!, version: String): [S3File!]!
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
+	sso_login(domain: String!): SSOLogin
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 	ai_query_suggestion(
 		time_zone: String!

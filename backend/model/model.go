@@ -116,6 +116,7 @@ var ContextKeys = struct {
 	ZapierToken    contextString
 	ZapierProject  contextString
 	SessionId      contextString
+	SSOClientID    contextString
 }{
 	IP:             "ip",
 	UserAgent:      "userAgent",
@@ -126,6 +127,7 @@ var ContextKeys = struct {
 	ZapierToken:    "parsedToken",
 	ZapierProject:  "project",
 	SessionId:      "sessionId",
+	SSOClientID:    "clientID",
 }
 
 var Models = []interface{}{
@@ -197,6 +199,7 @@ var Models = []interface{}{
 	&Visualization{},
 	&Alert{},
 	&AlertDestination{},
+	&SSOClient{},
 }
 
 func init() {
@@ -482,6 +485,7 @@ type AllWorkspaceSettings struct {
 	EnableIngestSampling     bool `gorm:"default:false"`
 	EnableProjectLevelAccess bool `gorm:"default:false"`
 	EnableSessionExport      bool `gorm:"default:false"`
+	EnableSSO                bool `gorm:"default:false"`
 
 	EnableDataDeletion    bool `gorm:"default:true"`
 	EnableNetworkTraces   bool `gorm:"default:true"`
@@ -1313,6 +1317,14 @@ type OAuthOperation struct {
 	MinuteRateLimit            int64 `gorm:"default:600"`
 }
 
+type SSOClient struct {
+	Domain string `gorm:"primary_key"`
+
+	ClientID     string
+	ClientSecret string
+	ProviderURL  string
+}
+
 var ErrorType = struct {
 	FRONTEND string
 	BACKEND  string
@@ -1359,6 +1371,7 @@ type SystemConfiguration struct {
 	ErrorFilters       pq.StringArray `gorm:"type:text[]"`
 	IgnoredFiles       pq.StringArray `gorm:"type:text[]"`
 	MainWorkers        int            `gorm:"default:64"`
+	MainQueueSize      int            `gorm:"type:bigint;default:1000"`
 	LogsWorkers        int            `gorm:"default:1"`
 	LogsFlushSize      int            `gorm:"type:bigint;default:1000"`
 	LogsQueueSize      int            `gorm:"type:bigint;default:100"`
@@ -2433,6 +2446,24 @@ func EnableAllWorkspaceSettings(ctx context.Context, db *gorm.DB) error {
 			EnableSessionExport:       true,
 		}).Error; err != nil {
 		return e.Wrap(err, "failed to enable all workspace settings")
+	}
+	return nil
+}
+
+// LoadSSOClient creates SSO clients from environment
+func LoadSSOClient(ctx context.Context, db *gorm.DB) error {
+	if env.Config.OAuthClientID != "" && env.Config.OAuthAllowedDomains != "" {
+		for _, domain := range strings.Split(env.Config.OAuthAllowedDomains, ",") {
+			if err := db.WithContext(ctx).
+				Create(&SSOClient{
+					Domain:       domain,
+					ClientID:     env.Config.OAuthClientID,
+					ClientSecret: env.Config.OAuthClientSecret,
+					ProviderURL:  env.Config.OAuthProviderUrl,
+				}).Error; err != nil {
+				return e.Wrap(err, "failed to create SSO client")
+			}
+		}
 	}
 	return nil
 }

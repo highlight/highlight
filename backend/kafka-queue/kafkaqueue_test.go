@@ -104,7 +104,7 @@ func TestQueue_Submit(t *testing.T) {
 					break
 				}
 
-				msg := reader.Receive(ctx)
+				ctx, msg := reader.Receive(ctx)
 				if msg == nil {
 					log.WithContext(ctx).WithField("map", sids).Warn("expected to get a message")
 					errors++

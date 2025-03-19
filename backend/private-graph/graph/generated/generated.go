@@ -213,6 +213,7 @@ type ComplexityRoot struct {
 		EnableJiraIntegration    func(childComplexity int) int
 		EnableNetworkTraces      func(childComplexity int) int
 		EnableProjectLevelAccess func(childComplexity int) int
+		EnableSSO                func(childComplexity int) int
 		EnableSessionExport      func(childComplexity int) int
 		EnableTeamsIntegration   func(childComplexity int) int
 		EnableUnlistedSharing    func(childComplexity int) int
@@ -1181,6 +1182,7 @@ type ComplexityRoot struct {
 		SlackChannelSuggestion           func(childComplexity int, projectID int) int
 		SourcemapFiles                   func(childComplexity int, projectID int, version *string) int
 		SourcemapVersions                func(childComplexity int, projectID int) int
+		SsoLogin                         func(childComplexity int, domain string) int
 		SubscriptionDetails              func(childComplexity int, workspaceID int) int
 		SystemConfiguration              func(childComplexity int) int
 		TimelineIndicatorEvents          func(childComplexity int, sessionSecureID string) int
@@ -1248,6 +1250,11 @@ type ComplexityRoot struct {
 
 	S3File struct {
 		Key func(childComplexity int) int
+	}
+
+	SSOLogin struct {
+		ClientID func(childComplexity int) int
+		Domain   func(childComplexity int) int
 	}
 
 	Sampling struct {
@@ -2054,6 +2061,7 @@ type QueryResolver interface {
 	SourcemapFiles(ctx context.Context, projectID int, version *string) ([]*model.S3File, error)
 	SourcemapVersions(ctx context.Context, projectID int) ([]string, error)
 	OauthClientMetadata(ctx context.Context, clientID string) (*model.OAuthClient, error)
+	SsoLogin(ctx context.Context, domain string) (*model.SSOLogin, error)
 	EmailOptOuts(ctx context.Context, token *string, adminID *int) ([]model.EmailOptOutCategory, error)
 	AiQuerySuggestion(ctx context.Context, timeZone string, projectID int, productType model.ProductType, query string) (*model.QueryOutput, error)
 	Logs(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection, limit *int) (*model.LogConnection, error)
@@ -2940,6 +2948,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AllWorkspaceSettings.EnableProjectLevelAccess(childComplexity), true
+
+	case "AllWorkspaceSettings.enable_sso":
+		if e.complexity.AllWorkspaceSettings.EnableSSO == nil {
+			break
+		}
+
+		return e.complexity.AllWorkspaceSettings.EnableSSO(childComplexity), true
 
 	case "AllWorkspaceSettings.enable_session_export":
 		if e.complexity.AllWorkspaceSettings.EnableSessionExport == nil {
@@ -8964,6 +8979,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SourcemapVersions(childComplexity, args["project_id"].(int)), true
 
+	case "Query.sso_login":
+		if e.complexity.Query.SsoLogin == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sso_login_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SsoLogin(childComplexity, args["domain"].(string)), true
+
 	case "Query.subscription_details":
 		if e.complexity.Query.SubscriptionDetails == nil {
 			break
@@ -9446,6 +9473,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.S3File.Key(childComplexity), true
+
+	case "SSOLogin.client_id":
+		if e.complexity.SSOLogin.ClientID == nil {
+			break
+		}
+
+		return e.complexity.SSOLogin.ClientID(childComplexity), true
+
+	case "SSOLogin.domain":
+		if e.complexity.SSOLogin.Domain == nil {
+			break
+		}
+
+		return e.complexity.SSOLogin.Domain(childComplexity), true
 
 	case "Sampling.error_exclusion_query":
 		if e.complexity.Sampling.ErrorExclusionQuery == nil {
@@ -12657,6 +12698,7 @@ type AllWorkspaceSettings {
 	enable_network_traces: Boolean!
 	enable_project_level_access: Boolean!
 	enable_session_export: Boolean!
+	enable_sso: Boolean!
 	enable_unlisted_sharing: Boolean!
 	enable_jira_integration: Boolean!
 	enable_teams_integration: Boolean!
@@ -13162,6 +13204,7 @@ enum ReservedErrorObjectKey {
 enum ReservedErrorGroupKey {
 	event
 	secure_id
+	snoozed_until
 	status
 	tag
 	type
@@ -13180,6 +13223,7 @@ enum ReservedErrorsJoinedKey {
 	secure_session_id
 	service_name
 	service_version
+	snoozed_until
 	timestamp
 	trace_id
 	visited_url
@@ -14159,6 +14203,11 @@ type OAuthClient {
 	app_name: String!
 }
 
+type SSOLogin {
+	domain: String!
+	client_id: String!
+}
+
 type SystemConfiguration {
 	maintenance_start: Timestamp
 	maintenance_end: Timestamp
@@ -14265,6 +14314,12 @@ input VariableInput {
 	field: String
 }
 
+enum DashboardTemplateType {
+	None
+	FrontendMetrics
+	AWSMetrics
+}
+
 input VisualizationInput {
 	id: ID
 	projectId: ID!
@@ -14272,6 +14327,7 @@ input VisualizationInput {
 	graphIds: [ID!]
 	timePreset: String
 	variables: [VariableInput!]
+	dashboardTemplateType: DashboardTemplateType
 }
 
 scalar Upload
@@ -14508,7 +14564,7 @@ type Query {
 	api_key_to_org_id(api_key: String!): ID
 	get_source_map_upload_urls(api_key: String!, paths: [String!]!): [String!]!
 	customer_portal_url(workspace_id: ID!): String!
-	subscription_details(workspace_id: ID!): SubscriptionDetails!
+	subscription_details(workspace_id: ID!): SubscriptionDetails
 	dashboard_definitions(project_id: ID!): [DashboardDefinition]!
 	metric_tags(
 		project_id: ID!
@@ -14530,6 +14586,7 @@ type Query {
 	sourcemap_files(project_id: ID!, version: String): [S3File!]!
 	sourcemap_versions(project_id: ID!): [String!]!
 	oauth_client_metadata(client_id: String!): OAuthClient
+	sso_login(domain: String!): SSOLogin
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 	ai_query_suggestion(
 		time_zone: String!
@@ -22870,6 +22927,21 @@ func (ec *executionContext) field_Query_sourcemap_versions_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_sso_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["domain"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domain"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["domain"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_subscription_details_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -28561,6 +28633,50 @@ func (ec *executionContext) _AllWorkspaceSettings_enable_session_export(ctx cont
 }
 
 func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_session_export(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllWorkspaceSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllWorkspaceSettings_enable_sso(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllWorkspaceSettings_enable_sso(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnableSSO, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_sso(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AllWorkspaceSettings",
 		Field:      field,
@@ -48840,6 +48956,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 				return ec.fieldContext_AllWorkspaceSettings_enable_project_level_access(ctx, field)
 			case "enable_session_export":
 				return ec.fieldContext_AllWorkspaceSettings_enable_session_export(ctx, field)
+			case "enable_sso":
+				return ec.fieldContext_AllWorkspaceSettings_enable_sso(ctx, field)
 			case "enable_unlisted_sharing":
 				return ec.fieldContext_AllWorkspaceSettings_enable_unlisted_sharing(ctx, field)
 			case "enable_jira_integration":
@@ -64145,6 +64263,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSettings(ctx context.Con
 				return ec.fieldContext_AllWorkspaceSettings_enable_project_level_access(ctx, field)
 			case "enable_session_export":
 				return ec.fieldContext_AllWorkspaceSettings_enable_session_export(ctx, field)
+			case "enable_sso":
+				return ec.fieldContext_AllWorkspaceSettings_enable_sso(ctx, field)
 			case "enable_unlisted_sharing":
 				return ec.fieldContext_AllWorkspaceSettings_enable_unlisted_sharing(ctx, field)
 			case "enable_jira_integration":
@@ -64717,14 +64837,11 @@ func (ec *executionContext) _Query_subscription_details(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.SubscriptionDetails)
 	fc.Result = res
-	return ec.marshalNSubscriptionDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDetails(ctx, field.Selections, res)
+	return ec.marshalOSubscriptionDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_subscription_details(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -65375,6 +65492,64 @@ func (ec *executionContext) fieldContext_Query_oauth_client_metadata(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_oauth_client_metadata_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_sso_login(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_sso_login(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SsoLogin(rctx, fc.Args["domain"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SSOLogin)
+	fc.Result = res
+	return ec.marshalOSSOLogin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSSOLogin(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_sso_login(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "domain":
+				return ec.fieldContext_SSOLogin_domain(ctx, field)
+			case "client_id":
+				return ec.fieldContext_SSOLogin_client_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SSOLogin", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_sso_login_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -68812,6 +68987,94 @@ func (ec *executionContext) _S3File_key(ctx context.Context, field graphql.Colle
 func (ec *executionContext) fieldContext_S3File_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "S3File",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SSOLogin_domain(ctx context.Context, field graphql.CollectedField, obj *model.SSOLogin) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SSOLogin_domain(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Domain, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SSOLogin_domain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SSOLogin",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SSOLogin_client_id(ctx context.Context, field graphql.CollectedField, obj *model.SSOLogin) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SSOLogin_client_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SSOLogin_client_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SSOLogin",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -88348,7 +88611,7 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "projectId", "name", "graphIds", "timePreset", "variables"}
+	fieldsInOrder := [...]string{"id", "projectId", "name", "graphIds", "timePreset", "variables", "dashboardTemplateType"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -88397,6 +88660,13 @@ func (ec *executionContext) unmarshalInputVisualizationInput(ctx context.Context
 				return it, err
 			}
 			it.Variables = data
+		case "dashboardTemplateType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dashboardTemplateType"))
+			data, err := ec.unmarshalODashboardTemplateType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardTemplateType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DashboardTemplateType = data
 		}
 	}
 
@@ -89514,6 +89784,11 @@ func (ec *executionContext) _AllWorkspaceSettings(ctx context.Context, sel ast.S
 			}
 		case "enable_session_export":
 			out.Values[i] = ec._AllWorkspaceSettings_enable_session_export(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "enable_sso":
+			out.Values[i] = ec._AllWorkspaceSettings_enable_sso(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
@@ -98309,9 +98584,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_subscription_details(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
 				return res
 			}
 
@@ -98526,6 +98798,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_oauth_client_metadata(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "sso_login":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sso_login(ctx, field)
 				return res
 			}
 
@@ -99696,6 +99987,50 @@ func (ec *executionContext) _S3File(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = graphql.MarshalString("S3File")
 		case "key":
 			out.Values[i] = ec._S3File_key(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var sSOLoginImplementors = []string{"SSOLogin"}
+
+func (ec *executionContext) _SSOLogin(ctx context.Context, sel ast.SelectionSet, obj *model.SSOLogin) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sSOLoginImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SSOLogin")
+		case "domain":
+			out.Values[i] = ec._SSOLogin_domain(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "client_id":
+			out.Values[i] = ec._SSOLogin_client_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -108716,20 +109051,6 @@ func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalNSubscriptionDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDetails(ctx context.Context, sel ast.SelectionSet, v model.SubscriptionDetails) graphql.Marshaler {
-	return ec._SubscriptionDetails(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNSubscriptionDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDetails(ctx context.Context, sel ast.SelectionSet, v *model.SubscriptionDetails) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._SubscriptionDetails(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNSubscriptionInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionInterval(ctx context.Context, v interface{}) (model.SubscriptionInterval, error) {
 	var res model.SubscriptionInterval
 	err := res.UnmarshalGQL(v)
@@ -110288,6 +110609,22 @@ func (ec *executionContext) marshalODashboardDefinition2ᚖgithubᚗcomᚋhighli
 	return ec._DashboardDefinition(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalODashboardTemplateType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardTemplateType(ctx context.Context, v interface{}) (*model.DashboardTemplateType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.DashboardTemplateType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalODashboardTemplateType2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDashboardTemplateType(ctx context.Context, sel ast.SelectionSet, v *model.DashboardTemplateType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) unmarshalODateRangeRequiredInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeRequiredInput(ctx context.Context, v interface{}) (*model.DateRangeRequiredInput, error) {
 	if v == nil {
 		return nil, nil
@@ -111454,6 +111791,13 @@ func (ec *executionContext) marshalOReferrerTablePayload2ᚖgithubᚗcomᚋhighl
 	return ec._ReferrerTablePayload(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOSSOLogin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSSOLogin(ctx context.Context, sel ast.SelectionSet, v *model.SSOLogin) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SSOLogin(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOSamplingInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSamplingInput(ctx context.Context, v interface{}) (*model.SamplingInput, error) {
 	if v == nil {
 		return nil, nil
@@ -111921,6 +112265,13 @@ func (ec *executionContext) marshalOStringArray2githubᚗcomᚋlibᚋpqᚐString
 	}
 	res := model1.MarshalStringArray(v)
 	return res
+}
+
+func (ec *executionContext) marshalOSubscriptionDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDetails(ctx context.Context, sel ast.SelectionSet, v *model.SubscriptionDetails) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SubscriptionDetails(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOSubscriptionDiscount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionDiscount(ctx context.Context, sel ast.SelectionSet, v *model.SubscriptionDiscount) graphql.Marshaler {

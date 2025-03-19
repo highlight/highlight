@@ -6,6 +6,7 @@ import {
 	MetricCategory,
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
+	OtelOptions,
 } from './client.js'
 import { ErrorMessageType } from './shared-types'
 
@@ -261,6 +262,10 @@ export declare type HighlightOptions = {
 	 * OTLP endpoint for OpenTelemetry tracing.
 	 */
 	otlpEndpoint?: string
+	/**
+	 * OTLP options for OpenTelemetry tracing. Instrumentations are enabled by default.
+	 */
+	otel?: OtelOptions
 }
 
 export declare interface HighlightPublicInterface {

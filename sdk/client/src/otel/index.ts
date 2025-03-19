@@ -36,7 +36,10 @@ import {
 	BrowserXHR,
 	getBodyThatShouldBeRecorded,
 } from '../listeners/network-listener/utils/xhr-listener'
-import type { NetworkRecordingOptions } from '../types/client'
+import type {
+	NetworkRecordingOptions,
+	OtelInstrumentatonOptions,
+} from '../types/client'
 import {
 	OTLPMetricExporterBrowser,
 	OTLPTraceExporterBrowserWithXhrRetry,
@@ -58,6 +61,7 @@ export type BrowserTracingConfig = {
 	serviceName?: string
 	tracingOrigins?: boolean | (string | RegExp)[]
 	urlBlocklist?: string[]
+	instrumentations?: OtelInstrumentatonOptions
 }
 
 let providers: {
@@ -137,104 +141,138 @@ export const setupBrowserTracing = (config: BrowserTracingConfig) => {
 	providers.meterProvider = new MeterProvider({ resource, readers: [reader] })
 	api.metrics.setGlobalMeterProvider(providers.meterProvider)
 
-	let instrumentations: Instrumentation[] = [
-		new DocumentLoadInstrumentation({
-			applyCustomAttributesOnSpan: {
-				documentLoad: assignDocumentDurations,
-				documentFetch: assignDocumentDurations,
-				resourceFetch: assignResourceFetchDurations,
-			},
-		}),
-		new UserInteractionInstrumentation(),
-	]
+	// TODO: allow passing in custom instrumentations/configurations
+	let instrumentations: Instrumentation[] = []
+
+	const documentLoadConfig =
+		config.instrumentations?.[
+			'@opentelemetry/instrumentation-document-load'
+		]
+	if (documentLoadConfig !== false) {
+		instrumentations.push(
+			new DocumentLoadInstrumentation({
+				applyCustomAttributesOnSpan: {
+					documentLoad: assignDocumentDurations,
+					documentFetch: assignDocumentDurations,
+					resourceFetch: assignResourceFetchDurations,
+				},
+			}),
+		)
+	}
+
+	const userInteractionConfig =
+		config.instrumentations?.[
+			'@opentelemetry/instrumentation-user-interaction'
+		]
+	if (userInteractionConfig !== false) {
+		instrumentations.push(new UserInteractionInstrumentation())
+	}
 
 	if (config.networkRecordingOptions?.enabled) {
-		instrumentations.push(
-			new FetchInstrumentation({
-				propagateTraceHeaderCorsUrls: getCorsUrlsPattern(
-					config.tracingOrigins,
-				),
-				applyCustomAttributesOnSpan: async (
-					span,
-					request,
-					response,
-				) => {
-					if (!(span as any).attributes) {
-						return
-					}
-					const readableSpan = span as unknown as ReadableSpan
-					if (readableSpan.attributes[RECORD_ATTRIBUTE] === false) {
-						return
-					}
-
-					const url = readableSpan.attributes['http.url'] as string
-					const method = request.method ?? 'GET'
-					span.updateName(getSpanName(url, method, request.body))
-
-					if (!(response instanceof Response)) {
-						span.setAttributes({
-							'http.response.error': response.message,
-							'http.response.status': response.status,
-						})
-						return
-					}
-
-					enhanceSpanWithHttpRequestAttributes(
+		const fetchInstrumentationConfig =
+			config.instrumentations?.['@opentelemetry/instrumentation-fetch']
+		if (fetchInstrumentationConfig !== false) {
+			instrumentations.push(
+				new FetchInstrumentation({
+					propagateTraceHeaderCorsUrls: getCorsUrlsPattern(
+						config.tracingOrigins,
+					),
+					applyCustomAttributesOnSpan: async (
 						span,
-						request.body,
-						request.headers,
-						config.networkRecordingOptions,
-					)
-
-					const body = await getResponseBody(
+						request,
 						response,
-						config.networkRecordingOptions?.bodyKeysToRecord,
-						config.networkRecordingOptions?.networkBodyKeysToRedact,
-					)
-					span.setAttribute('http.response.body', body)
-				},
-			}),
-		)
+					) => {
+						if (!(span as any).attributes) {
+							return
+						}
+						const readableSpan = span as unknown as ReadableSpan
+						if (
+							readableSpan.attributes[RECORD_ATTRIBUTE] === false
+						) {
+							return
+						}
 
-		instrumentations.push(
-			new XMLHttpRequestInstrumentation({
-				propagateTraceHeaderCorsUrls: getCorsUrlsPattern(
-					config.tracingOrigins,
-				),
-				applyCustomAttributesOnSpan: (span, xhr) => {
-					const browserXhr = xhr as BrowserXHR
-					if (!(span as any).attributes) {
-						return
-					}
-					const readableSpan = span as unknown as ReadableSpan
-					if (readableSpan.attributes[RECORD_ATTRIBUTE] === false) {
-						return
-					}
+						const url = readableSpan.attributes[
+							'http.url'
+						] as string
+						const method = request.method ?? 'GET'
+						span.updateName(getSpanName(url, method, request.body))
 
-					const spanName = getSpanName(
-						browserXhr._url,
-						browserXhr._method,
-						xhr.responseText,
-					)
-					span.updateName(spanName)
+						if (!(response instanceof Response)) {
+							span.setAttributes({
+								'http.response.error': response.message,
+								'http.response.status': response.status,
+							})
+							return
+						}
 
-					enhanceSpanWithHttpRequestAttributes(
-						span,
-						browserXhr._body,
-						browserXhr._requestHeaders as Headers,
-						config.networkRecordingOptions,
-					)
+						enhanceSpanWithHttpRequestAttributes(
+							span,
+							request.body,
+							request.headers,
+							config.networkRecordingOptions,
+						)
 
-					const recordedBody = getBodyThatShouldBeRecorded(
-						browserXhr._body,
-						config.networkRecordingOptions?.networkBodyKeysToRedact,
-						config.networkRecordingOptions?.bodyKeysToRecord,
-						browserXhr._requestHeaders as Headers,
-					)
-					span.setAttribute('http.request.body', recordedBody)
-				},
-			}),
-		)
+						const body = await getResponseBody(
+							response,
+							config.networkRecordingOptions?.bodyKeysToRecord,
+							config.networkRecordingOptions
+								?.networkBodyKeysToRedact,
+						)
+						span.setAttribute('http.response.body', body)
+					},
+				}),
+			)
+		}
+
+		const xmlInstrumentationConfig =
+			config.instrumentations?.[
+				'@opentelemetry/instrumentation-xml-http-request'
+			]
+		if (xmlInstrumentationConfig !== false) {
+			instrumentations.push(
+				new XMLHttpRequestInstrumentation({
+					propagateTraceHeaderCorsUrls: getCorsUrlsPattern(
+						config.tracingOrigins,
+					),
+					applyCustomAttributesOnSpan: (span, xhr) => {
+						const browserXhr = xhr as BrowserXHR
+						if (!(span as any).attributes) {
+							return
+						}
+						const readableSpan = span as unknown as ReadableSpan
+						if (
+							readableSpan.attributes[RECORD_ATTRIBUTE] === false
+						) {
+							return
+						}
+
+						const spanName = getSpanName(
+							browserXhr._url,
+							browserXhr._method,
+							xhr.responseText,
+						)
+						span.updateName(spanName)
+
+						enhanceSpanWithHttpRequestAttributes(
+							span,
+							browserXhr._body,
+							browserXhr._requestHeaders as Headers,
+							config.networkRecordingOptions,
+						)
+
+						const recordedBody = getBodyThatShouldBeRecorded(
+							browserXhr._body,
+							config.networkRecordingOptions
+								?.networkBodyKeysToRedact,
+							config.networkRecordingOptions?.bodyKeysToRecord,
+							browserXhr._requestHeaders as Headers,
+						)
+						span.setAttribute('http.request.body', recordedBody)
+					},
+				}),
+			)
+		}
 	}
 
 	registerInstrumentations({ instrumentations })

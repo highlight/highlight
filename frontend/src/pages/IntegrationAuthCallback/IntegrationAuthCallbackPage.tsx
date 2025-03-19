@@ -1,3 +1,9 @@
+import { Form, Stack, Text } from '@highlight-run/ui/components'
+import { H } from 'highlight.run'
+import { useCallback, useEffect, useMemo } from 'react'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { StringParam, useQueryParams } from 'use-query-params'
+
 import { Button } from '@components/Button'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import { toast } from '@components/Toaster'
@@ -10,7 +16,6 @@ import {
 	useGetWorkspacesQuery,
 	useHandleAwsMarketplaceMutation,
 } from '@graph/hooks'
-import { Form, Stack, Text } from '@highlight-run/ui/components'
 import * as styles from '@pages/Auth/AdminForm.css'
 import * as authRouterStyles from '@pages/Auth/AuthRouter.css'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
@@ -26,11 +31,6 @@ import { Landing } from '@pages/Landing/Landing'
 import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
-import { H } from 'highlight.run'
-import { useCallback, useEffect, useMemo } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { StringParam, useQueryParams } from 'use-query-params'
-
 import { useAuthContext } from '@/authentication/AuthContext'
 import { RetentionPeriod } from '@/graph/generated/schemas'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
@@ -38,6 +38,7 @@ import { authRedirect } from '@/pages/Auth/utils'
 import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
+import { atobSafe } from '@/util/string'
 
 interface Props {
 	code: string
@@ -583,7 +584,7 @@ const IntegrationAuthCallbackPage = () => {
 		if (state) {
 			let parsedState: any
 			try {
-				parsedState = JSON.parse(atob(state))
+				parsedState = JSON.parse(atobSafe(state))
 			} catch (e) {
 				parsedState = JSON.parse(state)
 			}

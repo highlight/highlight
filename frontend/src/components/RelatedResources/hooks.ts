@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom'
 
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
+import { atobSafe, btoaSafe } from '@/util/string'
 
 type RelatedResourceCommon = {
 	type:
@@ -117,7 +118,7 @@ export const useRelatedResource = () => {
 		if (resourceParam) {
 			let innerString: string
 			try {
-				innerString = atob(resourceParam)
+				innerString = atobSafe(resourceParam)
 			} catch {
 				innerString = decodeURIComponent(resourceParam)
 			}
@@ -158,7 +159,7 @@ export const useRelatedResource = () => {
 
 			searchParams.set(
 				RELATED_RESOURCE_PARAM,
-				btoa(JSON.stringify(newResource)), // setSearchParams encodes the string
+				btoaSafe(JSON.stringify(newResource)), // setSearchParams encodes the string
 			)
 
 			setSearchParams(Object.fromEntries(searchParams.entries()))
@@ -222,7 +223,7 @@ export const useSetRelatedResource = () => {
 			const params = new URLSearchParams(location.search)
 			params.set(
 				RELATED_RESOURCE_PARAM,
-				btoa(JSON.stringify(newResource)), // setSearchParams encodes the string
+				btoaSafe(JSON.stringify(newResource)), // setSearchParams encodes the string
 			)
 			setSearchParams(params)
 

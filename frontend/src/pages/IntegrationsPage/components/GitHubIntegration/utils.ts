@@ -1,3 +1,4 @@
+import { btoaSafe } from '@/util/string'
 import {
 	useGetGitHubIntegrationSettingsQuery,
 	useUpdateIntegrationProjectSettingsMutation,
@@ -46,6 +47,6 @@ export const getGitHubInstallationOAuthUrl = (
 
 	return (
 		`https://github.com/apps/highlight-io/installations/new` +
-		`?state=${btoa(JSON.stringify(state))}&`
+		`?state=${btoaSafe(JSON.stringify(state))}&`
 	)
 }
