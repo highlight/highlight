@@ -38,6 +38,7 @@ export const LeftPanel: React.FC<Props> = ({
 			flexGrow={0}
 			overflowX="hidden"
 			overflowY="auto"
+			hiddenScroll
 		>
 			<InnerPanel
 				product={product}
@@ -171,13 +172,7 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 	}
 
 	return (
-		<Stack
-			width="full"
-			height="full"
-			overflow="auto"
-			style={{ position: 'relative' }}
-			gap="8"
-		>
+		<Stack width="full" style={{ position: 'relative' }} gap="8">
 			{data?.key_values_suggestions.map((suggestion) => (
 				<Filter
 					key={suggestion.key}

@@ -4,14 +4,12 @@ import {
 	IconSolidCheveronUp,
 	IconSolidCheveronDown,
 	Stack,
-	Text,
 	IconSolidCheckCircle,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useState } from 'react'
 
 import { Button } from '@components/Button'
-import { formatNumber } from '@/pages/Graphing/components/Graph'
 
 import * as style from './Filter.css'
 
@@ -51,7 +49,7 @@ export const Filter: React.FC<Props> = ({
 						e.stopPropagation()
 						setExpanded(!expanded)
 					}}
-					trackingId="logs_toggle-expand-all_click"
+					trackingId="expand-filter-button"
 				>
 					<Box
 						alignItems="center"
@@ -79,41 +77,31 @@ export const Filter: React.FC<Props> = ({
 							<Stack
 								key={value.value}
 								direction="row"
-								alignItems="center"
-								justifyContent="space-between"
 								gap="4"
+								alignItems="center"
+								justifyContent="flex-start"
+								width="full"
 								cursor="pointer"
 								onClick={() =>
 									handleSelect(value.value, !selected)
 								}
 							>
-								<Stack
-									direction="row"
-									gap="4"
-									alignItems="center"
-									justifyContent="flex-start"
+								<div
+									className={style.checkbox}
+									style={{
+										backgroundColor: selected
+											? vars.theme.interactive.fill
+													.primary.enabled
+											: 'white',
+									}}
 								>
-									<div
-										className={style.checkbox}
-										style={{
-											backgroundColor: selected
-												? vars.theme.interactive.fill
-														.primary.enabled
-												: 'white',
-										}}
-									>
-										<IconSolidCheckCircle color="white" />
-									</div>
-									<Badge
-										label={value.value}
-										title={value.value}
-										lines="1"
-									/>
-								</Stack>
-
-								<Text color="weak">
-									{formatNumber(value.count)}
-								</Text>
+									<IconSolidCheckCircle color="white" />
+								</div>
+								<Badge
+									label={value.value}
+									title={value.value}
+									lines="1"
+								/>
 							</Stack>
 						)
 					})}

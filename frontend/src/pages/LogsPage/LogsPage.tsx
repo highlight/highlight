@@ -300,7 +300,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
 						timeMode={timeMode}
 					/>
-					<Box display="flex" flexDirection="row">
+					<Box display="flex" flexDirection="row" height="full">
 						<LeftPanel
 							product={ProductType.Logs}
 							displayLeftPanel={displayLeftPanel}
