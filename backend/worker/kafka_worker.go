@@ -92,7 +92,9 @@ func (k *KafkaWorker) ProcessMessages() {
 			s.SetAttribute("partitionKey", string(task.GetKafkaMessage().Key))
 			k.log(ctx, task, "received message")
 
-			s2, sCtx := util.StartSpanFromContext(ctx, "worker.kafka.processMessage")
+			// When the propagated span is extracted from the Kafka message, it is a non-recording span.
+			// Set the SpanKind here again.
+			s2, sCtx := util.StartSpanFromContext(ctx, "worker.kafka.processMessage", util.WithSpanKind(spanKind))
 			for i := 0; i <= task.GetMaxRetries(); i++ {
 				k.log(ctx, task, "starting processing ", i)
 				start := time.Now()

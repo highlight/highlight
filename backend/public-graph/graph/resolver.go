@@ -3119,23 +3119,34 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		elapsedSinceUpdate = now.Sub(*sessionObj.PayloadUpdatedAt)
 	}
 
-	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
-	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
-		elapsedSinceUpdate > 15*time.Second ||
-		beaconTime != nil ||
-		hasSessionUnloaded != sessionObj.HasUnloaded ||
-		(sessionObj.Processed != nil && *sessionObj.Processed) ||
-		(sessionObj.ObjectStorageEnabled != nil && *sessionObj.ObjectStorageEnabled) ||
-		(sessionObj.Chunked != nil && *sessionObj.Chunked) ||
-		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
+	// Update only the fields that may have changed
+	updateFields := []string{}
+	if sessionObj.PayloadUpdatedAt == nil || elapsedSinceUpdate > 15*time.Second {
+		updateFields = append(updateFields, "PayloadUpdatedAt")
+	}
+	if beaconTime != nil {
+		updateFields = append(updateFields, "BeaconTime")
+	}
+	if hasSessionUnloaded != sessionObj.HasUnloaded {
+		updateFields = append(updateFields, "HasUnloaded")
+	}
+	if sessionObj.Processed != nil && *sessionObj.Processed {
+		updateFields = append(updateFields, "Processed", "ObjectStorageEnabled", "DirectDownloadEnabled", "Chunked")
+	}
+	if sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors) {
+		updateFields = append(updateFields, "HasErrors")
+	}
+	if sessionObj.Excluded && !excluded {
+		updateFields = append(updateFields, "Excluded", "ExcludedReason")
+	}
 
-	if doUpdate && !excluded {
+	if len(updateFields) > 0 && !excluded {
 		updateSessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateSession", util.Tag("project_id", projectID))
 		// By default, GORM will not update non-zero fields. This is undesirable for boolean columns.
 		// By explicitly specifying the columns to update, we can override the behavior.
 		// See https://gorm.io/docs/update.html#Updates-multiple-columns
 		if err := r.DB.WithContext(sCtx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
-			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "ExcludedReason", "HasErrors").
+			Select(updateFields).
 			Updates(&model.Session{
 				PayloadUpdatedAt:      &now,
 				BeaconTime:            beaconTime,
