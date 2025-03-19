@@ -7442,6 +7442,12 @@ body {
   top: 8px;
   z-index: 1;
 }
+._1wtm1xf0 {
+  border: var(--_1pyqka91o) solid 1px;
+  border-radius: 4px;
+  display: flex;
+  padding: 1px;
+}
 .ltrwrc0 {
   position: fixed;
   left: 100%;
