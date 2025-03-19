@@ -6,7 +6,10 @@ The Highlight project ID should be configured via an environment variable in the
 
 To run:
 
+Replace the @highlight-run/node SDK version from `workspace:*` with the latest SDK version. SAM requires an npm-fetchable version of the package to be installed.
+
 ```bash
+yarn install
 yarn build
 yarn start
 ```
