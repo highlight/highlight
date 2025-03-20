@@ -158,8 +158,6 @@ const App = () => {
 		AppLoadingState.LOADING,
 	)
 
-	const user = auth.currentUser
-
 	return (
 		<ErrorBoundary>
 			<ApolloProvider client={client}>
@@ -168,11 +166,8 @@ const App = () => {
 					highlightColor="var(--color-primary-background)"
 				>
 					<LaunchDarklyProvider
-						clientSideID="sdk-a8340aae-cc48-4934-bace-577393412b53"
-						context={{
-							kind: 'user',
-							user,
-						}}
+						clientSideID="66d9d3c255856f0fa8fd62d0"
+						email={auth.currentUser?.email ?? undefined}
 					>
 						<AppLoadingContext
 							value={{
