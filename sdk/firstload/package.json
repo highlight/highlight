@@ -41,6 +41,7 @@
 	"module": "./dist/index.js",
 	"unpkg": "./dist/index.umd.js",
 	"jsdelivr": "./dist/index.umd.js",
+	"browser": "./dist/index.umd.js",
 	"types": "./dist/firstload/src/index.d.ts",
 	"exports": {
 		"types": "./dist/firstload/src/index.d.ts",
@@ -48,6 +49,7 @@
 		"require": "./dist/index.js",
 		"unpkg": "./dist/index.umd.js",
 		"jsdelivr": "./dist/index.umd.js",
+		"browser": "./dist/index.umd.js",
 		"default": "./dist/index.umd.js"
 	},
 	"files": [
