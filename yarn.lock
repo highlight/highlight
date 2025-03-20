@@ -10301,6 +10301,7 @@ __metadata:
     highlight.run: "workspace:*"
     js-cookie: "npm:^3.0.1"
     jsonc-parser: "npm:^3.2.0"
+    launchdarkly-react-client-sdk: "npm:^3.6.1"
     less: "npm:^4.1.3"
     lightningcss: "npm:^1.22.1"
     lodash: "npm:^4.17.21"
@@ -37019,6 +37020,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-deep-equal@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "fast-deep-equal@npm:2.0.1"
+  checksum: 10/b701835a87985e0ec4925bdf1f0c1e7eb56309b5d12d534d5b4b69d95a54d65bb16861c081781ead55f73f12d6c60ba668713391ee7fbf6b0567026f579b7b0b
+  languageName: node
+  linkType: hard
+
 "fast-diff@npm:^1.1.2":
   version: 1.3.0
   resolution: "fast-diff@npm:1.3.0"
@@ -44625,6 +44633,41 @@ __metadata:
     picocolors: "npm:^1.0.0"
     shell-quote: "npm:^1.8.1"
   checksum: 10/69eb1e69db4f0fcd34a42bd47e9adbad27cb5413408fcc746eb7b016128ce19d71a30629534b17aa5886488936aaa959bf7dab17307ad5ed6c7247a0d145be18
+  languageName: node
+  linkType: hard
+
+"launchdarkly-js-client-sdk@npm:^3.5.0":
+  version: 3.5.0
+  resolution: "launchdarkly-js-client-sdk@npm:3.5.0"
+  dependencies:
+    escape-string-regexp: "npm:^4.0.0"
+    launchdarkly-js-sdk-common: "npm:5.4.0"
+  checksum: 10/9767481b10321acd20450d850fb86ce12aa098be27d3d4a8043a79832fdc37b8cce462ac8b46140ea9c5da6d0b095c582fa7e2bbefdfb80d28f5ff0d6b3d8471
+  languageName: node
+  linkType: hard
+
+"launchdarkly-js-sdk-common@npm:5.4.0":
+  version: 5.4.0
+  resolution: "launchdarkly-js-sdk-common@npm:5.4.0"
+  dependencies:
+    base64-js: "npm:^1.3.0"
+    fast-deep-equal: "npm:^2.0.1"
+    uuid: "npm:^8.0.0"
+  checksum: 10/b51159dd183e1a184cf9720a0e47287112f5baa29f5af8af64f20fbd1cca9fbfae3797a68162eb02973d1a2c381607cd907bfd36fb14feb2aac16e543edfc9f9
+  languageName: node
+  linkType: hard
+
+"launchdarkly-react-client-sdk@npm:^3.6.1":
+  version: 3.6.1
+  resolution: "launchdarkly-react-client-sdk@npm:3.6.1"
+  dependencies:
+    hoist-non-react-statics: "npm:^3.3.2"
+    launchdarkly-js-client-sdk: "npm:^3.5.0"
+    lodash.camelcase: "npm:^4.3.0"
+  peerDependencies:
+    react: ^16.6.3 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^16.8.4 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/4491f8591173fd28f7a562ff3798687d6946a22e1a0b30460a3fd5d4569bf87d3e2e46bc007b2bc2ca644ce6f7fd7291e60db5b05525f3cdfd3f09dc2306b707
   languageName: node
   linkType: hard
 
