@@ -89,6 +89,9 @@ export const LaunchDarklyProvider: React.FC<
 				sendEvents: true,
 				flushInterval: 2000,
 			}}
+			reactOptions={{
+				useCamelCaseFlagKeys: false,
+			}}
 		>
 			<LaunchDarklyProviderContent
 				context={context}
