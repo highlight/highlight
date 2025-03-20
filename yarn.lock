@@ -23096,14 +23096,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/semver@npm:^7.3.12, @types/semver@npm:^7.3.4, @types/semver@npm:^7.5.0":
-  version: 7.5.0
-  resolution: "@types/semver@npm:7.5.0"
-  checksum: 10/8fbfbf79e9c14c3c20160a42145a146cba44d9763d0fac78358b394dc36e41bc2590bc4f0129c6fcbbc9b30f12ea1ba821bfe84b29dc80897f315cc7dd251393
-  languageName: node
-  linkType: hard
-
-"@types/semver@npm:^7.5.8":
+"@types/semver@npm:^7.3.12, @types/semver@npm:^7.3.4, @types/semver@npm:^7.5.0, @types/semver@npm:^7.5.8":
   version: 7.5.8
   resolution: "@types/semver@npm:7.5.8"
   checksum: 10/3496808818ddb36deabfe4974fd343a78101fa242c4690044ccdc3b95dcf8785b494f5d628f2f47f38a702f8db9c53c67f47d7818f2be1b79f2efb09692e1178
@@ -60225,7 +60218,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"svelte2tsx@npm:^0.7.30":
+"svelte2tsx@npm:^0.7.30, svelte2tsx@npm:~0.7.0":
   version: 0.7.35
   resolution: "svelte2tsx@npm:0.7.35"
   dependencies:
@@ -60235,19 +60228,6 @@ __metadata:
     svelte: ^3.55 || ^4.0.0-next.0 || ^4.0 || ^5.0.0-next.0
     typescript: ^4.9.4 || ^5.0.0
   checksum: 10/05e8dce812215e6469776f6aaac55453a750a2f0f9e3fb2b318c1f10b7fee66b8222395877b39690ea9cf901a3157205039aeb589349c5981aabb418954d79bf
-  languageName: node
-  linkType: hard
-
-"svelte2tsx@npm:~0.7.0":
-  version: 0.7.11
-  resolution: "svelte2tsx@npm:0.7.11"
-  dependencies:
-    dedent-js: "npm:^1.0.1"
-    pascal-case: "npm:^3.1.1"
-  peerDependencies:
-    svelte: ^3.55 || ^4.0.0-next.0 || ^4.0 || ^5.0.0-next.0
-    typescript: ^4.9.4 || ^5.0.0
-  checksum: 10/e458622e60abab1dcc5a608e80630c7bfb9a9d2ab3be1455189928d7a24685f835fa6cdcb391003b48307ca2ee5840113c54739abbfdac01e5d419d707b38e72
   languageName: node
   linkType: hard
 
