@@ -377,7 +377,7 @@ func (k *KafkaBatchWorker) getQuotaExceededByProject(ctx context.Context, projec
 			}
 
 			if emailType != "" {
-				if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, emailType, &workspace); err != nil {
+				if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, emailType, &workspace, nil); err != nil {
 					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 				}
 			}

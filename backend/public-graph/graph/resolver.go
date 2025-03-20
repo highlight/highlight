@@ -730,11 +730,11 @@ func (r *Resolver) isWithinErrorQuota(ctx context.Context, workspace *model.Work
 	go func() {
 		defer util.Recover()
 		if !withinBillingQuota || quotaPercent >= 1 {
-			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		} else if quotaPercent >= .8 {
-			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage80Percent, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage80Percent, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
@@ -1307,11 +1307,11 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	go func() {
 		defer util.Recover()
 		if quotaPercent >= 1 {
-			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		} else if quotaPercent >= .8 {
-			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
