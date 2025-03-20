@@ -122,7 +122,7 @@ public static class OpenTelemetry {
             ["highlight.project_id"] = _config.ProjectId,
             ["service.name"] = _config.ServiceName,
             ["telemetry.distro.name"] = "Highlight.ASPCore",
-            ["telemetry.distro.version"] = "0.2.15",
+            ["telemetry.distro.version"] = "0.2.16",
         }).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
     }
 
