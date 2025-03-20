@@ -7,3 +7,8 @@ export const checkbox = style({
 	display: 'flex',
 	padding: 1,
 })
+
+export const filterButton = style({
+	width: '100%',
+	justifyContent: 'space-between',
+})

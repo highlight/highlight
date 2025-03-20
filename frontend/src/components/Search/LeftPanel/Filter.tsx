@@ -1,6 +1,5 @@
 import {
 	Badge,
-	Box,
 	IconSolidCheveronUp,
 	IconSolidCheveronDown,
 	Stack,
@@ -41,33 +40,25 @@ export const Filter: React.FC<Props> = ({
 
 	return (
 		<Stack gap="4">
-			<Box display="flex" width="full">
-				<Button
-					kind="secondary"
-					emphasis="low"
-					onClick={(e) => {
-						e.stopPropagation()
-						setExpanded(!expanded)
-					}}
-					trackingId="expand-filter-button"
-				>
-					<Box
-						alignItems="center"
-						justifyContent="space-between"
-						display="flex"
-						flexDirection="row"
-						gap="4"
-						width="full"
-					>
-						{filter}
-						{expanded ? (
-							<IconSolidCheveronUp />
-						) : (
-							<IconSolidCheveronDown />
-						)}
-					</Box>
-				</Button>
-			</Box>
+			<Button
+				kind="secondary"
+				emphasis="low"
+				onClick={(e) => {
+					e.stopPropagation()
+					setExpanded(!expanded)
+				}}
+				trackingId="expand-filter-button"
+				iconRight={
+					expanded ? (
+						<IconSolidCheveronUp />
+					) : (
+						<IconSolidCheveronDown />
+					)
+				}
+				className={style.filterButton}
+			>
+				{filter}
+			</Button>
 			{expanded && (
 				<Stack gap="8" pl="8">
 					{values.map((value) => {

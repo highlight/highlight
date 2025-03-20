@@ -7448,6 +7448,10 @@ body {
   display: flex;
   padding: 1px;
 }
+._1wtm1xf1 {
+  width: 100%;
+  justify-content: space-between;
+}
 .ltrwrc0 {
   position: fixed;
   left: 100%;
