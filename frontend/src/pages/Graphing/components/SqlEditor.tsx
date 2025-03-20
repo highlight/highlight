@@ -1,17 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { sql } from '@codemirror/lang-sql'
 import { vscodeLightInit } from '@uiw/codemirror-theme-vscode'
 import {
 	autocompletion,
 	CompletionContext,
-	acceptCompletion,
 	Completion,
 	snippetCompletion,
+	acceptCompletion,
 } from '@codemirror/autocomplete'
 import { EditorView, keymap } from '@codemirror/view'
-import { indentWithTab } from '@codemirror/commands'
 import { linter, Diagnostic } from '@codemirror/lint'
 
 import { useGetKeysLazyQuery } from '@/graph/generated/hooks'
@@ -23,6 +22,9 @@ import {
 	TIMESTAMP_KEY,
 } from '@/pages/Graphing/components/Graph'
 import { useGraphContext } from '@/pages/Graphing/context/GraphContext'
+import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
+import { useParams } from '@/util/react-router/useParams'
+import { indentWithTab, standardKeymap } from '@codemirror/commands'
 import {
 	MetricAggregator,
 	MetricExpression,
@@ -32,12 +34,14 @@ import { BUCKET_FREQUENCIES } from '@/pages/Graphing/util'
 import { GraphSettings } from '@/pages/Graphing/constants'
 
 import * as styles from './SqlEditor.css'
+import { Stack, Text } from '@highlight-run/ui/components'
 
 interface Props {
 	value: string
 	setValue: (value: string) => void
 	startDate: Date
 	endDate: Date
+	onRunQuery: () => void
 }
 
 const tables = ['sessions', 'logs', 'traces', 'events', 'errors', 'metrics']
@@ -209,8 +213,27 @@ export const SqlEditor: React.FC<Props> = ({
 	setValue,
 	startDate,
 	endDate,
+	onRunQuery,
 }: Props) => {
-	const { errors, setErrors } = useGraphContext()
+	const { dashboard_id } = useParams<{
+		dashboard_id: string
+	}>()
+
+	const { values } = useGraphingVariables(dashboard_id ?? '')
+
+	const { errors } = useGraphContext()
+	const [dirty, setDirty] = useState(false)
+	const setValueInternal = useCallback(
+		(val: string) => {
+			setDirty(true)
+			setValue(val)
+		},
+		[setValue],
+	)
+
+	useEffect(() => {
+		setDirty(false)
+	}, [errors])
 
 	const { projectId } = useProjectId()
 
@@ -298,6 +321,24 @@ export const SqlEditor: React.FC<Props> = ({
 				boost: 2,
 			}))
 
+			const variableKeys = Array.from(values).map(([key]) => {
+				return `$${key}`
+			})
+
+			const variableCompletions: Completion[] = [
+				'select',
+				'where',
+				'group by',
+				'order by',
+				'having',
+			].includes(lastKeyword ?? '')
+				? variableKeys.map((k) => ({
+						label: k,
+						type: 'text',
+						boost: 5,
+					}))
+				: []
+
 			return getKeys({
 				variables: {
 					project_id: projectId,
@@ -318,12 +359,13 @@ export const SqlEditor: React.FC<Props> = ({
 					? (result.data?.keys.map((k) => ({
 							label: k.name,
 							type: 'text',
-							boost: 3,
+							boost: 4,
 						})) ?? [])
 					: []
 
 				const allOptions = keywordCompletions
 					.concat(tableCompletions)
+					.concat(variableCompletions)
 					.concat(columnCompletions)
 					.concat(functionCompletions)
 
@@ -333,7 +375,7 @@ export const SqlEditor: React.FC<Props> = ({
 				}
 			})
 		},
-		[endDate, getKeys, projectId, startDate],
+		[endDate, getKeys, projectId, startDate, values],
 	)
 
 	const sqlLang = sql({
@@ -343,40 +385,41 @@ export const SqlEditor: React.FC<Props> = ({
 		}),
 	})
 
-	const backendErrorLinter = linter((view: EditorView) => {
-		const diagnostics: Diagnostic[] = []
-		for (const e of errors) {
-			const matches = /^line (\d+):(\d+).*?(\^+)\n$/s.exec(e)
-			const lineStr = matches?.at(1)
-			const columnStr = matches?.at(2)
-			const length = matches?.at(3)?.length
-			if (
-				lineStr !== undefined &&
-				columnStr !== undefined &&
-				length !== undefined
-			) {
-				const line = view.state.doc.line(parseInt(lineStr) + 1)
-				const column = parseInt(columnStr)
-				const from = line.from + column
-				const to = from + length
-				diagnostics.push({
-					from,
-					to,
-					severity: 'error',
-					message: e,
-				})
-			} else {
-				diagnostics.push({
-					from: 0,
-					to: view.state.doc.length,
-					severity: 'error',
-					message: e,
-				})
+	const backendErrorLinter = linter(
+		(view: EditorView) => {
+			// Don't show errors once the text has changed
+			if (dirty) {
+				return []
 			}
-		}
 
-		return diagnostics
-	})
+			const diagnostics: Diagnostic[] = []
+			for (const e of errors) {
+				const matches = /^line (\d+):(\d+).*?(\^+)\n$/s.exec(e)
+				const lineStr = matches?.at(1)
+				const columnStr = matches?.at(2)
+				const length = matches?.at(3)?.length
+				if (
+					lineStr !== undefined &&
+					columnStr !== undefined &&
+					length !== undefined
+				) {
+					const line = view.state.doc.line(parseInt(lineStr) + 1)
+					const column = parseInt(columnStr)
+					const from = line.from + column
+					const to = from + length
+					diagnostics.push({
+						from,
+						to,
+						severity: 'error',
+						message: e,
+					})
+				}
+			}
+
+			return diagnostics
+		},
+		{ delay: 0 },
+	)
 
 	return (
 		<div className={styles.editorWrapper}>
@@ -385,11 +428,31 @@ export const SqlEditor: React.FC<Props> = ({
 					foldGutter: false,
 					highlightActiveLine: false,
 					indentOnInput: false,
+					defaultKeymap: false,
 				}}
 				width="100%"
-				height="300px"
+				height="250px"
 				value={value}
 				extensions={[
+					keymap.of([
+						...standardKeymap,
+						{
+							key: 'Cmd-Enter',
+							run: () => {
+								onRunQuery()
+								return true
+							},
+						},
+						{
+							key: 'Ctrl-Enter',
+							run: () => {
+								onRunQuery()
+								return true
+							},
+						},
+						{ key: 'Tab', run: acceptCompletion },
+						indentWithTab,
+					]),
 					sqlLang,
 					autocompletion(),
 					sqlLang.language.data.of({
@@ -397,10 +460,6 @@ export const SqlEditor: React.FC<Props> = ({
 					}),
 					backendErrorLinter,
 					EditorView.lineWrapping,
-					keymap.of([
-						{ key: 'Tab', run: acceptCompletion },
-						indentWithTab,
-					]),
 				]}
 				theme={vscodeLightInit({
 					settings: {
@@ -410,12 +469,24 @@ export const SqlEditor: React.FC<Props> = ({
 					},
 				})}
 				onChange={(val) => {
-					// Clear any existing errors after updating
-					setErrors([])
-					setValue(val)
+					setValueInternal(val)
 				}}
 				indentWithTab={false}
 			/>
+			{errors.length > 0 && (
+				<Stack gap="0">
+					<Stack cssClass={styles.statusTitle}>
+						<Text size="xxSmall" weight="medium" color="default">
+							Messages
+						</Text>
+					</Stack>
+					<Stack cssClass={styles.errorMessages}>
+						<Text size="small" weight="medium" family="monospace">
+							{errors}
+						</Text>
+					</Stack>
+				</Stack>
+			)}
 		</div>
 	)
 }
