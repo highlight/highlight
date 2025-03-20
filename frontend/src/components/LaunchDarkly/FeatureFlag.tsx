@@ -43,11 +43,7 @@ export const FeatureFlag = ({
 	children,
 }: FeatureFlagProps) => {
 	const flags = useFlags() ?? {}
-	const camelCaseFlag = flag.replace(/-([a-z])/g, (_, letter) =>
-		letter.toUpperCase(),
-	)
-	const flagValue = flags[camelCaseFlag] ?? defaultValue
-	console.log('::: flagValue', flag, flagValue, flags)
+	const flagValue = flags[flag] ?? defaultValue
 
 	// Boolean
 	if (typeof flagValue === 'boolean') {
