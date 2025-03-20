@@ -18,5 +18,6 @@ export function useFeatureFlag(
 		letter.toUpperCase(),
 	)
 	const flags = useFlags()
+	console.log('::: flags', flags, flags[camelCaseFlag])
 	return flags[camelCaseFlag] ?? defaultValue
 }
