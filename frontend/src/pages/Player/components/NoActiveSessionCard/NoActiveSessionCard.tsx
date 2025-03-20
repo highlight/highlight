@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 
 import { useErrorPageNavigation } from '@/pages/ErrorsV2/ErrorsV2'
 import { useParams } from '@/util/react-router/useParams'
+import { FeatureFlag } from '@/components/LaunchDarkly/FeatureFlag'
 
 const NoActiveSessionCard = () => {
 	const { setShowLeftPanel } = useErrorPageNavigation()
@@ -20,10 +21,20 @@ const NoActiveSessionCard = () => {
 		<Box margin="auto" style={{ maxWidth: 300 }}>
 			<Callout title="Ready to see your app?">
 				<Box mb="6">
-					<Text color="moderate">
-						View a recent session or find a specific identifier,
-						URL, or segment.
-					</Text>
+					<FeatureFlag
+						flag="enable-session-card-text"
+						enabled={
+							<Text color="bad">
+								View a recent session or find a specific
+								identifier, URL, or segment.
+							</Text>
+						}
+					>
+						<Text color="moderate">
+							View a recent session or find a specific identifier,
+							URL, or segment.
+						</Text>
+					</FeatureFlag>
 				</Box>
 			</Callout>
 		</Box>

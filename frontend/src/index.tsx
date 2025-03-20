@@ -52,6 +52,7 @@ import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { authRedirect } from '@/pages/Auth/utils'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
 import { omit } from 'lodash'
+import { LaunchDarklyProvider } from '@/components/LaunchDarkly/LaunchDarklyProvider'
 
 document.body.className = 'highlight-light-theme'
 
@@ -157,6 +158,8 @@ const App = () => {
 		AppLoadingState.LOADING,
 	)
 
+	const user = auth.currentUser
+
 	return (
 		<ErrorBoundary>
 			<ApolloProvider client={client}>
@@ -164,26 +167,34 @@ const App = () => {
 					baseColor="var(--color-gray-200)"
 					highlightColor="var(--color-primary-background)"
 				>
-					<AppLoadingContext
-						value={{
-							loadingState,
-							setLoadingState,
+					<LaunchDarklyProvider
+						clientSideID="sdk-a8340aae-cc48-4934-bace-577393412b53"
+						context={{
+							kind: 'user',
+							user,
 						}}
 					>
-						<LoadingPage />
-						<BrowserRouter>
-							<QueryParamProvider
-								adapter={ReactRouter6Adapter}
-								options={{
-									searchStringToObject: parse,
-									objectToSearchString: stringify,
-								}}
-							>
-								<AuthenticationRoleRouter />
-							</QueryParamProvider>
-							<Toaster />
-						</BrowserRouter>
-					</AppLoadingContext>
+						<AppLoadingContext
+							value={{
+								loadingState,
+								setLoadingState,
+							}}
+						>
+							<LoadingPage />
+							<BrowserRouter>
+								<QueryParamProvider
+									adapter={ReactRouter6Adapter}
+									options={{
+										searchStringToObject: parse,
+										objectToSearchString: stringify,
+									}}
+								>
+									<AuthenticationRoleRouter />
+								</QueryParamProvider>
+								<Toaster />
+							</BrowserRouter>
+						</AppLoadingContext>
+					</LaunchDarklyProvider>
 				</SkeletonTheme>
 			</ApolloProvider>
 		</ErrorBoundary>
