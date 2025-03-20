@@ -2,6 +2,8 @@ import LoadingBox from '@/components/LoadingBox'
 import { Filter } from '@/components/Search/LeftPanel/Filter'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { useSearchContext } from '@/components/Search/SearchContext'
+import { BODY_KEY } from '@/components/Search/SearchForm/utils'
+import { parseSearch } from '@/components/Search/utils'
 import { useGetKeyValueSuggestionsQuery } from '@/graph/generated/hooks'
 import { ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -36,7 +38,6 @@ export const LeftPanel: React.FC<Props> = ({
 			display="flex"
 			flexShrink={0}
 			flexGrow={0}
-			overflowX="hidden"
 			overflowY="auto"
 			hiddenScroll
 		>
@@ -72,17 +73,27 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 		},
 	})
 
-	const { query, queryParts, onSubmit } = useSearchContext()
+	const { initialQuery: searchedQuery, query, onSubmit } = useSearchContext()
 
-	const selectedFilters = useMemo(() => {
-		const filters: Record<string, Record<string, boolean>> = {}
+	const queryParts = useMemo(() => {
+		return parseSearch(searchedQuery).queryParts
+	}, [searchedQuery])
 
+	const filters = useMemo(() => {
+		const filtersMap: Map<string, Map<string, boolean>> = new Map()
+
+		// add filter suggestions
+		data?.key_values_suggestions?.forEach((suggestion) => {
+			suggestion.values.forEach((value) => {
+				addValueToKey(filtersMap, suggestion.key, value.value, false)
+			})
+		})
+
+		// add selected filters
 		queryParts.forEach((part) => {
-			if (part.operator !== '=') {
+			if (part.operator !== '=' || part.key === BODY_KEY) {
 				return
 			}
-
-			filters[part.key] ||= {}
 
 			const value = part.value.trim()
 
@@ -90,15 +101,31 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 				const values = value.slice(1, -1).split(' OR ')
 
 				values.forEach((v) => {
-					filters[part.key][v] = true
+					addValueToKey(filtersMap, part.key, v, true)
 				})
 			} else {
-				filters[part.key][value] = true
+				addValueToKey(filtersMap, part.key, value, true)
 			}
 		})
 
-		return filters
-	}, [queryParts])
+		// convert maps to arrays to be used
+		const allFilters: {
+			key: string
+			values: { value: string; selected: boolean }[]
+		}[] = []
+
+		filtersMap.forEach((values, key) => {
+			allFilters.push({
+				key,
+				values: Array.from(values).map(([value, selected]) => ({
+					value,
+					selected,
+				})),
+			})
+		})
+
+		return allFilters
+	}, [data?.key_values_suggestions, queryParts])
 
 	const onSelect = (key: string, value: string, add: boolean) => {
 		let keyExists = false
@@ -180,16 +207,31 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 	}
 
 	return (
-		<Stack width="full" style={{ position: 'relative' }} gap="8">
-			{data?.key_values_suggestions.map((suggestion) => (
+		<Stack width="full" style={{ position: 'relative' }} gap="0">
+			{filters.map((filter) => (
 				<Filter
-					key={suggestion.key}
-					filter={suggestion.key}
-					values={suggestion.values}
+					key={filter.key}
+					filter={filter.key}
+					values={filter.values}
 					onSelect={onSelect}
-					selectedValues={selectedFilters[suggestion.key] || {}}
 				/>
 			))}
 		</Stack>
 	)
+}
+
+const addValueToKey = (
+	filters: Map<string, Map<string, boolean>>,
+	key: string,
+	value: string,
+	selected: boolean,
+) => {
+	if (!filters.has(key)) {
+		filters.set(key, new Map())
+	}
+
+	// only overwrite if not defined or false
+	if (!filters.get(key)!.get(value)) {
+		filters.get(key)!.set(value, selected)
+	}
 }

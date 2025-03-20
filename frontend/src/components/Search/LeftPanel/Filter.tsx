@@ -14,32 +14,25 @@ import * as style from './Filter.css'
 
 type ValueSuggestion = {
 	value: string
-	count: number
-	rank: number
+	selected: boolean
 }
 
 type Props = {
 	filter: string
 	values: ValueSuggestion[]
 	onSelect: (filter: string, value: string, add: boolean) => void
-	selectedValues: Record<string, boolean>
 }
 
 // TODO(spenny): numbers are from day, so may not be accurate to the current timeframe
 
-export const Filter: React.FC<Props> = ({
-	filter,
-	values,
-	onSelect,
-	selectedValues,
-}) => {
+export const Filter: React.FC<Props> = ({ filter, values, onSelect }) => {
 	const [expanded, setExpanded] = useState(true)
 	const handleSelect = (value: string, selected: boolean) => {
 		onSelect(filter, value, selected)
 	}
 
 	return (
-		<Stack gap="4">
+		<Stack gap="4" pb="8">
 			<Button
 				kind="secondary"
 				emphasis="low"
@@ -62,8 +55,6 @@ export const Filter: React.FC<Props> = ({
 			{expanded && (
 				<Stack gap="8" pl="8">
 					{values.map((value) => {
-						const selected = selectedValues[value.value]
-
 						return (
 							<Stack
 								key={value.value}
@@ -74,13 +65,13 @@ export const Filter: React.FC<Props> = ({
 								width="full"
 								cursor="pointer"
 								onClick={() =>
-									handleSelect(value.value, !selected)
+									handleSelect(value.value, !value.selected)
 								}
 							>
 								<div
 									className={style.checkbox}
 									style={{
-										backgroundColor: selected
+										backgroundColor: value.selected
 											? vars.theme.interactive.fill
 													.primary.enabled
 											: 'white',
