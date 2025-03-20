@@ -849,7 +849,9 @@ func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, keyTable
 		return nil, err
 	}
 
+	keyValues := []*modelInputs.KeyValueSuggestion{}
 	keyValueMap := map[string][]*modelInputs.ValueSuggestion{}
+
 	for rows.Next() {
 		var (
 			key        string
@@ -862,6 +864,12 @@ func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, keyTable
 			return nil, err
 		}
 
+		// maintain order in suggestions
+		if _, ok := keyValueMap[key]; !ok {
+			keyValues = append(keyValues, &modelInputs.KeyValueSuggestion{Key: key})
+		}
+
+		// collect values per key
 		keyValueMap[key] = append(keyValueMap[key], &modelInputs.ValueSuggestion{
 			Value: value,
 			Count: valueCount,
@@ -869,12 +877,9 @@ func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, keyTable
 		})
 	}
 
-	keyValues := []*modelInputs.KeyValueSuggestion{}
-	for key, values := range keyValueMap {
-		keyValues = append(keyValues, &modelInputs.KeyValueSuggestion{
-			Key:    key,
-			Values: values,
-		})
+	// add values back to ordered keys
+	for index, keyValue := range keyValues {
+		keyValues[index].Values = keyValueMap[keyValue.Key]
 	}
 
 	rows.Close()

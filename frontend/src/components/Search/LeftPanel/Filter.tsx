@@ -1,9 +1,9 @@
 import {
 	Badge,
-	IconSolidCheveronUp,
 	IconSolidCheveronDown,
 	Stack,
 	IconSolidCheckCircle,
+	IconSolidCheveronRight,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useState } from 'react'
@@ -43,9 +43,9 @@ export const Filter: React.FC<Props> = ({ filter, values, onSelect }) => {
 				trackingId="expand-filter-button"
 				iconRight={
 					expanded ? (
-						<IconSolidCheveronUp />
-					) : (
 						<IconSolidCheveronDown />
+					) : (
+						<IconSolidCheveronRight />
 					)
 				}
 				className={style.filterButton}
