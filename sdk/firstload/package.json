@@ -45,7 +45,10 @@
 	"exports": {
 		"types": "./dist/firstload/src/index.d.ts",
 		"import": "./dist/index.js",
-		"default": "./dist/index.js"
+		"require": "./dist/index.js",
+		"unpkg": "./dist/index.umd.js",
+		"jsdelivr": "./dist/index.umd.js",
+		"default": "./dist/index.umd.js"
 	},
 	"files": [
 		"dist"
