@@ -44,6 +44,7 @@ export const FeatureFlag = ({
 }: FeatureFlagProps) => {
 	const flags = useFlags() ?? {}
 	const flagValue = flags[flag] ?? defaultValue
+	console.log('::: flagValue', flag, flagValue)
 
 	// Boolean
 	if (typeof flagValue === 'boolean') {
