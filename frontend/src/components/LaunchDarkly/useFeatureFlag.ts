@@ -1,17 +1,32 @@
-import { useFlags } from 'launchdarkly-react-client-sdk'
+import { useLDClient } from 'launchdarkly-react-client-sdk'
+import { flags } from './flags'
+import { useEffect, useState } from 'react'
 
-import { Flag } from './flags'
+export function useFeatureFlag(
+	flag: keyof typeof flags,
+	defaultValue: boolean,
+): boolean
+export function useFeatureFlag(
+	flag: keyof typeof flags,
+	defaultValue: string,
+): string
 
-export const useFeatureFlag = (flag: Flag): string | boolean | undefined => {
-	const { flags, error, isLoading } = useFlags()
+export function useFeatureFlag(
+	flag: keyof typeof flags,
+	defaultValue: boolean | string,
+) {
+	const client = useLDClient()
+	const [flagValue, setFlagValue] = useState<boolean | string>(defaultValue)
 
-	if (error) {
-		console.error(`Failed to load feature flag ${flag}:`, error)
-	}
+	useEffect(() => {
+		if (!client) return
 
-	if (isLoading) {
-		console.log(`Loading feature flag ${flag}`)
-	}
+		setFlagValue(client.variation(flag, defaultValue))
 
-	return flags[flag]
+		return client.on('change', (flag, value) => {
+			setFlagValue(value)
+		})
+	}, [client, flag, defaultValue])
+
+	return flagValue
 }

@@ -1,4 +1,5 @@
-import { useFlags } from 'launchdarkly-react-client-sdk'
+import { useLDClient } from 'launchdarkly-react-client-sdk'
+import { useEffect, useState } from 'react'
 
 import { Flag } from './flags'
 
@@ -13,13 +14,13 @@ type BooleanFlagProps = BaseFlagProps & {
 	defaultValue?: boolean
 }
 
-type MultivariateFlagProps<T> = BaseFlagProps & {
+type MultivariateFlagProps = BaseFlagProps & {
 	enabled?: never
 	variants: Record<string | number, React.ReactNode>
-	defaultValue: T
+	defaultValue: string | number
 }
 
-type FeatureFlagProps<T> = BooleanFlagProps | MultivariateFlagProps<T>
+type FeatureFlagProps = BooleanFlagProps | MultivariateFlagProps
 
 // Boolean Usage:
 //
@@ -35,38 +36,36 @@ type FeatureFlagProps<T> = BooleanFlagProps | MultivariateFlagProps<T>
 //   }}>
 //     <>Fallback/Default</>
 //   </FeatureFlag>
-export const FeatureFlag = <T extends string | number>({
+export const FeatureFlag = ({
 	flag,
 	enabled,
 	variants,
 	defaultValue,
 	children,
-}: FeatureFlagProps<T>) => {
-	const { flags, error, isLoading } = useFlags()
+}: FeatureFlagProps) => {
+	const client = useLDClient()
+	const [flagValue, setFlagValue] = useState<
+		string | number | boolean | undefined
+	>(defaultValue)
 
-	console.log('::: FeatureFlag', error, isLoading, flags)
+	useEffect(() => {
+		if (!client) return
 
-	if (error) {
-		console.error('::: FeatureFlag', error)
-		return <>{children}</>
-	}
+		const value = client.variation(flag, defaultValue)
+		setFlagValue(value)
 
-	// Add early returns for loading/error states
-	if (isLoading || !flags) {
-		return <>{children}</>
-	}
-
-	const flagValue = flags[flag] ?? defaultValue
-
-	console.log('::: FeatureFlag', flag, flagValue, flags)
+		return client.on(`change:${flag}`, (newValue) => {
+			setFlagValue(newValue)
+		})
+	}, [client, flag, defaultValue])
 
 	// Boolean
-	if (enabled !== undefined) {
+	if (typeof flagValue === 'boolean') {
 		return flagValue === true ? <>{enabled}</> : <>{children}</>
 	}
 
 	// Multivariate
-	if (variants && flagValue in variants) {
+	if (variants && typeof flagValue === 'string' && flagValue in variants) {
 		return <>{variants[flagValue as keyof typeof variants]}</>
 	}
 
