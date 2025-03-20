@@ -14,9 +14,6 @@ export function useFeatureFlag(
 	flag: keyof typeof flags,
 	defaultValue: boolean | string,
 ) {
-	const camelCaseFlag = flag.replace(/-([a-z])/g, (_, letter) =>
-		letter.toUpperCase(),
-	)
 	const flags = useFlags()
-	return flags[camelCaseFlag] ?? defaultValue
+	return flags[flag] ?? defaultValue
 }
