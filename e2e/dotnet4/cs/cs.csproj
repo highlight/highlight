@@ -124,13 +124,13 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="OpenTelemetry, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenTelemetry.1.11.1\lib\net462\OpenTelemetry.dll</HintPath>
+      <HintPath>..\packages\OpenTelemetry.1.11.2\lib\net462\OpenTelemetry.dll</HintPath>
     </Reference>
     <Reference Include="OpenTelemetry.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenTelemetry.Api.1.11.1\lib\net462\OpenTelemetry.Api.dll</HintPath>
+      <HintPath>..\packages\OpenTelemetry.Api.1.11.2\lib\net462\OpenTelemetry.Api.dll</HintPath>
     </Reference>
     <Reference Include="OpenTelemetry.Api.ProviderBuilderExtensions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenTelemetry.Api.ProviderBuilderExtensions.1.11.1\lib\net462\OpenTelemetry.Api.ProviderBuilderExtensions.dll</HintPath>
+      <HintPath>..\packages\OpenTelemetry.Api.ProviderBuilderExtensions.1.11.2\lib\net462\OpenTelemetry.Api.ProviderBuilderExtensions.dll</HintPath>
     </Reference>
     <Reference Include="OpenTelemetry.Exporter.Console, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenTelemetry.Exporter.Console.1.9.0\lib\net462\OpenTelemetry.Exporter.Console.dll</HintPath>
@@ -183,8 +183,8 @@
     <Reference Include="OpenTelemetry.Resources.Azure, Version=1.0.0.52, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenTelemetry.Resources.Azure.1.0.0-beta.8\lib\netstandard2.0\OpenTelemetry.Resources.Azure.dll</HintPath>
     </Reference>
-    <Reference Include="OpenTelemetry.Resources.Host, Version=0.1.0.53, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenTelemetry.Resources.Host.0.1.0-beta.2\lib\net462\OpenTelemetry.Resources.Host.dll</HintPath>
+    <Reference Include="OpenTelemetry.Resources.Host, Version=1.11.0.416, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTelemetry.Resources.Host.1.11.0-beta.2\lib\net462\OpenTelemetry.Resources.Host.dll</HintPath>
     </Reference>
     <Reference Include="OpenTelemetry.Resources.Process, Version=0.1.0.55, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenTelemetry.Resources.Process.0.1.0-beta.2\lib\net462\OpenTelemetry.Resources.Process.dll</HintPath>
