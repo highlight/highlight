@@ -2697,18 +2697,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			Warn("ProcessPayload with large event count")
 	}
 
-	// If the session is processing or processed, set ResumedAfterProcessedTime and continue
-	if (sessionObj.Lock.Valid && !sessionObj.Lock.Time.IsZero()) || (sessionObj.Processed != nil && *sessionObj.Processed) {
-		resumedAfterProcessedSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateResumedAfterProcessedTime")
-		if sessionObj.ResumedAfterProcessedTime == nil {
-			now := time.Now()
-			if err := r.DB.WithContext(sCtx).Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ResumedAfterProcessedTime", &now).Error; err != nil {
-				log.WithContext(sCtx).Error(e.Wrap(err, "error updating session ResumedAfterProcessedTime"))
-			}
-		}
-		resumedAfterProcessedSpan.Finish()
-	}
-
 	var g errgroup.Group
 
 	payloadIdDeref := 0
@@ -3136,11 +3124,19 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	if sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors) {
 		updateFields = append(updateFields, "HasErrors")
 	}
-	if sessionObj.Excluded && !excluded {
+	// Only update the excluded flag and reason if either have changed
+	var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
+	if sessionObj.ExcludedReason != nil {
+		reasonDeref = *sessionObj.ExcludedReason
+	}
+	if reason != nil {
+		newReasonDeref = *reason
+	}
+	if sessionObj.Excluded != excluded || reasonDeref != newReasonDeref {
 		updateFields = append(updateFields, "Excluded", "ExcludedReason")
 	}
 
-	if len(updateFields) > 0 && !excluded {
+	if len(updateFields) > 0 {
 		updateSessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateSession", util.Tag("project_id", projectID))
 		// By default, GORM will not update non-zero fields. This is undesirable for boolean columns.
 		// By explicitly specifying the columns to update, we can override the behavior.
@@ -3155,8 +3151,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				ObjectStorageEnabled:  &model.F,
 				DirectDownloadEnabled: false,
 				Chunked:               &model.F,
-				Excluded:              false,
-				ExcludedReason:        nil,
+				Excluded:              excluded,
+				ExcludedReason:        reason,
 				HasErrors:             &sessionHasErrors,
 			}).Error; err != nil {
 			log.WithContext(sCtx).Error(e.Wrap(err, "error updating session"))
@@ -3172,47 +3168,24 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		updatedSession.ObjectStorageEnabled = &model.F
 		updatedSession.DirectDownloadEnabled = false
 		updatedSession.Chunked = &model.F
-		updatedSession.Excluded = false
-		updatedSession.ExcludedReason = nil
-		updatedSession.HasErrors = &sessionHasErrors
-		r.SessionCache.Add(sessionSecureID, &updatedSession)
-	} else if excluded {
-		excludeSessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.excludeSession", util.Tag("project_id", projectID))
-		// Only update the excluded flag and reason if either have changed
-		var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
-		if sessionObj.ExcludedReason != nil {
-			reasonDeref = *sessionObj.ExcludedReason
-		}
-		if reason != nil {
-			newReasonDeref = *reason
-		}
-		if sessionObj.Excluded != excluded || reasonDeref != newReasonDeref {
-			if err := r.DB.WithContext(sCtx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
-				Select("Excluded", "ExcludedReason").Updates(&model.Session{
-				Excluded:       excluded,
-				ExcludedReason: reason,
-			}).Error; err != nil {
-				return err
-			}
-			if err := r.DataSyncQueue.Submit(sCtx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
-				return err
-			}
-		}
-		excludeSessionSpan.Finish()
-
-		updatedSession := *sessionObj
 		updatedSession.Excluded = excluded
 		updatedSession.ExcludedReason = reason
+		updatedSession.HasErrors = &sessionHasErrors
 		r.SessionCache.Add(sessionSecureID, &updatedSession)
 	}
 
 	clickhouseSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.clickhouse.update")
 	defer clickhouseSpan.Finish()
+
 	// If the session was previously marked as processed, clear this
 	// in ClickHouse so that it's treated as a live session again.
 	// If the session was previously excluded (as we do with new sessions by default),
 	// clear it so it is shown as live in ClickHouse since we now have data for it.
-	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
+	needsDataSync := sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors) ||
+		(sessionObj.Processed != nil && *sessionObj.Processed) ||
+		(sessionObj.Excluded != excluded)
+
+	if needsDataSync {
 		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 			return err
 		}
@@ -3221,12 +3194,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	if !excluded {
 		processingDelay := getSessionProcessingDelaySeconds(elapsedSinceUpdate)
 		if err := r.Redis.AddSessionToProcess(ctx, sessionID, processingDelay); err != nil {
-			return err
-		}
-	}
-
-	if sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors) {
-		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 			return err
 		}
 	}
