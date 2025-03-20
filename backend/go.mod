@@ -77,7 +77,7 @@ require (
 	github.com/rs/cors v1.11.0
 	github.com/rs/xid v1.5.0
 	github.com/samber/lo v1.39.0
-	github.com/sashabaranov/go-openai v1.25.0
+	github.com/sashabaranov/go-openai v1.38.1
 	github.com/segmentio/kafka-go v0.4.47
 	github.com/sendgrid/sendgrid-go v3.14.0+incompatible
 	github.com/shirou/gopsutil v3.21.11+incompatible
