@@ -87,6 +87,7 @@ export const LaunchDarklyProvider: React.FC<
 				wrapperName: 'LaunchDarklyProvider',
 				bootstrap: 'localStorage',
 				sendEvents: true,
+				flushInterval: 2000,
 			}}
 		>
 			<LaunchDarklyProviderContent
