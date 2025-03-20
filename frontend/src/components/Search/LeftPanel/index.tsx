@@ -108,7 +108,6 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 			}
 		})
 
-		// convert maps to arrays to be used
 		const allFilters: {
 			key: string
 			values: { value: string; selected: boolean }[]

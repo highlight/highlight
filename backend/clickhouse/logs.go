@@ -504,7 +504,7 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 }
 
 func (client *Client) LogsKeyValueSuggestions(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.KeyValueSuggestion, error) {
-	return KeyValueSuggestionsAggregated(ctx, client, LogKeyValuesTable, projectID, startDate, endDate)
+	return KeyValueSuggestionsAggregated(ctx, client, LogKeysTable, LogKeyValuesTable, projectID, startDate, endDate)
 }
 
 func LogMatchesQuery(logRow *LogRow, filters listener.Filters) bool {
