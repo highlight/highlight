@@ -33,10 +33,6 @@
         "type": "expression",
         "value": "window.location.origin"
       },
-      "REACT_APP_LD_CLIENT_ID": {
-        "type": "expression",
-        "value": "66d9d3c255856f0fa8fd62d0"
-      },
     },
     "development": {
       "REACT_APP_COMMIT_SHA": {
