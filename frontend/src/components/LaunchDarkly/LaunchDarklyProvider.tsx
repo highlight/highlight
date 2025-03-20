@@ -70,7 +70,6 @@ export const LaunchDarklyProvider: React.FC<
 > = ({ children, context = {}, clientSideID, email }) => {
 	// TODO: Consider using the client-created CLIENT_ID instead of a random UUID
 	const deviceId = localStorage.getItem('device-id') ?? crypto.randomUUID()
-	console.log('::: LDProvider', clientSideID)
 
 	useEffect(() => {
 		if (!localStorage.getItem('device-id')) {
