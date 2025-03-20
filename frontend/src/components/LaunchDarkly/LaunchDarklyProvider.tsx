@@ -4,6 +4,7 @@ import {
 	useLDClient,
 } from 'launchdarkly-react-client-sdk'
 import React, { useEffect } from 'react'
+import analytics from '@/util/analytics'
 
 const createContext = (
 	email: string | undefined,
@@ -39,14 +40,35 @@ const createContext = (
 	}
 }
 
-export const LaunchDarklyProvider: React.FC<
+type LaunchDarklyProviderProps = {
+	context?: Omit<ProviderConfig['context'], 'email'>
+	email?: string
+	clientSideID: ProviderConfig['clientSideID']
+}
+
+const LaunchDarklyProviderContent: React.FC<
 	React.PropsWithChildren<{
-		clientSideID: ProviderConfig['clientSideID']
-		context?: Omit<ProviderConfig['context'], 'email'>
-		email?: string
+		context?: LaunchDarklyProviderProps['context']
+		deviceId: string
+		email?: LaunchDarklyProviderProps['email']
 	}>
-> = ({ children, context = {}, clientSideID, email }) => {
+> = ({ children, context = {}, email, deviceId }) => {
 	const client = useLDClient()
+
+	useEffect(() => {
+		if (client) {
+			client.identify(createContext(email, deviceId, context))
+			analytics.setLDClient(client)
+		}
+	}, [client, deviceId, email, context])
+
+	return <>{children}</>
+}
+
+export const LaunchDarklyProvider: React.FC<
+	React.PropsWithChildren<LaunchDarklyProviderProps>
+> = ({ children, context = {}, clientSideID, email }) => {
+	// TODO: Consider using the client-created CLIENT_ID instead of a random UUID
 	const deviceId = localStorage.getItem('device-id') ?? crypto.randomUUID()
 
 	useEffect(() => {
@@ -54,12 +76,6 @@ export const LaunchDarklyProvider: React.FC<
 			localStorage.setItem('device-id', deviceId)
 		}
 	}, [deviceId])
-
-	useEffect(() => {
-		if (client) {
-			client.identify(createContext(email, deviceId, context))
-		}
-	}, [client, deviceId, email, context])
 
 	return (
 		<LDProvider
@@ -69,9 +85,16 @@ export const LaunchDarklyProvider: React.FC<
 				streaming: true,
 				wrapperName: 'LaunchDarklyProvider',
 				bootstrap: 'localStorage',
+				sendEvents: true,
 			}}
 		>
-			{children}
+			<LaunchDarklyProviderContent
+				context={context}
+				deviceId={deviceId}
+				email={email}
+			>
+				{children}
+			</LaunchDarklyProviderContent>
 		</LDProvider>
 	)
 }

@@ -1,5 +1,4 @@
-import { useLDClient } from 'launchdarkly-react-client-sdk'
-import { useEffect, useState } from 'react'
+import { useFlags } from 'launchdarkly-react-client-sdk'
 
 import { Flag } from './flags'
 
@@ -43,21 +42,8 @@ export const FeatureFlag = ({
 	defaultValue,
 	children,
 }: FeatureFlagProps) => {
-	const client = useLDClient()
-	const [flagValue, setFlagValue] = useState<
-		string | number | boolean | undefined
-	>(defaultValue)
-
-	useEffect(() => {
-		if (!client) return
-
-		const value = client.variation(flag, defaultValue)
-		setFlagValue(value)
-
-		return client.on(`change:${flag}`, (newValue) => {
-			setFlagValue(newValue)
-		})
-	}, [client, flag, defaultValue])
+	const flags = useFlags() ?? {}
+	const flagValue = flags[flag] ?? defaultValue
 
 	// Boolean
 	if (typeof flagValue === 'boolean') {
@@ -69,5 +55,6 @@ export const FeatureFlag = ({
 		return <>{variants[flagValue as keyof typeof variants]}</>
 	}
 
+	// Fallback
 	return <>{children}</>
 }

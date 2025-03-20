@@ -166,7 +166,7 @@ const App = () => {
 					highlightColor="var(--color-primary-background)"
 				>
 					<LaunchDarklyProvider
-						clientSideID="66d9d3c255856f0fa8fd62d0"
+						clientSideID={import.meta.env.REACT_APP_LD_CLIENT_ID}
 						email={auth.currentUser?.email ?? undefined}
 					>
 						<AppLoadingContext
