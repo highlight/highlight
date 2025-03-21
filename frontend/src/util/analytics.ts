@@ -95,10 +95,16 @@ const identify = (email: string, traits?: rudderanalytics.apiObject) => {
 	rudderanalytics.identify(email, omit(traits, rudderstackReserved))
 }
 
+// The LaunchDarkly SDK should track page views automatically based on changes
+// made view the history object.
 const page = (name: string, properties?: rudderanalytics.apiObject) => {
 	if (isDisabled) {
 		console.debug(`highlight analytics disabled`)
 		return
+	}
+
+	if (Array.isArray(window._hsq)) {
+		window._hsq.push(['trackPageView'])
 	}
 
 	rudderanalytics.page(name, omit(properties, rudderstackReserved))

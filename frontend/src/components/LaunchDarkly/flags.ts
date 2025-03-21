@@ -19,6 +19,15 @@ export const flags: Record<
 			bad: 'bad',
 		},
 	},
+	'rename-setup': {
+		type: 'multivariate',
+		defaultValue: 'connect',
+		variants: {
+			connect: 'connect',
+			setup: 'setup',
+			onboarding: 'onboarding',
+		},
+	},
 } as const
 
 export type Flag = keyof typeof flags
