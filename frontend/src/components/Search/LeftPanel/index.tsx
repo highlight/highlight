@@ -1,5 +1,7 @@
+import React, { useMemo } from 'react'
+import { Box, Callout, Stack } from '@highlight-run/ui/components'
+
 import LoadingBox from '@/components/LoadingBox'
-import { Filter } from '@/components/Search/LeftPanel/Filter'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { BODY_KEY } from '@/components/Search/SearchForm/utils'
@@ -7,8 +9,8 @@ import { parseSearch } from '@/components/Search/utils'
 import { useGetKeyValueSuggestionsQuery } from '@/graph/generated/hooks'
 import { ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
-import { Box, Callout, Stack } from '@highlight-run/ui/components'
-import React, { useMemo } from 'react'
+
+import { Filter } from './Filter'
 
 type Props = {
 	product: ProductType
@@ -31,7 +33,6 @@ export const LeftPanel: React.FC<Props> = ({
 		<Box
 			borderRight="dividerWeak"
 			height="full"
-			position="relative"
 			py="4"
 			px="8"
 			style={{ width: 250 }}
@@ -39,6 +40,7 @@ export const LeftPanel: React.FC<Props> = ({
 			flexShrink={0}
 			flexGrow={0}
 			overflowY="auto"
+			overflowX="hidden"
 			hiddenScroll
 		>
 			<InnerPanel
@@ -206,9 +208,12 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 	}
 
 	return (
-		<Stack width="full" style={{ position: 'relative' }} gap="0">
+		<Stack width="full" gap="0">
 			{filters.map((filter) => (
 				<Filter
+					product={product}
+					startDate={startDate}
+					endDate={endDate}
 					key={filter.key}
 					filter={filter.key}
 					values={filter.values}
