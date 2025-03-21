@@ -21,7 +21,6 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
-	"golang.org/x/sync/errgroup"
 
 	sqlparser "github.com/highlight/clickhouse-sql-parser/parser"
 )
@@ -74,8 +73,6 @@ type ClickhouseSession struct {
 	ProjectID          int32
 	PagesVisited       int32
 	ViewedByAdmins     clickhouse.ArraySet
-	FieldKeys          clickhouse.ArraySet
-	FieldKeyValues     clickhouse.ArraySet
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	SecureID           string
@@ -103,16 +100,6 @@ type ClickhouseSession struct {
 	EventCounts        *string
 	Excluded           bool
 	Normalness         *float64
-}
-
-type ClickhouseField struct {
-	ProjectID        int32
-	Type             string
-	Name             string
-	SessionCreatedAt time.Time
-	SessionID        int64
-	Value            string
-	Timestamp        time.Time
 }
 
 // These keys show up as recommendations, not in fields table due to high cardinality or post processing booleans
@@ -146,13 +133,11 @@ var booleanKeys = map[string]bool{
 
 const SessionsJoinedTable = "sessions_joined_vw"
 const SessionsTable = "sessions"
-const FieldsTable = "fields"
 const SessionKeysTable = "session_keys"
 const timeRangeField = "custom_created_at"
 const sampleField = "custom_sample"
 
 func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Session) error {
-	var chFields []*ClickhouseField
 	var chSessions []*ClickhouseSession
 
 	for _, session := range sessions {
@@ -160,32 +145,8 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			return errors.New("nil session")
 		}
 
-		if session.Fields == nil {
-			return fmt.Errorf("session.Fields is required for session %d", session.ID)
-		}
-
 		if session.ViewedByAdmins == nil {
 			return fmt.Errorf("session.ViewedByAdmins is required for session %d", session.ID)
-		}
-
-		var fieldKeys clickhouse.ArraySet
-		var fieldKeyValues clickhouse.ArraySet
-		for _, field := range session.Fields {
-			if field == nil {
-				continue
-			}
-			fieldKeys = append(fieldKeys, field.Type+"_"+field.Name)
-			fieldKeyValues = append(fieldKeyValues, field.Type+"_"+field.Name+"_"+field.Value)
-			chf := ClickhouseField{
-				ProjectID:        int32(session.ProjectID),
-				Type:             field.Type,
-				Name:             field.Name,
-				Value:            field.Value,
-				SessionID:        int64(session.ID),
-				SessionCreatedAt: session.CreatedAt,
-				Timestamp:        field.Timestamp,
-			}
-			chFields = append(chFields, &chf)
 		}
 
 		var viewedByAdmins clickhouse.ArraySet
@@ -198,8 +159,6 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			ProjectID:          int32(session.ProjectID),
 			PagesVisited:       int32(session.PagesVisited),
 			ViewedByAdmins:     viewedByAdmins,
-			FieldKeys:          fieldKeys,
-			FieldKeyValues:     fieldKeyValues,
 			CreatedAt:          session.CreatedAt,
 			UpdatedAt:          session.UpdatedAt,
 			SecureID:           session.SecureID,
@@ -232,49 +191,25 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 		chSessions = append(chSessions, &chs)
 	}
 
-	var g errgroup.Group
-
 	if len(chSessions) > 0 {
-		g.Go(func() error {
-			batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", SessionsTable))
+		batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", SessionsTable))
+		if err != nil {
+			return e.Wrap(err, "failed to create session batch")
+		}
+
+		for _, event := range lo.Map(chSessions, func(l *ClickhouseSession, _ int) interface{} {
+			return l
+		}) {
+			err = batch.AppendStruct(event)
 			if err != nil {
-				return e.Wrap(err, "failed to create session batch")
+				return err
 			}
+		}
 
-			for _, event := range lo.Map(chSessions, func(l *ClickhouseSession, _ int) interface{} {
-				return l
-			}) {
-				err = batch.AppendStruct(event)
-				if err != nil {
-					return err
-				}
-			}
-
-			return batch.Send()
-		})
+		return batch.Send()
 	}
 
-	if len(chFields) > 0 {
-		g.Go(func() error {
-			batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", FieldsTable))
-			if err != nil {
-				return e.Wrap(err, "failed to create fields batch")
-			}
-
-			for _, event := range lo.Map(chFields, func(l *ClickhouseField, _ int) interface{} {
-				return l
-			}) {
-				err = batch.AppendStruct(event)
-				if err != nil {
-					return err
-				}
-			}
-
-			return batch.Send()
-		})
-	}
-
-	return g.Wait()
+	return nil
 }
 
 func GetSessionsQueryImplDeprecated(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, bool, error) {

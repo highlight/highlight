@@ -5180,9 +5180,14 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if env.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
-		if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).Take(&sessionObj).Error; err != nil {
+		if err := r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: 0}}).Take(&sessionObj).Error; err != nil {
 			return nil, e.Wrap(err, "error reading from session")
 		}
+		fields, err := r.ClickhouseClient.GetFieldsBySession(ctx, sessionObj.ProjectID, sessionObj.ID)
+		if err != nil {
+			return nil, e.Wrap(err, "error getting fields by session")
+		}
+		sessionObj.Fields = fields
 		return sessionObj, nil
 	}
 
@@ -5196,10 +5201,16 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 		return nil, err
 	}
 	sessionObj := &model.Session{}
-	if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).
+	if err := r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: s.ID}}).
 		First(&sessionObj).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from session")
 	}
+
+	fields, err := r.ClickhouseClient.GetFieldsBySession(ctx, s.ProjectID, s.ID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting fields by session")
+	}
+	sessionObj.Fields = fields
 
 	var excludedReason modelInputs.SessionExcludedReason
 	if sessionObj.WithinBillingQuota != nil && !*sessionObj.WithinBillingQuota {
@@ -5644,9 +5655,15 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	// preload `Fields` children
 	sessionObj := &model.Session{}
 	// TODO: filter fields by type='user'.
-	if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&sessionObj).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&sessionObj).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from session")
 	}
+	fields, err := r.ClickhouseClient.GetFieldsBySession(ctx, s.ProjectID, s.ID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting fields by session")
+	}
+	sessionObj.Fields = fields
+
 	details := &modelInputs.EnhancedUserDetailsResult{}
 	details.Socials = []*modelInputs.SocialLink{}
 	// We don't know what key is used for the user's email so we do a regex match
@@ -6743,14 +6760,16 @@ func (r *queryResolver) SessionUsersReport(ctx context.Context, projectID int, p
 		return nil, err
 	}
 
+	args = append([]interface{}{project.ID, params.DateRange.StartDate, params.DateRange.EndDate, project.ID}, args...)
+
 	q := fmt.Sprintf(`
 select coalesce(
-               nullif(arrayFilter((k, v) -> k = 'email', SessionAttributePairs)[1].2, ''),
+               nullif(arrayFilter((k, v) -> k = 'email', RelevantFields)[1].2, ''),
                nullif(IP, ''),
-               nullif(arrayFilter((k, v) -> k = 'device_id', SessionAttributePairs)[1].2, ''),
+               nullif(arrayFilter((k, v) -> k = 'device_id', RelevantFields)[1].2, ''),
                Identifier
        )                                                                       as key,
-       min(arrayFilter((k, v) -> k = 'email', SessionAttributePairs)[1].2)     as email,
+       min(arrayFilter((k, v) -> k = 'email', RelevantFields)[1].2)     as email,
        min(CreatedAt)                                                          as first_session,
        max(CreatedAt)                                                          as last_session,
        count(distinct ID)                                                      as num_sessions,
@@ -6764,12 +6783,22 @@ select coalesce(
        sum(greatest(0, Length)) / 1000 / 60                                    as total_length_mins,
        max(coalesce(nullif(City, ''), nullif(State, ''), nullif(Country, ''))) as location
 from sessions_joined_vw final
-WHERE ProjectID = %d
+INNER JOIN (
+	SELECT SessionID, groupArray(tuple(Name, Value)) AS RelevantFields
+	FROM fields
+	WHERE ProjectID = ?
+	AND Name in ('email', 'device_id')
+	AND SessionCreatedAt >= ?
+	AND SessionCreatedAt <= ?
+	GROUP BY SessionID
+) as join
+ON ID = SessionID
+WHERE ProjectID = ?
   AND NOT Excluded
   AND WithinBillingQuota
   AND ID in (%s)
 group by 1 order by num_sessions desc;
-`, project.ID, sql)
+`, sql)
 	rows, err := r.ClickhouseClient.GetConn().Query(ctx, q, args...)
 	if err != nil {
 		return nil, err

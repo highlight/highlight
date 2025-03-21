@@ -14,7 +14,6 @@ import (
 	"net/mail"
 	url2 "net/url"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -240,20 +239,29 @@ type AppendProperty struct {
 	Timestamp time.Time
 }
 
-// Change to AppendProperties(sessionId,properties,type)
-func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties []AppendProperty, propType Property) error {
+func (r *Resolver) AppendProperties(ctx context.Context, sessionSecureID string, properties []AppendProperty, propType Property) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
-		util.ResourceName("go.sessions.AppendProperties"), util.Tag("sessionID", sessionID))
+		util.ResourceName("go.sessions.AppendProperties"), util.Tag("session_secure_id", sessionSecureID))
 	defer outerSpan.Finish()
 
 	loadSessionSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
-		util.ResourceName("go.sessions.AppendProperties.loadSessions"), util.Tag("sessionID", sessionID))
-	session := &model.Session{}
-	res := r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&session)
-	if err := res.Error; err != nil {
-		return e.Wrapf(err, "error getting session(id=%d) in append properties(type=%s)", sessionID, propType)
+		util.ResourceName("go.sessions.AppendProperties.loadSessions"), util.Tag("session_secure_id", sessionSecureID))
+
+	session, err := r.getSession(ctx, sessionSecureID)
+	if err != nil {
+		return err
 	}
+
 	loadSessionSpan.Finish()
+
+	// If fields haven't been loaded, load them from Redis
+	if session.Fields == nil {
+		fields, err := r.Redis.GetSessionFields(ctx, sessionSecureID)
+		if err != nil {
+			return err
+		}
+		session.Fields = fields
+	}
 
 	propsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendProperties",
 		util.ResourceName("processProperties"), util.Tag("num_properties", len(properties)))
@@ -261,7 +269,7 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 	projectID := session.ProjectID
 	for _, fv := range properties {
 		if len(fv.Value) > SESSION_FIELD_MAX_LENGTH {
-			log.WithContext(ctx).Warnf("property %s from session %d exceeds max expected field length, skipping", fv.Key, sessionID)
+			log.WithContext(ctx).Warnf("property %s from session %s exceeds max expected field length, skipping", fv.Key, sessionSecureID)
 		} else if fv.Value == "" {
 			// Skip when the field value is blank
 		} else if NumberRegex.MatchString(fv.Key) {
@@ -274,16 +282,27 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 
 	if len(modelFields) > 1000 {
 		modelFields = modelFields[:1000]
-		log.WithContext(ctx).WithField("session_id", sessionID).Warnf("attempted to append more than 1000 fields - truncating")
+		log.WithContext(ctx).WithField("session_secure_id", sessionSecureID).Warnf("attempted to append more than 1000 fields - truncating")
 	}
 	propsSpan.Finish()
 
 	if len(modelFields) > 0 {
-		err := r.AppendFields(ctx, modelFields, session)
+		outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendFields",
+			util.ResourceName("go.sessions.AppendFields"), util.Tag("session_secure_id", sessionSecureID))
+		_, err := r.Redis.AddSessionFields(ctx, sessionSecureID, modelFields)
+		outerSpan.Finish()
 		if err != nil {
 			return e.Wrap(err, "error appending fields")
 		}
 	}
+
+	if r.IsSessionExcludedByFilter(ctx, session) {
+		session.Excluded = true
+		reason := privateModel.SessionExcludedReasonExclusionFilter
+		session.ExcludedReason = &reason
+	}
+
+	r.SessionCache.Add(sessionSecureID, session)
 
 	project, err := r.Store.GetProject(ctx, session.ProjectID)
 	if err != nil {
@@ -302,6 +321,7 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 	} else if propType == PropertyType.TRACK {
 		return r.SendSessionTrackPropertiesAlert(ctx, workspace, project, session, properties)
 	}
+
 	return nil
 }
 
@@ -337,65 +357,6 @@ func (r *Resolver) SubmitSessionEvents(ctx context.Context, sessionID int, event
 	err := r.DataSyncQueue.Submit(ctx, "", messages...)
 	if err != nil {
 		return e.Wrap(err, "failed to submit session events to public worker queue")
-	}
-
-	return nil
-}
-
-func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, session *model.Session) error {
-	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AppendFields",
-		util.ResourceName("go.sessions.AppendFields"), util.Tag("sessionID", session.ID))
-	defer outerSpan.Finish()
-
-	result := r.DB.
-		Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "project_id"}, {Name: "type"}, {Name: "name"}, {Name: "value"}},
-			DoNothing: true}).
-		Create(&fields)
-
-	if err := result.Error; err != nil {
-		return e.Wrap(err, "error inserting new fields")
-	}
-
-	var allFields []*model.Field
-	inClause := [][]interface{}{}
-	for _, f := range fields {
-		inClause = append(inClause, []interface{}{f.ProjectID, f.Type, f.Name, f.Value})
-	}
-	if err := r.DB.WithContext(ctx).Where("(project_id, type, name, value) IN ?", inClause).Order("id DESC").
-		Find(&allFields).Error; err != nil {
-		return e.Wrap(err, "error retrieving all fields")
-	}
-
-	sort.Slice(allFields, func(i, j int) bool {
-		return allFields[i].ID < allFields[j].ID
-	})
-
-	var entries []struct {
-		SessionID int
-		FieldID   int64
-	}
-	for _, f := range allFields {
-		entries = append(entries, struct {
-			SessionID int
-			FieldID   int64
-		}{
-			SessionID: session.ID,
-			FieldID:   f.ID,
-		})
-	}
-	// Associate the fields with this session.
-	// Do this manually to avoid updating the session `updated_at` column since this operation
-	// is typically done as part of other steps that update the session `updated_at`.
-	// Constantly writing to `updated_at` is a source of DB contention for session updates.
-	if err := r.DB.WithContext(ctx).Table("session_fields").Clauses(clause.OnConflict{
-		DoNothing: true,
-	}).Create(entries).Error; err != nil {
-		return e.Wrap(err, "error updating fields")
-	}
-
-	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}}); err != nil {
-		return err
 	}
 
 	return nil
@@ -1031,7 +992,7 @@ func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Se
 	if session.AppVersion != nil {
 		sessionProperties["service_version"] = *session.AppVersion
 	}
-	if err := r.AppendProperties(ctx, session.ID, lo.MapToSlice(sessionProperties, func(key string, value string) AppendProperty {
+	if err := r.AppendProperties(ctx, session.SecureID, lo.MapToSlice(sessionProperties, func(key string, value string) AppendProperty {
 		return AppendProperty{key, value, session.CreatedAt}
 	}), PropertyType.SESSION); err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
@@ -1536,7 +1497,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	if err := session.SetUserProperties(allUserProperties); err != nil {
 		return e.Wrapf(err, "[IdentifySession] [project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
 	}
-	if err := r.AppendProperties(spanCtx, sessionID, lo.MapToSlice(newUserProperties, func(key string, value string) AppendProperty {
+	if err := r.AppendProperties(spanCtx, session.SecureID, lo.MapToSlice(newUserProperties, func(key string, value string) AppendProperty {
 		return AppendProperty{key, value, session.CreatedAt}
 	}), PropertyType.USER); err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
@@ -1650,7 +1611,7 @@ func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionSecureID
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err = r.AppendProperties(ctx, sessionObj.ID, lo.MapToSlice(fields, func(key string, value string) AppendProperty {
+	err = r.AppendProperties(ctx, sessionObj.SecureID, lo.MapToSlice(fields, func(key string, value string) AppendProperty {
 		return AppendProperty{key, value, sessionObj.CreatedAt}
 	}), PropertyType.SESSION)
 	if err != nil {
@@ -2334,7 +2295,7 @@ func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionSecureID s
 			return e.New("therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues")
 		}
 	}
-	err = r.AppendProperties(ctx, sessionObj.ID, lo.MapToSlice(fields, func(key string, value string) AppendProperty {
+	err = r.AppendProperties(ctx, sessionObj.SecureID, lo.MapToSlice(fields, func(key string, value string) AppendProperty {
 		return AppendProperty{key, value, sessionObj.CreatedAt}
 	}), PropertyType.TRACK)
 	if err != nil {
@@ -2343,7 +2304,7 @@ func (r *Resolver) AddTrackPropertiesImpl(ctx context.Context, sessionSecureID s
 	return nil
 }
 
-func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *parse.ReplayEvents) error {
+func (r *Resolver) AddSessionEvents(ctx context.Context, sessionSecureID string, sessionID int, events *parse.ReplayEvents) error {
 	outerSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.AddSessionEvents",
 		util.ResourceName("go.sessions.AddSessionEvents"))
 	defer outerSpan.Finish()
@@ -2491,7 +2452,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionID int, events *
 	}
 
 	if len(fields) > 0 {
-		if err := r.AppendProperties(ctx, sessionID, fields, PropertyType.TRACK); err != nil {
+		if err := r.AppendProperties(ctx, sessionSecureID, fields, PropertyType.TRACK); err != nil {
 			log.WithContext(ctx).WithField("session_id", sessionID).Error(e.Wrap(err, "error adding set of properties to db"))
 		}
 	}
@@ -2745,7 +2706,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				return e.Wrap(err, "error parsing events from schema interfaces")
 			}
 
-			if err := r.AddSessionEvents(ctx, sessionID, parsedEvents); err != nil {
+			if err := r.AddSessionEvents(ctx, sessionSecureID, sessionID, parsedEvents); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to add track properties"))
 			}
 
@@ -3241,11 +3202,17 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 	}
 
 	sessionObj := &model.Session{}
-	if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&sessionObj).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&sessionObj).Error; err != nil {
 		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
 		log.WithContext(ctx).Error(retErr)
 		return nil
 	}
+
+	fields, err := r.Redis.GetSessionFields(ctx, sessionObj.SecureID)
+	if err != nil {
+		return err
+	}
+	sessionObj.Fields = fields
 
 	for _, sessionAlert := range sessionAlerts {
 		// skip alerts that have already been sent for this session
@@ -3615,19 +3582,29 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 			log.WithContext(ctx).Error(e.Wrap(err, "error getting track properties from session"))
 			continue
 		}
-		var trackPropertyIds []int
-		for _, trackProperty := range trackProperties {
-			trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
+
+		type nameValuePair struct {
+			Name  string
+			Value string
 		}
-		stmt := r.DB.WithContext(ctx).Model(&model.Field{}).
-			Where(&model.Field{ProjectID: session.ProjectID, Type: "track"}).
-			Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", session.ID).
-			Where("id IN ?", trackPropertyIds)
-		var matchedFields []*model.Field
-		if err := stmt.Find(&matchedFields).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error querying matched fields by session_id"))
+		relevantProperties := map[nameValuePair]bool{}
+		for _, trackProperty := range trackProperties {
+			relevantProperties[nameValuePair{Name: trackProperty.Name, Value: trackProperty.Value}] = true
+		}
+
+		fields, err := r.Clickhouse.GetFieldsBySession(ctx, session.ProjectID, session.ID)
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error getting fields by session"))
 			continue
 		}
+
+		matchedFields := []*model.Field{}
+		for _, field := range fields {
+			if relevantProperties[nameValuePair{Name: field.Name, Value: field.Value}] {
+				matchedFields = append(matchedFields, field)
+			}
+		}
+
 		if len(matchedFields) < 1 {
 			continue
 		}
@@ -3806,19 +3783,29 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 			log.WithContext(ctx).Error(e.Wrap(err, "error getting user properties from session"))
 			continue
 		}
-		var userPropertyIds []int
-		for _, userProperty := range userProperties {
-			userPropertyIds = append(userPropertyIds, userProperty.ID)
+
+		type nameValuePair struct {
+			Name  string
+			Value string
 		}
-		stmt := r.DB.WithContext(ctx).Model(&model.Field{}).
-			Where(&model.Field{ProjectID: session.ProjectID, Type: "user"}).
-			Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", session.ID).
-			Where("id IN ?", userPropertyIds)
-		var matchedFields []*model.Field
-		if err := stmt.Find(&matchedFields).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error querying matched fields by session_id"))
+		relevantProperties := map[nameValuePair]bool{}
+		for _, trackProperty := range userProperties {
+			relevantProperties[nameValuePair{Name: trackProperty.Name, Value: trackProperty.Value}] = true
+		}
+
+		fields, err := r.Clickhouse.GetFieldsBySession(ctx, session.ProjectID, session.ID)
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error getting fields by session"))
 			continue
 		}
+
+		matchedFields := []*model.Field{}
+		for _, field := range fields {
+			if relevantProperties[nameValuePair{Name: field.Name, Value: field.Value}] {
+				matchedFields = append(matchedFields, field)
+			}
+		}
+
 		if len(matchedFields) < 1 {
 			continue
 		}
