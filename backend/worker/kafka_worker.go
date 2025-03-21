@@ -551,6 +551,15 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 			}
 			sessionSpan.Finish()
 
+			for _, session := range sessionObjs {
+				var err error
+				session.Fields, err = k.Worker.Resolver.Redis.GetSessionFields(ctx, session.SecureID)
+				if err != nil {
+					log.WithContext(ctx).Error(err)
+					return err
+				}
+			}
+
 			allSessionObjs = append(allSessionObjs, sessionObjs...)
 		}
 
