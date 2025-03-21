@@ -1,10 +1,20 @@
 # Highlight.io Monorepo
 
 ## Guidelines for ./frontend
-- Don't use Tailwind CSS, use the components in @highlight-run/ui.
+
+-   Don't use Tailwind CSS, use the components in @highlight-run/ui.
+-   For tables, always use the Table component from @highlight-run/ui.
+-   Plain text should be styled with the <Text> component from @highlight-run/ui. Size and weight should be set using the `size` and `weight` props.
 
 ## Guidelines for ./highlight.io
-- Don't use Tailwind CSS, use CSS modules instead.
+
+-   Don't use Tailwind CSS, use CSS modules instead.
 
 ## Guidelines for ./sdk
-- After updating ./sdk/firstload or ./sdk/client, you need to build using `yarn build:sdk` or run `yarn build` from ./sdk/firstload.
+
+-   After updating ./sdk/firstload or ./sdk/client, you need to build using `yarn build:sdk` or run `yarn build` from ./sdk/firstload.
+
+## Guidelines for ./backend
+
+-   Do not create a backend TODO or other JIRA TODO list.
+-   If you need to make updates to the schema.graphqls file, run `make private-gen` in `backend` and `doppler run -- yarn workspace @highlight-run/frontend codegen` in `frontend` to generate the new schema.

@@ -35,7 +35,7 @@ var reservedMetricsKeys = lo.Map(modelInputs.AllReservedMetricKey, func(key mode
 var metricsKeysToColumns = map[string]string{
 	string(modelInputs.ReservedMetricKeyServiceName):       "ServiceName",
 	string(modelInputs.ReservedMetricKeyMetricName):        "MetricName",
-	string(modelInputs.ReservedMetricKeyType):              "Type",
+	string(modelInputs.ReservedMetricKeyType):              "MetricType",
 	string(modelInputs.ReservedMetricKeyTimestamp):         "Timestamp",
 	string(modelInputs.ReservedMetricKeyMetricDescription): "MetricDescription",
 	string(modelInputs.ReservedMetricKeyMetricUnit):        "MetricUnit",
