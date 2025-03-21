@@ -74,6 +74,7 @@ import { CalendlyButton } from '../CalendlyModal/CalendlyButton'
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.css'
 import InkeepChatSupportMenuItem from '@/components/Header/InkeepChatSupportMenuItem'
+import { useFeatureFlag } from '@/components/LaunchDarkly/useFeatureFlag'
 
 type Props = {
 	fullyIntegrated?: boolean
@@ -1011,6 +1012,7 @@ const Navbar: React.FC = () => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [topbarPages, setTopbarPages] = useState<Page[]>(PAGES)
 	const [menuPages, setMenuPages] = useState<Page[]>([])
+	const newConnectName = useFeatureFlag('rename-setup', 'connect')
 
 	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
@@ -1026,7 +1028,15 @@ const Navbar: React.FC = () => {
 				containerRef.current.offsetWidth / 100,
 			)
 
-			const newTopbarPages = PAGES.slice(0, topbarItemCount)
+			const newTopbarPages = PAGES.slice(0, topbarItemCount).map((p) => {
+				if (p.key === 'connect') {
+					return {
+						...p,
+						key: newConnectName,
+					}
+				}
+				return p
+			})
 			const newMenuPages = PAGES.slice(topbarItemCount)
 
 			setTopbarPages(newTopbarPages)
@@ -1035,7 +1045,7 @@ const Navbar: React.FC = () => {
 
 		observer.observe(containerRef.current!)
 		return () => observer.disconnect()
-	}, [])
+	}, [newConnectName])
 
 	let grafanaItem = (
 		<Menu.Item disabled={!enableGrafanaDashboard}>
