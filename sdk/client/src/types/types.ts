@@ -247,11 +247,11 @@ export declare type HighlightOptions = {
 	 */
 	storageMode?: 'sessionStorage' | 'localStorage'
 	/**
-	 * Set `skipCookieSessionDataLoad` to bypass retrieval
-	 * of session context from server side cookies, which otherwise
-	 * would continue a session started server side.
+	 * By default, session data is stored in the `sessionStorage` of the browser.
+	 * Set to `true` to store session data in a cookie instead.
+	 * This can help with compliance for cookie-consent regulation.
 	 */
-	skipCookieSessionDataLoad?: true
+	sessionCookie?: true
 	/**
 	 * By default, data is serialized and send by the Web Worker. Set to `local` to force
 	 * sending from the main js thread. Only use `local` for custom environments where Web Workers
