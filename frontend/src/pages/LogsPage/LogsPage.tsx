@@ -8,6 +8,7 @@ import {
 	DateRangePreset,
 	DEFAULT_TIME_PRESETS,
 	presetStartDate,
+	Stack,
 } from '@highlight-run/ui/components'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
@@ -53,6 +54,9 @@ import {
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import analytics from '@/util/analytics'
 import { exportLogs } from '@pages/LogsPage/utils'
+import { LeftPanel } from '@/components/Search/LeftPanel'
+import { ControlsBar } from '@/components/Search/LeftPanel/ControlsBar'
+import { useLeftPanel } from '@/components/Search/LeftPanel/useLeftPanel'
 
 const LogsPage = () => {
 	const { log_cursor } = useParams<{
@@ -88,6 +92,10 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 	const queryParts = useMemo(() => {
 		return parseSearch(query).queryParts
 	}, [query])
+
+	const { displayLeftPanel, setDisplayLeftPanel } = useLeftPanel({
+		key: 'logs',
+	})
 
 	const [
 		getAiQuerySuggestion,
@@ -279,62 +287,102 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 					<SearchForm
 						startDate={searchTimeContext.startDate}
 						endDate={searchTimeContext.endDate}
-						onDatesChange={searchTimeContext.updateSearchTime}
-						presets={DEFAULT_TIME_PRESETS}
-						minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
-						selectedPreset={searchTimeContext.selectedPreset}
 						productType={ProductType.Logs}
-						timeMode={timeMode}
 						savedSegmentType={SavedSegmentEntityType.Log}
 						enableAIMode={
 							workspaceSettings?.workspaceSettings
 								?.ai_query_builder
 						}
 						aiSupportedSearch
-					/>
-					<LogsCount
-						startDate={searchTimeContext.startDate}
-						endDate={searchTimeContext.endDate}
-						presetSelected={!!searchTimeContext.selectedPreset}
-						totalCount={totalCount}
-						loading={histogramLoading}
-						onDownload={
-							loading ? undefined : () => exportLogs(logEdges)
-						}
-					/>
-					<LogsHistogram
-						startDate={searchTimeContext.startDate}
-						endDate={searchTimeContext.endDate}
-						onDatesChange={searchTimeContext.updateSearchTime}
-						loading={histogramLoading}
-						metrics={histogramData}
+						hideDatePicker
+						onDatesChange={() => {}}
+						presets={[]}
+						minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
+						timeMode={timeMode}
 					/>
 					<Box
-						borderTop="dividerWeak"
+						display="flex"
+						flexDirection="row"
 						height="full"
 						overflow="hidden"
 					>
-						<LogsOverageCard />
-						<IntegrationCta />
-						<LogsTable
-							query={query}
-							queryParts={queryParts}
-							logEdges={logEdges}
-							loading={loading}
-							error={error}
-							refetch={refetch}
-							loadingAfter={loadingAfter}
-							selectedCursor={logCursor}
-							moreLogs={moreLogs}
-							clearMoreLogs={clearMoreLogs}
-							handleAdditionalLogsDateChange={
-								searchTimeContext.rebaseSearchTime
-							}
-							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-							selectedColumns={selectedColumns}
-							setSelectedColumns={setSelectedColumns}
-							pollingExpired={pollingExpired}
+						<LeftPanel
+							product={ProductType.Logs}
+							displayLeftPanel={displayLeftPanel}
+							startDate={searchTimeContext.startDate}
+							endDate={searchTimeContext.endDate}
 						/>
+						<Stack gap="0" flexGrow={1}>
+							<ControlsBar
+								showControlsPanel={displayLeftPanel}
+								setShowControlsPanel={setDisplayLeftPanel}
+								startDate={searchTimeContext.startDate}
+								endDate={searchTimeContext.endDate}
+								onDatesChange={
+									searchTimeContext.updateSearchTime
+								}
+								presets={DEFAULT_TIME_PRESETS}
+								minDate={presetStartDate(
+									DEFAULT_TIME_PRESETS[5],
+								)}
+								selectedPreset={
+									searchTimeContext.selectedPreset
+								}
+								timeMode={timeMode}
+							/>
+							<LogsCount
+								startDate={searchTimeContext.startDate}
+								endDate={searchTimeContext.endDate}
+								presetSelected={
+									!!searchTimeContext.selectedPreset
+								}
+								totalCount={totalCount}
+								loading={histogramLoading}
+								onDownload={
+									loading
+										? undefined
+										: () => exportLogs(logEdges)
+								}
+							/>
+							<LogsHistogram
+								startDate={searchTimeContext.startDate}
+								endDate={searchTimeContext.endDate}
+								onDatesChange={
+									searchTimeContext.updateSearchTime
+								}
+								loading={histogramLoading}
+								metrics={histogramData}
+							/>
+							<Box
+								borderTop="dividerWeak"
+								height="full"
+								overflow="hidden"
+							>
+								<LogsOverageCard />
+								<IntegrationCta />
+								<LogsTable
+									query={query}
+									queryParts={queryParts}
+									logEdges={logEdges}
+									loading={loading}
+									error={error}
+									refetch={refetch}
+									loadingAfter={loadingAfter}
+									selectedCursor={logCursor}
+									moreLogs={moreLogs}
+									clearMoreLogs={clearMoreLogs}
+									handleAdditionalLogsDateChange={
+										searchTimeContext.rebaseSearchTime
+									}
+									fetchMoreWhenScrolled={
+										fetchMoreWhenScrolled
+									}
+									selectedColumns={selectedColumns}
+									setSelectedColumns={setSelectedColumns}
+									pollingExpired={pollingExpired}
+								/>
+							</Box>
+						</Stack>
 					</Box>
 				</Box>
 			</Box>

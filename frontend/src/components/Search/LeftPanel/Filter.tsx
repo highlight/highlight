@@ -1,0 +1,194 @@
+import {
+	Badge,
+	IconSolidCheveronDown,
+	Stack,
+	IconSolidCheckCircle,
+	IconSolidCheveronRight,
+	ComboboxSelect,
+	Text,
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
+import { useEffect, useMemo, useState } from 'react'
+import moment from 'moment'
+
+import { Button } from '@components/Button'
+
+import * as style from './Filter.css'
+import LoadingBox from '@/components/LoadingBox'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useGetKeyValuesLazyQuery } from '@/graph/generated/hooks'
+import { ProductType } from '@/graph/generated/schemas'
+import { useProjectId } from '@/hooks/useProjectId'
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
+
+type ValueSuggestion = {
+	value: string
+	selected: boolean
+}
+
+type Props = {
+	product: ProductType
+	filter: string
+	values: ValueSuggestion[]
+	startDate: Date
+	endDate: Date
+	onSelect: (filter: string, value: string, add: boolean) => void
+}
+
+// TODO(spenny): numbers are from day, so may not be accurate to the current timeframe
+
+export const Filter: React.FC<Props> = ({
+	product,
+	filter,
+	values,
+	startDate,
+	endDate,
+	onSelect,
+}) => {
+	const { projectId } = useProjectId()
+	const [expanded, setExpanded] = useState(true)
+	const [valueQuery, setValueQuery] = useState('')
+	const debouncedQuery = useDebouncedValue(valueQuery) || ''
+
+	const [getKeyValues, { data, loading }] = useGetKeyValuesLazyQuery()
+
+	const selectedValues = useMemo(() => {
+		return values
+			.filter((value) => value.selected)
+			.map((value) => value.value)
+	}, [values])
+
+	const comboBoxOptions = useMemo(() => {
+		const options = loading
+			? undefined
+			: data?.key_values.map((value) => ({
+					key: value,
+					render: (
+						<Text
+							lines="1"
+							cssClass={style.selectOption}
+							title={value}
+						>
+							{value}
+						</Text>
+					),
+				}))
+
+		return options
+	}, [loading, data?.key_values])
+
+	const handleSelect = (value: string, selected: boolean) => {
+		onSelect(filter, value, selected)
+	}
+
+	const handleComboBoxSelect = (values: string[]) => {
+		values.forEach((value) => {
+			if (!selectedValues.includes(value)) {
+				handleSelect(value, true)
+			}
+		})
+
+		selectedValues.forEach((value) => {
+			if (!values.includes(value)) {
+				handleSelect(value, false)
+			}
+		})
+	}
+
+	useEffect(() => {
+		getKeyValues({
+			variables: {
+				product_type: product,
+				project_id: projectId!,
+				key_name: filter,
+				date_range: {
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
+				},
+				query: debouncedQuery,
+				count: 10,
+			},
+		})
+	}, [
+		debouncedQuery,
+		startDate,
+		endDate,
+		product,
+		projectId,
+		getKeyValues,
+		filter,
+	])
+
+	return (
+		<Stack gap="4" pb="8">
+			<Button
+				kind="secondary"
+				emphasis="low"
+				onClick={(e) => {
+					e.stopPropagation()
+					setExpanded(!expanded)
+				}}
+				trackingId="expand-filter-button"
+				iconRight={
+					expanded ? (
+						<IconSolidCheveronDown />
+					) : (
+						<IconSolidCheveronRight />
+					)
+				}
+				className={style.filterButton}
+			>
+				{filter}
+			</Button>
+			{expanded && (
+				<Stack gap="8" pl="8">
+					<ComboboxSelect
+						label="Values"
+						queryPlaceholder="Search values..."
+						onChange={handleComboBoxSelect}
+						valueRender="Find..."
+						loadingRender={<LoadingBox />}
+						value={selectedValues}
+						options={comboBoxOptions}
+						cssClass={style.selectButton}
+						popoverCssClass={style.selectPopover}
+						onChangeQuery={setValueQuery}
+					/>
+					{values.map((value) => {
+						return (
+							<Stack
+								key={value.value}
+								direction="row"
+								gap="4"
+								alignItems="center"
+								justifyContent="flex-start"
+								width="full"
+								cursor="pointer"
+								onClick={() =>
+									handleSelect(value.value, !value.selected)
+								}
+							>
+								<div
+									className={style.checkbox}
+									style={{
+										backgroundColor: value.selected
+											? vars.theme.interactive.fill
+													.primary.enabled
+											: 'white',
+									}}
+								>
+									<IconSolidCheckCircle color="white" />
+								</div>
+								<Badge
+									label={value.value}
+									title={value.value}
+									lines="1"
+								/>
+							</Stack>
+						)
+					})}
+				</Stack>
+			)}
+		</Stack>
+	)
+}
