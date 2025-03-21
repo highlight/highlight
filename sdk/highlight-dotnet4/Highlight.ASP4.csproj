@@ -96,25 +96,25 @@
       <Version>1.11.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNet">
-      <Version>1.11.1-beta.2</Version>
+      <Version>1.11.0-beta.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore">
-      <Version>1.11.1-beta.2</Version>
+      <Version>1.11.0-beta.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.Http">
       <Version>1.11.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.Process">
-      <Version>1.11.1-beta.2</Version>
+      <Version>1.11.0-beta.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime">
       <Version>1.11.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient">
-      <Version>1.11.1-beta.2</Version>
+      <Version>1.11.0-beta.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.Wcf">
-      <Version>1.11.1-beta.2</Version>
+      <Version>1.11.0-beta.2</Version>
     </PackageReference>
     <PackageReference Include="Serilog">
       <Version>4.2.1-dev-02340</Version>
