@@ -42,7 +42,7 @@ Globals:
     Function:
         LoggingConfig:
             LogFormat: JSON
-        Runtime: nodejs22.x
+        Runtime: nodejs20.x
         Architectures:
             - x86_64
         MemorySize: 128
