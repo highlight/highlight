@@ -126,9 +126,10 @@ export async function trpcOnError(
 			H.init(options)
 		}
 		processErrorImpl(options, req, error, metadata)
-		await H.flush()
 	} catch (e) {
 		console.warn('highlight-node trpcOnError error:', e)
+	} finally {
+		await H.flush()
 	}
 }
 
@@ -158,11 +159,11 @@ const makeHandler = (
 			try {
 				if (e instanceof Error) {
 					processErrorImpl(options, { headers }, e, metadata)
-
-					await H.flush()
 				}
 			} catch (e) {
 				console.warn('highlight-node serverlessFunction error:', e)
+			} finally {
+				await H.flush()
 			}
 
 			// Rethrow the error here to allow any other error handling to happen

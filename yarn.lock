@@ -10477,7 +10477,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/node@workspace: *, @highlight-run/node@workspace:*, @highlight-run/node@workspace:sdk/highlight-node":
+"@highlight-run/node@npm:3.12.0, @highlight-run/node@workspace: *, @highlight-run/node@workspace:*, @highlight-run/node@workspace:sdk/highlight-node":
   version: 0.0.0-use.local
   resolution: "@highlight-run/node@workspace:sdk/highlight-node"
   dependencies:
@@ -28076,6 +28076,14 @@ __metadata:
   checksum: 10/71fd8d4e57efb93dab5252e38cdeb2a90ccbe95346c5d7b63bbee7a3123cebe3873a4a930a7cd39afcbfaabd70ebb00e66fb0d5aca55cd9363f850d024c0980b
   languageName: node
   linkType: hard
+
+"aws-lambda@workspace:e2e/aws-lambda":
+  version: 0.0.0-use.local
+  resolution: "aws-lambda@workspace:e2e/aws-lambda"
+  dependencies:
+    "@highlight-run/node": "npm:3.12.0"
+  languageName: unknown
+  linkType: soft
 
 "aws-sdk@npm:^2.814.0":
   version: 2.1415.0

@@ -1,0 +1,18 @@
+version: 0.2
+phases:
+    install:
+        commands:
+            # Install all dependencies (including dependencies for running tests)
+            - yarn install
+    pre_build:
+        commands:
+            # Remove all dependencies not needed for the Lambda deployment package (the packages from devDependencies in package.json)
+            - npm prune --production
+    build:
+        commands:
+            # Use AWS SAM to package the application by using AWS CloudFormation
+            - aws cloudformation package --template template.yaml --s3-bucket $S3_BUCKET --output-template template-export.yml
+artifacts:
+    type: zip
+    files:
+        - template-export.yml
