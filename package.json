@@ -80,7 +80,7 @@
 		"publish:react-email-templates": "yarn workspace emails publish",
 		"publish:render": "yarn workspace render publish",
 		"publish:turbo": "yarn workspaces foreach -R --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish",
-		"test:all": "yarn turbo run test --filter=!render --filter=!rrweb --filter=!rrvideo --filter=!@rrweb/rrweb-plugin-console-record --filter=!@rrweb/_monorepo --filter=!@rrweb/all --filter=!@rrweb/record --filter=!@rrweb/replay --filter=!@rrweb/types --filter=!@rrweb/packer --filter=!@rrweb/utils --filter=!rrweb-snapshot --filter=!rrweb-player --filter=!rrdom --filter=!rrdom-nodejs --filter=!nextjs",
+		"test:all": "yarn turbo run test --filter=!render --filter=!rrweb --filter=!rrvideo --filter=!@rrweb/rrweb-plugin-console-record --filter=!@rrweb/_monorepo --filter=!@rrweb/all --filter=!@rrweb/record --filter=!@rrweb/replay --filter=!@rrweb/types --filter=!@rrweb/packer --filter=!@rrweb/utils --filter=!@rrweb/web-extension --filter=!rrweb-snapshot --filter=!rrweb-player --filter=!rrdom --filter=!rrdom-nodejs --filter=!nextjs",
 		"test:render": "yarn turbo run test --filter=render",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps",
 		"knip:frontend": "knip --workspace @highlight-run/frontend"

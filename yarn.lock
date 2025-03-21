@@ -18741,9 +18741,11 @@ __metadata:
     eslint-plugin-compat: "npm:^5.0.0"
     eslint-plugin-jest: "npm:^27.6.0"
     eslint-plugin-tsdoc: "npm:^0.2.17"
+    happy-dom: "npm:^14.12.0"
     markdownlint: "npm:^0.25.1"
     markdownlint-cli: "npm:^0.31.1"
     prettier: "npm:2.8.4"
+    rollup-plugin-visualizer: "npm:^5.12.0"
     turbo: "npm:^2.0.4"
     typescript: "npm:^5.4.5"
   languageName: unknown
@@ -18784,6 +18786,7 @@ __metadata:
   resolution: "@rrweb/record@workspace:rrweb/packages/record"
   dependencies:
     "@rrweb/types": "workspace:*"
+    "@rrweb/utils": "workspace:*"
     puppeteer: "npm:^20.9.0"
     rrweb: "workspace:*"
     turbo: "npm:^2.0.5"
@@ -18849,6 +18852,7 @@ __metadata:
     vite-plugin-dts: "npm:^3.9.1"
     vitest: "npm:^1.4.0"
   peerDependencies:
+    "@rrweb/utils": "workspace:*"
     rrweb: "workspace:*"
   languageName: unknown
   linkType: soft
@@ -18901,7 +18905,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rrweb/types@workspace:rrweb/packages/types"
   dependencies:
-    rrweb-snapshot: "workspace:*"
     turbo: "npm:^2.0.5"
     vite: "npm:^5.3.1"
     vite-plugin-dts: "npm:^3.9.1"
@@ -18926,7 +18929,9 @@ __metadata:
     "@emotion/styled": "npm:^11.10.4"
     "@rrweb/types": "workspace:*"
     "@tanstack/react-table": "npm:^8.5.22"
+    "@types/chrome": "npm:^0.0.287"
     "@types/react-dom": "npm:^18.0.6"
+    "@types/semver": "npm:^7.5.8"
     "@types/webextension-polyfill": "npm:^0.9.1"
     "@vitejs/plugin-react": "npm:^4.2.1"
     framer-motion: "npm:^7.3.6"
@@ -18939,6 +18944,7 @@ __metadata:
     react-router-dom: "npm:^6.4.1"
     rrweb: "workspace:*"
     rrweb-player: "workspace:*"
+    semver: "npm:^7.6.3"
     type-fest: "npm:^2.19.0"
     vite: "npm:^5.3.1"
     vite-plugin-web-extension: "npm:^4.1.3"
@@ -21642,6 +21648,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/chrome@npm:^0.0.287":
+  version: 0.0.287
+  resolution: "@types/chrome@npm:0.0.287"
+  dependencies:
+    "@types/filesystem": "npm:*"
+    "@types/har-format": "npm:*"
+  checksum: 10/bf09f11a2b1061ec477f7e3c0c4b9d575f2cdbff04bf7b16dbbb64d132c048a952fd1ffcedf61a0d16a514c26a9918cafd553ec4d02a34c4d25f80c1cafe0e2b
+  languageName: node
+  linkType: hard
+
 "@types/color-hash@npm:^1.0.1":
   version: 1.0.1
   resolution: "@types/color-hash@npm:1.0.1"
@@ -23080,10 +23096,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/semver@npm:^7.3.12, @types/semver@npm:^7.3.4, @types/semver@npm:^7.5.0":
-  version: 7.5.0
-  resolution: "@types/semver@npm:7.5.0"
-  checksum: 10/8fbfbf79e9c14c3c20160a42145a146cba44d9763d0fac78358b394dc36e41bc2590bc4f0129c6fcbbc9b30f12ea1ba821bfe84b29dc80897f315cc7dd251393
+"@types/semver@npm:^7.3.12, @types/semver@npm:^7.3.4, @types/semver@npm:^7.5.0, @types/semver@npm:^7.5.8":
+  version: 7.5.8
+  resolution: "@types/semver@npm:7.5.8"
+  checksum: 10/3496808818ddb36deabfe4974fd343a78101fa242c4690044ccdc3b95dcf8785b494f5d628f2f47f38a702f8db9c53c67f47d7818f2be1b79f2efb09692e1178
   languageName: node
   linkType: hard
 
@@ -39497,6 +39513,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"happy-dom@npm:^14.12.0":
+  version: 14.12.3
+  resolution: "happy-dom@npm:14.12.3"
+  dependencies:
+    entities: "npm:^4.5.0"
+    webidl-conversions: "npm:^7.0.0"
+    whatwg-mimetype: "npm:^3.0.0"
+  checksum: 10/3c254614d41807a7734637a75efd678d7cca41f330a13daec685bc5d4e4a298c687c8cdcbb826afa85f3b76489beacf22ae53e99a6a31181282600eecf7e924e
+  languageName: node
+  linkType: hard
+
 "happy-dom@npm:^15.10.2":
   version: 15.11.7
   resolution: "happy-dom@npm:15.11.7"
@@ -48766,11 +48793,11 @@ __metadata:
   linkType: hard
 
 "nanoid@npm:^5.0.9":
-  version: 5.1.0
-  resolution: "nanoid@npm:5.1.0"
+  version: 5.1.5
+  resolution: "nanoid@npm:5.1.5"
   bin:
     nanoid: bin/nanoid.js
-  checksum: 10/753a25383a33e024ba41ef6bcf49c9750ea49af67c08e81235fb9048182af43f1f6c7c0dbf9d7c2abfb11a781916000c225532f593368153a6289c6997fe6b5e
+  checksum: 10/6de2d006b51c983be385ef7ee285f7f2a57bd96f8c0ca881c4111461644bd81fafc2544f8e07cb834ca0f3e0f3f676c1fe78052183f008b0809efe6e273119f5
   languageName: node
   linkType: hard
 
@@ -50026,7 +50053,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"open@npm:^8.0.4":
+"open@npm:^8.0.4, open@npm:^8.4.0":
   version: 8.4.2
   resolution: "open@npm:8.4.2"
   dependencies:
@@ -56782,6 +56809,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rollup-plugin-visualizer@npm:^5.12.0":
+  version: 5.14.0
+  resolution: "rollup-plugin-visualizer@npm:5.14.0"
+  dependencies:
+    open: "npm:^8.4.0"
+    picomatch: "npm:^4.0.2"
+    source-map: "npm:^0.7.4"
+    yargs: "npm:^17.5.1"
+  peerDependencies:
+    rolldown: 1.x
+    rollup: 2.x || 3.x || 4.x
+  peerDependenciesMeta:
+    rolldown:
+      optional: true
+    rollup:
+      optional: true
+  bin:
+    rollup-plugin-visualizer: dist/bin/cli.js
+  checksum: 10/c892a3d36bfa7a26507b8cc0c4c29763ec40de8585115e6655154c2ff35e4bfabc877739e1b9927bb01231b1c51d7dd6b0f2f9c5898826efcbd2dcd60c5d2b73
+  languageName: node
+  linkType: hard
+
 "rollup@npm:2.78.1":
   version: 2.78.1
   resolution: "rollup@npm:2.78.1"
@@ -56973,6 +57022,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rrdom-nodejs@workspace:rrweb/packages/rrdom-nodejs"
   dependencies:
+    "@rrweb/types": "workspace:*"
     "@types/cssom": "npm:^0.4.1"
     "@types/cssstyle": "npm:^2.2.1"
     "@types/nwsapi": "npm:^2.2.2"
@@ -57004,7 +57054,6 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^5.23.0"
     "@typescript-eslint/parser": "npm:^5.23.0"
     eslint: "npm:^8.15.0"
-    happy-dom: "npm:^15.10.2"
     puppeteer: "npm:^17.1.3"
     rrweb-snapshot: "workspace:*"
     turbo: "npm:^2.0.5"
@@ -57054,7 +57103,7 @@ __metadata:
     svelte: "npm:^4.2.14"
     svelte-check: "npm:^3.4.3"
     svelte-preprocess: "npm:^5.0.3"
-    svelte2tsx: "npm:^0.7.6"
+    svelte2tsx: "npm:^0.7.30"
     tslib: "npm:^2.0.0"
     vite: "npm:^5.3.1"
   languageName: unknown
@@ -57064,6 +57113,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rrweb-snapshot@workspace:rrweb/packages/rrweb-snapshot"
   dependencies:
+    "@rrweb/types": "workspace:*"
     "@rrweb/utils": "workspace:*"
     "@types/jsdom": "npm:^20.0.0"
     "@types/node": "npm:^18.15.11"
@@ -57085,6 +57135,7 @@ __metadata:
   resolution: "rrweb@workspace:rrweb/packages/rrweb"
   dependencies:
     "@rrweb/types": "workspace:*"
+    "@rrweb/utils": "workspace:*"
     "@types/css-font-loading-module": "npm:0.0.7"
     "@types/dom-mediacapture-transform": "npm:0.1.4"
     "@types/inquirer": "npm:^8.2.1"
@@ -60167,16 +60218,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"svelte2tsx@npm:^0.7.6, svelte2tsx@npm:~0.7.0":
-  version: 0.7.11
-  resolution: "svelte2tsx@npm:0.7.11"
+"svelte2tsx@npm:^0.7.30, svelte2tsx@npm:~0.7.0":
+  version: 0.7.35
+  resolution: "svelte2tsx@npm:0.7.35"
   dependencies:
     dedent-js: "npm:^1.0.1"
     pascal-case: "npm:^3.1.1"
   peerDependencies:
     svelte: ^3.55 || ^4.0.0-next.0 || ^4.0 || ^5.0.0-next.0
     typescript: ^4.9.4 || ^5.0.0
-  checksum: 10/e458622e60abab1dcc5a608e80630c7bfb9a9d2ab3be1455189928d7a24685f835fa6cdcb391003b48307ca2ee5840113c54739abbfdac01e5d419d707b38e72
+  checksum: 10/05e8dce812215e6469776f6aaac55453a750a2f0f9e3fb2b318c1f10b7fee66b8222395877b39690ea9cf901a3157205039aeb589349c5981aabb418954d79bf
   languageName: node
   linkType: hard
 
@@ -65476,7 +65527,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs@npm:17.7.2, yargs@npm:^17.0.0, yargs@npm:^17.2.1, yargs@npm:^17.3.1, yargs@npm:^17.6.0, yargs@npm:^17.6.2, yargs@npm:^17.7.2":
+"yargs@npm:17.7.2, yargs@npm:^17.0.0, yargs@npm:^17.2.1, yargs@npm:^17.3.1, yargs@npm:^17.5.1, yargs@npm:^17.6.0, yargs@npm:^17.6.2, yargs@npm:^17.7.2":
   version: 17.7.2
   resolution: "yargs@npm:17.7.2"
   dependencies:

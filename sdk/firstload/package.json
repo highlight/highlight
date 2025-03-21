@@ -1,6 +1,6 @@
 {
 	"name": "highlight.run",
-	"version": "9.13.0",
+	"version": "9.14.0",
 	"description": "Open source, fullstack monitoring. Capture frontend errors, record server side logs, and visualize what broke with session replay.",
 	"keywords": [
 		"highlight",
@@ -41,11 +41,16 @@
 	"module": "./dist/index.js",
 	"unpkg": "./dist/index.umd.js",
 	"jsdelivr": "./dist/index.umd.js",
+	"browser": "./dist/index.umd.js",
 	"types": "./dist/firstload/src/index.d.ts",
 	"exports": {
 		"types": "./dist/firstload/src/index.d.ts",
 		"import": "./dist/index.js",
-		"default": "./dist/index.js"
+		"require": "./dist/index.js",
+		"unpkg": "./dist/index.umd.js",
+		"jsdelivr": "./dist/index.umd.js",
+		"browser": "./dist/index.umd.js",
+		"default": "./dist/index.umd.js"
 	},
 	"files": [
 		"dist"
