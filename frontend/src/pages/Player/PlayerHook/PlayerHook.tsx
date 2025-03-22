@@ -54,13 +54,14 @@ import {
 	useSetPlayerTimestampFromSearchParam,
 } from './utils'
 import usePlayerConfiguration from './utils/usePlayerConfiguration'
-import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 
 export const usePlayer = (
 	playerRef: RefObject<HTMLDivElement>,
 	autoPlay = false,
 ): ReplayerContextInterface => {
-	const noChunkRemoval = useFeatureFlag(Feature.PlayerNoChunkRemoval)
+	// TODO: Replace this logic
+	// const noChunkRemoval = useFeatureFlag(Feature.PlayerNoChunkRemoval)
+	const noChunkRemoval = true
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const { sessionSecureId, projectId } = useSessionParams()
 	const navigate = useNavigate()
