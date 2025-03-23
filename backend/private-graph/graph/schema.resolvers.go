@@ -14,7 +14,6 @@ import (
 	"math"
 	"math/rand"
 	"net/url"
-	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -5178,19 +5177,6 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 
 // Session is the resolver for the session field.
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
-	if env.IsDevEnv() && secureID == "repro" {
-		sessionObj := &model.Session{}
-		if err := r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: 0}}).Take(&sessionObj).Error; err != nil {
-			return nil, e.Wrap(err, "error reading from session")
-		}
-		fields, err := r.ClickhouseClient.GetFieldsBySession(ctx, sessionObj.ProjectID, sessionObj.ID)
-		if err != nil {
-			return nil, e.Wrap(err, "error getting fields by session")
-		}
-		sessionObj.Fields = fields
-		return sessionObj, nil
-	}
-
 	s, err := r.canAdminViewSession(ctx, secureID)
 	if s == nil || err != nil {
 		return nil, err
@@ -5206,7 +5192,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 		return nil, e.Wrap(err, "error reading from session")
 	}
 
-	fields, err := r.ClickhouseClient.GetFieldsBySession(ctx, s.ProjectID, s.ID)
+	fields, err := r.GetSessionFields(ctx, sessionObj)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting fields by session")
 	}
@@ -5228,18 +5214,6 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 
 // Events is the resolver for the events field.
 func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
-	if env.IsDevEnv() && sessionSecureID == "repro" {
-		file, err := os.ReadFile("./tmp/events.json")
-		if err != nil {
-			return nil, e.Wrap(err, "Failed to read temp file")
-		}
-		var data []interface{}
-
-		if err := json.Unmarshal([]byte(file), &data); err != nil {
-			return nil, e.Wrap(err, "Failed to unmarshal data from file")
-		}
-		return data, nil
-	}
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, err
@@ -5250,11 +5224,9 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 
 // SessionIntervals is the resolver for the session_intervals field.
 func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID string) ([]*model.SessionInterval, error) {
-	if !(env.IsDevEnv() && sessionSecureID == "repro") {
-		_, err := r.canAdminViewSession(ctx, sessionSecureID)
-		if err != nil {
-			return nil, err
-		}
+	_, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return nil, err
 	}
 
 	var sessionIntervals []*model.SessionInterval
@@ -5268,10 +5240,8 @@ func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID st
 // TimelineIndicatorEvents is the resolver for the timeline_indicator_events field.
 func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model.TimelineIndicatorEvent, error) {
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if !(env.IsDevEnv() && sessionSecureID == "repro") {
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
 	}
 
 	var timelineIndicatorEvents []*model.TimelineIndicatorEvent
@@ -5286,10 +5256,8 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 // WebsocketEvents is the resolver for the websocket_events field.
 func (r *queryResolver) WebsocketEvents(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if !(env.IsDevEnv() && sessionSecureID == "repro") {
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
 	}
 
 	webSocketEvents, err := r.StorageClient.ReadWebSocketEvents(ctx, session.ID, session.ProjectID)
@@ -5302,11 +5270,9 @@ func (r *queryResolver) WebsocketEvents(ctx context.Context, sessionSecureID str
 
 // RageClicks is the resolver for the rage_clicks field.
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) ([]*model.RageClickEvent, error) {
-	if !(env.IsDevEnv() && sessionSecureID == "repro") {
-		_, err := r.canAdminViewSession(ctx, sessionSecureID)
-		if err != nil {
-			return nil, err
-		}
+	_, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return nil, err
 	}
 
 	var rageClicks []*model.RageClickEvent
@@ -5658,7 +5624,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	if err := r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&sessionObj).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from session")
 	}
-	fields, err := r.ClickhouseClient.GetFieldsBySession(ctx, s.ProjectID, s.ID)
+	fields, err := r.GetSessionFields(ctx, sessionObj)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting fields by session")
 	}
@@ -5765,10 +5731,6 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 
 // Errors is the resolver for the errors field.
 func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*model.ErrorObject, error) {
-	if env.IsDevEnv() && sessionSecureID == "repro" {
-		errors := []*model.ErrorObject{}
-		return errors, nil
-	}
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, err
@@ -5840,10 +5802,6 @@ func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) (
 
 // SessionComments is the resolver for the session_comments field.
 func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID string) ([]*model.SessionComment, error) {
-	if env.IsDevEnv() && sessionSecureID == "repro" {
-		sessionComments := []*model.SessionComment{}
-		return sessionComments, nil
-	}
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, err
@@ -10008,10 +9966,6 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 
 // SessionFeedback is the resolver for the session_feedback field.
 func (r *sessionResolver) SessionFeedback(ctx context.Context, obj *model.Session) ([]*model.SessionComment, error) {
-	if env.IsDevEnv() && obj.SecureID == "repro" {
-		sessionFeedback := []*model.SessionComment{}
-		return sessionFeedback, nil
-	}
 	s, err := r.canAdminViewSession(ctx, obj.SecureID)
 	if err != nil {
 		return nil, err

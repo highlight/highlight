@@ -3548,6 +3548,10 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 		return err
 	}
 
+	if len(session.Fields) == 0 {
+		return errors.New("Expecting session fields to be populated")
+	}
+
 	for _, sessionAlert := range sessionAlerts {
 		// skip alerts that have already been sent for this session
 		var count int64
@@ -3592,14 +3596,8 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 			relevantProperties[nameValuePair{Name: trackProperty.Name, Value: trackProperty.Value}] = true
 		}
 
-		fields, err := r.Clickhouse.GetFieldsBySession(ctx, session.ProjectID, session.ID)
-		if err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error getting fields by session"))
-			continue
-		}
-
 		matchedFields := []*model.Field{}
-		for _, field := range fields {
+		for _, field := range session.Fields {
 			if relevantProperties[nameValuePair{Name: field.Name, Value: field.Value}] {
 				matchedFields = append(matchedFields, field)
 			}
@@ -3748,6 +3746,10 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 		return err
 	}
 
+	if len(session.Fields) == 0 {
+		return errors.New("Expecting session fields to be populated")
+	}
+
 	for _, sessionAlert := range sessionAlerts {
 		// skip alerts that have already been sent for this session
 		var count int64
@@ -3793,14 +3795,8 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 			relevantProperties[nameValuePair{Name: trackProperty.Name, Value: trackProperty.Value}] = true
 		}
 
-		fields, err := r.Clickhouse.GetFieldsBySession(ctx, session.ProjectID, session.ID)
-		if err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error getting fields by session"))
-			continue
-		}
-
 		matchedFields := []*model.Field{}
-		for _, field := range fields {
+		for _, field := range session.Fields {
 			if relevantProperties[nameValuePair{Name: field.Name, Value: field.Value}] {
 				matchedFields = append(matchedFields, field)
 			}
