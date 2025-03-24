@@ -1452,6 +1452,9 @@ func (client *Client) getSamplingStats(ctx context.Context, tables []string, pro
 	return statsByTable, nil
 }
 
+const groupSuffix = "_group"
+const seriesSuffix = "_series"
+
 func (client *Client) readMetricsSql(ctx context.Context, input ReadMetricsInput, config model.TableConfig) (*modelInputs.MetricsBuckets, error) {
 	sql, err := transformSql(config, input)
 	if err != nil {
@@ -1511,34 +1514,76 @@ func (client *Client) readMetricsSql(ctx context.Context, input ReadMetricsInput
 			for ; rv.Kind() == reflect.Pointer && !rv.IsNil(); rv = rv.Elem() {
 			}
 
+			columnName := selectNames[idx]
+
+			isSeries := strings.HasSuffix(columnName, seriesSuffix)
+			isGroup := strings.HasSuffix(columnName, groupSuffix)
+
 			switch rv.Kind() {
 			case reflect.Struct:
 				switch typed := rv.Interface().(type) {
 				case time.Time:
-					bucketId = uint64(typed.Unix())
-					bucketValue = pointy.Float64(float64(typed.Unix()))
+					if isSeries {
+						results[idx] = pointy.Float64(float64(typed.Unix()))
+					} else if isGroup {
+						groups = append(groups, typed.Format(time.RFC3339))
+					} else {
+						bucketId = uint64(typed.Unix())
+						bucketValue = pointy.Float64(float64(typed.Unix()))
+					}
 				}
 			case reflect.String:
-				groups = append(groups, rv.String())
+				if isSeries {
+					// Attempt to parse as a float, ignoring any conversion errors
+					value, err := strconv.ParseFloat(rv.String(), 64)
+					if err == nil {
+						results[idx] = pointy.Float64(value)
+					}
+				} else {
+					groups = append(groups, rv.String())
+				}
 			case reflect.Bool:
-				groups = append(groups, strconv.FormatBool(rv.Bool()))
+				if isSeries {
+					if rv.Bool() {
+						results[idx] = pointy.Float64(1.0)
+					} else {
+						results[idx] = pointy.Float64(0.0)
+					}
+				} else {
+					groups = append(groups, strconv.FormatBool(rv.Bool()))
+				}
 			case reflect.Float32, reflect.Float64:
-				results[idx] = pointy.Float64(rv.Float())
+				if isGroup {
+					groups = append(groups, strconv.FormatFloat(rv.Float(), 'f', -1, 64))
+				} else {
+					results[idx] = pointy.Float64(rv.Float())
+				}
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				results[idx] = pointy.Float64(float64(rv.Int()))
+				if isGroup {
+					groups = append(groups, strconv.FormatInt(rv.Int(), 10))
+				} else {
+					results[idx] = pointy.Float64(float64(rv.Int()))
+				}
 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				results[idx] = pointy.Float64(float64(rv.Uint()))
+				if isGroup {
+					groups = append(groups, strconv.FormatUint(rv.Uint(), 10))
+				} else {
+					results[idx] = pointy.Float64(float64(rv.Uint()))
+				}
 			case reflect.Pointer:
 				results[idx] = nil
 			}
 		}
 
 		for idx, r := range results {
+			columnName := selectNames[idx]
+			columnName = strings.TrimSuffix(columnName, seriesSuffix)
+			columnName = strings.TrimSuffix(columnName, groupSuffix)
 			metrics.Buckets = append(metrics.Buckets, &modelInputs.MetricBucket{
 				BucketID:    bucketId,
 				BucketValue: bucketValue,
 				Group:       groups,
-				MetricType:  modelInputs.MetricAggregator(selectNames[idx]),
+				MetricType:  modelInputs.MetricAggregator(columnName),
 				MetricValue: r,
 			})
 		}

@@ -592,7 +592,8 @@ const getCustomTooltip =
 										label={
 											isValid
 												? getTickFormatter(
-														seriesInfo?.column ??
+														seriesInfo?.column ||
+															seriesInfo?.aggregator ||
 															'',
 													)(p.value)
 												: ''
