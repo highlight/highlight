@@ -183,17 +183,17 @@
     <Reference Include="OpenTelemetry.Resources.Azure, Version=1.0.0.52, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenTelemetry.Resources.Azure.1.0.0-beta.8\lib\netstandard2.0\OpenTelemetry.Resources.Azure.dll</HintPath>
     </Reference>
-    <Reference Include="OpenTelemetry.Resources.Host, Version=1.11.0.416, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenTelemetry.Resources.Host.1.11.0-beta.2\lib\net462\OpenTelemetry.Resources.Host.dll</HintPath>
+    <Reference Include="OpenTelemetry.Resources.Host, Version=0.1.0.139, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTelemetry.Resources.Host.0.1.0-beta.3\lib\net462\OpenTelemetry.Resources.Host.dll</HintPath>
     </Reference>
-    <Reference Include="OpenTelemetry.Resources.Process, Version=0.1.0.55, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenTelemetry.Resources.Process.0.1.0-beta.2\lib\net462\OpenTelemetry.Resources.Process.dll</HintPath>
+    <Reference Include="OpenTelemetry.Resources.Process, Version=0.1.0.175, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTelemetry.Resources.Process.0.1.0-beta.3\lib\net462\OpenTelemetry.Resources.Process.dll</HintPath>
     </Reference>
     <Reference Include="OpenTelemetry.Resources.ProcessRuntime, Version=0.1.0.56, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenTelemetry.Resources.ProcessRuntime.0.1.0-beta.2\lib\net462\OpenTelemetry.Resources.ProcessRuntime.dll</HintPath>
     </Reference>
     <Reference Include="OpenTelemetry.Shims.OpenTracing, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenTelemetry.Shims.OpenTracing.1.9.0-beta.1\lib\net462\OpenTelemetry.Shims.OpenTracing.dll</HintPath>
+      <HintPath>..\packages\OpenTelemetry.Shims.OpenTracing.1.9.0-beta.2\lib\net462\OpenTelemetry.Shims.OpenTracing.dll</HintPath>
     </Reference>
     <Reference Include="OpenTracing, Version=0.12.1.0, Culture=neutral, PublicKeyToken=61503406977abdaf, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenTracing.0.12.1\lib\net45\OpenTracing.dll</HintPath>
