@@ -438,7 +438,7 @@ func (r *Client) GetSessionsToProcess(ctx context.Context, lockPeriod int, limit
 }
 
 // Calls ZADD, and if the key does not exist yet, sets an expiry of 8h20m.
-var zAddAndExpire = redis.NewScript(fmt.Sprintf(`
+var zAddAndExpire = redis.NewScript(`
 	local key = KEYS[1]
 	local score = ARGV[1]
 	local value = ARGV[2]
@@ -451,7 +451,7 @@ var zAddAndExpire = redis.NewScript(fmt.Sprintf(`
 	end
 
 	return count + 1
-`))
+`)
 
 func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, payloadType model.RawPayloadType, payload []byte) (int, error) {
 	span, ctx := util.StartSpanFromContext(ctx, "redis.AddPayload")

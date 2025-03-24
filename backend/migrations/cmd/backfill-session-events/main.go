@@ -67,7 +67,7 @@ func main() {
 		log.WithContext(ctx).Fatal(err)
 	}
 
-	log.WithContext(ctx).Infof("got %d sessions", sessionIds)
+	log.WithContext(ctx).Infof("got %d sessions", len(sessionIds))
 
 	for _, pair := range sessionIds {
 		eventsFile, err := storageClient.GetDirectDownloadURL(ctx, pair.ID, ProjectID, storage.SessionContentsCompressed, nil)
