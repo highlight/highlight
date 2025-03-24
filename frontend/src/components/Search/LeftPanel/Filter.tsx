@@ -7,6 +7,12 @@ import {
 	ComboboxSelect,
 	Text,
 	Box,
+	Menu,
+	IconSolidDotsHorizontal,
+	IconSolidArrowUp,
+	IconSolidArrowDown,
+	IconSolidXCircle,
+	IconSolidPlusCircle,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useEffect, useMemo, useState } from 'react'
@@ -35,6 +41,10 @@ type Props = {
 	startDate: Date
 	endDate: Date
 	onSelect: (filter: string, value: string, add: boolean) => void
+	onKeyAdd?: () => void
+	onKeyRemove?: () => void
+	onKeyMoveUp?: () => void
+	onKeyMoveDown?: () => void
 }
 
 // TODO(spenny): numbers are from day, so may not be accurate to the current timeframe
@@ -46,6 +56,10 @@ export const Filter: React.FC<Props> = ({
 	startDate,
 	endDate,
 	onSelect,
+	onKeyAdd,
+	onKeyRemove,
+	onKeyMoveUp,
+	onKeyMoveDown,
 }) => {
 	const { projectId } = useProjectId()
 	const [expanded, setExpanded] = useState(true)
@@ -142,6 +156,58 @@ export const Filter: React.FC<Props> = ({
 			>
 				<Box display="flex" gap="8">
 					{filter}
+					<Menu placement="bottom-end">
+						<Menu.Button
+							size="minimal"
+							emphasis="low"
+							kind="secondary"
+							icon={<IconSolidDotsHorizontal />}
+							onClick={(e: any) => e.stopPropagation()}
+						/>
+						<Menu.List>
+							{onKeyAdd && (
+								<Menu.Item
+									onClick={(e) => {
+										e.stopPropagation()
+										onKeyAdd!()
+									}}
+								>
+									<IconSolidPlusCircle size={16} />
+									Add filter
+								</Menu.Item>
+							)}
+							<Menu.Item
+								disabled={!onKeyMoveUp}
+								onClick={(e) => {
+									e.stopPropagation()
+									onKeyMoveUp!()
+								}}
+							>
+								<IconSolidArrowUp size={16} />
+								Move filter up
+							</Menu.Item>
+							<Menu.Item
+								disabled={!onKeyMoveDown}
+								onClick={(e) => {
+									e.stopPropagation()
+									onKeyMoveDown!()
+								}}
+							>
+								<IconSolidArrowDown size={16} />
+								Move filter down
+							</Menu.Item>
+							<Menu.Item
+								disabled={!onKeyRemove}
+								onClick={(e) => {
+									e.stopPropagation()
+									onKeyRemove!()
+								}}
+							>
+								<IconSolidXCircle size={16} />
+								Hide filter
+							</Menu.Item>
+						</Menu.List>
+					</Menu>
 					{selectedValues.length > 0 && (
 						<Badge
 							label={String(selectedValues.length)}

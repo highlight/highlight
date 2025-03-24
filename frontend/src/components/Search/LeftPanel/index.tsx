@@ -35,6 +35,11 @@ type Props = {
 	displayLeftPanel: boolean
 }
 
+type FilterInfo = {
+	saved: boolean
+	values: Map<string, boolean> // value name -> selected
+}
+
 export const LeftPanel: React.FC<Props> = ({
 	displayLeftPanel,
 	product,
@@ -81,13 +86,14 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 }) => {
 	const { projectId } = useProjectId()
 	const { initialQuery: searchedQuery, query, onSubmit } = useSearchContext()
+	const [loading, setLoading] = React.useState(true)
 
 	const [filterKeys, setFilterKeys] = useLocalStorage(
 		`highlight-${product}-left-panel-keys`,
 		STANDARD_FILTERS[product],
 	)
 
-	const { data, error, loading } = useGetKeyValueSuggestionsQuery({
+	const { data, error } = useGetKeyValueSuggestionsQuery({
 		variables: {
 			product_type: product,
 			project_id: projectId,
@@ -97,6 +103,7 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 			},
 			keys: filterKeys || STANDARD_FILTERS[product],
 		},
+		onCompleted: () => setLoading(false),
 	})
 
 	const queryParts = useMemo(() => {
@@ -104,7 +111,7 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 	}, [searchedQuery])
 
 	const filters = useMemo(() => {
-		const filtersMap: Map<string, Map<string, boolean>> = new Map()
+		const filtersMap: Map<string, FilterInfo> = new Map()
 
 		// add filter suggestions
 		data?.key_values_suggestions?.forEach((suggestion) => {
@@ -138,16 +145,20 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 
 		const allFilters: {
 			key: string
+			saved: boolean
 			values: { value: string; selected: boolean }[]
 		}[] = []
 
-		filtersMap.forEach((values, key) => {
+		filtersMap.forEach((filterInfo, key) => {
 			allFilters.push({
 				key,
-				values: Array.from(values).map(([value, selected]) => ({
-					value,
-					selected,
-				})),
+				saved: filterInfo.saved,
+				values: Array.from(filterInfo.values).map(
+					([value, selected]) => ({
+						value,
+						selected,
+					}),
+				),
 			})
 		})
 
@@ -232,6 +243,32 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 		onSubmit(newQuery)
 	}
 
+	const onRemoveFilter = (key: string) => {
+		const newFilterKeys = filterKeys.filter((k) => k !== key)
+		setFilterKeys(newFilterKeys)
+	}
+
+	const onAddFilter = (key: string) => {
+		const newFilterKeys = [...filterKeys, key]
+		setFilterKeys(newFilterKeys)
+	}
+
+	const onMoveFilterUp = (filterIndex: number) => {
+		const swapIndex = filterIndex - 1
+		const newFilterKeys = [...filterKeys]
+		newFilterKeys[filterIndex] = filterKeys[swapIndex]
+		newFilterKeys[swapIndex] = filterKeys[filterIndex]
+		setFilterKeys(newFilterKeys)
+	}
+
+	const onMoveFilterDown = (filterIndex: number) => {
+		const swapIndex = filterIndex + 1
+		const newFilterKeys = [...filterKeys]
+		newFilterKeys[filterIndex] = filterKeys[swapIndex]
+		newFilterKeys[swapIndex] = filterKeys[filterIndex]
+		setFilterKeys(newFilterKeys)
+	}
+
 	if (loading) {
 		return <LoadingBox />
 	}
@@ -263,40 +300,70 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 					onChange={setFilterKeys}
 				/>
 			</Stack>
-			{filters.map((filter) => (
-				<Filter
-					key={filter.key}
-					product={product}
-					startDate={startDate}
-					endDate={endDate}
-					filter={filter.key}
-					values={filter.values}
-					onSelect={onSelect}
-				/>
-			))}
+			{filters.map((filter, index) => {
+				const isSaved = filter.saved
+				const isFirstSaved = index === 0
+				const isLastSaved = index === filterKeys.length - 1
+
+				return (
+					<Filter
+						key={filter.key}
+						product={product}
+						startDate={startDate}
+						endDate={endDate}
+						filter={filter.key}
+						values={filter.values}
+						onSelect={onSelect}
+						onKeyRemove={
+							isSaved
+								? () => onRemoveFilter(filter.key)
+								: undefined
+						}
+						onKeyAdd={
+							isSaved ? undefined : () => onAddFilter(filter.key)
+						}
+						onKeyMoveUp={
+							isSaved && !isFirstSaved
+								? () => onMoveFilterUp(index)
+								: undefined
+						}
+						onKeyMoveDown={
+							isSaved && !isLastSaved
+								? () => onMoveFilterDown(index)
+								: undefined
+						}
+					/>
+				)
+			})}
 		</Stack>
 	)
 }
 
-const addKey = (filters: Map<string, Map<string, boolean>>, key: string) => {
+const addKey = (filters: Map<string, FilterInfo>, key: string) => {
 	if (!filters.has(key)) {
-		filters.set(key, new Map())
+		filters.set(key, {
+			saved: true,
+			values: new Map(),
+		})
 	}
 }
 
 const addValueToKey = (
-	filters: Map<string, Map<string, boolean>>,
+	filters: Map<string, FilterInfo>,
 	key: string,
 	value: string,
 	selected: boolean,
 ) => {
 	if (!filters.has(key)) {
-		filters.set(key, new Map())
+		filters.set(key, {
+			saved: false,
+			values: new Map(),
+		})
 	}
 
 	// only overwrite if not defined or false
-	if (!filters.get(key)!.get(value)) {
-		filters.get(key)!.set(value, selected)
+	if (!filters.get(key)!.values.get(value)) {
+		filters.get(key)!.values.set(value, selected)
 	}
 }
 
