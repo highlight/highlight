@@ -5,6 +5,8 @@ export const setupFrontendSnippet: string = `<script src="https://unpkg.com/high
         H.init('<YOUR_PROJECT_ID>', {
             serviceName: 'highlight-dot-net-frontend',
             tracingOrigins: true,
+			// Associate server-side rendering traces with the session via a cookie
+            sessionCookie: true,
             networkRecording: {
                 enabled: true,
                 recordHeadersAndBody: true,

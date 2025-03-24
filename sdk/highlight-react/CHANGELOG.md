@@ -1,5 +1,13 @@
 # @highlight-run/react
 
+## 15.0.0
+
+### Patch Changes
+
+-   Updated dependencies [5a55386]
+-   Updated dependencies [6b8fa6f]
+    -   highlight.run@9.14.0
+
 ## 14.0.0
 
 ### Patch Changes

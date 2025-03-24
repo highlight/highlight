@@ -1,7 +1,9 @@
 import { Box } from '@highlight-run/ui/components'
 import { PropsWithChildren } from 'react'
 
-export const SidebarSection = (props: PropsWithChildren) => {
+export const SidebarSection = (
+	props: PropsWithChildren & { isError?: boolean },
+) => {
 	return (
 		<Box
 			p="6"
@@ -11,6 +13,7 @@ export const SidebarSection = (props: PropsWithChildren) => {
 			gap="12"
 			border="divider"
 			borderRadius="6"
+			borderColor={props.isError ? 'r9' : undefined}
 		>
 			{props.children}
 		</Box>

@@ -1,5 +1,15 @@
 # highlight.run
 
+## 9.14.0
+
+### Minor Changes
+
+-   5a55386: update rrweb recording engine
+
+### Patch Changes
+
+-   6b8fa6f: remove type assertions around tracer on shutdown
+
 ## 9.13.0
 
 ### Minor Changes
