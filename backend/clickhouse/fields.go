@@ -2,6 +2,7 @@ package clickhouse
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -29,7 +30,7 @@ func (client *Client) GetSessionFields(ctx context.Context, projectId int, sessi
 	sb := sqlbuilder.NewSelectBuilder()
 
 	sb.Select("*").
-		From(FieldsBySessionTable).
+		From(fmt.Sprintf("%s FINAL", FieldsBySessionTable)).
 		Where(sb.Equal("ProjectID", projectId)).
 		Where(sb.Equal("SessionID", sessionId))
 
@@ -54,4 +55,37 @@ func (client *Client) GetSessionFields(ctx context.Context, projectId int, sessi
 	}
 
 	return fields, nil
+}
+
+func (client *Client) QueryFieldValues(ctx context.Context, projectId int, count int, fieldType string, fieldName string, query string, start time.Time, end time.Time) ([]string, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select("Value").
+		From(FieldsTable).
+		Where(sb.Equal("ProjectID", projectId)).
+		Where(sb.Equal("Type", fieldType)).
+		Where(sb.Equal("Name", fieldName)).
+		Where(fmt.Sprintf("Value ILIKE %s", sb.Var("%"+query+"%"))).
+		Where(sb.Between("SessionCreatedAt", start, end))
+
+	sb.GroupBy("1").
+		OrderBy("count() DESC").
+		Limit(count)
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	values := []string{}
+	for rows.Next() {
+		var value string
+		if err := rows.Scan(&value); err != nil {
+			return nil, err
+		}
+		values = append(values, value)
+	}
+
+	return values, nil
 }

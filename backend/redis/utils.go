@@ -517,6 +517,14 @@ func (r *Client) GetSessionFields(ctx context.Context, sessionSecureId string) (
 		return nil, err
 	}
 
+	// Track seen keys to avoid adding duplicates
+	type dedupeKey struct {
+		Type  string
+		Name  string
+		Value string
+	}
+	dedupeMap := map[dedupeKey]bool{}
+
 	allFields := []*model.Field{}
 	for _, message := range messages {
 		decoded, err := snappy.Decode(nil, []byte(message))
@@ -528,8 +536,20 @@ func (r *Client) GetSessionFields(ctx context.Context, sessionSecureId string) (
 		if err := json.Unmarshal(decoded, &fields); err != nil {
 			return nil, err
 		}
-		allFields = append(allFields, fields...)
+
+		for _, field := range fields {
+			dedupeKey := dedupeKey{
+				Type:  field.Type,
+				Name:  field.Name,
+				Value: field.Value,
+			}
+			if _, found := dedupeMap[dedupeKey]; !found {
+				dedupeMap[dedupeKey] = true
+				allFields = append(allFields, field)
+			}
+		}
 	}
+
 	return allFields, nil
 }
 

@@ -7042,42 +7042,6 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, produ
 	}, nil
 }
 
-// FieldSuggestion is the resolver for the field_suggestion field.
-func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.Field, error) {
-	fields := []*model.Field{}
-	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
-		return fields, nil
-	}
-	res := r.DB.WithContext(ctx).Where(&model.Field{Name: name}).
-		Where("project_id = ?", projectID).
-		Where("length(value) > ?", 0).
-		Where("value ILIKE ?", "%"+query+"%").
-		Limit(model.SUGGESTION_LIMIT_CONSTANT).
-		Find(&fields)
-	if err := res.Error; err != nil {
-		log.WithContext(ctx).Error(err)
-		return fields, nil
-	}
-	return fields, nil
-}
-
-// PropertySuggestion is the resolver for the property_suggestion field.
-func (r *queryResolver) PropertySuggestion(ctx context.Context, projectID int, query string, typeArg string) ([]*model.Field, error) {
-	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	fields := []*model.Field{}
-	res := r.DB.WithContext(ctx).Where(&model.Field{Type: typeArg}).Where("project_id = ?", projectID).Where(r.DB.
-		Where(r.DB.WithContext(ctx).Where("length(value) > ?", 0).Where("value ILIKE ?", "%"+query+"%")).
-		Or(r.DB.WithContext(ctx).Where("length(name) > ?", 0).Where("name ILIKE ?", "%"+query+"%"))).
-		Limit(model.SUGGESTION_LIMIT_CONSTANT).
-		Find(&fields)
-	if err := res.Error; err != nil {
-		return nil, e.Wrap(err, "error querying field suggestion")
-	}
-	return fields, nil
-}
-
 // Projects is the resolver for the projects field.
 func (r *queryResolver) Projects(ctx context.Context) ([]*model.Project, error) {
 	admin, err := r.getCurrentAdmin(ctx)
@@ -7393,15 +7357,17 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int
 	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-	fields := []*model.Field{}
-	res := r.DB.WithContext(ctx).Where(&model.Field{Type: "session", Name: "environment"}).
-		Where("project_id = ?", projectID).
-		Where("length(value) > ?", 0).
-		Distinct("value").
-		Find(&fields)
-	if err := res.Error; err != nil {
-		return nil, e.Wrap(err, "error querying field suggestion")
+
+	values, err := r.ClickhouseClient.QueryFieldValues(ctx, projectID, 50, "session", "environment", "", time.Now().AddDate(0, -1, 0), time.Now())
+	if err != nil {
+		return nil, e.Wrap(err, "error querying environment suggestion")
 	}
+
+	fields := []*model.Field{}
+	for _, value := range values {
+		fields = append(fields, &model.Field{Type: "session", Name: "environment", Value: value})
+	}
+
 	return fields, nil
 }
 
