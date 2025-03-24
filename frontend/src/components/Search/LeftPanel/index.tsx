@@ -1,16 +1,32 @@
-import React, { useMemo } from 'react'
-import { Box, Callout, Stack } from '@highlight-run/ui/components'
+import React, { useEffect, useMemo } from 'react'
+import {
+	Box,
+	Callout,
+	ComboboxSelect,
+	IconSolidDotsHorizontal,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
+import useLocalStorage from '@rehooks/local-storage'
+import moment from 'moment'
 
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import LoadingBox from '@/components/LoadingBox'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { BODY_KEY } from '@/components/Search/SearchForm/utils'
 import { parseSearch } from '@/components/Search/utils'
-import { useGetKeyValueSuggestionsQuery } from '@/graph/generated/hooks'
+import {
+	useGetKeysLazyQuery,
+	useGetKeyValueSuggestionsQuery,
+} from '@/graph/generated/hooks'
 import { ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 
 import { Filter } from './Filter'
+import { STANDARD_FILTERS } from './constants'
+import * as style from './styles.css'
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
 type Props = {
 	product: ProductType
@@ -64,6 +80,13 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 	endDate,
 }) => {
 	const { projectId } = useProjectId()
+	const { initialQuery: searchedQuery, query, onSubmit } = useSearchContext()
+
+	const [filterKeys, setFilterKeys] = useLocalStorage(
+		`highlight-${product}-left-panel-keys`,
+		STANDARD_FILTERS[product],
+	)
+
 	const { data, error, loading } = useGetKeyValueSuggestionsQuery({
 		variables: {
 			product_type: product,
@@ -72,10 +95,9 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 				start_date: startDate.toISOString(),
 				end_date: endDate.toISOString(),
 			},
+			keys: filterKeys || STANDARD_FILTERS[product],
 		},
 	})
-
-	const { initialQuery: searchedQuery, query, onSubmit } = useSearchContext()
 
 	const queryParts = useMemo(() => {
 		return parseSearch(searchedQuery).queryParts
@@ -86,6 +108,8 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 
 		// add filter suggestions
 		data?.key_values_suggestions?.forEach((suggestion) => {
+			addKey(filtersMap, suggestion.key)
+
 			suggestion.values.forEach((value) => {
 				addValueToKey(filtersMap, suggestion.key, value.value, false)
 			})
@@ -103,10 +127,12 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 				const values = value.slice(1, -1).split(' OR ')
 
 				values.forEach((v) => {
-					addValueToKey(filtersMap, part.key, v, true)
+					const addedValue = v.replace(/^"(.*)"$/, '$1')
+					addValueToKey(filtersMap, part.key, addedValue, true)
 				})
 			} else {
-				addValueToKey(filtersMap, part.key, value, true)
+				const addedValue = value.replace(/^"(.*)"$/, '$1')
+				addValueToKey(filtersMap, part.key, addedValue, true)
 			}
 		})
 
@@ -142,35 +168,46 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 				newPart.text = newPart.text
 					.replace(
 						new RegExp(`\\b${key}=([^()]+)`, 'g'),
-						`${key}=\($1 OR ${value})`,
+						`${key}=\($1 OR "${value}")`,
 					) // Add 'value' to 'key=value'
 					.replace(
 						new RegExp(`\\b${key}=\\(([^)]+)\\)`, 'g'),
-						(_, values) =>
-							`${key}=(${values.includes(value) ? values : values + ' OR ' + value})`,
+						(_, values) => {
+							const parts = values
+								.split(/\s+OR\s+/)
+								.map((v: string) =>
+									v.trim().replace(/^"|"$/g, ''),
+								) // remove existing quotes
+							if (parts.includes(value))
+								return `${key}=(${parts.map((v: string) => `"${v}"`).join(' OR ')})`
+							return `${key}=(${[...parts, value].map((v) => `"${v}"`).join(' OR ')})`
+						},
 					) // Add 'value' to 'key=(values)'
 
 				acc.push(newPart)
 			} else {
 				newPart.text = part.text
 					.replace(
-						new RegExp(
-							`\\bOR\\s+${value}\\b|\\b${value}\\s+OR\\b`,
-							'g',
-						),
-						'',
-					) // Remove 'OR value' or 'value OR'
-					.replace(
-						new RegExp(`(${key}=\\(?)${value}(\\)?)`, 'g'),
-						(_, before, after) =>
-							before && after ? before + after : '',
-					) // Remove value if alone
-					.replace(/\(\s+/g, '(') // Remove extra spaces after '('
-					.replace(/\s+\)/g, ')') // Remove extra spaces before ')'
-					.replace(/\(\s*\)/g, '') // Remove empty parentheses '()'
-					.replace(/\s*OR\s*/g, ' OR ') // Normalize spaces around OR
-					.replace(new RegExp(`\\b${key}=\\s*$`, 'g'), '') // Remove empty key
-					.trim() // Ensure no leading/trailing spaces
+						new RegExp(`${key}=\\(([^)]+)\\)`, 'g'),
+						(_, inner) => {
+							// Split values by OR and clean up quotes/spaces
+							const values = inner
+								.split(/\s+OR\s+/)
+								.map((v: string) =>
+									v.trim().replace(/^"|"$/g, ''),
+								) // remove surrounding quotes
+								.filter((v: string) => v !== value) // remove target value
+
+							if (values.length === 0) return '' // remove the entire key if no values left
+
+							return `${key}=(${values.map((v: string) => `"${v}"`).join(' OR ')})`
+						},
+					) // Also check for ungrouped: key=value or key="value"
+					.replace(new RegExp(`${key}="?${value}"?\\b`, 'g'), '')
+					.replace(/\(\s*\)/g, '') // clean up empty parens just in case
+					.replace(/\s*OR\s*/g, ' OR ') // normalize spacing
+					.replace(/\s+/g, ' ') // clean up stray spaces
+					.trim()
 
 				if (newPart.text !== '') {
 					acc.push(newPart)
@@ -183,7 +220,7 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 		let newQuery = query
 		if (!keyExists && add) {
 			// add to existing query if no match and add
-			newQuery = `${query} ${key}=${value}`
+			newQuery = `${query} ${key}="${value}"`.trim()
 		} else if (keyExists) {
 			// create new query from updated parts
 			newQuery = newQueryParts
@@ -209,12 +246,29 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 
 	return (
 		<Stack width="full" gap="0">
-			{filters.map((filter) => (
-				<Filter
+			<Stack
+				p="4"
+				direction="row"
+				justifyContent="space-between"
+				alignItems="center"
+			>
+				<Text size="large" weight="bold">
+					Filters
+				</Text>
+				<CustomFiltersButton
 					product={product}
 					startDate={startDate}
 					endDate={endDate}
+					selectedKeys={filterKeys}
+					onChange={setFilterKeys}
+				/>
+			</Stack>
+			{filters.map((filter) => (
+				<Filter
 					key={filter.key}
+					product={product}
+					startDate={startDate}
+					endDate={endDate}
 					filter={filter.key}
 					values={filter.values}
 					onSelect={onSelect}
@@ -222,6 +276,12 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 			))}
 		</Stack>
 	)
+}
+
+const addKey = (filters: Map<string, Map<string, boolean>>, key: string) => {
+	if (!filters.has(key)) {
+		filters.set(key, new Map())
+	}
 }
 
 const addValueToKey = (
@@ -238,4 +298,76 @@ const addValueToKey = (
 	if (!filters.get(key)!.get(value)) {
 		filters.get(key)!.set(value, selected)
 	}
+}
+
+type CustomFiltersButtonProps = {
+	product: ProductType
+	startDate: Date
+	endDate: Date
+	selectedKeys: string[]
+	onChange: (keys: string[]) => void
+}
+
+const CustomFiltersButton: React.FC<CustomFiltersButtonProps> = ({
+	product,
+	startDate,
+	endDate,
+	selectedKeys,
+	onChange,
+}) => {
+	const { projectId } = useProjectId()
+	const [keyQuery, setKeyQuery] = React.useState('')
+	const debouncedQuery = useDebouncedValue(keyQuery) || ''
+
+	const [getKeys, { data, loading }] = useGetKeysLazyQuery()
+
+	const comboBoxOptions = useMemo(() => {
+		if (loading) {
+			return
+		}
+
+		const keyOptions = data?.keys.map((key) => key.name) || selectedKeys
+
+		return keyOptions.map((key) => ({
+			key: key,
+			render: (
+				<Text lines="1" cssClass={style.selectOption} title={key}>
+					{key}
+				</Text>
+			),
+		}))
+	}, [loading, data?.keys, selectedKeys])
+
+	useEffect(() => {
+		if (!debouncedQuery) {
+			return
+		}
+
+		getKeys({
+			variables: {
+				product_type: product,
+				project_id: projectId!,
+				date_range: {
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
+				},
+				query: debouncedQuery,
+			},
+		})
+	}, [debouncedQuery, startDate, endDate, product, projectId, getKeys])
+
+	return (
+		<ComboboxSelect
+			label="Selected filters"
+			queryPlaceholder="Search attributes..."
+			onChange={onChange}
+			icon={<IconSolidDotsHorizontal />}
+			loadingRender={<LoadingBox />}
+			value={selectedKeys}
+			options={comboBoxOptions}
+			cssClass={style.selectButton}
+			popoverCssClass={style.selectPopover}
+			onChangeQuery={setKeyQuery}
+		/>
+	)
 }

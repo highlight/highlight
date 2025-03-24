@@ -6,6 +6,7 @@ import {
 	IconSolidCheveronRight,
 	ComboboxSelect,
 	Text,
+	Box,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useEffect, useMemo, useState } from 'react'
@@ -13,13 +14,14 @@ import moment from 'moment'
 
 import { Button } from '@components/Button'
 
-import * as style from './Filter.css'
 import LoadingBox from '@/components/LoadingBox'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useGetKeyValuesLazyQuery } from '@/graph/generated/hooks'
 import { ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
+
+import * as style from './Filter.css'
 
 type ValueSuggestion = {
 	value: string
@@ -138,7 +140,16 @@ export const Filter: React.FC<Props> = ({
 				}
 				className={style.filterButton}
 			>
-				{filter}
+				<Box display="flex" gap="8">
+					{filter}
+					{selectedValues.length > 0 && (
+						<Badge
+							label={String(selectedValues.length)}
+							variant="purple"
+							px="4"
+						/>
+					)}
+				</Box>
 			</Button>
 			{expanded && (
 				<Stack gap="8" pl="8">

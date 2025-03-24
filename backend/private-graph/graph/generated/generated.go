@@ -1126,7 +1126,7 @@ type ComplexityRoot struct {
 		JiraProjects                     func(childComplexity int, workspaceID int) int
 		JoinableWorkspaces               func(childComplexity int) int
 		KeyValues                        func(childComplexity int, productType *model.ProductType, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int, event *string) int
-		KeyValuesSuggestions             func(childComplexity int, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput) int
+		KeyValuesSuggestions             func(childComplexity int, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, keys []string) int
 		Keys                             func(childComplexity int, productType *model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType, event *string) int
 		LastAlertStateChanges            func(childComplexity int, alertID int) int
 		LinearTeams                      func(childComplexity int, projectID int) int
@@ -2109,7 +2109,7 @@ type QueryResolver interface {
 	Metrics(ctx context.Context, productType model.ProductType, projectID int, params model.QueryInput, column *string, metricTypes []model.MetricAggregator, sql *string, groupBy []string, bucketBy string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, predictionSettings *model.PredictionSettings, expressions []*model.MetricExpressionInput) (*model.MetricsBuckets, error)
 	Keys(ctx context.Context, productType *model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType, event *string) ([]*model.QueryKey, error)
 	KeyValues(ctx context.Context, productType *model.ProductType, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int, event *string) ([]string, error)
-	KeyValuesSuggestions(ctx context.Context, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.KeyValueSuggestion, error)
+	KeyValuesSuggestions(ctx context.Context, productType model.ProductType, projectID int, dateRange model.DateRangeRequiredInput, keys []string) ([]*model.KeyValueSuggestion, error)
 	Visualization(ctx context.Context, id int) (*model1.Visualization, error)
 	Visualizations(ctx context.Context, projectID int, input string, count int, offset int) (*model1.VisualizationsResponse, error)
 	Graph(ctx context.Context, id int) (*model1.Graph, error)
@@ -8294,7 +8294,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.KeyValuesSuggestions(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput)), true
+		return e.complexity.Query.KeyValuesSuggestions(childComplexity, args["product_type"].(model.ProductType), args["project_id"].(int), args["date_range"].(model.DateRangeRequiredInput), args["keys"].([]string)), true
 
 	case "Query.keys":
 		if e.complexity.Query.Keys == nil {
@@ -14903,6 +14903,7 @@ type Query {
 		product_type: ProductType!
 		project_id: ID!
 		date_range: DateRangeRequiredInput!
+		keys: [String!]!
 	): [KeyValueSuggestion!]!
 	visualization(id: ID!): Visualization!
 	visualizations(
@@ -21248,6 +21249,15 @@ func (ec *executionContext) field_Query_key_values_suggestions_args(ctx context.
 		}
 	}
 	args["date_range"] = arg2
+	var arg3 []string
+	if tmp, ok := rawArgs["keys"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("keys"))
+		arg3, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["keys"] = arg3
 	return args, nil
 }
 
@@ -67918,7 +67928,7 @@ func (ec *executionContext) _Query_key_values_suggestions(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().KeyValuesSuggestions(rctx, fc.Args["product_type"].(model.ProductType), fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput))
+		return ec.resolvers.Query().KeyValuesSuggestions(rctx, fc.Args["product_type"].(model.ProductType), fc.Args["project_id"].(int), fc.Args["date_range"].(model.DateRangeRequiredInput), fc.Args["keys"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

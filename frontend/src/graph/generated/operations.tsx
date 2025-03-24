@@ -5207,6 +5207,7 @@ export type GetKeyValueSuggestionsQueryVariables = Types.Exact<{
 	product_type: Types.ProductType
 	project_id: Types.Scalars['ID']
 	date_range: Types.DateRangeRequiredInput
+	keys: Array<Types.Scalars['String']> | Types.Scalars['String']
 }>
 
 export type GetKeyValueSuggestionsQuery = { __typename?: 'Query' } & {

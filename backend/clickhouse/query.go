@@ -805,20 +805,10 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 	return values, rows.Err()
 }
 
-func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, keyTableName string, valueTableName string, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.KeyValueSuggestion, error) {
+func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, keyTableName string, valueTableName string, projectID int, startDate time.Time, endDate time.Time, keys []string) ([]*modelInputs.KeyValueSuggestion, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeyValuesMaxRows,
 	}))
-
-	// get top keys
-	topKeysSb := sqlbuilder.NewSelectBuilder()
-	topKeysSb.Select("Key").
-		From(keyTableName).
-		Where(topKeysSb.Equal("ProjectId", projectID)).
-		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", topKeysSb.Var(startDate))).
-		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", topKeysSb.Var(endDate))).
-		OrderBy("Count DESC").
-		Limit(15)
 
 	// get all keys and values with rank
 	rankSb := sqlbuilder.NewSelectBuilder()
@@ -827,14 +817,14 @@ func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, keyTable
 		Where(rankSb.Equal("ProjectId", projectID)).
 		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", rankSb.Var(startDate))).
 		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", rankSb.Var(endDate))).
-		Where(fmt.Sprintf("Key IN (%s)", rankSb.BuilderAs(topKeysSb, "valid_keys"))).
+		Where(rankSb.In("Key", keys)).
 		GroupBy("Key, Value, Count")
 
-	// take top 10 values for each key
+	// take top 5 values for each key
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select("*").
 		From(sb.BuilderAs(rankSb, "ranked_keys")).
-		Where("Rank <= 10").
+		Where("Rank <= 5").
 		OrderBy("Key, Rank")
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
@@ -849,7 +839,6 @@ func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, keyTable
 		return nil, err
 	}
 
-	keyValues := []*modelInputs.KeyValueSuggestion{}
 	keyValueMap := map[string][]*modelInputs.ValueSuggestion{}
 
 	for rows.Next() {
@@ -864,11 +853,6 @@ func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, keyTable
 			return nil, err
 		}
 
-		// maintain order in suggestions
-		if _, ok := keyValueMap[key]; !ok {
-			keyValues = append(keyValues, &modelInputs.KeyValueSuggestion{Key: key})
-		}
-
 		// collect values per key
 		keyValueMap[key] = append(keyValueMap[key], &modelInputs.ValueSuggestion{
 			Value: value,
@@ -878,8 +862,13 @@ func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, keyTable
 	}
 
 	// add values back to ordered keys
-	for index, keyValue := range keyValues {
-		keyValues[index].Values = keyValueMap[keyValue.Key]
+	keyValues := []*modelInputs.KeyValueSuggestion{}
+
+	for _, keyValue := range keys {
+		keyValues = append(keyValues, &modelInputs.KeyValueSuggestion{
+			Key:    keyValue,
+			Values: keyValueMap[keyValue],
+		})
 	}
 
 	rows.Close()

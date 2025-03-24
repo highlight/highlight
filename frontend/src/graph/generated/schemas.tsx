@@ -2678,6 +2678,7 @@ export type QueryKey_ValuesArgs = {
 
 export type QueryKey_Values_SuggestionsArgs = {
 	date_range: DateRangeRequiredInput
+	keys: Array<Scalars['String']>
 	product_type: ProductType
 	project_id: Scalars['ID']
 }

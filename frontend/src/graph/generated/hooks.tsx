@@ -15044,11 +15044,13 @@ export const GetKeyValueSuggestionsDocument = gql`
 		$product_type: ProductType!
 		$project_id: ID!
 		$date_range: DateRangeRequiredInput!
+		$keys: [String!]!
 	) {
 		key_values_suggestions(
 			product_type: $product_type
 			project_id: $project_id
 			date_range: $date_range
+			keys: $keys
 		) {
 			key
 			values {
@@ -15075,6 +15077,7 @@ export const GetKeyValueSuggestionsDocument = gql`
  *      product_type: // value for 'product_type'
  *      project_id: // value for 'project_id'
  *      date_range: // value for 'date_range'
+ *      keys: // value for 'keys'
  *   },
  * });
  */
