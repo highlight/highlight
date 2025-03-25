@@ -847,10 +847,17 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return w.excludeSession(ctx, s, backend.SessionExcludedReasonNoActivity)
 	}
 
-	visitFields := []model.Field{}
-	if err := w.Resolver.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: s.ID}}).Where("Name = ?", "visited-url").Where("session_fields.id IS NOT NULL").Order("session_fields.id asc").Association("Fields").Find(&visitFields); err != nil {
-		return e.Wrap(err, "error querying session fields for determining landing/exit pages")
+	fields, err := w.Resolver.Redis.GetSessionFields(ctx, s.SecureID)
+	if err != nil {
+		return err
 	}
+
+	visitFields := lo.Filter(fields, func(field *model.Field, _ int) bool {
+		return field.Name == "visited-url"
+	})
+	sort.Slice(visitFields, func(i, j int) bool {
+		return visitFields[i].Timestamp.Before(visitFields[j].Timestamp)
+	})
 
 	pagesVisited := len(visitFields)
 
