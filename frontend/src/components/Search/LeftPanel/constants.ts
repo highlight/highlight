@@ -16,3 +16,8 @@ export const STANDARD_FILTERS: Record<ProductType, string[]> = {
 	[ProductType.Metrics]: [],
 	[ProductType.Events]: [],
 }
+
+export type FilterInfo = {
+	saved: boolean
+	values: Map<string, boolean> // value name -> selected
+}

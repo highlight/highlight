@@ -22,22 +22,18 @@ import {
 } from '@/graph/generated/hooks'
 import { ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
 import { Filter } from './Filter'
-import { STANDARD_FILTERS } from './constants'
+import { STANDARD_FILTERS, FilterInfo } from './constants'
+import { addKey, addValueToKey, addFilter, removeFilter } from './utils'
 import * as style from './styles.css'
-import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
 type Props = {
 	product: ProductType
 	startDate: Date
 	endDate: Date
 	displayLeftPanel: boolean
-}
-
-type FilterInfo = {
-	saved: boolean
-	values: Map<string, boolean> // value name -> selected
 }
 
 export const LeftPanel: React.FC<Props> = ({
@@ -131,7 +127,7 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 			const value = part.value.trim()
 
 			if (value.startsWith('(') && value.endsWith(')')) {
-				const values = value.slice(1, -1).split(' OR ')
+				const values = value.slice(1, -1).split(/\s+or\s+/i)
 
 				values.forEach((v) => {
 					const addedValue = v.replace(/^"(.*)"$/, '$1')
@@ -176,50 +172,10 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 			const newPart = { ...part }
 			keyExists = true
 			if (add) {
-				newPart.text = newPart.text
-					.replace(
-						new RegExp(`\\b${key}=([^()]+)`, 'g'),
-						`${key}=\($1 OR "${value}")`,
-					) // Add 'value' to 'key=value'
-					.replace(
-						new RegExp(`\\b${key}=\\(([^)]+)\\)`, 'g'),
-						(_, values) => {
-							const parts = values
-								.split(/\s+OR\s+/)
-								.map((v: string) =>
-									v.trim().replace(/^"|"$/g, ''),
-								) // remove existing quotes
-							if (parts.includes(value))
-								return `${key}=(${parts.map((v: string) => `"${v}"`).join(' OR ')})`
-							return `${key}=(${[...parts, value].map((v) => `"${v}"`).join(' OR ')})`
-						},
-					) // Add 'value' to 'key=(values)'
-
+				newPart.text = addFilter(part.text, key, value)
 				acc.push(newPart)
 			} else {
-				newPart.text = part.text
-					.replace(
-						new RegExp(`${key}=\\(([^)]+)\\)`, 'g'),
-						(_, inner) => {
-							// Split values by OR and clean up quotes/spaces
-							const values = inner
-								.split(/\s+OR\s+/)
-								.map((v: string) =>
-									v.trim().replace(/^"|"$/g, ''),
-								) // remove surrounding quotes
-								.filter((v: string) => v !== value) // remove target value
-
-							if (values.length === 0) return '' // remove the entire key if no values left
-
-							return `${key}=(${values.map((v: string) => `"${v}"`).join(' OR ')})`
-						},
-					) // Also check for ungrouped: key=value or key="value"
-					.replace(new RegExp(`${key}="?${value}"?\\b`, 'g'), '')
-					.replace(/\(\s*\)/g, '') // clean up empty parens just in case
-					.replace(/\s*OR\s*/g, ' OR ') // normalize spacing
-					.replace(/\s+/g, ' ') // clean up stray spaces
-					.trim()
-
+				newPart.text = removeFilter(part.text, key, value)
 				if (newPart.text !== '') {
 					acc.push(newPart)
 				}
@@ -337,34 +293,6 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 			})}
 		</Stack>
 	)
-}
-
-const addKey = (filters: Map<string, FilterInfo>, key: string) => {
-	if (!filters.has(key)) {
-		filters.set(key, {
-			saved: true,
-			values: new Map(),
-		})
-	}
-}
-
-const addValueToKey = (
-	filters: Map<string, FilterInfo>,
-	key: string,
-	value: string,
-	selected: boolean,
-) => {
-	if (!filters.has(key)) {
-		filters.set(key, {
-			saved: false,
-			values: new Map(),
-		})
-	}
-
-	// only overwrite if not defined or false
-	if (!filters.get(key)!.values.get(value)) {
-		filters.get(key)!.values.set(value, selected)
-	}
 }
 
 type CustomFiltersButtonProps = {

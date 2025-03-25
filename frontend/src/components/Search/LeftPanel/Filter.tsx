@@ -156,6 +156,13 @@ export const Filter: React.FC<Props> = ({
 			>
 				<Box display="flex" gap="8">
 					{filter}
+					{selectedValues.length > 0 && (
+						<Badge
+							label={String(selectedValues.length)}
+							variant="purple"
+							px="4"
+						/>
+					)}
 					<Menu placement="bottom-end">
 						<Menu.Button
 							size="minimal"
@@ -208,13 +215,6 @@ export const Filter: React.FC<Props> = ({
 							</Menu.Item>
 						</Menu.List>
 					</Menu>
-					{selectedValues.length > 0 && (
-						<Badge
-							label={String(selectedValues.length)}
-							variant="purple"
-							px="4"
-						/>
-					)}
 				</Box>
 			</Button>
 			{expanded && (
