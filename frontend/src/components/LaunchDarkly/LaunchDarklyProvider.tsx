@@ -5,7 +5,7 @@ import {
 } from 'launchdarkly-react-client-sdk'
 import React, { useEffect } from 'react'
 import analytics from '@/util/analytics'
-import { H } from 'highlight.run'
+import { LOCAL_STORAGE_KEYS } from '@highlight-run/client/src'
 
 const createContext = (
 	email: string | undefined,
@@ -69,16 +69,15 @@ const LaunchDarklyProviderContent: React.FC<
 export const LaunchDarklyProvider: React.FC<
 	React.PropsWithChildren<LaunchDarklyProviderProps>
 > = ({ children, context = {}, clientSideID, email }) => {
-	// TODO: Consider using the client-created CLIENT_ID instead of a random UUID
-	const { clientId } = H.getSessionDetails()
+	const clientId = localStorage.getItem(LOCAL_STORAGE_KEYS.CLIENT_ID)
 	const deviceId =
 		clientId ?? localStorage.getItem('device-id') ?? crypto.randomUUID()
 
 	useEffect(() => {
-		if (!localStorage.getItem('device-id')) {
+		if (!clientId && !localStorage.getItem('device-id')) {
 			localStorage.setItem('device-id', deviceId)
 		}
-	}, [deviceId])
+	}, [deviceId, clientId])
 
 	return (
 		<LDProvider
