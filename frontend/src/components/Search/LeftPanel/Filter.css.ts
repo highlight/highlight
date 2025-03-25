@@ -9,7 +9,6 @@ export const checkbox = style({
 })
 
 export const filterButton = style({
-	width: '100%',
 	justifyContent: 'space-between',
 })
 

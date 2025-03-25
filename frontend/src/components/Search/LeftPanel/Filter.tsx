@@ -19,7 +19,6 @@ import { useEffect, useMemo, useState } from 'react'
 import moment from 'moment'
 
 import { Button } from '@components/Button'
-
 import LoadingBox from '@/components/LoadingBox'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useGetKeyValuesLazyQuery } from '@/graph/generated/hooks'
@@ -46,8 +45,6 @@ type Props = {
 	onKeyMoveUp?: () => void
 	onKeyMoveDown?: () => void
 }
-
-// TODO(spenny): numbers are from day, so may not be accurate to the current timeframe
 
 export const Filter: React.FC<Props> = ({
 	product,
@@ -137,25 +134,31 @@ export const Filter: React.FC<Props> = ({
 
 	return (
 		<Stack gap="4" pb="8">
-			<Button
-				kind="secondary"
-				emphasis="low"
-				onClick={(e) => {
-					e.stopPropagation()
-					setExpanded(!expanded)
-				}}
-				trackingId="expand-filter-button"
-				iconRight={
-					expanded ? (
-						<IconSolidCheveronDown />
-					) : (
-						<IconSolidCheveronRight />
-					)
-				}
-				className={style.filterButton}
+			<Stack
+				direction="row"
+				alignItems="center"
+				justifyContent="space-between"
 			>
-				<Box display="flex" gap="8">
+				<Button
+					kind="secondary"
+					emphasis="low"
+					onClick={(e) => {
+						e.stopPropagation()
+						setExpanded(!expanded)
+					}}
+					trackingId="expand-filter-button"
+					iconRight={
+						expanded ? (
+							<IconSolidCheveronDown />
+						) : (
+							<IconSolidCheveronRight />
+						)
+					}
+					className={style.filterButton}
+				>
 					{filter}
+				</Button>
+				<Box display="flex" alignItems="center" gap="4">
 					{selectedValues.length > 0 && (
 						<Badge
 							label={String(selectedValues.length)}
@@ -216,7 +219,7 @@ export const Filter: React.FC<Props> = ({
 						</Menu.List>
 					</Menu>
 				</Box>
-			</Button>
+			</Stack>
 			{expanded && (
 				<Stack gap="8" pl="8">
 					<ComboboxSelect

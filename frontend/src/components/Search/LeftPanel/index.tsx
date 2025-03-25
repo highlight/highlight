@@ -1,33 +1,20 @@
-import React, { useEffect, useMemo } from 'react'
-import {
-	Box,
-	Callout,
-	ComboboxSelect,
-	IconSolidDotsHorizontal,
-	Stack,
-	Text,
-} from '@highlight-run/ui/components'
+import React, { useMemo } from 'react'
+import { Box, Callout, Stack } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
-import moment from 'moment'
 
-import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import LoadingBox from '@/components/LoadingBox'
 import { SearchExpression } from '@/components/Search/Parser/listener'
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { BODY_KEY } from '@/components/Search/SearchForm/utils'
 import { parseSearch } from '@/components/Search/utils'
-import {
-	useGetKeysLazyQuery,
-	useGetKeyValueSuggestionsQuery,
-} from '@/graph/generated/hooks'
+import { useGetKeyValueSuggestionsQuery } from '@/graph/generated/hooks'
 import { ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
-import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
 import { Filter } from './Filter'
+import { KeyFilter } from './KeyFilter'
 import { STANDARD_FILTERS, FilterInfo } from './constants'
 import { addKey, addValueToKey, addFilter, removeFilter } from './utils'
-import * as style from './styles.css'
 
 type Props = {
 	product: ProductType
@@ -167,7 +154,7 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 		return allFilters
 	}, [suggestedFilters, queryParts])
 
-	const onSelect = (key: string, value: string, add: boolean) => {
+	const onValueSelect = (key: string, value: string, add: boolean) => {
 		let keyExists = false
 		const newQueryParts = queryParts.reduce((acc, part) => {
 			if (part.key !== key || part.operator !== '=') {
@@ -245,23 +232,13 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 
 	return (
 		<Stack width="full" gap="0">
-			<Stack
-				p="4"
-				direction="row"
-				justifyContent="space-between"
-				alignItems="center"
-			>
-				<Text size="large" weight="bold">
-					Filters
-				</Text>
-				<CustomFiltersButton
-					product={product}
-					startDate={startDate}
-					endDate={endDate}
-					selectedKeys={filterKeys}
-					onChange={setFilterKeys}
-				/>
-			</Stack>
+			<KeyFilter
+				product={product}
+				startDate={startDate}
+				endDate={endDate}
+				selectedKeys={filterKeys}
+				onSelect={setFilterKeys}
+			/>
 			{filters.map((filter, index) => {
 				const isSaved = filter.saved
 				const isFirstSaved = index === 0
@@ -275,7 +252,7 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 						endDate={endDate}
 						filter={filter.key}
 						values={filter.values}
-						onSelect={onSelect}
+						onSelect={onValueSelect}
 						onKeyRemove={
 							isSaved
 								? () => onRemoveFilter(filter.key)
@@ -298,77 +275,5 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 				)
 			})}
 		</Stack>
-	)
-}
-
-type CustomFiltersButtonProps = {
-	product: ProductType
-	startDate: Date
-	endDate: Date
-	selectedKeys: string[]
-	onChange: (keys: string[]) => void
-}
-
-const CustomFiltersButton: React.FC<CustomFiltersButtonProps> = ({
-	product,
-	startDate,
-	endDate,
-	selectedKeys,
-	onChange,
-}) => {
-	const { projectId } = useProjectId()
-	const [keyQuery, setKeyQuery] = React.useState('')
-	const debouncedQuery = useDebouncedValue(keyQuery) || ''
-
-	const [getKeys, { data, loading }] = useGetKeysLazyQuery()
-
-	const comboBoxOptions = useMemo(() => {
-		if (loading) {
-			return
-		}
-
-		const keyOptions = data?.keys.map((key) => key.name) || selectedKeys
-
-		return keyOptions.map((key) => ({
-			key: key,
-			render: (
-				<Text lines="1" cssClass={style.selectOption} title={key}>
-					{key}
-				</Text>
-			),
-		}))
-	}, [loading, data?.keys, selectedKeys])
-
-	useEffect(() => {
-		if (!debouncedQuery) {
-			return
-		}
-
-		getKeys({
-			variables: {
-				product_type: product,
-				project_id: projectId!,
-				date_range: {
-					start_date: moment(startDate).format(TIME_FORMAT),
-					end_date: moment(endDate).format(TIME_FORMAT),
-				},
-				query: debouncedQuery,
-			},
-		})
-	}, [debouncedQuery, startDate, endDate, product, projectId, getKeys])
-
-	return (
-		<ComboboxSelect
-			label="Selected filters"
-			queryPlaceholder="Search attributes..."
-			onChange={onChange}
-			icon={<IconSolidDotsHorizontal />}
-			loadingRender={<LoadingBox />}
-			value={selectedKeys}
-			options={comboBoxOptions}
-			cssClass={style.selectButton}
-			popoverCssClass={style.selectPopover}
-			onChangeQuery={setKeyQuery}
-		/>
 	)
 }
