@@ -83,6 +83,9 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 	const { projectId } = useProjectId()
 	const { initialQuery: searchedQuery, query, onSubmit } = useSearchContext()
 	const [loading, setLoading] = React.useState(true)
+	const [suggestedFilters, setSuggestedFilters] = React.useState<
+		{ key: string; values: { value: string }[] }[]
+	>([])
 
 	const [filterKeys, setFilterKeys] = useLocalStorage(
 		`highlight-${product}-left-panel-keys`,
@@ -99,7 +102,10 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 			},
 			keys: filterKeys || STANDARD_FILTERS[product],
 		},
-		onCompleted: () => setLoading(false),
+		onCompleted: (r) => {
+			setSuggestedFilters(r.key_values_suggestions)
+			setLoading(false)
+		},
 	})
 
 	const queryParts = useMemo(() => {
@@ -110,7 +116,7 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 		const filtersMap: Map<string, FilterInfo> = new Map()
 
 		// add filter suggestions
-		data?.key_values_suggestions?.forEach((suggestion) => {
+		suggestedFilters.forEach((suggestion) => {
 			addKey(filtersMap, suggestion.key)
 
 			suggestion.values.forEach((value) => {
@@ -159,7 +165,7 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 		})
 
 		return allFilters
-	}, [data?.key_values_suggestions, queryParts])
+	}, [suggestedFilters, queryParts])
 
 	const onSelect = (key: string, value: string, add: boolean) => {
 		let keyExists = false
@@ -224,6 +230,8 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 		newFilterKeys[swapIndex] = filterKeys[filterIndex]
 		setFilterKeys(newFilterKeys)
 	}
+
+	console.log('Panel', loading, error, data)
 
 	if (loading) {
 		return <LoadingBox />
