@@ -10486,7 +10486,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/node@npm:3.12.0, @highlight-run/node@workspace: *, @highlight-run/node@workspace:*, @highlight-run/node@workspace:sdk/highlight-node":
+"@highlight-run/node@npm:latest":
+  version: 3.12.0
+  resolution: "@highlight-run/node@npm:3.12.0"
+  dependencies:
+    "@prisma/instrumentation": "npm:>=5.0.0"
+    require-in-the-middle: "npm:^7.4.0"
+  checksum: 10/091efceeb8cb9807e4e9da55ffdccb9343c951f2c1caf4a4b5a5ccaf4d9076f2f76d085fef7fa8e67e4ff5f67de1c870ce822eacc58121f7c0ead6d34c85a738
+  languageName: node
+  linkType: hard
+
+"@highlight-run/node@workspace: *, @highlight-run/node@workspace:*, @highlight-run/node@workspace:sdk/highlight-node":
   version: 0.0.0-use.local
   resolution: "@highlight-run/node@workspace:sdk/highlight-node"
   dependencies:
@@ -28097,7 +28107,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "aws-lambda@workspace:e2e/aws-lambda"
   dependencies:
-    "@highlight-run/node": "npm:3.12.0"
+    "@highlight-run/node": "npm:latest"
   languageName: unknown
   linkType: soft
 
