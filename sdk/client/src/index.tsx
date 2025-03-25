@@ -1435,7 +1435,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		if (sendFn) {
 			await sendFn({
 				session_secure_id: this.sessionData.sessionSecureID,
-				payload_id: this.sessionData.payloadID.toString(),
+				payload_id: (this.sessionData.payloadID++).toString(),
 				events: { events } as ReplayEventsInput,
 				messages: stringify({ messages: messages }),
 				resources: JSON.stringify({ resources: resources }),
