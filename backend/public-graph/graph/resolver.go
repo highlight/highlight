@@ -294,6 +294,7 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionSecureID string,
 		if err != nil {
 			return e.Wrap(err, "error appending fields")
 		}
+		session.Fields = append(session.Fields, modelFields...)
 	}
 
 	if r.IsSessionExcludedByFilter(ctx, session) {
