@@ -1445,6 +1445,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				errors,
 				is_beacon: false,
 				has_session_unloaded: this.hasSessionUnloaded,
+				highlight_logs: highlightLogs || undefined,
 			})
 		} else {
 			this._worker.postMessage({
