@@ -1,0 +1,14 @@
+{
+	"name": "aws-lambda",
+	"description": "aws-lambda",
+	"version": "0.0.1",
+	"private": true,
+	"dependencies": {
+		"@highlight-run/node": "3.12.0"
+	},
+	"scripts": {
+		"build": "sam build",
+		"validate": "sam validate",
+		"start": "sam local start-api"
+	}
+}

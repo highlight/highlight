@@ -9,9 +9,9 @@
         <Nullable>enable</Nullable>
 
         <OutputType>library</OutputType>
-        <Version>0.2.15</Version>
-        <AssemblyVersion>0.2.15</AssemblyVersion>
-        <FileVersion>0.2.15</FileVersion>
+        <Version>0.2.16</Version>
+        <AssemblyVersion>0.2.16</AssemblyVersion>
+        <FileVersion>0.2.16</FileVersion>
         <Deterministic>true</Deterministic>
         <LangVersion>latest</LangVersion>
         <Company>highlight.io</Company>
@@ -35,11 +35,11 @@
       <PackageReference Include="Serilog" Version="3.1.1"  Condition="'$(TargetFramework)' == 'net6.0'" />
       <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="1.2.0"  Condition="'$(TargetFramework)' == 'net6.0'" />
 
-      <PackageReference Include="OpenTelemetry" Version="1.11.1" Condition="'$(TargetFramework)' != 'net6.0'"/>
-      <PackageReference Include="OpenTelemetry.AutoInstrumentation" Version="1.10.0" Condition="'$(TargetFramework)' != 'net6.0'"/>
-      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.1" Condition="'$(TargetFramework)' != 'net6.0'"/>
-      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.1" Condition="'$(TargetFramework)' != 'net6.0'"/>
-      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.0" Condition="'$(TargetFramework)' != 'net6.0'"/>
+      <PackageReference Include="OpenTelemetry" Version="1.11.2" Condition="'$(TargetFramework)' != 'net6.0'"/>
+      <PackageReference Include="OpenTelemetry.AutoInstrumentation" Version="1.11.0" Condition="'$(TargetFramework)' != 'net6.0'"/>
+      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.2" Condition="'$(TargetFramework)' != 'net6.0'"/>
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.2" Condition="'$(TargetFramework)' != 'net6.0'"/>
+      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.1" Condition="'$(TargetFramework)' != 'net6.0'"/>
       <PackageReference Include="Serilog" Version="4.2.0"  Condition="'$(TargetFramework)' != 'net6.0'" />
       <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1"  Condition="'$(TargetFramework)' != 'net6.0'" />
       

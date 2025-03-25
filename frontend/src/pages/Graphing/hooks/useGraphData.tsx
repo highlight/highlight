@@ -4,6 +4,7 @@ import { GraphContext, GraphData } from '@pages/Graphing/context/GraphContext'
 export function useGraphData(): GraphContext {
 	const graphData = useRef<GraphData>({})
 	const [errors, setErrors] = useState<string[]>([])
+	const [queryStartTime, setQueryStartTime] = useState<Date | undefined>()
 
 	return {
 		graphData,
@@ -18,5 +19,7 @@ export function useGraphData(): GraphContext {
 		},
 		errors,
 		setErrors,
+		queryStartTime,
+		setQueryStartTime,
 	}
 }

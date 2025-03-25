@@ -592,7 +592,8 @@ const getCustomTooltip =
 										label={
 											isValid
 												? getTickFormatter(
-														seriesInfo?.column ??
+														seriesInfo?.column ||
+															seriesInfo?.aggregator ||
 															'',
 													)(p.value)
 												: ''
@@ -1175,12 +1176,12 @@ const Graph = ({
 	hideTitle,
 	children,
 }: React.PropsWithChildren<ChartProps<ViewConfig>>) => {
-	const { setGraphData, setErrors } = useGraphContext()
+	const { setGraphData, setErrors, queryStartTime, setQueryStartTime } =
+		useGraphContext()
 	const queriedBucketCount = bucketByKey !== undefined ? bucketCount : 1
 	const bucketByTimestamp = bucketByKey === TIMESTAMP_KEY
 
 	const [results, setResults] = useState<GetMetricsQuery[]>()
-	const [loading, setLoading] = useState<boolean>(true)
 
 	const set = useSetRelatedResource()
 
@@ -1190,6 +1191,8 @@ const Graph = ({
 		'highlight-used-drilldown',
 		false,
 	)
+
+	const loading = queryStartTime !== undefined
 
 	// Use a smaller bucketByWindow if the selected one is greater than the time range
 	if (
@@ -1330,7 +1333,7 @@ const Graph = ({
 		],
 	)
 
-	const [getMetrics, { called }] = useGetMetricsLazyQuery({})
+	const [getMetrics, { called }] = useGetMetricsLazyQuery()
 
 	let xAxisMetric = GROUPS_KEY
 	if (sql) {
@@ -1389,12 +1392,13 @@ const Graph = ({
 			expressions: expressions.map((e) => ({ ...e })), // This is a hack but Apollo isn't noticing a change otherwise
 		}
 
-		setLoading(true)
+		setQueryStartTime(new Date())
 		let getMetricsPromises: Promise<GetMetricsQueryResult>[] = []
 		if (funnelSteps?.length) {
 			for (const step of funnelSteps) {
 				getMetricsPromises.push(
 					getMetrics({
+						fetchPolicy: 'network-only',
 						variables: {
 							...getMetricsVariables,
 							params: {
@@ -1407,7 +1411,10 @@ const Graph = ({
 			}
 		} else {
 			getMetricsPromises = [
-				getMetrics({ variables: getMetricsVariables }),
+				getMetrics({
+					fetchPolicy: 'network-only',
+					variables: getMetricsVariables,
+				}),
 			]
 		}
 
@@ -1419,7 +1426,7 @@ const Graph = ({
 				)
 			})
 			.finally(() => {
-				setLoading(false)
+				setQueryStartTime(undefined)
 			})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [

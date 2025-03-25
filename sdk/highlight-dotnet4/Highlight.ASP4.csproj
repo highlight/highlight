@@ -19,10 +19,10 @@
     </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>0.2.9</Version>
-    <PackageVersion>0.2.9</PackageVersion>
-    <AssemblyVersion>0.2.9</AssemblyVersion>
-    <FileVersion>0.2.9</FileVersion>
+    <Version>0.2.10</Version>
+    <PackageVersion>0.2.10</PackageVersion>
+    <AssemblyVersion>0.2.10</AssemblyVersion>
+    <FileVersion>0.2.10</FileVersion>
     <Company>highlight.io</Company>
     <Authors>Vadim Korolik</Authors>
     <Product>highlight.io</Product>
@@ -81,40 +81,40 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="OpenTelemetry">
-      <Version>1.11.1</Version>
+      <Version>1.11.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Api">
-      <Version>1.11.1</Version>
+      <Version>1.11.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions">
-      <Version>1.11.1</Version>
+      <Version>1.11.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol">
-      <Version>1.11.1</Version>
+      <Version>1.11.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Extensions.Hosting">
-      <Version>1.11.1</Version>
+      <Version>1.11.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNet">
-      <Version>1.11.0-beta.1</Version>
+      <Version>1.11.0-beta.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore">
-      <Version>1.11.0-beta.1</Version>
+      <Version>1.11.0-beta.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.Http">
-      <Version>1.11.0</Version>
+      <Version>1.11.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.Process">
-      <Version>1.11.0-beta.1</Version>
+      <Version>1.11.0-beta.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime">
-      <Version>1.11.0</Version>
+      <Version>1.11.1</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient">
-      <Version>1.11.0-beta.1</Version>
+      <Version>1.11.0-beta.2</Version>
     </PackageReference>
     <PackageReference Include="OpenTelemetry.Instrumentation.Wcf">
-      <Version>1.11.0-beta.1</Version>
+      <Version>1.11.0-beta.2</Version>
     </PackageReference>
     <PackageReference Include="Serilog">
       <Version>4.2.1-dev-02340</Version>

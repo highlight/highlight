@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice"
@@ -1040,7 +1041,7 @@ func (w *Worker) CalculateOverages(ctx context.Context, workspaceID int) (Worksp
 		included := cfg.Included(workspace)
 		usage[product] = calculateOverage(workspace, &included, meter)
 		if meter > included+cfg.OverageEmailThreshold {
-			if err := model.SendBillingNotifications(ctx, w.db, w.mailClient, cfg.OverageEmail, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, w.db, w.mailClient, cfg.OverageEmail, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
@@ -1060,12 +1061,12 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(time.Now().AddDate(0, 0, -7)) {
 		if workspace.TrialEndDate.Before(time.Now()) {
 			// If the trial has ended, send an email
-			if err := model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingHighlightTrialEnded, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingHighlightTrialEnded, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		} else if workspace.TrialEndDate.Before(time.Now().AddDate(0, 0, 7)) {
 			// If the trial is ending within 7 days, send an email
-			if err := model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingHighlightTrial7Days, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingHighlightTrial7Days, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
@@ -1130,12 +1131,12 @@ func (w *Worker) reportStripeUsage(ctx context.Context, workspaceID int) error {
 		subscriptionEnd := time.Unix(subscription.Discount.End, 0)
 		if subscriptionEnd.Before(time.Now().AddDate(0, 0, 3)) {
 			// If the Stripe trial is ending within 3 days, send an email
-			if err := model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingStripeTrial3Days, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingStripeTrial3Days, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "BILLING_ERROR failed to send billing notifications"))
 			}
 		} else if subscriptionEnd.Before(time.Now().AddDate(0, 0, 7)) {
 			// If the Stripe trial is ending within 7 days, send an email
-			if err := model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingStripeTrial7Days, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingStripeTrial7Days, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "BILLING_ERROR failed to send billing notifications"))
 			}
 		}
@@ -1351,7 +1352,7 @@ func (w *Worker) ProcessBillingIssue(ctx context.Context, workspace *model.Works
 	}
 
 	if warningSent.IsZero() {
-		if err = model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingInvalidPayment, workspace); err != nil {
+		if err = model.SendBillingNotifications(ctx, w.db, w.mailClient, email.BillingInvalidPayment, workspace, ptr.String(status)); err != nil {
 			log.WithContext(ctx).WithError(err).Error("BILLING_ERROR failed to send customer invalid billing warning notification")
 			return
 		}

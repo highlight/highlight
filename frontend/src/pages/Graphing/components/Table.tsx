@@ -289,7 +289,7 @@ const MetricTableRow = ({
 				}
 
 				if (value !== '') {
-					value = getTickFormatter(s.column)(value)
+					value = getTickFormatter(s.column || s.aggregator)(value)
 				}
 
 				const groups = GROUPS_KEY in row ? row[GROUPS_KEY] : s.groups
