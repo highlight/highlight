@@ -231,8 +231,6 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 		setFilterKeys(newFilterKeys)
 	}
 
-	console.log('Panel', loading, error, data)
-
 	if (loading) {
 		return <LoadingBox />
 	}
