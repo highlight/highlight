@@ -1,5 +1,15 @@
 # highlight.run
 
+## 9.15.0
+
+### Minor Changes
+
+-   06d109a: turn off session cookie storage by default
+
+### Patch Changes
+
+-   0acb4c2: fix local sendmode not incrementing payload id
+
 ## 9.14.0
 
 ### Minor Changes
