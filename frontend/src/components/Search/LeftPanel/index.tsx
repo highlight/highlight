@@ -92,7 +92,7 @@ const InnerPanel: React.FC<InnerPanelProps> = ({
 		STANDARD_FILTERS[product],
 	)
 
-	const { data, error } = useGetKeyValueSuggestionsQuery({
+	const { error } = useGetKeyValueSuggestionsQuery({
 		variables: {
 			product_type: product,
 			project_id: projectId,
