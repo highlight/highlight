@@ -108,7 +108,7 @@ export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
 }
 
-enum LOCAL_STORAGE_KEYS {
+export enum LOCAL_STORAGE_KEYS {
 	CLIENT_ID = 'highlightClientID',
 }
 
