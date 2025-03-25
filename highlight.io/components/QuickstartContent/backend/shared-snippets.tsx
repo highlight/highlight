@@ -8,6 +8,8 @@ export const frontendInstallSnippet: QuickStartStep = {
 		{
 			text: `H.init("<YOUR_PROJECT_ID>", {
   tracingOrigins: ['localhost', 'example.myapp.com/backend'],
+  // Associate server-side rendering traces with the session via a cookie
+  sessionCookie: true,
   networkRecording: {
     enabled: true,
     recordHeadersAndBody: true,

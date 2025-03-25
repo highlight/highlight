@@ -4,7 +4,6 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"hash/fnv"
@@ -19,6 +18,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/goccy/go-json"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
@@ -729,11 +730,11 @@ func (r *Resolver) isWithinErrorQuota(ctx context.Context, workspace *model.Work
 	go func() {
 		defer util.Recover()
 		if !withinBillingQuota || quotaPercent >= 1 {
-			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		} else if quotaPercent >= .8 {
-			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage80Percent, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage80Percent, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
@@ -1306,11 +1307,11 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	go func() {
 		defer util.Recover()
 		if quotaPercent >= 1 {
-			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		} else if quotaPercent >= .8 {
-			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace); err != nil {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace, nil); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
@@ -2589,7 +2590,7 @@ type PushPayloadChunk struct {
 }
 
 func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID string, payloadID int, data string) error {
-	querySessionSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.decompress")
+	querySessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.decompress")
 
 	reader, err := gzip.NewReader(base64.NewDecoder(base64.StdEncoding, strings.NewReader(data)))
 	if err != nil {
@@ -2611,7 +2612,7 @@ func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID
 
 	querySessionSpan.Finish()
 
-	return r.ProcessPayload(ctx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, pointy.Int(payloadID))
+	return r.ProcessPayload(sCtx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, pointy.Int(payloadID))
 }
 
 func TransformEvents(evs []*publicModel.ReplayEventInput) (*parse.ReplayEvents, error) {
@@ -2654,10 +2655,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		util.Tag("numberOfErrors", len(errors)),
 		util.Tag("numberOfEvents", len(events.Events)),
 	}
-	// sample-in payload with many events
-	if len(events.Events) > 1_000 {
-		opts = append(opts, util.WithSpanKind(trace.SpanKindServer))
-	}
+
 	span, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload", opts...)
 	defer span.Finish()
 
@@ -3121,23 +3119,34 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		elapsedSinceUpdate = now.Sub(*sessionObj.PayloadUpdatedAt)
 	}
 
-	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
-	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
-		elapsedSinceUpdate > 15*time.Second ||
-		beaconTime != nil ||
-		hasSessionUnloaded != sessionObj.HasUnloaded ||
-		(sessionObj.Processed != nil && *sessionObj.Processed) ||
-		(sessionObj.ObjectStorageEnabled != nil && *sessionObj.ObjectStorageEnabled) ||
-		(sessionObj.Chunked != nil && *sessionObj.Chunked) ||
-		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
+	// Update only the fields that may have changed
+	updateFields := []string{}
+	if sessionObj.PayloadUpdatedAt == nil || elapsedSinceUpdate > 15*time.Second {
+		updateFields = append(updateFields, "PayloadUpdatedAt")
+	}
+	if beaconTime != nil {
+		updateFields = append(updateFields, "BeaconTime")
+	}
+	if hasSessionUnloaded != sessionObj.HasUnloaded {
+		updateFields = append(updateFields, "HasUnloaded")
+	}
+	if sessionObj.Processed != nil && *sessionObj.Processed {
+		updateFields = append(updateFields, "Processed", "ObjectStorageEnabled", "DirectDownloadEnabled", "Chunked")
+	}
+	if sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors) {
+		updateFields = append(updateFields, "HasErrors")
+	}
+	if sessionObj.Excluded && !excluded {
+		updateFields = append(updateFields, "Excluded", "ExcludedReason")
+	}
 
-	if doUpdate && !excluded {
+	if len(updateFields) > 0 && !excluded {
 		updateSessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.updateSession", util.Tag("project_id", projectID))
 		// By default, GORM will not update non-zero fields. This is undesirable for boolean columns.
 		// By explicitly specifying the columns to update, we can override the behavior.
 		// See https://gorm.io/docs/update.html#Updates-multiple-columns
 		if err := r.DB.WithContext(sCtx).Model(&model.Session{Model: model.Model{ID: sessionID}}).
-			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "ExcludedReason", "HasErrors").
+			Select(updateFields).
 			Updates(&model.Session{
 				PayloadUpdatedAt:      &now,
 				BeaconTime:            beaconTime,
