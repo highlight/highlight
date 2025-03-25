@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"io"
+	"net/http"
+
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/env"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -14,8 +17,6 @@ import (
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
-	"io"
-	"net/http"
 )
 
 const ProjectID = 33682
@@ -54,19 +55,22 @@ func main() {
 		Store:         store.NewStore(db, redisClient, nil, nil, kafkaDataSyncProducer, clickhouseClient),
 	}
 
-	var sessionIds []int
+	var sessionIds []struct {
+		ID       int
+		SecureID string
+	}
 	if err := db.Raw(`
-		SELECT id
+		SELECT id, secure_id
 		FROM sessions
 		WHERE project_id = ? and created_at >= now() - interval '5 days' and secure_id = 'D4mVFKz1eNRBChjxGAS2H70efU6C'
 	`, ProjectID).Scan(&sessionIds).Error; err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}
 
-	log.WithContext(ctx).Infof("got %d sessions", sessionIds)
+	log.WithContext(ctx).Infof("got %d sessions", len(sessionIds))
 
-	for _, sessionID := range sessionIds {
-		eventsFile, err := storageClient.GetDirectDownloadURL(ctx, sessionID, ProjectID, storage.SessionContentsCompressed, nil)
+	for _, pair := range sessionIds {
+		eventsFile, err := storageClient.GetDirectDownloadURL(ctx, pair.ID, ProjectID, storage.SessionContentsCompressed, nil)
 		if err != nil {
 			log.WithContext(ctx).Fatal(err)
 		}
@@ -87,7 +91,7 @@ func main() {
 			log.WithContext(ctx).Fatal(err)
 		}
 
-		if err := publicResolver.AddSessionEvents(ctx, sessionID, events); err != nil {
+		if err := publicResolver.AddSessionEvents(ctx, pair.SecureID, pair.ID, events); err != nil {
 			log.WithContext(ctx).Fatal(err)
 		}
 	}

@@ -2361,9 +2361,6 @@ type Query {
 		product_type: ProductType!
 		date_range: DateRangeRequiredInput
 	): UsageHistory!
-	# gets all the projects of a user
-	field_suggestion(project_id: ID!, name: String!, query: String!): [Field]
-	property_suggestion(project_id: ID!, query: String!, type: String!): [Field]
 	projects: [Project]
 	workspaces: [Workspace]
 	workspaces_count: Int64!

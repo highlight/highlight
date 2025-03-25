@@ -4508,3 +4508,15 @@ func backfillAlertFields(alert *model.Alert) {
 		}
 	}
 }
+
+func (r *Resolver) GetSessionFields(ctx context.Context, session *model.Session) ([]*model.Field, error) {
+	fields, err := r.ClickhouseClient.GetSessionFields(ctx, session.ProjectID, session.ID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting fields by session")
+	}
+	if len(fields) > 0 {
+		return fields, nil
+	}
+	// Fields may not have been synced to ClickHouse yet (e.g. for live sessions) - can try Redis instead
+	return r.Redis.GetSessionFields(ctx, session.SecureID)
+}

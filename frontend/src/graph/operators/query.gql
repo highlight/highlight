@@ -1269,80 +1269,11 @@ query GetResources($session_secure_id: String!) {
 	resources(session_secure_id: $session_secure_id)
 }
 
-query GetFieldSuggestion($project_id: ID!, $name: String!, $query: String!) {
-	field_suggestion(project_id: $project_id, name: $name, query: $query) {
-		name
-		value
-	}
-}
-
-query GetEnvironments($project_id: ID!) {
-	environment_suggestion(project_id: $project_id) {
-		name
-		value
-	}
-}
-
 query GetProjectSuggestion($query: String!) {
 	projectSuggestion(query: $query) {
 		id
 		name
 		workspace_id
-	}
-}
-
-query GetSessionSearchResults($project_id: ID!, $query: String!) {
-	trackProperties: property_suggestion(
-		project_id: $project_id
-		query: $query
-		type: "track"
-	) {
-		id
-		name
-		value
-	}
-	userProperties: property_suggestion(
-		project_id: $project_id
-		query: $query
-		type: "user"
-	) {
-		id
-		name
-		value
-	}
-	visitedUrls: field_suggestion(
-		project_id: $project_id
-		name: "visited-url"
-		query: $query
-	) {
-		id
-		name
-		value
-	}
-	referrers: field_suggestion(
-		project_id: $project_id
-		name: "referrer"
-		query: $query
-	) {
-		id
-		name
-		value
-	}
-}
-
-query GetTrackSuggestion($project_id: ID!, $query: String!) {
-	property_suggestion(project_id: $project_id, query: $query, type: "track") {
-		id
-		name
-		value
-	}
-}
-
-query GetUserSuggestion($project_id: ID!, $query: String!) {
-	property_suggestion(project_id: $project_id, query: $query, type: "user") {
-		id
-		name
-		value
 	}
 }
 

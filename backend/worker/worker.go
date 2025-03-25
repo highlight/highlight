@@ -890,7 +890,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			{Key: "exit_page", Value: exitPage.Value, Timestamp: exitPage.CreatedAt},
 		}
 
-		if err := w.PublicResolver.AppendProperties(ctx, s.ID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
+		if err := w.PublicResolver.AppendProperties(ctx, s.SecureID, sessionProperties, pubgraph.PropertyType.SESSION); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "[processSession] error appending properties for session %d", s.ID))
 		}
 

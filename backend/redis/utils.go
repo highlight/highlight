@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/env"
 	"sort"
 	"strconv"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/env"
 
 	"github.com/go-redis/cache/v9"
 	"github.com/go-redsync/redsync/v4"
@@ -57,10 +58,6 @@ func BillingQuotaExceededKey(projectId int, productType model.PricingProductType
 	return fmt.Sprintf("billing-quota-exceeded-%d-%s", projectId, productType)
 }
 
-func LastLogTimestampKey(projectId int) string {
-	return fmt.Sprintf("last-log-timestamp-%d", projectId)
-}
-
 func ServiceGithubErrorCountKey(serviceId int) string {
 	return fmt.Sprintf("service-github-errors-%d", serviceId)
 }
@@ -71,6 +68,10 @@ func GithubRateLimitKey(gitHubRepo string) string {
 
 func GitHubFileErrorKey(gitHubRepo string, version string, fileName string) string {
 	return fmt.Sprintf("github-file-error-%s-%s-%s", gitHubRepo, version, fileName)
+}
+
+func SessionFieldsKey(sessionSecureId string) string {
+	return fmt.Sprintf("session-fields-%s", sessionSecureId)
 }
 
 func NewClient() *Client {
@@ -436,7 +437,7 @@ func (r *Client) GetSessionsToProcess(ctx context.Context, lockPeriod int, limit
 	return cmd.Int64Slice()
 }
 
-// Calls ZADD, and if the key does not exist yet, sets an expiry of 4h10m.
+// Calls ZADD, and if the key does not exist yet, sets an expiry of 8h20m.
 var zAddAndExpire = redis.NewScript(`
 	local key = KEYS[1]
 	local score = ARGV[1]
@@ -468,6 +469,88 @@ func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, p
 		return 0, errors.Wrap(err, "error adding events payload in Redis")
 	}
 	return cmd.Int()
+}
+
+var lPushAndExpire = redis.NewScript(`
+	local key = KEYS[1]
+	local value = ARGV[1]
+
+	local count = redis.call("LLEN", key)
+	redis.call("LPUSH", key, value)
+
+	if count == 0 then
+		redis.call("EXPIRE", key, 30000)
+	end
+
+	return count + 1
+`)
+
+func (r *Client) AddSessionFields(ctx context.Context, sessionSecureId string, fields []*model.Field) (int, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "redis.AddSessionFields")
+	defer span.Finish()
+
+	marshalSpan, _ := util.StartSpanFromContext(ctx, "redis.AddSessionFields.jsonMarshal")
+	payload, err := json.Marshal(fields)
+	marshalSpan.Finish()
+	if err != nil {
+		return 0, err
+	}
+
+	encodeSpan, _ := util.StartSpanFromContext(ctx, "redis.AddSessionFields.snappyEncode")
+	encoded := string(snappy.Encode(nil, payload))
+	encodeSpan.Finish()
+
+	cmd := lPushAndExpire.Run(ctx, r.Client, []string{SessionFieldsKey(sessionSecureId)}, encoded)
+
+	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
+		return 0, errors.Wrap(err, "error adding session fields in Redis")
+	}
+	return cmd.Int()
+}
+
+func (r *Client) GetSessionFields(ctx context.Context, sessionSecureId string) ([]*model.Field, error) {
+	span, ctx := util.StartSpanFromContext(ctx, "redis.GetSessionFields")
+	defer span.Finish()
+
+	messages, err := r.Client.LRange(ctx, SessionFieldsKey(sessionSecureId), 0, -1).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	// Track seen keys to avoid adding duplicates
+	type dedupeKey struct {
+		Type  string
+		Name  string
+		Value string
+	}
+	dedupeMap := map[dedupeKey]bool{}
+
+	allFields := []*model.Field{}
+	for _, message := range messages {
+		decoded, err := snappy.Decode(nil, []byte(message))
+		if err != nil {
+			return nil, err
+		}
+
+		var fields []*model.Field
+		if err := json.Unmarshal(decoded, &fields); err != nil {
+			return nil, err
+		}
+
+		for _, field := range fields {
+			dedupeKey := dedupeKey{
+				Type:  field.Type,
+				Name:  field.Name,
+				Value: field.Value,
+			}
+			if _, found := dedupeMap[dedupeKey]; !found {
+				dedupeMap[dedupeKey] = true
+				allFields = append(allFields, field)
+			}
+		}
+	}
+
+	return allFields, nil
 }
 
 func (r *Client) getString(ctx context.Context, key string) (string, error) {

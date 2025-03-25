@@ -3378,36 +3378,6 @@ export type GetResourcesQuery = { __typename?: 'Query' } & Pick<
 	'resources'
 >
 
-export type GetFieldSuggestionQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	name: Types.Scalars['String']
-	query: Types.Scalars['String']
-}>
-
-export type GetFieldSuggestionQuery = { __typename?: 'Query' } & {
-	field_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
-			>
-		>
-	>
-}
-
-export type GetEnvironmentsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetEnvironmentsQuery = { __typename?: 'Query' } & {
-	environment_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
-			>
-		>
-	>
-}
-
 export type GetProjectSuggestionQueryVariables = Types.Exact<{
 	query: Types.Scalars['String']
 }>
@@ -3418,90 +3388,6 @@ export type GetProjectSuggestionQuery = { __typename?: 'Query' } & {
 			{ __typename?: 'Project' } & Pick<
 				Types.Project,
 				'id' | 'name' | 'workspace_id'
-			>
-		>
-	>
-}
-
-export type GetSessionSearchResultsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	query: Types.Scalars['String']
-}>
-
-export type GetSessionSearchResultsQuery = { __typename?: 'Query' } & {
-	trackProperties?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<
-					Types.Field,
-					'id' | 'name' | 'value'
-				>
-			>
-		>
-	>
-	userProperties?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<
-					Types.Field,
-					'id' | 'name' | 'value'
-				>
-			>
-		>
-	>
-	visitedUrls?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<
-					Types.Field,
-					'id' | 'name' | 'value'
-				>
-			>
-		>
-	>
-	referrers?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<
-					Types.Field,
-					'id' | 'name' | 'value'
-				>
-			>
-		>
-	>
-}
-
-export type GetTrackSuggestionQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	query: Types.Scalars['String']
-}>
-
-export type GetTrackSuggestionQuery = { __typename?: 'Query' } & {
-	property_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<
-					Types.Field,
-					'id' | 'name' | 'value'
-				>
-			>
-		>
-	>
-}
-
-export type GetUserSuggestionQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	query: Types.Scalars['String']
-}>
-
-export type GetUserSuggestionQuery = { __typename?: 'Query' } & {
-	property_suggestion?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'Field' } & Pick<
-					Types.Field,
-					'id' | 'name' | 'value'
-				>
 			>
 		>
 	>
@@ -5493,12 +5379,7 @@ export const namedOperations = {
 		GetErrorObject: 'GetErrorObject' as const,
 		GetErrorInstance: 'GetErrorInstance' as const,
 		GetResources: 'GetResources' as const,
-		GetFieldSuggestion: 'GetFieldSuggestion' as const,
-		GetEnvironments: 'GetEnvironments' as const,
 		GetProjectSuggestion: 'GetProjectSuggestion' as const,
-		GetSessionSearchResults: 'GetSessionSearchResults' as const,
-		GetTrackSuggestion: 'GetTrackSuggestion' as const,
-		GetUserSuggestion: 'GetUserSuggestion' as const,
 		GetSavedSegments: 'GetSavedSegments' as const,
 		GetClientIntegration: 'GetClientIntegration' as const,
 		GetServerIntegration: 'GetServerIntegration' as const,

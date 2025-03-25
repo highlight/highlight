@@ -14,7 +14,6 @@ import (
 	"math"
 	"math/rand"
 	"net/url"
-	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -5178,14 +5177,6 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 
 // Session is the resolver for the session field.
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
-	if env.IsDevEnv() && secureID == "repro" {
-		sessionObj := &model.Session{}
-		if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).Take(&sessionObj).Error; err != nil {
-			return nil, e.Wrap(err, "error reading from session")
-		}
-		return sessionObj, nil
-	}
-
 	s, err := r.canAdminViewSession(ctx, secureID)
 	if s == nil || err != nil {
 		return nil, err
@@ -5196,10 +5187,16 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 		return nil, err
 	}
 	sessionObj := &model.Session{}
-	if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).
+	if err := r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: s.ID}}).
 		First(&sessionObj).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from session")
 	}
+
+	fields, err := r.GetSessionFields(ctx, sessionObj)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting fields by session")
+	}
+	sessionObj.Fields = fields
 
 	var excludedReason modelInputs.SessionExcludedReason
 	if sessionObj.WithinBillingQuota != nil && !*sessionObj.WithinBillingQuota {
@@ -5217,18 +5214,6 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 
 // Events is the resolver for the events field.
 func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
-	if env.IsDevEnv() && sessionSecureID == "repro" {
-		file, err := os.ReadFile("./tmp/events.json")
-		if err != nil {
-			return nil, e.Wrap(err, "Failed to read temp file")
-		}
-		var data []interface{}
-
-		if err := json.Unmarshal([]byte(file), &data); err != nil {
-			return nil, e.Wrap(err, "Failed to unmarshal data from file")
-		}
-		return data, nil
-	}
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, err
@@ -5239,11 +5224,9 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 
 // SessionIntervals is the resolver for the session_intervals field.
 func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID string) ([]*model.SessionInterval, error) {
-	if !(env.IsDevEnv() && sessionSecureID == "repro") {
-		_, err := r.canAdminViewSession(ctx, sessionSecureID)
-		if err != nil {
-			return nil, err
-		}
+	_, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return nil, err
 	}
 
 	var sessionIntervals []*model.SessionInterval
@@ -5257,10 +5240,8 @@ func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID st
 // TimelineIndicatorEvents is the resolver for the timeline_indicator_events field.
 func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model.TimelineIndicatorEvent, error) {
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if !(env.IsDevEnv() && sessionSecureID == "repro") {
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
 	}
 
 	var timelineIndicatorEvents []*model.TimelineIndicatorEvent
@@ -5275,10 +5256,8 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 // WebsocketEvents is the resolver for the websocket_events field.
 func (r *queryResolver) WebsocketEvents(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if !(env.IsDevEnv() && sessionSecureID == "repro") {
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
 	}
 
 	webSocketEvents, err := r.StorageClient.ReadWebSocketEvents(ctx, session.ID, session.ProjectID)
@@ -5291,11 +5270,9 @@ func (r *queryResolver) WebsocketEvents(ctx context.Context, sessionSecureID str
 
 // RageClicks is the resolver for the rage_clicks field.
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) ([]*model.RageClickEvent, error) {
-	if !(env.IsDevEnv() && sessionSecureID == "repro") {
-		_, err := r.canAdminViewSession(ctx, sessionSecureID)
-		if err != nil {
-			return nil, err
-		}
+	_, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return nil, err
 	}
 
 	var rageClicks []*model.RageClickEvent
@@ -5644,9 +5621,15 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	// preload `Fields` children
 	sessionObj := &model.Session{}
 	// TODO: filter fields by type='user'.
-	if err := r.DB.WithContext(ctx).Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&sessionObj).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&sessionObj).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from session")
 	}
+	fields, err := r.GetSessionFields(ctx, sessionObj)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting fields by session")
+	}
+	sessionObj.Fields = fields
+
 	details := &modelInputs.EnhancedUserDetailsResult{}
 	details.Socials = []*modelInputs.SocialLink{}
 	// We don't know what key is used for the user's email so we do a regex match
@@ -5748,10 +5731,6 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 
 // Errors is the resolver for the errors field.
 func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*model.ErrorObject, error) {
-	if env.IsDevEnv() && sessionSecureID == "repro" {
-		errors := []*model.ErrorObject{}
-		return errors, nil
-	}
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, err
@@ -5823,10 +5802,6 @@ func (r *queryResolver) WebVitals(ctx context.Context, sessionSecureID string) (
 
 // SessionComments is the resolver for the session_comments field.
 func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID string) ([]*model.SessionComment, error) {
-	if env.IsDevEnv() && sessionSecureID == "repro" {
-		sessionComments := []*model.SessionComment{}
-		return sessionComments, nil
-	}
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, err
@@ -6743,14 +6718,16 @@ func (r *queryResolver) SessionUsersReport(ctx context.Context, projectID int, p
 		return nil, err
 	}
 
+	args = append([]interface{}{project.ID, params.DateRange.StartDate, params.DateRange.EndDate, project.ID}, args...)
+
 	q := fmt.Sprintf(`
 select coalesce(
-               nullif(arrayFilter((k, v) -> k = 'email', SessionAttributePairs)[1].2, ''),
+               nullif(arrayFilter((k, v) -> k = 'email', RelevantFields)[1].2, ''),
                nullif(IP, ''),
-               nullif(arrayFilter((k, v) -> k = 'device_id', SessionAttributePairs)[1].2, ''),
+               nullif(arrayFilter((k, v) -> k = 'device_id', RelevantFields)[1].2, ''),
                Identifier
        )                                                                       as key,
-       min(arrayFilter((k, v) -> k = 'email', SessionAttributePairs)[1].2)     as email,
+       min(arrayFilter((k, v) -> k = 'email', RelevantFields)[1].2)     as email,
        min(CreatedAt)                                                          as first_session,
        max(CreatedAt)                                                          as last_session,
        count(distinct ID)                                                      as num_sessions,
@@ -6764,12 +6741,22 @@ select coalesce(
        sum(greatest(0, Length)) / 1000 / 60                                    as total_length_mins,
        max(coalesce(nullif(City, ''), nullif(State, ''), nullif(Country, ''))) as location
 from sessions_joined_vw final
-WHERE ProjectID = %d
+INNER JOIN (
+	SELECT SessionID, groupArray(tuple(Name, Value)) AS RelevantFields
+	FROM fields
+	WHERE ProjectID = ?
+	AND Name in ('email', 'device_id')
+	AND SessionCreatedAt >= ?
+	AND SessionCreatedAt <= ?
+	GROUP BY SessionID
+) as join
+ON ID = SessionID
+WHERE ProjectID = ?
   AND NOT Excluded
   AND WithinBillingQuota
   AND ID in (%s)
 group by 1 order by num_sessions desc;
-`, project.ID, sql)
+`, sql)
 	rows, err := r.ClickhouseClient.GetConn().Query(ctx, q, args...)
 	if err != nil {
 		return nil, err
@@ -7053,42 +7040,6 @@ func (r *queryResolver) UsageHistory(ctx context.Context, workspaceID int, produ
 	return &modelInputs.UsageHistory{
 		Usage: meter,
 	}, nil
-}
-
-// FieldSuggestion is the resolver for the field_suggestion field.
-func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.Field, error) {
-	fields := []*model.Field{}
-	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
-		return fields, nil
-	}
-	res := r.DB.WithContext(ctx).Where(&model.Field{Name: name}).
-		Where("project_id = ?", projectID).
-		Where("length(value) > ?", 0).
-		Where("value ILIKE ?", "%"+query+"%").
-		Limit(model.SUGGESTION_LIMIT_CONSTANT).
-		Find(&fields)
-	if err := res.Error; err != nil {
-		log.WithContext(ctx).Error(err)
-		return fields, nil
-	}
-	return fields, nil
-}
-
-// PropertySuggestion is the resolver for the property_suggestion field.
-func (r *queryResolver) PropertySuggestion(ctx context.Context, projectID int, query string, typeArg string) ([]*model.Field, error) {
-	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, err
-	}
-	fields := []*model.Field{}
-	res := r.DB.WithContext(ctx).Where(&model.Field{Type: typeArg}).Where("project_id = ?", projectID).Where(r.DB.
-		Where(r.DB.WithContext(ctx).Where("length(value) > ?", 0).Where("value ILIKE ?", "%"+query+"%")).
-		Or(r.DB.WithContext(ctx).Where("length(name) > ?", 0).Where("name ILIKE ?", "%"+query+"%"))).
-		Limit(model.SUGGESTION_LIMIT_CONSTANT).
-		Find(&fields)
-	if err := res.Error; err != nil {
-		return nil, e.Wrap(err, "error querying field suggestion")
-	}
-	return fields, nil
 }
 
 // Projects is the resolver for the projects field.
@@ -7406,15 +7357,17 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int
 	if _, err := r.isUserInProjectOrDemoProject(ctx, projectID); err != nil {
 		return nil, err
 	}
-	fields := []*model.Field{}
-	res := r.DB.WithContext(ctx).Where(&model.Field{Type: "session", Name: "environment"}).
-		Where("project_id = ?", projectID).
-		Where("length(value) > ?", 0).
-		Distinct("value").
-		Find(&fields)
-	if err := res.Error; err != nil {
-		return nil, e.Wrap(err, "error querying field suggestion")
+
+	values, err := r.ClickhouseClient.QueryFieldValues(ctx, projectID, 50, "session", "environment", "", time.Now().AddDate(0, -1, 0), time.Now())
+	if err != nil {
+		return nil, e.Wrap(err, "error querying environment suggestion")
 	}
+
+	fields := []*model.Field{}
+	for _, value := range values {
+		fields = append(fields, &model.Field{Type: "session", Name: "environment", Value: value})
+	}
+
 	return fields, nil
 }
 
@@ -9979,10 +9932,6 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 
 // SessionFeedback is the resolver for the session_feedback field.
 func (r *sessionResolver) SessionFeedback(ctx context.Context, obj *model.Session) ([]*model.SessionComment, error) {
-	if env.IsDevEnv() && obj.SecureID == "repro" {
-		sessionFeedback := []*model.SessionComment{}
-		return sessionFeedback, nil
-	}
 	s, err := r.canAdminViewSession(ctx, obj.SecureID)
 	if err != nil {
 		return nil, err

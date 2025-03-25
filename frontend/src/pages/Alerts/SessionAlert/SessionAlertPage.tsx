@@ -4,8 +4,6 @@ import { toast } from '@components/Toaster'
 import {
 	useDeleteSessionAlertMutation,
 	useGetIdentifierSuggestionsQuery,
-	useGetTrackSuggestionQuery,
-	useGetUserSuggestionQuery,
 	useUpdateSessionAlertMutation,
 } from '@graph/hooks'
 import {
@@ -508,30 +506,6 @@ const SessionAlertForm = ({
 	const [identifierQuery, setIdentifierQuery] = useState('')
 
 	const {
-		data: userSuggestionsApiResponse,
-		loading: userSuggestionsLoading,
-		refetch: refetchUserSuggestions,
-	} = useGetUserSuggestionQuery({
-		variables: {
-			project_id: project_id ?? '',
-			query: '',
-		},
-		skip: !project_id,
-	})
-
-	const {
-		refetch: refetchTrackSuggestions,
-		loading: trackSuggestionsLoading,
-		data: trackSuggestionsApiResponse,
-	} = useGetTrackSuggestionQuery({
-		variables: {
-			project_id: project_id ?? '',
-			query: '',
-		},
-		skip: !project_id,
-	})
-
-	const {
 		refetch: refetchIdentifierSuggestions,
 		loading: identifierSuggestionsLoading,
 		data: identifierSuggestionsApiResponse,
@@ -542,18 +516,6 @@ const SessionAlertForm = ({
 		},
 		skip: !project_id,
 	})
-
-	const userPropertiesSuggestions = userSuggestionsLoading
-		? []
-		: (userSuggestionsApiResponse?.property_suggestion || []).map(
-				(suggestion) => getPropertiesOption(suggestion),
-			)
-
-	const trackPropertiesSuggestions = trackSuggestionsLoading
-		? []
-		: (trackSuggestionsApiResponse?.property_suggestion || []).map(
-				(suggestion) => getPropertiesOption(suggestion),
-			)
 
 	const identifierSuggestions = identifierSuggestionsLoading
 		? []
@@ -569,13 +531,6 @@ const SessionAlertForm = ({
 					id: suggestion,
 				}),
 			)
-
-	const handleUserPropertiesSearch = (query = '') => {
-		refetchUserSuggestions({ query, project_id: project_id })
-	}
-	const handleTrackPropertiesSearch = (query = '') => {
-		refetchTrackSuggestions({ query, project_id: project_id })
-	}
 
 	const handleIdentifierSearch = (query = '') => {
 		setIdentifierQuery(query)
@@ -666,8 +621,6 @@ const SessionAlertForm = ({
 								name={formStore.names.userProperties}
 							>
 								<Select
-									onSearch={handleUserPropertiesSearch}
-									options={userPropertiesSuggestions}
 									className={styles.selectContainer}
 									mode="multiple"
 									placeholder="Pick the user properties that you would like to get alerted for."
@@ -689,8 +642,6 @@ const SessionAlertForm = ({
 								name={formStore.names.trackProperties}
 							>
 								<Select
-									onSearch={handleTrackPropertiesSearch}
-									options={trackPropertiesSuggestions}
 									className={styles.selectContainer}
 									mode="multiple"
 									placeholder="Pick the track properties that you would like to get alerted for."
