@@ -9726,6 +9726,8 @@ func (r *queryResolver) KeyValuesSuggestions(ctx context.Context, productType mo
 	switch productType {
 	case modelInputs.ProductTypeLogs:
 		return r.ClickhouseClient.LogsKeyValueSuggestions(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, keys)
+	case modelInputs.ProductTypeTraces:
+		return r.ClickhouseClient.TracesKeyValueSuggestions(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, keys)
 	default:
 		return nil, e.Errorf("product type not supported %s", productType)
 	}

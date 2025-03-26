@@ -8,11 +8,20 @@ const STANDARD_LOG_FILTERS = [
 	'source',
 ]
 
+const STANDARD_TRACE_FILTERS = [
+	'service_name',
+	'service_version',
+	'environment',
+	'span_name',
+	'span_kind',
+	'metric_name',
+]
+
 export const STANDARD_FILTERS: Record<ProductType, string[]> = {
 	[ProductType.Sessions]: [],
 	[ProductType.Errors]: [],
 	[ProductType.Logs]: STANDARD_LOG_FILTERS,
-	[ProductType.Traces]: [],
+	[ProductType.Traces]: STANDARD_TRACE_FILTERS,
 	[ProductType.Metrics]: [],
 	[ProductType.Events]: [],
 }

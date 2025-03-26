@@ -58,6 +58,8 @@ import { LeftPanel } from '@/components/Search/LeftPanel'
 import { ControlsBar } from '@/components/Search/LeftPanel/ControlsBar'
 import { useLeftPanel } from '@/components/Search/LeftPanel/useLeftPanel'
 
+const MIN_DATE = presetStartDate(DEFAULT_TIME_PRESETS[5])
+
 const LogsPage = () => {
 	const { log_cursor } = useParams<{
 		log_cursor: string
@@ -297,7 +299,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 						hideDatePicker
 						onDatesChange={() => {}}
 						presets={[]}
-						minDate={presetStartDate(DEFAULT_TIME_PRESETS[5])}
+						minDate={MIN_DATE}
 						timeMode={timeMode}
 					/>
 					<Box
@@ -322,9 +324,7 @@ const LogsPageInner = ({ timeMode, logCursor, presetDefault }: Props) => {
 									searchTimeContext.updateSearchTime
 								}
 								presets={DEFAULT_TIME_PRESETS}
-								minDate={presetStartDate(
-									DEFAULT_TIME_PRESETS[5],
-								)}
+								minDate={MIN_DATE}
 								selectedPreset={
 									searchTimeContext.selectedPreset
 								}

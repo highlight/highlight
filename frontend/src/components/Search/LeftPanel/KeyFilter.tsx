@@ -5,7 +5,10 @@ import {
 	IconSolidCheckCircle,
 	IconSolidCheveronRight,
 	ComboboxSelect,
+	Tag,
 	Text,
+	Tooltip,
+	IconSolidInformationCircle,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useEffect, useMemo, useState } from 'react'
@@ -106,6 +109,20 @@ export const KeyFilter: React.FC<Props> = ({
 				>
 					Attributes
 				</Button>
+				<Tooltip
+					trigger={
+						<Tag
+							kind="secondary"
+							size="medium"
+							shape="basic"
+							emphasis="low"
+							iconRight={<IconSolidInformationCircle />}
+						/>
+					}
+				>
+					Manage the saved attributes for quick access and
+					recommendations to be used.
+				</Tooltip>
 			</Stack>
 			{expanded && (
 				<Stack gap="8" pl="8">

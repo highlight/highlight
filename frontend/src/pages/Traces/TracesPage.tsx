@@ -5,6 +5,7 @@ import {
 	IconSolidInformationCircle,
 	IconSolidLoading,
 	presetStartDate,
+	Stack,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui/components'
@@ -65,8 +66,14 @@ import {
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { GetMetricsQuery } from '@/graph/generated/operations'
+import { LeftPanel } from '@/components/Search/LeftPanel'
+import { useLeftPanel } from '@/components/Search/LeftPanel/useLeftPanel'
+import { ControlsBar } from '@/components/Search/LeftPanel/ControlsBar'
 
 export type TracesOutletContext = Partial<Trace>[]
+
+const MIN_DATE = presetStartDate(DEFAULT_TIME_PRESETS[5])
+const TIME_MODE_VALUE: TIME_MODE = 'fixed-range' // TODO: suppoer permalink mode
 
 export const TracesPage: React.FC = () => {
 	const { projectId } = useNumericProjectId()
@@ -91,9 +98,11 @@ export const TracesPage: React.FC = () => {
 		presets: DEFAULT_TIME_PRESETS,
 		initialPreset: FixedRangePreset,
 	})
-	const minDate = presetStartDate(DEFAULT_TIME_PRESETS[5])
-	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
 	const skipPolling = !searchTimeContext.selectedPreset || !!sortColumn
+
+	const { displayLeftPanel, setDisplayLeftPanel } = useLeftPanel({
+		key: 'traces',
+	})
 
 	const {
 		traceEdges,
@@ -360,11 +369,6 @@ export const TracesPage: React.FC = () => {
 					<SearchForm
 						startDate={searchTimeContext.startDate}
 						endDate={searchTimeContext.endDate}
-						presets={DEFAULT_TIME_PRESETS}
-						minDate={minDate}
-						selectedPreset={searchTimeContext.selectedPreset}
-						timeMode={timeMode}
-						onDatesChange={searchTimeContext.updateSearchTime}
 						productType={ProductType.Traces}
 						savedSegmentType={SavedSegmentEntityType.Trace}
 						enableAIMode={
@@ -372,157 +376,203 @@ export const TracesPage: React.FC = () => {
 								?.ai_query_builder
 						}
 						aiSupportedSearch
+						hideDatePicker
+						presets={[]}
+						minDate={MIN_DATE}
+						timeMode={TIME_MODE_VALUE}
+						onDatesChange={() => {}}
 					/>
 					<Box
 						display="flex"
-						borderBottom="dividerWeak"
-						justifyContent="space-between"
+						flexDirection="row"
+						height="full"
+						overflow="hidden"
 					>
-						<Box
-							width="full"
-							borderRight="dividerWeak"
-							position="relative"
-						>
+						<LeftPanel
+							product={ProductType.Traces}
+							displayLeftPanel={displayLeftPanel}
+							startDate={searchTimeContext.startDate}
+							endDate={searchTimeContext.endDate}
+						/>
+						<Stack gap="0" flexGrow={1}>
+							<ControlsBar
+								showControlsPanel={displayLeftPanel}
+								setShowControlsPanel={setDisplayLeftPanel}
+								startDate={searchTimeContext.startDate}
+								endDate={searchTimeContext.endDate}
+								onDatesChange={
+									searchTimeContext.updateSearchTime
+								}
+								presets={DEFAULT_TIME_PRESETS}
+								minDate={MIN_DATE}
+								selectedPreset={
+									searchTimeContext.selectedPreset
+								}
+								timeMode={TIME_MODE_VALUE}
+							/>
 							<Box
-								alignItems="center"
 								display="flex"
-								flexDirection="row"
-								px="8"
-								pt="4"
-								pb="6"
-								gap="8"
+								borderBottom="dividerWeak"
+								justifyContent="space-between"
 							>
-								{metricsLoading ? (
-									<Box py="4">
-										<HistogramLoading />
-									</Box>
-								) : (
-									<>
-										<Badge
-											size="medium"
-											shape="basic"
-											variant="outlineGray"
-											label={`
+								<Box
+									width="full"
+									borderRight="dividerWeak"
+									position="relative"
+								>
+									<Box
+										alignItems="center"
+										display="flex"
+										flexDirection="row"
+										px="8"
+										pt="4"
+										pb="6"
+										gap="8"
+									>
+										{metricsLoading ? (
+											<Box py="4">
+												<HistogramLoading />
+											</Box>
+										) : (
+											<>
+												<Badge
+													size="medium"
+													shape="basic"
+													variant="outlineGray"
+													label={`
 												${sampled ? '~' : ''}${formatNumber(totalCount)} Trace${
 													totalCount !== 1 ? 's' : ''
 												}
 											`}
-											iconEnd={
-												sampled ? (
-													<Tooltip
-														trigger={
-															<IconSolidInformationCircle />
-														}
-													>
-														<Box p="4">
-															<Text color="weak">
-																Data is sampled
-																when custom
-																sorting is
-																applied, so
-																results are
-																approximate.
-															</Text>
-														</Box>
-													</Tooltip>
-												) : undefined
-											}
-										/>
-										<Text size="xSmall" color="weak">
-											{searchTimeContext.selectedPreset ? (
-												<>
-													{moment(
-														searchTimeContext.startDate,
-													).format(
-														'M/D/YY h:mm:ss A',
-													)}{' '}
-													to Now
-												</>
-											) : (
-												<>
-													{moment(
-														searchTimeContext.startDate,
-													).format(
-														'M/D/YY h:mm:ss',
-													)}{' '}
-													to{' '}
-													{moment(
-														searchTimeContext.endDate,
-													).format('h:mm:ss A')}
-												</>
-											)}
-										</Text>
-									</>
-								)}
-							</Box>
-							<LogsHistogram
-								startDate={searchTimeContext.startDate}
-								endDate={searchTimeContext.endDate}
-								onDatesChange={
-									searchTimeContext.updateSearchTime
-								}
-								metrics={countData}
-								loading={metricsLoading}
-							/>
-						</Box>
-						<Box
-							width="full"
-							cssClass={styles.chart}
-							position="relative"
-						>
-							<Box
-								alignItems="center"
-								display="flex"
-								flexDirection="row"
-								px="10"
-								mb="4"
-								gap="10"
-								style={{ height: 28 }}
-							>
-								{metricsLoading ? (
-									<HistogramLoading
-										cssClass={styles.chartText}
-										style={{
-											top: 6,
-										}}
+													iconEnd={
+														sampled ? (
+															<Tooltip
+																trigger={
+																	<IconSolidInformationCircle />
+																}
+															>
+																<Box p="4">
+																	<Text color="weak">
+																		Data is
+																		sampled
+																		when
+																		custom
+																		sorting
+																		is
+																		applied,
+																		so
+																		results
+																		are
+																		approximate.
+																	</Text>
+																</Box>
+															</Tooltip>
+														) : undefined
+													}
+												/>
+												<Text
+													size="xSmall"
+													color="weak"
+												>
+													{searchTimeContext.selectedPreset ? (
+														<>
+															{moment(
+																searchTimeContext.startDate,
+															).format(
+																'M/D/YY h:mm:ss A',
+															)}{' '}
+															to Now
+														</>
+													) : (
+														<>
+															{moment(
+																searchTimeContext.startDate,
+															).format(
+																'M/D/YY h:mm:ss',
+															)}{' '}
+															to{' '}
+															{moment(
+																searchTimeContext.endDate,
+															).format(
+																'h:mm:ss A',
+															)}
+														</>
+													)}
+												</Text>
+											</>
+										)}
+									</Box>
+									<LogsHistogram
+										startDate={searchTimeContext.startDate}
+										endDate={searchTimeContext.endDate}
+										onDatesChange={
+											searchTimeContext.updateSearchTime
+										}
+										metrics={countData}
+										loading={metricsLoading}
 									/>
-								) : (
-									<Text
-										cssClass={styles.chartText}
-										size="xSmall"
-										color="weak"
+								</Box>
+								<Box
+									width="full"
+									cssClass={styles.chart}
+									position="relative"
+								>
+									<Box
+										alignItems="center"
+										display="flex"
+										flexDirection="row"
+										px="10"
+										mb="4"
+										gap="10"
+										style={{ height: 28 }}
 									>
-										Latency
-									</Text>
-								)}
+										{metricsLoading ? (
+											<HistogramLoading
+												cssClass={styles.chartText}
+												style={{
+													top: 6,
+												}}
+											/>
+										) : (
+											<Text
+												cssClass={styles.chartText}
+												size="xSmall"
+												color="weak"
+											>
+												Latency
+											</Text>
+										)}
+									</Box>
+
+									<LogsHistogram
+										startDate={searchTimeContext.startDate}
+										endDate={searchTimeContext.endDate}
+										onDatesChange={
+											searchTimeContext.updateSearchTime
+										}
+										metrics={durationData}
+										loading={metricsLoading}
+										lineChart
+									/>
+								</Box>
 							</Box>
-
-							<LogsHistogram
-								startDate={searchTimeContext.startDate}
-								endDate={searchTimeContext.endDate}
-								onDatesChange={
-									searchTimeContext.updateSearchTime
-								}
-								metrics={durationData}
-								loading={metricsLoading}
-								lineChart
-							/>
-						</Box>
-					</Box>
-
-					<Box height="full" overflow="hidden">
-						<TracesList
-							loading={loading}
-							numMoreTraces={moreTraces}
-							traceEdges={traceEdges}
-							handleAdditionalTracesDateChange={
-								searchTimeContext.rebaseSearchTime
-							}
-							resetMoreTraces={clearMoreTraces}
-							fetchMoreWhenScrolled={fetchMoreWhenScrolled}
-							loadingAfter={loadingAfter}
-							pollingExpired={pollingExpired}
-						/>
+							<Box height="full" overflow="hidden">
+								<TracesList
+									loading={loading}
+									numMoreTraces={moreTraces}
+									traceEdges={traceEdges}
+									handleAdditionalTracesDateChange={
+										searchTimeContext.rebaseSearchTime
+									}
+									resetMoreTraces={clearMoreTraces}
+									fetchMoreWhenScrolled={
+										fetchMoreWhenScrolled
+									}
+									loadingAfter={loadingAfter}
+									pollingExpired={pollingExpired}
+								/>
+							</Box>
+						</Stack>
 					</Box>
 				</Box>
 			</Box>
