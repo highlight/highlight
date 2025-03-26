@@ -12,7 +12,7 @@ import {
 } from '@ariakit/react'
 import type { ComponentTest } from '@reflame/testing'
 import clsx, { ClassValue } from 'clsx'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import { vars } from '../../css/vars'
 import {
@@ -99,18 +99,27 @@ export const ComboboxSelect = <T extends string | string[]>({
 
 	const isLoading = options === undefined
 
-	const queryOptions: Option[] =
-		query !== undefined && query !== '' && creatableRender !== undefined
-			? [{ key: query, render: creatableRender(query) }]
-			: []
-	const createdOptions =
-		isMultiselect && creatableRender
-			? value
-					.filter((v) => v !== query)
-					.map((v) => ({ key: v, render: creatableRender(v) }))
-			: []
+	const allOptions = useMemo(() => {
+		const optionMap = new Map<string, Option>()
 
-	const allOptions = queryOptions.concat(createdOptions).concat(options ?? [])
+		if (
+			query !== undefined &&
+			query !== '' &&
+			creatableRender !== undefined
+		) {
+			optionMap.set(query, { key: query, render: creatableRender(query) })
+		}
+		if (isMultiselect && creatableRender) {
+			value?.forEach((v) => {
+				if (v !== query) {
+					optionMap.set(v, { key: v, render: creatableRender(v) })
+				}
+			})
+		}
+		options?.forEach((option) => optionMap.set(option.key, option))
+
+		return Array.from(optionMap.values())
+	}, [query, value, options, creatableRender, isMultiselect])
 
 	return (
 		<div className={clsx(wrapperCssClass)}>
