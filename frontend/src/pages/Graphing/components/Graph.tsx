@@ -93,6 +93,7 @@ export const VIEW_OPTIONS = [
 		value: 'Funnel chart',
 		name: 'Funnel chart',
 		icon: <IconSolidLocationMarker size={16} key="funnel chart" />,
+		info: 'This chart is only supported for events.',
 	},
 	{
 		value: 'Table',

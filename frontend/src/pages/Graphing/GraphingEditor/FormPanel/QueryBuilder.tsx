@@ -17,7 +17,10 @@ import { EventSteps } from '@pages/Graphing/EventSelection/EventSteps'
 import { EventSelection } from '@pages/Graphing/EventSelection'
 import { useGraphingEditorContext } from '@/pages/Graphing/GraphingEditor/GraphingEditorContext'
 import { Combobox } from '@/pages/Graphing/Combobox'
-import { FUNCTION_TYPES, PRODUCT_OPTIONS } from '@pages/Graphing/constants'
+import {
+	FUNCTION_TYPE_OPTIONS,
+	PRODUCT_OPTIONS,
+} from '@pages/Graphing/constants'
 
 type Props = {
 	isPreview: boolean
@@ -148,7 +151,7 @@ export const QueryBuilder: React.FC<Props> = ({
 							key={`${e.aggregator}:${e.column}:${i}`}
 						>
 							<OptionDropdown
-								options={FUNCTION_TYPES}
+								options={FUNCTION_TYPE_OPTIONS}
 								selection={e.aggregator}
 								setSelection={handleFunctionTypeChange(i)}
 								disabled={
