@@ -23,7 +23,7 @@ import { useProjectId } from '@/hooks/useProjectId'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
 import * as style from './Filter.css'
-import { STANDARD_FILTERS } from '@/components/Search/LeftPanel/constants'
+import { STANDARD_FILTERS } from './constants'
 
 type Props = {
 	product: ProductType
@@ -65,8 +65,6 @@ export const KeyFilter: React.FC<Props> = ({
 						</Text>
 					),
 				}))
-
-		console.log('optionKeys', optionKeys)
 
 		return options
 	}, [data?.keys, product, loading])
