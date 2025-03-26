@@ -123,10 +123,24 @@ export const FUNCTION_TYPES: MetricAggregator[] = [
 	...NUMERIC_FUNCTION_TYPES,
 ]
 
-export const SUGGESTION_TYPES: SuggestionType[] = [
-	SuggestionType.Value,
-	SuggestionType.Key,
-	SuggestionType.None,
+export const FUNCTION_TYPE_OPTIONS = FUNCTION_TYPES.map((type) => ({
+	value: type,
+	name: type,
+}))
+
+export const SUGGESTION_TYPE_OPTIONS = [
+	{
+		value: SuggestionType.Value,
+		name: SuggestionType.Value,
+	},
+	{
+		value: SuggestionType.Key,
+		name: SuggestionType.Key,
+	},
+	{
+		value: SuggestionType.None,
+		name: SuggestionType.None,
+	},
 ]
 
 export const GRAPHING_FIELD_DOCS_LINK =

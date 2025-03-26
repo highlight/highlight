@@ -30,10 +30,19 @@ enum ClickTypeFilter {
 	ClickSelector = 'clickSelector',
 }
 
-const CLICK_TYPES: ClickType[] = [
-	ClickType.Text,
-	ClickType.Target,
-	ClickType.Selector,
+const CLICK_TYPE_OPTIONS = [
+	{
+		value: ClickType.Text,
+		name: ClickType.Text,
+	},
+	{
+		value: ClickType.Target,
+		name: ClickType.Target,
+	},
+	{
+		value: ClickType.Selector,
+		name: ClickType.Selector,
+	},
 ]
 
 const CLICK_TYPE_TO_FILTER = {
@@ -164,7 +173,7 @@ export const ClickFilters: React.FC<Props> = ({
 			<Box display="flex" flexDirection="row" gap="4">
 				<LabeledRow label="Click type" name="clickType">
 					<OptionDropdown
-						options={CLICK_TYPES}
+						options={CLICK_TYPE_OPTIONS}
 						selection={clickType}
 						setSelection={setClickType}
 					/>

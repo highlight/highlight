@@ -16,6 +16,11 @@ const EVENT_TYPES: EventType[] = [
 	EventType.Navigate,
 ]
 
+const EVENT_TYPE_OPTIONS = EVENT_TYPES.map((type) => ({
+	name: type,
+	value: type,
+}))
+
 type Props = {
 	initialQuery: string
 	setQuery: (query: string) => void
@@ -150,7 +155,7 @@ export const EventSelection: React.FC<Props> = ({
 		<Box width="full" display="flex" flexDirection="column" gap="12" p="0">
 			<LabeledRow label="Event type" name="eventType">
 				<OptionDropdown
-					options={EVENT_TYPES}
+					options={EVENT_TYPE_OPTIONS}
 					selection={eventDetails.type}
 					setSelection={(type: EventType) =>
 						setEventDetails((e) => ({ ...e, type }))
