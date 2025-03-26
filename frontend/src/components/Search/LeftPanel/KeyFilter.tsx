@@ -23,6 +23,7 @@ import { useProjectId } from '@/hooks/useProjectId'
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
 import * as style from './Filter.css'
+import { STANDARD_FILTERS } from '@/components/Search/LeftPanel/constants'
 
 type Props = {
 	product: ProductType
@@ -47,41 +48,56 @@ export const KeyFilter: React.FC<Props> = ({
 	const [getKeys, { data, loading }] = useGetKeysLazyQuery()
 
 	const comboBoxOptions = useMemo(() => {
+		const optionKeys =
+			data?.keys.map((key) => key.name) || STANDARD_FILTERS[product]
+
 		const options = loading
 			? undefined
-			: data?.keys.map((key) => ({
-					key: key.name,
+			: optionKeys.map((key) => ({
+					key: key,
 					render: (
 						<Text
 							lines="1"
 							cssClass={style.selectOption}
-							title={key.name}
+							title={key}
 						>
-							{key.name}
+							{key}
 						</Text>
 					),
 				}))
 
+		console.log('optionKeys', optionKeys)
+
 		return options
-	}, [loading, data?.keys])
+	}, [data?.keys, product, loading])
 
 	const handleDeselect = (key: string) => {
 		onSelect(selectedKeys.filter((k) => k !== key))
 	}
 
 	useEffect(() => {
-		getKeys({
-			variables: {
-				product_type: product,
-				project_id: projectId!,
-				date_range: {
-					start_date: moment(startDate).format(TIME_FORMAT),
-					end_date: moment(endDate).format(TIME_FORMAT),
+		if (expanded && !!debouncedQuery) {
+			getKeys({
+				variables: {
+					product_type: product,
+					project_id: projectId!,
+					date_range: {
+						start_date: moment(startDate).format(TIME_FORMAT),
+						end_date: moment(endDate).format(TIME_FORMAT),
+					},
+					query: debouncedQuery,
 				},
-				query: debouncedQuery,
-			},
-		})
-	}, [debouncedQuery, startDate, endDate, product, projectId, getKeys])
+			})
+		}
+	}, [
+		debouncedQuery,
+		startDate,
+		endDate,
+		product,
+		projectId,
+		getKeys,
+		expanded,
+	])
 
 	return (
 		<Stack gap="4" pb="8">
@@ -137,6 +153,15 @@ export const KeyFilter: React.FC<Props> = ({
 						cssClass={style.selectButton}
 						popoverCssClass={style.selectPopover}
 						onChangeQuery={setKeyQuery}
+						creatableRender={(key) => (
+							<Text
+								lines="1"
+								cssClass={style.selectOption}
+								title={key}
+							>
+								{key}
+							</Text>
+						)}
 					/>
 					{selectedKeys.map((key) => {
 						return (

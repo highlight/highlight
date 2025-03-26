@@ -72,9 +72,13 @@ export const Filter: React.FC<Props> = ({
 	}, [values])
 
 	const comboBoxOptions = useMemo(() => {
+		const optionValues =
+			data?.key_values.map((value) => value) ||
+			values.map((value) => value.value)
+
 		const options = loading
 			? undefined
-			: data?.key_values.map((value) => ({
+			: optionValues.map((value) => ({
 					key: value,
 					render: (
 						<Text
@@ -88,7 +92,7 @@ export const Filter: React.FC<Props> = ({
 				}))
 
 		return options
-	}, [loading, data?.key_values])
+	}, [data?.key_values, values, loading])
 
 	const handleSelect = (value: string, selected: boolean) => {
 		onSelect(filter, value, selected)
@@ -109,19 +113,21 @@ export const Filter: React.FC<Props> = ({
 	}
 
 	useEffect(() => {
-		getKeyValues({
-			variables: {
-				product_type: product,
-				project_id: projectId!,
-				key_name: filter,
-				date_range: {
-					start_date: moment(startDate).format(TIME_FORMAT),
-					end_date: moment(endDate).format(TIME_FORMAT),
+		if (expanded && !!debouncedQuery) {
+			getKeyValues({
+				variables: {
+					product_type: product,
+					project_id: projectId!,
+					key_name: filter,
+					date_range: {
+						start_date: moment(startDate).format(TIME_FORMAT),
+						end_date: moment(endDate).format(TIME_FORMAT),
+					},
+					query: debouncedQuery,
+					count: 10,
 				},
-				query: debouncedQuery,
-				count: 10,
-			},
-		})
+			})
+		}
 	}, [
 		debouncedQuery,
 		startDate,
@@ -130,6 +136,7 @@ export const Filter: React.FC<Props> = ({
 		projectId,
 		getKeyValues,
 		filter,
+		expanded,
 	])
 
 	return (
@@ -233,6 +240,15 @@ export const Filter: React.FC<Props> = ({
 						cssClass={style.selectButton}
 						popoverCssClass={style.selectPopover}
 						onChangeQuery={setValueQuery}
+						creatableRender={(value) => (
+							<Text
+								lines="1"
+								cssClass={style.selectOption}
+								title={value}
+							>
+								{value}
+							</Text>
+						)}
 					/>
 					{values.map((value) => {
 						return (
