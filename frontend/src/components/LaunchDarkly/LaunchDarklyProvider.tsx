@@ -79,6 +79,10 @@ export const LaunchDarklyProvider: React.FC<
 		}
 	}, [deviceId, clientId])
 
+	if (import.meta.env.MODE === 'test') {
+		return <>{children}</>
+	}
+
 	return (
 		<LDProvider
 			clientSideID={clientSideID}

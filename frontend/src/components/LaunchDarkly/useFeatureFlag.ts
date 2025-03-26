@@ -3,6 +3,7 @@ import { flags } from './flags'
 
 export function useFeatureFlag(flag: keyof typeof flags) {
 	const flagConfig = flags[flag]
-	const ldFlags = useFlags()
+	const ldFlags = useFlags() ?? {}
+
 	return ldFlags[flag] ?? flagConfig.defaultValue
 }
