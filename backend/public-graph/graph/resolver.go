@@ -2796,7 +2796,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 
 			if !lastUserInteractionTimestamp.IsZero() {
-				if err := r.DB.WithContext(ctx).Model(&sessionObj).Updates(&model.Session{
+				if err := r.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{
 					LastUserInteractionTime: lastUserInteractionTimestamp,
 				}).Error; err != nil {
 					return e.Wrap(err, "error updating LastUserInteractionTime")
