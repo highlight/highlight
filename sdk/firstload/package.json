@@ -1,6 +1,6 @@
 {
 	"name": "highlight.run",
-	"version": "9.14.0",
+	"version": "9.15.0",
 	"description": "Open source, fullstack monitoring. Capture frontend errors, record server side logs, and visualize what broke with session replay.",
 	"keywords": [
 		"highlight",
