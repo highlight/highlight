@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.15.0
+
+### Minor Changes
+
+-   06d109a: turn off session cookie storage by default
+
 ## 9.14.0
 
 ### Minor Changes

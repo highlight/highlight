@@ -1,5 +1,12 @@
 # @highlight-run/hono
 
+## 1.0.4
+
+### Patch Changes
+
+-   Updated dependencies [f54bce0]
+    -   @highlight-run/node@3.12.1
+
 ## 1.0.3
 
 ### Patch Changes
