@@ -28,6 +28,10 @@ export const flags: Record<
 			onboarding: 'onboarding',
 		},
 	},
+	'session-results-verbose': {
+		type: 'boolean',
+		defaultValue: false,
+	},
 } as const
 
 export type Flag = keyof typeof flags
