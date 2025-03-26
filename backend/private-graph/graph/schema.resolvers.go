@@ -9716,6 +9716,21 @@ func (r *queryResolver) KeyValues(ctx context.Context, productType *modelInputs.
 	}
 }
 
+// KeyValuesSuggestions is the resolver for the key_values_suggestions field.
+func (r *queryResolver) KeyValuesSuggestions(ctx context.Context, productType modelInputs.ProductType, projectID int, dateRange modelInputs.DateRangeRequiredInput, keys []string) ([]*modelInputs.KeyValueSuggestion, error) {
+	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	switch productType {
+	case modelInputs.ProductTypeLogs:
+		return r.ClickhouseClient.LogsKeyValueSuggestions(ctx, project.ID, dateRange.StartDate, dateRange.EndDate, keys)
+	default:
+		return nil, e.Errorf("product type not supported %s", productType)
+	}
+}
+
 // Visualization is the resolver for the visualization field.
 func (r *queryResolver) Visualization(ctx context.Context, id int) (*model.Visualization, error) {
 	var viz model.Visualization

@@ -1270,6 +1270,17 @@ type QueryKey {
 	type: KeyType!
 }
 
+type ValueSuggestion {
+	value: String!
+	count: UInt64!
+	rank: UInt64!
+}
+
+type KeyValueSuggestion {
+	key: String!
+	values: [ValueSuggestion!]!
+}
+
 type ReferrerTablePayload {
 	host: String!
 	count: Int!
@@ -2708,6 +2719,12 @@ type Query {
 		count: Int
 		event: String
 	): [String!]!
+	key_values_suggestions(
+		product_type: ProductType!
+		project_id: ID!
+		date_range: DateRangeRequiredInput!
+		keys: [String!]!
+	): [KeyValueSuggestion!]!
 	visualization(id: ID!): Visualization!
 	visualizations(
 		project_id: ID!

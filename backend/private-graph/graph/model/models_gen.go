@@ -522,6 +522,11 @@ type JiraTeam struct {
 	Key    string `json:"key"`
 }
 
+type KeyValueSuggestion struct {
+	Key    string             `json:"key"`
+	Values []*ValueSuggestion `json:"values"`
+}
+
 type LengthRangeInput struct {
 	Min *float64 `json:"min,omitempty"`
 	Max *float64 `json:"max,omitempty"`
@@ -1094,6 +1099,12 @@ type UserPropertyInput struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+type ValueSuggestion struct {
+	Value string `json:"value"`
+	Count uint64 `json:"count"`
+	Rank  uint64 `json:"rank"`
 }
 
 type Variable struct {

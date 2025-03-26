@@ -311,7 +311,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 	}
 
 	const displaySeparator =
-		!!SegmentMenu && (!!actions || !hideCreateAlert || !hideDatePicker)
+		(!!SegmentMenu || !hideCreateAlert) && (!!actions || !hideDatePicker)
 
 	return (
 		<>

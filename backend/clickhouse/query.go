@@ -814,6 +814,78 @@ func KeyValuesAggregated(ctx context.Context, client *Client, tableName string, 
 	return values, rows.Err()
 }
 
+func KeyValueSuggestionsAggregated(ctx context.Context, client *Client, keyTableName string, valueTableName string, projectID int, startDate time.Time, endDate time.Time, keys []string) ([]*modelInputs.KeyValueSuggestion, error) {
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		"max_rows_to_read": KeyValuesMaxRows,
+	}))
+
+	// get all keys and values with rank
+	rankSb := sqlbuilder.NewSelectBuilder()
+	rankSb.Select("Key, Value, sum(Count) OVER (PARTITION By Key) as KeyCount, sum(Count) as ValueCount, row_number() OVER (PARTITION BY Key ORDER BY sum(Count) DESC) AS Rank").
+		From(valueTableName).
+		Where(rankSb.Equal("ProjectId", projectID)).
+		Where(fmt.Sprintf("Day >= toStartOfDay(%s)", rankSb.Var(startDate))).
+		Where(fmt.Sprintf("Day <= toStartOfDay(%s)", rankSb.Var(endDate))).
+		Where(rankSb.In("Key", keys)).
+		GroupBy("Key, Value, Count")
+
+	// take top 5 values for each key
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select("*").
+		From(sb.BuilderAs(rankSb, "ranked_keys")).
+		Where("Rank <= 5").
+		OrderBy("Key, Rank")
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	span, _ := util.StartSpanFromContext(chCtx, "readKeyValueSuggestions", util.ResourceName(valueTableName))
+	span.SetAttribute("Query", sql)
+	span.SetAttribute("Table", valueTableName)
+	span.SetAttribute("db.system", "clickhouse")
+
+	rows, err := client.conn.Query(chCtx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	keyValueMap := map[string][]*modelInputs.ValueSuggestion{}
+
+	for rows.Next() {
+		var (
+			key        string
+			value      string
+			keyCount   uint64
+			valueCount uint64
+			rank       uint64
+		)
+		if err := rows.Scan(&key, &value, &keyCount, &valueCount, &rank); err != nil {
+			return nil, err
+		}
+
+		// collect values per key
+		keyValueMap[key] = append(keyValueMap[key], &modelInputs.ValueSuggestion{
+			Value: value,
+			Count: valueCount,
+			Rank:  rank,
+		})
+	}
+
+	// add values back to ordered keys
+	keyValues := []*modelInputs.KeyValueSuggestion{}
+
+	for _, keyValue := range keys {
+		keyValues = append(keyValues, &modelInputs.KeyValueSuggestion{
+			Key:    keyValue,
+			Values: keyValueMap[keyValue],
+		})
+	}
+
+	rows.Close()
+
+	span.Finish(rows.Err())
+	return keyValues, rows.Err()
+}
+
 func (client *Client) AllKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, query *string, typeArg *modelInputs.KeyType) ([]*modelInputs.QueryKey, error) {
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"max_rows_to_read": KeysMaxRows,

@@ -14703,6 +14703,80 @@ export type GetKeyValuesQueryResult = Apollo.QueryResult<
 	Types.GetKeyValuesQuery,
 	Types.GetKeyValuesQueryVariables
 >
+export const GetKeyValueSuggestionsDocument = gql`
+	query GetKeyValueSuggestions(
+		$product_type: ProductType!
+		$project_id: ID!
+		$date_range: DateRangeRequiredInput!
+		$keys: [String!]!
+	) {
+		key_values_suggestions(
+			product_type: $product_type
+			project_id: $project_id
+			date_range: $date_range
+			keys: $keys
+		) {
+			key
+			values {
+				value
+				count
+				rank
+			}
+		}
+	}
+`
+
+/**
+ * __useGetKeyValueSuggestionsQuery__
+ *
+ * To run a query within a React component, call `useGetKeyValueSuggestionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetKeyValueSuggestionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetKeyValueSuggestionsQuery({
+ *   variables: {
+ *      product_type: // value for 'product_type'
+ *      project_id: // value for 'project_id'
+ *      date_range: // value for 'date_range'
+ *      keys: // value for 'keys'
+ *   },
+ * });
+ */
+export function useGetKeyValueSuggestionsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetKeyValueSuggestionsQuery,
+		Types.GetKeyValueSuggestionsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetKeyValueSuggestionsQuery,
+		Types.GetKeyValueSuggestionsQueryVariables
+	>(GetKeyValueSuggestionsDocument, baseOptions)
+}
+export function useGetKeyValueSuggestionsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetKeyValueSuggestionsQuery,
+		Types.GetKeyValueSuggestionsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetKeyValueSuggestionsQuery,
+		Types.GetKeyValueSuggestionsQueryVariables
+	>(GetKeyValueSuggestionsDocument, baseOptions)
+}
+export type GetKeyValueSuggestionsQueryHookResult = ReturnType<
+	typeof useGetKeyValueSuggestionsQuery
+>
+export type GetKeyValueSuggestionsLazyQueryHookResult = ReturnType<
+	typeof useGetKeyValueSuggestionsLazyQuery
+>
+export type GetKeyValueSuggestionsQueryResult = Apollo.QueryResult<
+	Types.GetKeyValueSuggestionsQuery,
+	Types.GetKeyValueSuggestionsQueryVariables
+>
 export const GetMetricsDocument = gql`
 	query GetMetrics(
 		$product_type: ProductType!
