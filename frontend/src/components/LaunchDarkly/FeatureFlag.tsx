@@ -1,6 +1,6 @@
 import { useFlags } from 'launchdarkly-react-client-sdk'
 
-import { Flag } from './flags'
+import { flags, Flag } from './flags'
 
 type BaseFlagProps = {
 	flag: Flag
@@ -10,13 +10,11 @@ type BaseFlagProps = {
 type BooleanFlagProps = BaseFlagProps & {
 	enabled: React.ReactNode
 	variants?: never
-	defaultValue?: boolean
 }
 
 type MultivariateFlagProps = BaseFlagProps & {
 	enabled?: never
 	variants: Record<string | number, React.ReactNode>
-	defaultValue: string | number
 }
 
 type FeatureFlagProps = BooleanFlagProps | MultivariateFlagProps
@@ -39,11 +37,11 @@ export const FeatureFlag = ({
 	flag,
 	enabled,
 	variants,
-	defaultValue,
 	children,
 }: FeatureFlagProps) => {
-	const flags = useFlags() ?? {}
-	const flagValue = flags[flag] ?? defaultValue
+	const flagConfig = flags[flag]
+	const ldFlags = useFlags() ?? {}
+	const flagValue = ldFlags[flag] ?? flagConfig.defaultValue
 
 	// Boolean
 	if (typeof flagValue === 'boolean') {
