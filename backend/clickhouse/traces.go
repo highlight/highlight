@@ -647,6 +647,10 @@ func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyNam
 	return KeyValuesAggregated(ctx, client, TraceKeyValuesTable, projectID, keyName, startDate, endDate, query, limit, nil)
 }
 
+func (client *Client) TracesKeyValueSuggestions(ctx context.Context, projectID int, startDate time.Time, endDate time.Time, keys []string) ([]*modelInputs.KeyValueSuggestion, error) {
+	return KeyValueSuggestionsAggregated(ctx, client, TraceKeysTable, TraceKeyValuesTable, projectID, startDate, endDate, keys)
+}
+
 func TraceMatchesQuery(trace *TraceRow, filters listener.Filters) bool {
 	return matchesQuery(trace, TracesTableConfig, filters, listener.OperatorAnd)
 }
