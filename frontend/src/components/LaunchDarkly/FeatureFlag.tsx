@@ -1,6 +1,5 @@
-import { useFlags } from 'launchdarkly-react-client-sdk'
-
-import { flags, Flag } from './flags'
+import { Flag } from './flags'
+import { useFeatureFlag } from '@/components/LaunchDarkly/useFeatureFlag'
 
 type BaseFlagProps = {
 	flag: Flag
@@ -39,9 +38,11 @@ export const FeatureFlag = ({
 	variants,
 	children,
 }: FeatureFlagProps) => {
-	const flagConfig = flags[flag]
-	const ldFlags = useFlags() ?? {}
-	const flagValue = ldFlags[flag] ?? flagConfig.defaultValue
+	const flagValue = useFeatureFlag(flag)
+
+	if (flagValue === undefined) {
+		return <>{children}</>
+	}
 
 	// Boolean
 	if (typeof flagValue === 'boolean') {
