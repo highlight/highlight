@@ -142,6 +142,7 @@ jobs:
                   export FRONTEND_IMAGE_NAME=ghcr.io/highlight/highlight-frontend:$IMAGE_TAG
                   export RELEASE=$IMAGE_TAG
                   export LICENSE_KEY
+                  export REACT_APP_AUTH_MODE=firebase
 
                   pushd docker;
 
