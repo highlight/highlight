@@ -40312,6 +40312,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"highlight_kafka@workspace:e2e/python/highlight_kafka":
+  version: 0.0.0-use.local
+  resolution: "highlight_kafka@workspace:e2e/python/highlight_kafka"
+  dependencies:
+    "@highlight-run/node": "workspace:*"
+    kafkajs: "npm:^2.2.4"
+  languageName: unknown
+  linkType: soft
+
 "history@npm:4.10.1, history@npm:^4.9.0":
   version: 4.10.1
   resolution: "history@npm:4.10.1"
@@ -44368,6 +44377,13 @@ __metadata:
     jwa: "npm:^2.0.0"
     safe-buffer: "npm:^5.0.1"
   checksum: 10/1d15f4cdea376c6bd6a81002bd2cb0bf3d51d83da8f0727947b5ba3e10cf366721b8c0d099bf8c1eb99eb036e2c55e5fd5efd378ccff75a2b4e0bd10002348b9
+  languageName: node
+  linkType: hard
+
+"kafkajs@npm:^2.2.4":
+  version: 2.2.4
+  resolution: "kafkajs@npm:2.2.4"
+  checksum: 10/75eb0d221397085f90e51f8a2d752495c9fa9c1b3a1a6db610cd7074fa8c52777f295832fd0a7c49cded5e574337a09fafa8c3f7cf1caa38f4dc9aa20fcfb7df
   languageName: node
   linkType: hard
 

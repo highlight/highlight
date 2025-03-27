@@ -8,6 +8,7 @@
 	"workspaces": [
 		"docs-content",
 		"e2e/*",
+		"e2e/python/highlight_kafka",
 		"packages/*",
 		"highlight.io",
 		"frontend",
