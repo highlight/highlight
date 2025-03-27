@@ -32,6 +32,6 @@ jobs:
                   ignore-globs: '**/otel/samples/**'
 
             - name: Upload DevSkim scan results to GitHub Security tab
-              uses: github/codeql-action/upload-sarif@v2
+              uses: github/codeql-action/upload-sarif@v3
               with:
                   sarif_file: devskim-results.sarif
