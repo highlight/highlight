@@ -34,6 +34,7 @@
 		"@rrweb/web-extension",
 		"@highlight-run/ui",
 		"angular.io-example",
+		"aws-lambda",
 		"cloudflare-worker",
 		"emails",
 		"e2e-express",
