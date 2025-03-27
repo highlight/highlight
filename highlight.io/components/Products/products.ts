@@ -31,7 +31,7 @@ ReactDOM.render(
 
 const htmlSnippet: string = `
 
-<script src="https://unpkg.com/highlight.run"></script>
+<script src="https://unpkg.com/highlight.run@9.14.0"></script>
 
 H.init(
     "<YOUR_PROJECT_ID>", // Get your project ID from https://app.highlight.io/setup
