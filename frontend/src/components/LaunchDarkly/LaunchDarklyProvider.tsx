@@ -73,6 +73,12 @@ const createLDContext = (
 	userContext?: UserContext,
 	workspaceContext?: WorkspaceContext,
 ): LDSingleKindContext | LDMultiKindContext => {
+	console.log(
+		'::: createLDContext',
+		deviceContext,
+		userContext,
+		workspaceContext,
+	)
 	if (!userContext && !workspaceContext) {
 		return { ...deviceContext, anonymous: true }
 	}
@@ -135,10 +141,21 @@ export const LaunchDarklyProvider: React.FC<
 		WorkspaceContext | undefined
 	>(undefined)
 
-	const ldContext = useMemo(
-		() => createLDContext(deviceContext, userContext, workspaceContext),
-		[deviceContext, userContext, workspaceContext],
-	)
+	const ldContext = useMemo(() => {
+		const newContext = createLDContext(
+			deviceContext,
+			userContext,
+			workspaceContext,
+		)
+		console.log(
+			'::: newContext',
+			deviceContext,
+			userContext,
+			workspaceContext,
+			newContext,
+		)
+		return newContext
+	}, [deviceContext, userContext, workspaceContext])
 
 	useEffect(() => {
 		if (email) {
@@ -159,12 +176,18 @@ export const LaunchDarklyProvider: React.FC<
 
 	console.log('::: ldContext', ldContext.current)
 
-	const handleSetWorkspaceContext = (workspaceContext: WorkspaceContext) => {
-		setWorkspaceContext(createWorkspaceContext(workspaceContext))
+	const handleSetWorkspaceContext = (
+		workspaceContext: Omit<WorkspaceContext, 'kind' | 'key'>,
+	) => {
+		setWorkspaceContext((w) =>
+			createWorkspaceContext({ ...w, ...workspaceContext }),
+		)
 	}
 
-	const handleSetUserContext = (userContext: UserContext) => {
-		setUserContext(createUserContext(userContext))
+	const handleSetUserContext = (
+		userContext: Omit<UserContext, 'kind' | 'key'>,
+	) => {
+		setUserContext((u) => createUserContext({ ...u, ...userContext }))
 	}
 
 	return (
