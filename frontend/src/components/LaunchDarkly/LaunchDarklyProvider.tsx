@@ -8,10 +8,10 @@ import React, { useEffect, useState, useCallback } from 'react'
 import analytics from '@/util/analytics'
 import { createContext } from '@/util/context/context'
 import { merge } from 'lodash'
-import {
-	getItem,
-	LOCAL_STORAGE_KEYS,
-} from '@highlight-run/client/src/utils/storage'
+
+// Matches the clientID in the client SDK. Not exporting from the client SDK
+// because we don't want to make this public.
+const CLIENT_ID_STORAGE_KEY = 'highlightClientID'
 
 type LaunchDarklyContextType = {
 	updateContext: (updates: Record<string, string>) => void
@@ -91,7 +91,7 @@ const LaunchDarklyProviderContent: React.FC<
 export const LaunchDarklyProvider: React.FC<
 	React.PropsWithChildren<LaunchDarklyProviderProps>
 > = ({ children, context = {}, clientSideID, email }) => {
-	const clientId = getItem(LOCAL_STORAGE_KEYS.CLIENT_ID)
+	const clientId = localStorage.getItem(CLIENT_ID_STORAGE_KEY)
 	const deviceId =
 		clientId ?? localStorage.getItem('device-id') ?? crypto.randomUUID()
 	const [ldContext, setLdContext] = useState<LDContext>(
