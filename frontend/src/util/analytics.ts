@@ -45,7 +45,9 @@ const initialize = () => {
 }
 
 const setLDClient = (client: LDClient) => {
-	ldClient = client
+	if (!ldClient) {
+		ldClient = client
+	}
 }
 
 const track = (event: string, metadata?: rudderanalytics.apiObject) => {

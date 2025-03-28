@@ -1012,7 +1012,7 @@ const Navbar: React.FC = () => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [topbarPages, setTopbarPages] = useState<Page[]>(PAGES)
 	const [menuPages, setMenuPages] = useState<Page[]>([])
-	const newConnectName = useFeatureFlag('rename-setup', 'connect')
+	const newConnectName = useFeatureFlag('rename-setup')
 
 	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },

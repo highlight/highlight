@@ -12,9 +12,9 @@ export const flags: Record<
 	},
 	'enable-session-card-style': {
 		type: 'multivariate',
-		defaultValue: 'default',
+		defaultValue: 'normal',
 		variants: {
-			default: 'default',
+			normal: 'normal',
 			good: 'good',
 			bad: 'bad',
 		},

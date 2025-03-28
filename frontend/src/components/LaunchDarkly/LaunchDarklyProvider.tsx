@@ -2,30 +2,47 @@ import {
 	LDProvider,
 	ProviderConfig,
 	useLDClient,
+	LDContext,
 } from 'launchdarkly-react-client-sdk'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import analytics from '@/util/analytics'
 import { LOCAL_STORAGE_KEYS } from '@highlight-run/client/src'
+import { createContext } from '@/util/context/context'
+import { merge } from 'lodash'
 
-const createContext = (
+type LaunchDarklyContextType = {
+	updateContext: (updates: Record<string, string>) => void
+}
+
+export const [useLaunchDarklyContext, LaunchDarklyContextProvider] =
+	createContext<LaunchDarklyContextType>('LaunchDarklyContext')
+
+const createLDContext = (
 	email: string | undefined,
 	deviceId: string,
-	context: Record<string, unknown> = {},
-) => {
+	context: Record<string, string>,
+): LDContext => {
+	const { workspaceId, ...restContext } = context
 	const deviceContext = {
-		kind: 'device' as const,
+		kind: 'device',
 		key: deviceId,
-		custom: {
-			userAgent: navigator.userAgent,
-		},
+		userAgent: navigator.userAgent,
 	}
 
 	const userContext = {
-		kind: 'user' as const,
-		key: email || 'anonymous',
+		kind: 'user',
+		key: email,
 		email,
-		...context,
+		...restContext,
 	}
+
+	const workspaceContext = workspaceId
+		? {
+				kind: 'workspace',
+				key: workspaceId,
+				workspaceId,
+			}
+		: undefined
 
 	if (!email) {
 		return {
@@ -36,8 +53,9 @@ const createContext = (
 
 	return {
 		kind: 'multi',
-		user: userContext,
 		device: { ...deviceContext, anonymous: false },
+		user: userContext,
+		workspace: workspaceContext,
 	}
 }
 
@@ -50,18 +68,19 @@ type LaunchDarklyProviderProps = {
 const LaunchDarklyProviderContent: React.FC<
 	React.PropsWithChildren<{
 		context?: LaunchDarklyProviderProps['context']
-		deviceId: string
-		email?: LaunchDarklyProviderProps['email']
 	}>
-> = ({ children, context = {}, email, deviceId }) => {
+> = ({ children, context = {} }) => {
 	const client = useLDClient()
 
 	useEffect(() => {
 		if (client) {
-			client.identify(createContext(email, deviceId, context))
+			console.log('::: identify:', context)
+			client.identify(context).then(() => {
+				client.flush()
+			})
 			analytics.setLDClient(client)
 		}
-	}, [client, deviceId, email, context])
+	}, [client, context])
 
 	return <>{children}</>
 }
@@ -72,6 +91,29 @@ export const LaunchDarklyProvider: React.FC<
 	const clientId = localStorage.getItem(LOCAL_STORAGE_KEYS.CLIENT_ID)
 	const deviceId =
 		clientId ?? localStorage.getItem('device-id') ?? crypto.randomUUID()
+	const [ldContext, setLdContext] = useState<LDContext>(
+		createLDContext(email, deviceId, context),
+	)
+
+	const updateContext = useCallback(
+		(updates: Record<string, string>) => {
+			setLdContext((prev) => {
+				const newContext = createLDContext(email, deviceId, updates)
+				console.log('::: updates', updates)
+				console.log('::: prev', prev)
+				console.log('::: newContext', newContext)
+				console.log('::: merge', merge(prev, newContext))
+				return merge(prev, newContext)
+			})
+		},
+		[email, deviceId],
+	)
+
+	useEffect(() => {
+		if (context) {
+			updateContext(context)
+		}
+	}, [context, updateContext])
 
 	useEffect(() => {
 		if (!clientId && !localStorage.getItem('device-id')) {
@@ -79,32 +121,31 @@ export const LaunchDarklyProvider: React.FC<
 		}
 	}, [deviceId, clientId])
 
-	if (import.meta.env.MODE === 'test') {
+	if (!clientSideID || import.meta.env.MODE === 'test') {
 		return <>{children}</>
 	}
 
+	console.log('::: ldContext', ldContext)
 	return (
-		<LDProvider
-			clientSideID={clientSideID}
-			context={createContext(email, deviceId, context)}
-			options={{
-				streaming: true,
-				wrapperName: 'LaunchDarklyProvider',
-				bootstrap: 'localStorage',
-				sendEvents: true,
-				flushInterval: 2000,
-			}}
-			reactOptions={{
-				useCamelCaseFlagKeys: false,
-			}}
-		>
-			<LaunchDarklyProviderContent
-				context={context}
-				deviceId={deviceId}
-				email={email}
+		<LaunchDarklyContextProvider value={{ updateContext }}>
+			<LDProvider
+				clientSideID={clientSideID}
+				context={ldContext}
+				options={{
+					streaming: true,
+					wrapperName: 'LaunchDarklyProvider',
+					bootstrap: 'localStorage',
+					sendEvents: true,
+					flushInterval: 2000,
+				}}
+				reactOptions={{
+					useCamelCaseFlagKeys: false,
+				}}
 			>
-				{children}
-			</LaunchDarklyProviderContent>
-		</LDProvider>
+				<LaunchDarklyProviderContent context={ldContext}>
+					{children}
+				</LaunchDarklyProviderContent>
+			</LDProvider>
+		</LaunchDarklyContextProvider>
 	)
 }
