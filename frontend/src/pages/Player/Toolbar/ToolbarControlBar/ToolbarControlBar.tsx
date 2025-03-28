@@ -107,7 +107,7 @@ export const ToolbarControlBar = () => {
 	const disableControls =
 		state === ReplayerState.Loading || !canViewSession || !isPlayerReady
 	const showLiveToggle = session?.processed === false && !disableControls
-	const disableDevTools = disableControls || !isLoggedIn
+	const disableDevTools = disableControls || !isLoggedIn || isPlayerFullscreen
 
 	const [showSettings, setShowSettings] = useState(false)
 
@@ -333,14 +333,12 @@ export const ToolbarControlBar = () => {
 										setShowDevTools(!showDevTools)
 									}}
 									checked={showDevTools}
-									disabled={
-										isPlayerFullscreen || disableDevTools
-									}
+									disabled={disableDevTools}
 									iconLeft={<IconSolidTerminal size={14} />}
 								/>
 							}
 							delayed
-							disabled={isPlayerFullscreen || disableDevTools}
+							disabled={idisableDevTools}
 						>
 							<KeyboardShortcut
 								label="Dev tools"
