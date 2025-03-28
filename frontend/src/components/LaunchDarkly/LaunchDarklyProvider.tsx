@@ -125,12 +125,11 @@ export const LaunchDarklyProvider: React.FC<
 
 	const setWorkspaceContext = useCallback(
 		(workspaceId: string) => {
-			console.log('::: setWorkspaceContext', workspaceId)
 			setLdContext((prev) => {
 				const newContext = createLDContext(email, deviceId, {
 					workspaceId,
 				})
-				console.log('::: newContext', newContext)
+				console.log('::: new setWorkspaceContext', newContext)
 				return {
 					...prev,
 					workspace: newContext.workspace,
@@ -142,17 +141,13 @@ export const LaunchDarklyProvider: React.FC<
 
 	const setUserContext = useCallback(
 		(email: string, additionalContext: Record<string, string> = {}) => {
-			console.log('::: setUserContext', email, additionalContext)
 			setLdContext((prev) => {
 				const newContext = createLDContext(
 					email,
 					deviceId,
 					additionalContext,
 				)
-				console.log('::: newContext', newContext)
-				if (prev.anonymous) {
-					return newContext
-				}
+				console.log('::: new setUserContext', newContext)
 				return {
 					...prev,
 					user: newContext.user,
@@ -161,6 +156,12 @@ export const LaunchDarklyProvider: React.FC<
 		},
 		[deviceId],
 	)
+
+	useEffect(() => {
+		if (email) {
+			setUserContext(email)
+		}
+	}, [email, setUserContext])
 
 	useEffect(() => {
 		console.log('::: setLocalStorageId', clientId)
