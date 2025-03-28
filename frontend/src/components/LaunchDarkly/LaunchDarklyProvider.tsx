@@ -83,12 +83,12 @@ export const [useLaunchDarklyContext, LaunchDarklyContextProvider] =
 	createContext<LaunchDarklyContextType>('LaunchDarklyContext')
 
 type LaunchDarklyProviderProps = {
+	clientSideID: ProviderConfig['clientSideID']
 	context?: {
 		workspaceId?: string
 		[key: string]: string | undefined
 	}
 	email?: string
-	clientSideID: ProviderConfig['clientSideID']
 }
 
 const LaunchDarklyProviderContent: React.FC<
@@ -106,7 +106,8 @@ const LaunchDarklyProviderContent: React.FC<
 			})
 			analytics.setLDClient(client)
 		}
-	}, [client, context])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [client, JSON.stringify(context)])
 
 	return <>{children}</>
 }
@@ -160,10 +161,12 @@ export const LaunchDarklyProvider: React.FC<
 	)
 
 	useEffect(() => {
-		if (context) {
+		console.log('::: setContexts', context)
+		if (context && Object.keys(context).length > 0) {
 			if (context.workspaceId) {
 				setWorkspaceContext(context.workspaceId)
 			}
+
 			if (email) {
 				setUserContext(
 					email,
@@ -175,7 +178,8 @@ export const LaunchDarklyProvider: React.FC<
 				)
 			}
 		}
-	}, [context, email, setWorkspaceContext, setUserContext])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [JSON.stringify(context), email, setWorkspaceContext, setUserContext])
 
 	useEffect(() => {
 		if (!clientId && !localStorage.getItem('device-id')) {
