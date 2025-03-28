@@ -34,8 +34,10 @@ type WorkspaceContext = {
 }
 
 type LaunchDarklyContextType = {
-	setUserContext: (userContext: UserContext) => void
-	setWorkspaceContext: (workspaceContext: WorkspaceContext) => void
+	setUserContext: (userContext: Omit<UserContext, 'kind' | 'key'>) => void
+	setWorkspaceContext: (
+		workspaceContext: Omit<WorkspaceContext, 'kind' | 'key'>,
+	) => void
 }
 
 type LDContext = LDSingleKindContext | LDMultiKindContext

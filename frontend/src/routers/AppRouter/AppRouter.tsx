@@ -256,7 +256,9 @@ export const AppRouter = () => {
 				'::: Updating LD context with workspace:',
 				currentWorkspaceId,
 			)
-			setWorkspaceContext(currentWorkspaceId.toString())
+			setWorkspaceContext({
+				workspaceId: currentWorkspaceId,
+			})
 		}
 	}, [currentWorkspaceId, setWorkspaceContext])
 
