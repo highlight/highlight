@@ -5,7 +5,7 @@ import {
 	ProviderConfig,
 	useLDClient,
 } from 'launchdarkly-react-client-sdk'
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState } from 'react'
 import analytics from '@/util/analytics'
 import { createContext } from '@/util/context/context'
 
@@ -13,69 +13,75 @@ import { createContext } from '@/util/context/context'
 // because we don't want to make this public.
 const CLIENT_ID_STORAGE_KEY = 'highlightClientID'
 
+type DeviceContext = {
+	kind: 'device'
+	key: string
+	userAgent: string
+}
+
+type UserContext = {
+	kind: 'user'
+	key: string
+	email: string
+	[key: string]: string | boolean | number | undefined
+}
+
+type WorkspaceContext = {
+	kind: 'workspace'
+	key: string
+	workspaceId: string
+	[key: string]: string | boolean | number | undefined
+}
+
 type LaunchDarklyContextType = {
-	setWorkspaceContext: (workspaceId: string) => void
-	setUserContext: (
-		email: string,
-		additionalContext?: Record<string, string>,
-	) => void
+	setUserContext: (userContext: UserContext) => void
+	setWorkspaceContext: (workspaceContext: WorkspaceContext) => void
 }
 
 type LDContext = LDSingleKindContext | LDMultiKindContext
 
-type ContextUpdates = {
-	workspaceId?: string
-	email?: string
-	[key: string]: string | undefined
-}
-
-const createDeviceContext = (deviceId: string) => ({
+const createDeviceContext = (deviceId: string): DeviceContext => ({
 	kind: 'device' as const,
 	key: deviceId,
 	userAgent: navigator.userAgent,
 })
 
-const createUserContext = (
-	email: string,
-	additionalContext: Record<string, string | undefined> = {},
-) => ({
-	kind: 'user' as const,
-	key: email,
+const createUserContext = ({
 	email,
+	...userContext
+}: Omit<UserContext, 'kind'>): UserContext => ({
+	kind: 'user' as const,
+	key: email as string,
+	email: email as string,
 	...Object.fromEntries(
-		Object.entries(additionalContext).filter(([_, v]) => v !== undefined),
+		Object.entries(userContext).filter(([_, v]) => v !== undefined),
 	),
 })
 
-const createWorkspaceContext = (workspaceId?: string) =>
-	workspaceId
-		? {
-				kind: 'workspace' as const,
-				key: workspaceId,
-				workspaceId,
-			}
-		: undefined
+const createWorkspaceContext = ({
+	workspaceId,
+	...workspaceContext
+}: Omit<LDSingleKindContext, 'kind'>): WorkspaceContext => ({
+	kind: 'workspace',
+	key: workspaceId,
+	workspaceId,
+	...workspaceContext,
+})
 
 const createLDContext = (
-	email: string | undefined,
-	deviceId: string,
-	updates: ContextUpdates,
-): LDContext => {
-	const { workspaceId, ...restContext } = updates
-	const deviceContext = createDeviceContext(deviceId)
-
-	if (!email) {
-		return {
-			...deviceContext,
-			anonymous: true,
-		}
+	deviceContext: DeviceContext,
+	userContext?: UserContext,
+	workspaceContext?: WorkspaceContext,
+): LDSingleKindContext | LDMultiKindContext => {
+	if (!userContext && !workspaceContext) {
+		return { ...deviceContext, anonymous: true }
 	}
 
 	return {
 		kind: 'multi',
 		device: { ...deviceContext, anonymous: false },
-		user: createUserContext(email, restContext),
-		workspace: createWorkspaceContext(workspaceId),
+		user: userContext,
+		workspace: workspaceContext,
 	}
 }
 
@@ -119,47 +125,35 @@ export const LaunchDarklyProvider: React.FC<
 	const clientId = localStorage.getItem(CLIENT_ID_STORAGE_KEY)
 	const deviceId =
 		clientId ?? localStorage.getItem('device-id') ?? crypto.randomUUID()
-	const [ldContext, setLdContext] = useState<LDContext>(
-		createLDContext(email, deviceId, {}),
+	const [deviceContext] = useState<DeviceContext>(
+		createDeviceContext(deviceId),
 	)
-
-	const setWorkspaceContext = useCallback(
-		(workspaceId: string) => {
-			setLdContext((prev) => {
-				const newContext = createLDContext(email, deviceId, {
-					workspaceId,
-				})
-				console.log('::: new setWorkspaceContext', newContext)
-				return {
-					...prev,
-					workspace: newContext.workspace,
-				}
-			})
-		},
-		[email, deviceId],
+	const [userContext, setUserContext] = useState<UserContext | undefined>(
+		undefined,
 	)
-
-	const setUserContext = useCallback(
-		(email: string, additionalContext: Record<string, string> = {}) => {
-			setLdContext((prev) => {
-				const newContext = createLDContext(
-					email,
-					deviceId,
-					additionalContext,
-				)
-				console.log('::: new setUserContext', newContext)
-				return {
-					...prev,
-					user: newContext.user,
-				}
-			})
-		},
-		[deviceId],
+	const [workspaceContext, setWorkspaceContext] = useState<
+		WorkspaceContext | undefined
+	>(undefined)
+	const ldContext = createLDContext(
+		deviceContext,
+		userContext,
+		workspaceContext,
 	)
 
 	useEffect(() => {
 		if (email) {
-			setUserContext(email)
+			setUserContext((u) =>
+				createUserContext({
+					email,
+					...(u
+						? Object.fromEntries(
+								Object.entries(u).filter(
+									([_, v]) => typeof v === 'string',
+								),
+							)
+						: {}),
+				}),
+			)
 		}
 	}, [email, setUserContext])
 
@@ -175,9 +169,21 @@ export const LaunchDarklyProvider: React.FC<
 	}
 
 	console.log('::: ldContext', ldContext)
+
+	const handleSetWorkspaceContext = (workspaceContext: WorkspaceContext) => {
+		setWorkspaceContext(createWorkspaceContext(workspaceContext))
+	}
+
+	const handleSetUserContext = (userContext: UserContext) => {
+		setUserContext(createUserContext(userContext))
+	}
+
 	return (
 		<LaunchDarklyContextProvider
-			value={{ setWorkspaceContext, setUserContext }}
+			value={{
+				setWorkspaceContext: handleSetWorkspaceContext,
+				setUserContext: handleSetUserContext,
+			}}
 		>
 			<LDProvider
 				clientSideID={clientSideID}
