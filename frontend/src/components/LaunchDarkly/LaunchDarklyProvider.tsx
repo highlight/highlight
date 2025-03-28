@@ -6,7 +6,7 @@ import {
 } from 'launchdarkly-react-client-sdk'
 import React, { useEffect, useState, useCallback } from 'react'
 import analytics from '@/util/analytics'
-import { LOCAL_STORAGE_KEYS } from '@highlight-run/client/src'
+import { LOCAL_STORAGE_KEYS } from '@highlight-run/client'
 import { createContext } from '@/util/context/context'
 import { merge } from 'lodash'
 
