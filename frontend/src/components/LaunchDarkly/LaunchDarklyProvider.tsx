@@ -142,18 +142,7 @@ export const LaunchDarklyProvider: React.FC<
 
 	useEffect(() => {
 		if (email) {
-			setUserContext((u) =>
-				createUserContext({
-					email,
-					...(u
-						? Object.fromEntries(
-								Object.entries(u).filter(
-									([_, v]) => typeof v === 'string',
-								),
-							)
-						: {}),
-				}),
-			)
+			setUserContext(createUserContext({ email }))
 		}
 	}, [email, setUserContext])
 
