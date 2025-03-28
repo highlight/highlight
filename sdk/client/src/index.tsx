@@ -92,6 +92,7 @@ import {
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys'
 import {
 	getItem,
+	LOCAL_STORAGE_KEYS,
 	removeItem,
 	setCookieWriteEnabled,
 	setItem,
@@ -106,10 +107,6 @@ import { Gauge, UpDownCounter, Histogram, Counter } from '@opentelemetry/api'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
-}
-
-export enum LOCAL_STORAGE_KEYS {
-	CLIENT_ID = 'highlightClientID',
 }
 
 export type HighlightClassOptions = {

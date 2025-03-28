@@ -6,9 +6,12 @@ import {
 } from 'launchdarkly-react-client-sdk'
 import React, { useEffect, useState, useCallback } from 'react'
 import analytics from '@/util/analytics'
-import { LOCAL_STORAGE_KEYS } from '@highlight-run/client'
 import { createContext } from '@/util/context/context'
 import { merge } from 'lodash'
+import {
+	getItem,
+	LOCAL_STORAGE_KEYS,
+} from '@highlight-run/client/src/utils/storage'
 
 type LaunchDarklyContextType = {
 	updateContext: (updates: Record<string, string>) => void
@@ -88,7 +91,7 @@ const LaunchDarklyProviderContent: React.FC<
 export const LaunchDarklyProvider: React.FC<
 	React.PropsWithChildren<LaunchDarklyProviderProps>
 > = ({ children, context = {}, clientSideID, email }) => {
-	const clientId = localStorage.getItem(LOCAL_STORAGE_KEYS.CLIENT_ID)
+	const clientId = getItem(LOCAL_STORAGE_KEYS.CLIENT_ID)
 	const deviceId =
 		clientId ?? localStorage.getItem('device-id') ?? crypto.randomUUID()
 	const [ldContext, setLdContext] = useState<LDContext>(

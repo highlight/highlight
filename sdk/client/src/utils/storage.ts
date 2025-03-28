@@ -6,6 +6,10 @@ type Mode = 'localStorage' | 'sessionStorage'
 let mode: Mode = 'localStorage'
 let cookieWriteEnabled: boolean = true
 
+export enum LOCAL_STORAGE_KEYS {
+	CLIENT_ID = 'highlightClientID',
+}
+
 class Storage {
 	private storage: { [key: string]: string } = {}
 	public getItem(key: string) {
