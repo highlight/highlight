@@ -338,7 +338,7 @@ export const ToolbarControlBar = () => {
 								/>
 							}
 							delayed
-							disabled={idisableDevTools}
+							disabled={disableDevTools}
 						>
 							<KeyboardShortcut
 								label="Dev tools"
