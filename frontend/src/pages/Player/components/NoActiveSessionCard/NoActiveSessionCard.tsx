@@ -13,7 +13,7 @@ const cardStyleVariants: Record<string, BoxProps['color']> = {
 }
 
 const NoActiveSessionCard = () => {
-	const cardStyle = useFeatureFlag('enable-session-card-style', 'normal')
+	const cardStyle = useFeatureFlag('enable-session-card-style')
 	const { setShowLeftPanel } = useErrorPageNavigation()
 	const { session_secure_id } = useParams<{
 		session_secure_id: string

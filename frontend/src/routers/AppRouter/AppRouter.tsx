@@ -58,6 +58,7 @@ import {
 	ErrorTagsContainer,
 	ErrorTagsSearch,
 } from '@/pages/ErrorTags'
+import { useLaunchDarklyContext } from '@/components/LaunchDarkly/LaunchDarklyProvider'
 
 const Buttons = lazy(() => import('../../pages/Buttons/Buttons'))
 const CanvasPage = lazy(() => import('../../pages/Buttons/CanvasV2'))
@@ -96,6 +97,7 @@ const DebugRoutes: React.FC<React.PropsWithChildren> = ({ children }) => {
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
 		useAuthContext()
+	const { updateContext } = useLaunchDarklyContext()
 	const location = useLocation()
 	const previousLocation = location.state?.previousLocation as
 		| Location
@@ -247,6 +249,18 @@ export const AppRouter = () => {
 		projectOrWorkspaceData?.workspace ||
 		projectOrWorkspaceData?.project?.workspace ||
 		undefined
+
+	useEffect(() => {
+		if (currentWorkspaceId) {
+			console.log(
+				'::: Updating LD context with workspace:',
+				currentWorkspaceId,
+			)
+			updateContext({
+				workspaceId: currentWorkspaceId.toString(),
+			})
+		}
+	}, [currentWorkspaceId, updateContext])
 
 	// Ensure auth and current workspace data has loaded
 	if (
