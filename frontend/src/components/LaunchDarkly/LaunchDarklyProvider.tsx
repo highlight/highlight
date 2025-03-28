@@ -131,9 +131,6 @@ export const LaunchDarklyProvider: React.FC<
 					workspaceId,
 				})
 				console.log('::: newContext', newContext)
-				if (prev.anonymous) {
-					return prev
-				}
 				return {
 					...prev,
 					workspace: newContext.workspace,
