@@ -5,7 +5,7 @@ import {
 	ProviderConfig,
 	useLDClient,
 } from 'launchdarkly-react-client-sdk'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import analytics from '@/util/analytics'
 import { createContext } from '@/util/context/context'
 
@@ -134,10 +134,10 @@ export const LaunchDarklyProvider: React.FC<
 	const [workspaceContext, setWorkspaceContext] = useState<
 		WorkspaceContext | undefined
 	>(undefined)
-	const ldContext = createLDContext(
-		deviceContext,
-		userContext,
-		workspaceContext,
+
+	const ldContext = useMemo(
+		() => createLDContext(deviceContext, userContext, workspaceContext),
+		[deviceContext, userContext, workspaceContext],
 	)
 
 	useEffect(() => {
@@ -168,7 +168,7 @@ export const LaunchDarklyProvider: React.FC<
 		return <>{children}</>
 	}
 
-	console.log('::: ldContext', ldContext)
+	console.log('::: ldContext', ldContext.current)
 
 	const handleSetWorkspaceContext = (workspaceContext: WorkspaceContext) => {
 		setWorkspaceContext(createWorkspaceContext(workspaceContext))
@@ -187,7 +187,7 @@ export const LaunchDarklyProvider: React.FC<
 		>
 			<LDProvider
 				clientSideID={clientSideID}
-				context={ldContext}
+				context={ldContext.current}
 				options={{
 					streaming: true,
 					wrapperName: 'LaunchDarklyProvider',
@@ -199,7 +199,7 @@ export const LaunchDarklyProvider: React.FC<
 					useCamelCaseFlagKeys: false,
 				}}
 			>
-				<LaunchDarklyProviderContent context={ldContext}>
+				<LaunchDarklyProviderContent context={ldContext.current}>
 					{children}
 				</LaunchDarklyProviderContent>
 			</LDProvider>
