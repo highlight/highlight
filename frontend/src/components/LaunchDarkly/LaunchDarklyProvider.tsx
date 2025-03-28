@@ -176,7 +176,7 @@ export const LaunchDarklyProvider: React.FC<
 		return <>{children}</>
 	}
 
-	console.log('::: ldContext', ldContext.current)
+	console.log('::: ldContext', ldContext)
 
 	const handleSetWorkspaceContext = (
 		workspaceContext: Omit<WorkspaceContext, 'kind' | 'key'>,
@@ -201,7 +201,7 @@ export const LaunchDarklyProvider: React.FC<
 		>
 			<LDProvider
 				clientSideID={clientSideID}
-				context={ldContext.current}
+				context={ldContext}
 				options={{
 					streaming: true,
 					wrapperName: 'LaunchDarklyProvider',
@@ -213,7 +213,7 @@ export const LaunchDarklyProvider: React.FC<
 					useCamelCaseFlagKeys: false,
 				}}
 			>
-				<LaunchDarklyProviderContent context={ldContext.current}>
+				<LaunchDarklyProviderContent context={ldContext}>
 					{children}
 				</LaunchDarklyProviderContent>
 			</LDProvider>
