@@ -1,13 +1,13 @@
 import {
+	LDMultiKindContext,
 	LDProvider,
+	LDSingleKindContext,
 	ProviderConfig,
 	useLDClient,
-	LDContext,
 } from 'launchdarkly-react-client-sdk'
 import React, { useEffect, useState, useCallback } from 'react'
 import analytics from '@/util/analytics'
 import { createContext } from '@/util/context/context'
-import { merge } from 'lodash'
 
 // Matches the clientID in the client SDK. Not exporting from the client SDK
 // because we don't want to make this public.
@@ -16,6 +16,8 @@ const CLIENT_ID_STORAGE_KEY = 'highlightClientID'
 type LaunchDarklyContextType = {
 	updateContext: (updates: Record<string, string>) => void
 }
+
+type LDContext = LDSingleKindContext | LDMultiKindContext
 
 export const [useLaunchDarklyContext, LaunchDarklyContextProvider] =
 	createContext<LaunchDarklyContextType>('LaunchDarklyContext')
@@ -105,8 +107,28 @@ export const LaunchDarklyProvider: React.FC<
 				console.log('::: updates', updates)
 				console.log('::: prev', prev)
 				console.log('::: newContext', newContext)
-				console.log('::: merge', merge(prev, newContext))
-				return merge(prev, newContext)
+
+				// If transitioning from anonymous to authenticated
+				if (prev.anonymous && !newContext.anonymous) {
+					return newContext
+				}
+
+				// For all other cases, merge preserving the structure
+				return {
+					...newContext,
+					device:
+						newContext.kind === 'multi'
+							? { ...prev.device, ...newContext.device }
+							: newContext,
+					user:
+						newContext.kind === 'multi'
+							? { ...prev.user, ...newContext.user }
+							: undefined,
+					workspace:
+						newContext.kind === 'multi'
+							? newContext.workspace
+							: undefined,
+				}
 			})
 		},
 		[email, deviceId],
