@@ -146,8 +146,9 @@ jobs:
                   pushd docker;
 
                   # setup infra / db
+                  # update to firebase auth mode for sso test
+                  sed -i'' -e 's/password/firebase/g' .env
                   source ./env.sh --go-docker;
-                  export REACT_APP_AUTH_MODE=firebase
                   # ensure db migrated so we can insert the desired records
                   ./start-infra.sh > /tmp/highlight.log 2>&1;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
