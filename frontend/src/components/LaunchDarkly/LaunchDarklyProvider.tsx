@@ -98,6 +98,7 @@ const LaunchDarklyProviderContent: React.FC<
 > = ({ children, context = {} }) => {
 	const client = useLDClient()
 
+	console.log('::: LaunchDarklyProviderContent', context)
 	useEffect(() => {
 		if (client) {
 			console.log('::: identify:', context)
@@ -114,12 +115,12 @@ const LaunchDarklyProviderContent: React.FC<
 
 export const LaunchDarklyProvider: React.FC<
 	React.PropsWithChildren<LaunchDarklyProviderProps>
-> = ({ children, context = {}, clientSideID, email }) => {
+> = ({ children, clientSideID, email }) => {
 	const clientId = localStorage.getItem(CLIENT_ID_STORAGE_KEY)
 	const deviceId =
 		clientId ?? localStorage.getItem('device-id') ?? crypto.randomUUID()
 	const [ldContext, setLdContext] = useState<LDContext>(
-		createLDContext(email, deviceId, context),
+		createLDContext(email, deviceId, {}),
 	)
 
 	const setWorkspaceContext = useCallback(
@@ -161,27 +162,7 @@ export const LaunchDarklyProvider: React.FC<
 	)
 
 	useEffect(() => {
-		console.log('::: setContexts', context)
-		if (context && Object.keys(context).length > 0) {
-			if (context.workspaceId) {
-				setWorkspaceContext(context.workspaceId)
-			}
-
-			if (email) {
-				setUserContext(
-					email,
-					Object.fromEntries(
-						Object.entries(context).filter(
-							([_, v]) => v !== undefined,
-						),
-					) as Record<string, string>,
-				)
-			}
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [JSON.stringify(context), email, setWorkspaceContext, setUserContext])
-
-	useEffect(() => {
+		console.log('::: setLocalStorageId', clientId)
 		if (!clientId && !localStorage.getItem('device-id')) {
 			localStorage.setItem('device-id', deviceId)
 		}
