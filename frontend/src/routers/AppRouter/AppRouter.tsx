@@ -97,7 +97,7 @@ const DebugRoutes: React.FC<React.PropsWithChildren> = ({ children }) => {
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
 		useAuthContext()
-	const { updateContext } = useLaunchDarklyContext()
+	const { setWorkspaceContext } = useLaunchDarklyContext()
 	const location = useLocation()
 	const previousLocation = location.state?.previousLocation as
 		| Location
@@ -256,11 +256,9 @@ export const AppRouter = () => {
 				'::: Updating LD context with workspace:',
 				currentWorkspaceId,
 			)
-			updateContext({
-				workspaceId: currentWorkspaceId.toString(),
-			})
+			setWorkspaceContext(currentWorkspaceId.toString())
 		}
-	}, [currentWorkspaceId, updateContext])
+	}, [currentWorkspaceId, setWorkspaceContext])
 
 	// Ensure auth and current workspace data has loaded
 	if (

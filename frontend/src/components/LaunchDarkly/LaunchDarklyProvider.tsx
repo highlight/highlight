@@ -14,40 +14,55 @@ import { createContext } from '@/util/context/context'
 const CLIENT_ID_STORAGE_KEY = 'highlightClientID'
 
 type LaunchDarklyContextType = {
-	updateContext: (updates: Record<string, string>) => void
+	setWorkspaceContext: (workspaceId: string) => void
+	setUserContext: (
+		email: string,
+		additionalContext?: Record<string, string>,
+	) => void
 }
 
 type LDContext = LDSingleKindContext | LDMultiKindContext
 
-export const [useLaunchDarklyContext, LaunchDarklyContextProvider] =
-	createContext<LaunchDarklyContextType>('LaunchDarklyContext')
+type ContextUpdates = {
+	workspaceId?: string
+	email?: string
+	[key: string]: string | undefined
+}
 
-const createLDContext = (
-	email: string | undefined,
-	deviceId: string,
-	context: Record<string, string>,
-): LDContext => {
-	const { workspaceId, ...restContext } = context
-	const deviceContext = {
-		kind: 'device',
-		key: deviceId,
-		userAgent: navigator.userAgent,
-	}
+const createDeviceContext = (deviceId: string) => ({
+	kind: 'device' as const,
+	key: deviceId,
+	userAgent: navigator.userAgent,
+})
 
-	const userContext = {
-		kind: 'user',
-		key: email,
-		email,
-		...restContext,
-	}
+const createUserContext = (
+	email: string,
+	additionalContext: Record<string, string | undefined> = {},
+) => ({
+	kind: 'user' as const,
+	key: email,
+	email,
+	...Object.fromEntries(
+		Object.entries(additionalContext).filter(([_, v]) => v !== undefined),
+	),
+})
 
-	const workspaceContext = workspaceId
+const createWorkspaceContext = (workspaceId?: string) =>
+	workspaceId
 		? {
-				kind: 'workspace',
+				kind: 'workspace' as const,
 				key: workspaceId,
 				workspaceId,
 			}
 		: undefined
+
+const createLDContext = (
+	email: string | undefined,
+	deviceId: string,
+	updates: ContextUpdates,
+): LDContext => {
+	const { workspaceId, ...restContext } = updates
+	const deviceContext = createDeviceContext(deviceId)
 
 	if (!email) {
 		return {
@@ -59,20 +74,26 @@ const createLDContext = (
 	return {
 		kind: 'multi',
 		device: { ...deviceContext, anonymous: false },
-		user: userContext,
-		workspace: workspaceContext,
+		user: createUserContext(email, restContext),
+		workspace: createWorkspaceContext(workspaceId),
 	}
 }
 
+export const [useLaunchDarklyContext, LaunchDarklyContextProvider] =
+	createContext<LaunchDarklyContextType>('LaunchDarklyContext')
+
 type LaunchDarklyProviderProps = {
-	context?: Omit<ProviderConfig['context'], 'email'>
+	context?: {
+		workspaceId?: string
+		[key: string]: string | undefined
+	}
 	email?: string
 	clientSideID: ProviderConfig['clientSideID']
 }
 
 const LaunchDarklyProviderContent: React.FC<
 	React.PropsWithChildren<{
-		context?: LaunchDarklyProviderProps['context']
+		context?: LDContext
 	}>
 > = ({ children, context = {} }) => {
 	const client = useLDClient()
@@ -100,45 +121,61 @@ export const LaunchDarklyProvider: React.FC<
 		createLDContext(email, deviceId, context),
 	)
 
-	const updateContext = useCallback(
-		(updates: Record<string, string>) => {
+	const setWorkspaceContext = useCallback(
+		(workspaceId: string) => {
 			setLdContext((prev) => {
-				const newContext = createLDContext(email, deviceId, updates)
-				console.log('::: updates', updates)
-				console.log('::: prev', prev)
-				console.log('::: newContext', newContext)
-
-				// If transitioning from anonymous to authenticated
-				if (prev.anonymous && !newContext.anonymous) {
-					return newContext
+				const newContext = createLDContext(email, deviceId, {
+					workspaceId,
+				})
+				if (prev.anonymous) {
+					return prev
 				}
-
-				// For all other cases, merge preserving the structure
 				return {
-					...newContext,
-					device:
-						newContext.kind === 'multi'
-							? { ...prev.device, ...newContext.device }
-							: newContext,
-					user:
-						newContext.kind === 'multi'
-							? { ...prev.user, ...newContext.user }
-							: undefined,
-					workspace:
-						newContext.kind === 'multi'
-							? newContext.workspace
-							: undefined,
+					...prev,
+					workspace: newContext.workspace,
 				}
 			})
 		},
 		[email, deviceId],
 	)
 
+	const setUserContext = useCallback(
+		(email: string, additionalContext: Record<string, string> = {}) => {
+			setLdContext((prev) => {
+				const newContext = createLDContext(
+					email,
+					deviceId,
+					additionalContext,
+				)
+				if (prev.anonymous) {
+					return newContext
+				}
+				return {
+					...prev,
+					user: newContext.user,
+				}
+			})
+		},
+		[deviceId],
+	)
+
 	useEffect(() => {
 		if (context) {
-			updateContext(context)
+			if (context.workspaceId) {
+				setWorkspaceContext(context.workspaceId)
+			}
+			if (email) {
+				setUserContext(
+					email,
+					Object.fromEntries(
+						Object.entries(context).filter(
+							([_, v]) => v !== undefined,
+						),
+					) as Record<string, string>,
+				)
+			}
 		}
-	}, [context, updateContext])
+	}, [context, email, setWorkspaceContext, setUserContext])
 
 	useEffect(() => {
 		if (!clientId && !localStorage.getItem('device-id')) {
@@ -152,7 +189,9 @@ export const LaunchDarklyProvider: React.FC<
 
 	console.log('::: ldContext', ldContext)
 	return (
-		<LaunchDarklyContextProvider value={{ updateContext }}>
+		<LaunchDarklyContextProvider
+			value={{ setWorkspaceContext, setUserContext }}
+		>
 			<LDProvider
 				clientSideID={clientSideID}
 				context={ldContext}
