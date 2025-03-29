@@ -15,7 +15,11 @@ describe('login spec', () => {
 		cy.visit('/sign_in').url().should('include', '/sign_in') // Verify we're redirected to sign_in page
 
 		// Try again with different email domain
-		cy.get('[name="email"]').clear().type('vadim@highlight.run').blur().wait(5000)
+		cy.get('[name="email"]')
+			.clear()
+			.type('vadim@highlight.run')
+			.blur()
+			.wait(5000)
 		cy.get('[name="password"]').should('not.exist')
 		cy.get('button[type="submit"]').click()
 		// Verify redirect to Google SSO page
