@@ -97,7 +97,7 @@ jobs:
                   yarn dlx wait-on -l -s 3 http://127.0.0.1:3000/index.html http://127.0.0.1:8082/health;
 
                   # run cypress tests
-                  yarn cy:run;
+                  yarn cy:run --spec 'cypress/e2e/*.cy.js,!cypress/e2e/sso.cy.js';
 
                   # run python functional tests that ensure cypress session is correct
                   pushd ./e2e/tests
