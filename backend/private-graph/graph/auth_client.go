@@ -47,7 +47,7 @@ type FirebaseAuthClient struct {
 	authClient *auth.Client
 }
 type OAuthClient struct {
-	domain       string
+	domains      []string
 	oidcProvider *oidc.Provider
 	oauthConfig  *oauth2.Config
 }
@@ -502,9 +502,9 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 	domain := parts[1]
 
 	var validated bool
-	var domains = lo.Map(lo.Values(c.oauthClients), func(item *OAuthClient, _ int) string {
-		return item.domain
-	})
+	var domains = lo.Flatten(lo.Map(lo.Values(c.oauthClients), func(item *OAuthClient, _ int) []string {
+		return item.domains
+	}))
 	for _, dom := range domains {
 		if dom == domain {
 			validated = true
@@ -644,10 +644,14 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 			Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
 		}
 
-		oauthClients[ssoClient.ClientID] = &OAuthClient{
-			domain:       ssoClient.Domain,
-			oidcProvider: provider,
-			oauthConfig:  &oauth2Config,
+		if _, ok := oauthClients[ssoClient.ClientID]; ok {
+			oauthClients[ssoClient.ClientID].domains = append(oauthClients[ssoClient.ClientID].domains, ssoClient.Domain)
+		} else {
+			oauthClients[ssoClient.ClientID] = &OAuthClient{
+				domains:      []string{ssoClient.Domain},
+				oidcProvider: provider,
+				oauthConfig:  &oauth2Config,
+			}
 		}
 	}
 

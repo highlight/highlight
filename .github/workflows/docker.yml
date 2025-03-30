@@ -29,6 +29,9 @@ jobs:
               with:
                   submodules: recursive
 
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v3
+
             - name: Login to Docker Hub
               uses: docker/login-action@v3
               with:
@@ -112,6 +115,9 @@ jobs:
               working-directory: ./e2e/tests
               run: poetry install --all-extras
 
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v3
+
             - name: Login to Docker Hub
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               uses: docker/login-action@v3
@@ -129,6 +135,7 @@ jobs:
 
             - name: Run docker enterprise
               env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
                   LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
               run: |
                   IMAGE_TAG=$(echo ${{ github.ref_name }} | sed 's/\//-/g')-${{ github.sha }}
@@ -143,10 +150,17 @@ jobs:
                   pushd docker;
 
                   # setup infra / db
+                  # update to firebase auth mode for sso test
+                  sed -i'' -e 's/password/firebase/g' .env
                   source ./env.sh --go-docker;
                   # ensure db migrated so we can insert the desired records
                   ./start-infra.sh > /tmp/highlight.log 2>&1;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
+
+                  doppler configure
+                  # load in SSO configuration from doppler
+                  # adds sensitive SSO config to the local-running db so we should not dump db contents to the github action
+                  docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB -c "$(doppler secrets get --plain SSO_SQL)" >> /tmp/highlight.log 2>&1;
 
                   # start highlight
                   ./run-enterprise.sh --no-pull >> /tmp/highlight.log 2>&1;
@@ -162,6 +176,9 @@ jobs:
                   export HIGHLIGHT_OAUTH_CLIENT_SECRET=def456
                   poetry run pytest -k "not cypress" .
                   popd
+
+                  # run cypress tests for sso
+                  yarn cy:run --spec "cypress/e2e/sso.cy.js";
 
                   # look for containers that crashed
                   num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
@@ -180,24 +197,3 @@ jobs:
               run: |
                   cd docker;
                   docker compose -f compose.yml -f compose.enterprise.yml logs;
-
-            - name: Dump databases on failure
-              if: failure()
-              run: |
-                  cd docker;
-                  mkdir backups
-
-                  docker compose exec postgres bash -c "mkdir /backups";
-                  docker compose exec postgres bash -c "pg_dump -h localhost -U postgres postgres > /backups/postgres.sql";
-                  docker compose exec postgres bash -c "cat /backups/postgres.sql" > ./backups/postgres.sql 2>&1;
-
-                  docker compose exec clickhouse bash -c "mkdir /backups && chmod -R 777 /backups";
-                  docker compose exec clickhouse clickhouse-client --host clickhouse --query "BACKUP DATABASE default TO File('/backups/clickhouse.zip')";
-                  docker compose exec clickhouse bash -c "cat /backups/clickhouse.zip" > ./backups/clickhouse.zip 2>&1;
-
-            - name: Save database artifacts
-              if: failure()
-              uses: actions/upload-artifact@v4
-              with:
-                  name: db-dump
-                  path: docker/backups/*
