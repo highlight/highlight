@@ -9,6 +9,7 @@ import {
 	OtelOptions,
 } from './client'
 import { ErrorMessageType } from './shared-types'
+import { Hook } from 'types/Hooks.js'
 
 export declare interface Metadata {
 	[key: string]: string | boolean | number
@@ -26,6 +27,11 @@ export interface RecordMetric {
 	category?: MetricCategory
 	group?: string
 	tags?: { name: string; value: string }[]
+}
+
+export interface LDClientMin {
+	track(key: string, data?: any, metricValue?: number): void
+	addHook(hook: Hook): void
 }
 
 export type PrivacySettingOption = 'strict' | 'default' | 'none'
@@ -463,6 +469,8 @@ export declare interface HighlightPublicInterface {
 	 */
 	addSessionFeedback: (feedbackOptions: SessionFeedbackOptions) => void
 	snapshot: (element: HTMLCanvasElement) => Promise<void>
+
+	register: (client: LDClientMin) => void
 }
 
 export declare interface SessionDetails {
