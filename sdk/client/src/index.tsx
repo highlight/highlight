@@ -26,6 +26,7 @@ import {
 	HighlightOptions,
 	HighlightPublicInterface,
 	Integration,
+	LDClientMin,
 	Metadata,
 	Metric,
 	PrivacySettingOption,
@@ -208,6 +209,7 @@ export class Highlight {
 		string,
 		UpDownCounter
 	>()
+	_ldClient?: LDClientMin
 
 	static create(options: HighlightClassOptions): Highlight {
 		return new Highlight(options)
@@ -497,6 +499,9 @@ export class Highlight {
 		if (type === 'React.ErrorBoundary') {
 			event = 'ErrorBoundary: ' + event
 		}
+		this._ldClient?.track('$ld:telemetry:error', {
+			sessionSecureID: this.sessionData.sessionSecureID,
+		})
 		const res = parseError(error)
 		this._firstLoadListeners.errors.push({
 			event,
@@ -1499,6 +1504,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		record.takeFullSnapshot()
 		this._eventBytesSinceSnapshot = 0
 		this._lastSnapshotTime = new Date().getTime()
+	}
+
+	register(client: LDClientMin) {
+		this._ldClient = client
 	}
 }
 

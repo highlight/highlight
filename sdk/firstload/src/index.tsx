@@ -600,6 +600,9 @@ const H: HighlightPublicInterface = {
 
 		processQueue()
 	},
+	register(client) {
+		highlight_obj.register(client)
+	},
 }
 
 if (typeof window !== 'undefined') {
