@@ -103,7 +103,24 @@ import type { HighlightClientRequestWorker } from './workers/highlight-client-wo
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
 import { MessageType, PropertyType, Source } from './workers/types'
 import { parseError } from './utils/errors'
-import { Gauge, UpDownCounter, Histogram, Counter } from '@opentelemetry/api'
+import {
+	Gauge,
+	UpDownCounter,
+	Histogram,
+	Counter,
+	trace,
+} from '@opentelemetry/api'
+import {
+	Hook,
+	IdentifySeriesContext,
+	IdentifySeriesData,
+	IdentifySeriesResult,
+	EvaluationSeriesContext,
+	EvaluationSeriesData,
+} from 'types/Hooks'
+import { LDContext } from 'types/LDContext'
+import { LDContextCommon } from 'types/LDContextCommon'
+import { LDMultiKindContext } from 'types/LDMultiKindContext'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -111,6 +128,37 @@ export const HighlightWarning = (context: string, msg: any) => {
 
 enum LOCAL_STORAGE_KEYS {
 	CLIENT_ID = 'highlightClientID',
+}
+
+const FEATURE_FLAG_SCOPE = 'feature_flag'
+const FEATURE_FLAG_KEY_ATTR = `${FEATURE_FLAG_SCOPE}.key`
+const FEATURE_FLAG_PROVIDER_ATTR = `${FEATURE_FLAG_SCOPE}.provider_name`
+const FEATURE_FLAG_CONTEXT_KEY_ATTR = `${FEATURE_FLAG_SCOPE}.context.key`
+const FEATURE_FLAG_VARIANT_ATTR = `${FEATURE_FLAG_SCOPE}.variant`
+
+function encodeKey(key: string): string {
+	if (key.includes('%') || key.includes(':')) {
+		return key.replace(/%/g, '%25').replace(/:/g, '%3A')
+	}
+	return key
+}
+
+function isMultiContext(context: any): context is LDMultiKindContext {
+	return context.kind === 'multi'
+}
+
+function getCanonicalKey(context: LDContext) {
+	if (isMultiContext(context)) {
+		return Object.keys(context)
+			.sort()
+			.filter((key) => key !== 'kind')
+			.map((key) => {
+				return `${key}:${encodeKey((context[key] as LDContextCommon).key)}`
+			})
+			.join(':')
+	}
+
+	return context.key
 }
 
 export type HighlightClassOptions = {
@@ -1508,6 +1556,46 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 
 	register(client: LDClientMin) {
 		this._ldClient = client
+
+		client.addHook({
+			getMetadata: () => {
+				return {
+					name: 'HighlightHook',
+				}
+			},
+			afterIdentify: (
+				hookContext: IdentifySeriesContext,
+				data: IdentifySeriesData,
+				result: IdentifySeriesResult,
+			) => {
+				this.identify(getCanonicalKey(hookContext.context))
+				return data
+			},
+			afterEvaluation: (hookContext, data, detail) => {
+				const eventAttributes: {
+					[index: string]: number | boolean | string
+				} = {
+					[FEATURE_FLAG_KEY_ATTR]: hookContext.flagKey,
+					[FEATURE_FLAG_PROVIDER_ATTR]: 'LaunchDarkly',
+					[FEATURE_FLAG_VARIANT_ATTR]: JSON.stringify(detail.value),
+				}
+
+				if (hookContext.context) {
+					eventAttributes[FEATURE_FLAG_CONTEXT_KEY_ATTR] =
+						getCanonicalKey(hookContext.context)
+				}
+
+				const span = trace.getActiveSpan()
+
+				if (span) {
+					span.addEvent(FEATURE_FLAG_SCOPE, eventAttributes)
+				}
+
+				this.addProperties({ type: 'evaluation', ...eventAttributes })
+
+				return data
+			},
+		})
 	}
 }
 
