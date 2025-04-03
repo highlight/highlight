@@ -24,6 +24,6 @@ H.registerLD(ldClient);
 
 Calling [`H.track()`](../../sdk/client.md#Htrack) will forward the data to LaunchDarkly's `track()`. 
 
-### `identify()`
+### `consumeError()`
 
-Calling [`H.identify()`](../../sdk/client.md#Hidentify) will forward the data to LaunchDarkly's `identify()`.
+Calling [`H.consumeError()`](../../sdk/client.md#Hidentify) will forward the data to LaunchDarkly's `consumeError()`.
