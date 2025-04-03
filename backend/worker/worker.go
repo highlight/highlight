@@ -305,6 +305,8 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 	span, ctx := util.StartSpanFromContext(ctx, "worker.processPublicWorkerMessage")
 	defer span.Finish()
 
+	ctx, cancel := context.WithCancel(ctx)
+
 	done := make(chan struct{})
 	defer func() {
 		close(done)
@@ -322,6 +324,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		ticker := time.NewTicker(1 * time.Second)
 		defer ticker.Stop()
 
+		canceled := false
 		for {
 			select {
 			case <-done:
@@ -335,6 +338,11 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 					WithField("partition", task.KafkaMessage.Partition).
 					WithField("duration", duration).
 					Warnf("Long running task")
+				if !canceled && duration > 10*time.Minute {
+					log.WithContext(ctx).Errorf("Cancelling long running task")
+					cancel()
+					canceled = true
+				}
 			}
 		}
 	}()
