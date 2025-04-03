@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { renderHook } from '@testing-library/react-hooks'
 import { useFeatureFlag } from './useFeatureFlag'
-import * as launchDarkly from 'launchdarkly-react-client-sdk'
+import * as launchDarkly from '@launchdarkly/js-client-sdk'
 import { flags } from './flags'
 
-vi.mock('launchdarkly-react-client-sdk', () => ({
+vi.mock('@launchdarkly/js-client-sdk', () => ({
 	useFlags: vi.fn(),
 }))
 

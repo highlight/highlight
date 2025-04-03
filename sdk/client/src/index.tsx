@@ -457,17 +457,6 @@ export class Highlight {
 			user_identifier.toString(),
 		)
 		setItem(SESSION_STORAGE_KEYS.USER_OBJECT, JSON.stringify(user_object))
-		this._ldClient?.identify({
-			kind: 'multi',
-			user: {
-				key: user_identifier,
-				identifier: user_identifier,
-			},
-			session: {
-				key: this.sessionData.sessionSecureID,
-				sessionSecureID: this.sessionData.sessionSecureID,
-			},
-		})
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Identify,

@@ -1,13 +1,13 @@
 import {
+	initialize,
+	LDClient,
 	LDMultiKindContext,
-	LDProvider,
 	LDSingleKindContext,
-	ProviderConfig,
-	useLDClient,
-} from 'launchdarkly-react-client-sdk'
-import React, { useEffect, useMemo, useState } from 'react'
+} from '@launchdarkly/js-client-sdk'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import analytics from '@/util/analytics'
 import { createContext } from '@/util/context/context'
+import { H } from 'highlight.run'
 
 // Matches the clientID in the client SDK. Not exporting from the client SDK
 // because we don't want to make this public.
@@ -34,6 +34,7 @@ type WorkspaceContext = {
 }
 
 type LaunchDarklyContextType = {
+	client: LDClient
 	setUserContext: (userContext: Omit<UserContext, 'kind' | 'key'>) => void
 	setWorkspaceContext: (
 		workspaceContext: Omit<WorkspaceContext, 'kind' | 'key'>,
@@ -88,8 +89,9 @@ const createLDContext = (
 	return {
 		kind: 'multi',
 		device: { ...deviceContext, anonymous: false },
-		user: userContext,
-		workspace: workspaceContext,
+		// TODO(vkorolik)
+		user: userContext ?? { key: '' },
+		workspace: workspaceContext ?? { key: '' },
 	}
 }
 
@@ -97,7 +99,7 @@ export const [useLaunchDarklyContext, LaunchDarklyContextProvider] =
 	createContext<LaunchDarklyContextType>('LaunchDarklyContext')
 
 type LaunchDarklyProviderProps = {
-	clientSideID: ProviderConfig['clientSideID']
+	clientSideID: string
 	context?: {
 		workspaceId?: string
 		[key: string]: string | undefined
@@ -107,20 +109,19 @@ type LaunchDarklyProviderProps = {
 
 const LaunchDarklyProviderContent: React.FC<
 	React.PropsWithChildren<{
+		client: LDClient
 		context?: LDContext
 	}>
-> = ({ children, context = {} }) => {
-	const client = useLDClient()
-
+> = ({ children, client, context }) => {
 	console.log('::: LaunchDarklyProviderContent', context)
 	useEffect(() => {
-		if (client) {
+		if (context) {
 			console.log('::: identify:', context)
 			client.identify(context).then(() => {
 				client.flush()
 			})
-			analytics.setLDClient(client)
 		}
+		analytics.setLDClient(client)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [client, JSON.stringify(context)])
 
@@ -159,6 +160,18 @@ export const LaunchDarklyProvider: React.FC<
 		return newContext
 	}, [deviceContext, userContext, workspaceContext])
 
+	const client = useMemo(() => {
+		const client = initialize(clientSideID, {
+			streaming: true,
+			wrapperName: 'LaunchDarklyProvider',
+			sendEvents: true,
+			flushInterval: 2000,
+		})
+		H.registerLD(client)
+		client.identify(ldContext)
+		return client
+	}, [])
+
 	useEffect(() => {
 		if (email) {
 			setUserContext(createUserContext({ email }))
@@ -195,28 +208,14 @@ export const LaunchDarklyProvider: React.FC<
 	return (
 		<LaunchDarklyContextProvider
 			value={{
+				client: client,
 				setWorkspaceContext: handleSetWorkspaceContext,
 				setUserContext: handleSetUserContext,
 			}}
 		>
-			<LDProvider
-				clientSideID={clientSideID}
-				context={ldContext}
-				options={{
-					streaming: true,
-					wrapperName: 'LaunchDarklyProvider',
-					bootstrap: 'localStorage',
-					sendEvents: true,
-					flushInterval: 2000,
-				}}
-				reactOptions={{
-					useCamelCaseFlagKeys: false,
-				}}
-			>
-				<LaunchDarklyProviderContent context={ldContext}>
-					{children}
-				</LaunchDarklyProviderContent>
-			</LDProvider>
+			<LaunchDarklyProviderContent context={ldContext} client={client}>
+				{children}
+			</LaunchDarklyProviderContent>
 		</LaunchDarklyContextProvider>
 	)
 }

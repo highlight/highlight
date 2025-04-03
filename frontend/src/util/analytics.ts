@@ -1,7 +1,7 @@
 import { Metadata } from '@highlight-run/client'
 import { H } from 'highlight.run'
 import * as rudderanalytics from 'rudder-sdk-js'
-import { LDClient } from 'launchdarkly-react-client-sdk'
+import { LDClient } from '@launchdarkly/js-client-sdk'
 
 import { DISABLE_ANALYTICS } from '@/constants'
 import { omit } from 'lodash'
