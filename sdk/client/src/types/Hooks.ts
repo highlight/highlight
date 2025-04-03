@@ -1,4 +1,4 @@
-import { LDContext } from 'types/LDContext'
+import { LDContext } from './LDContext'
 
 /**
  * Contextual information provided to evaluation stages.
