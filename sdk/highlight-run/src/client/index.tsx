@@ -457,6 +457,7 @@ export class Highlight {
 			user_identifier.toString(),
 		)
 		setItem(SESSION_STORAGE_KEYS.USER_OBJECT, JSON.stringify(user_object))
+		// TODO(vkorolik) call ldClient.identify() for messages not coming from the hook
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Identify,
