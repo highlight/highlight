@@ -9,7 +9,7 @@ import {
 	OtelOptions,
 } from './client'
 import { ErrorMessageType } from './shared-types'
-import { Hook } from 'types/Hooks.js'
+import { Hook } from './Hooks.js'
 
 export declare interface Metadata {
 	[key: string]: string | boolean | number
