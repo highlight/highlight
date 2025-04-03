@@ -16,18 +16,17 @@ COPY ../packages ./packages
 COPY ../render/package.json ./render/package.json
 COPY ../rrweb ./rrweb
 COPY ../scripts/package.json ./scripts/package.json
-COPY ../sdk/client/package.json ./sdk/client/package.json
-COPY ../sdk/highlight-run/package.json ./sdk/firstload/package.json
 COPY ../sdk/highlight-apollo/package.json ./sdk/highlight-apollo/package.json
-COPY ../sdk/highlight-cloudflare/package.json ./sdk/highlight-cloudflare/package.json
 COPY ../sdk/highlight-chrome/package.json ./sdk/highlight-chrome/package.json
-COPY ../sdk/highlightinc-highlight-datasource/package.json ./sdk/highlightinc-highlight-datasource/package.json
+COPY ../sdk/highlight-cloudflare/package.json ./sdk/highlight-cloudflare/package.json
+COPY ../sdk/highlight-hono/package.json ./sdk/highlight-hono/package.json
 COPY ../sdk/highlight-nest/package.json ./sdk/highlight-nest/package.json
 COPY ../sdk/highlight-next/package.json ./sdk/highlight-next/package.json
 COPY ../sdk/highlight-node/package.json ./sdk/highlight-node/package.json
-COPY ../sdk/highlight-hono/package.json ./sdk/highlight-hono/package.json
 COPY ../sdk/highlight-react/package.json ./sdk/highlight-react/package.json
 COPY ../sdk/highlight-remix/package.json ./sdk/highlight-remix/package.json
+COPY ../sdk/highlight-run/package.json ./sdk/highlight-run/package.json
+COPY ../sdk/highlightinc-highlight-datasource/package.json ./sdk/highlightinc-highlight-datasource/package.json
 COPY ../sdk/pino/package.json ./sdk/pino/package.json
 COPY ../sourcemap-uploader/package.json ./sourcemap-uploader/package.json
 RUN yarn install --immutable
