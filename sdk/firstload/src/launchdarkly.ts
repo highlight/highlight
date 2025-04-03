@@ -76,11 +76,16 @@ export function setupLaunchDarklyIntegration(
 			}
 
 			let span = trace.getActiveSpan()
-			if (!span) {
-				span = hClient.startManualSpan('evaluation', () => null)
+			if (span) {
+				span.addEvent(FEATURE_FLAG_SCOPE, eventAttributes)
+			} else {
+				hClient.startSpan('evaluation', (s) => {
+					if (s) {
+						s.addEvent(FEATURE_FLAG_SCOPE, eventAttributes)
+					}
+				})
 			}
 
-			span.addEvent(FEATURE_FLAG_SCOPE, eventAttributes)
 			hClient.track('evaluation', eventAttributes)
 
 			return data
