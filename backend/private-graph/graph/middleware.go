@@ -119,7 +119,7 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 		if token != "" {
 			ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, w, r, token)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
 		} else if apiKey := r.Header.Get("ApiKey"); apiKey != "" {

@@ -474,7 +474,7 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 	prov, err := c.getOIDCProvider(req)
 	if err != nil {
 		log.WithContext(req.Context()).WithError(err).Error("error getting oidc provider")
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		return ctx, e.New("error getting oidc provider")
 	}
 
 	verifier := prov.Verifier(&oidc.Config{ClientID: clientID})
@@ -482,7 +482,7 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 	if err != nil {
 		log.WithContext(ctx).WithField("token", token).WithError(err).Info("invalid user token")
 		c.handleLogout(w, req)
-		return ctx, nil
+		return ctx, e.New("invalid user token")
 	}
 
 	// Extract claims
@@ -490,7 +490,7 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 	if err := idToken.Claims(&claims); err != nil {
 		log.WithContext(ctx).WithField("token", token).WithError(err).Info("invalid user claim")
 		c.handleLogout(w, req)
-		return ctx, nil
+		return ctx, e.New("invalid user claim")
 	}
 
 	// check that the oidc email domain matches allowed domains
