@@ -46,6 +46,7 @@
 		"highlight.io": "workspace:*",
 		"highlight.run": "workspace:*",
 		"js-cookie": "^3.0.1",
+		"launchdarkly-react-client-sdk": "^3.6.1",
 		"lodash": "^4.17.21",
 		"lottie-react": "^2.1.0",
 		"moment": "2.29.4",
