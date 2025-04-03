@@ -29,54 +29,16 @@ import {
 	loadCookieSessionData,
 } from './client/utils/sessionStorage/highlightSession.js'
 import { setCookieWriteEnabled } from './client/utils/storage'
-import { Context, Span, SpanOptions, trace, Tracer } from '@opentelemetry/api'
+import { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api'
 import firstloadVersion from './__generated/version.js'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener.js'
 import configureElectronHighlight from './environments/electron.js'
 import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
-import { ViewportResizeListenerArgs } from './client/listeners/viewport-resize-listener'
 import { getNoopSpan } from './client/otel/utils.js'
-import {
-	IdentifySeriesContext,
-	IdentifySeriesData,
-	IdentifySeriesResult,
-} from './client/types/Hooks'
-import { LDMultiKindContext } from './client/types/LDMultiKindContext'
-import { LDContext } from './client/types/LDContext'
-import { LDContextCommon } from './client/types/LDContextCommon'
-
-const FEATURE_FLAG_SCOPE = 'feature_flag'
-const FEATURE_FLAG_KEY_ATTR = `${FEATURE_FLAG_SCOPE}.key`
-const FEATURE_FLAG_PROVIDER_ATTR = `${FEATURE_FLAG_SCOPE}.provider_name`
-const FEATURE_FLAG_CONTEXT_KEY_ATTR = `${FEATURE_FLAG_SCOPE}.context.key`
-const FEATURE_FLAG_VARIANT_ATTR = `${FEATURE_FLAG_SCOPE}.variant`
-
-function encodeKey(key: string): string {
-	if (key.includes('%') || key.includes(':')) {
-		return key.replace(/%/g, '%25').replace(/:/g, '%3A')
-	}
-	return key
-}
-
-function isMultiContext(context: any): context is LDMultiKindContext {
-	return context.kind === 'multi'
-}
-
-function getCanonicalKey(context: LDContext) {
-	if (isMultiContext(context)) {
-		return Object.keys(context)
-			.sort()
-			.filter((key) => key !== 'kind')
-			.map((key) => {
-				return `${key}:${encodeKey((context[key] as LDContextCommon).key)}`
-			})
-			.join(':')
-	}
-
-	return context.key
-}
+import { setupLaunchDarklyIntegration } from './launchdarkly.js'
+import { ViewportResizeListenerArgs } from './client/listeners/viewport-resize-listener'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -641,51 +603,14 @@ const H: HighlightPublicInterface = {
 
 		processQueue()
 	},
-	register(client) {
+	registerLD(client) {
+		// TODO(vkorolik): consolidate once firstload/client are merged
+		// client integration necessary to track events from ErrorListener
 		H.onHighlightReady(() => {
-			highlight_obj.register(client)
+			highlight_obj.registerLD(client)
 		})
-
-		client.addHook({
-			getMetadata: () => {
-				return {
-					name: 'HighlightHook',
-				}
-			},
-			afterIdentify: (
-				hookContext: IdentifySeriesContext,
-				data: IdentifySeriesData,
-				result: IdentifySeriesResult,
-			) => {
-				this.identify(getCanonicalKey(hookContext.context))
-				return data
-			},
-			// @ts-ignore
-			afterEvaluation: (hookContext, data, detail) => {
-				const eventAttributes: {
-					[index: string]: number | boolean | string
-				} = {
-					[FEATURE_FLAG_KEY_ATTR]: hookContext.flagKey,
-					[FEATURE_FLAG_PROVIDER_ATTR]: 'LaunchDarkly',
-					[FEATURE_FLAG_VARIANT_ATTR]: JSON.stringify(detail.value),
-				}
-
-				if (hookContext.context) {
-					eventAttributes[FEATURE_FLAG_CONTEXT_KEY_ATTR] =
-						getCanonicalKey(hookContext.context)
-				}
-
-				const span = trace.getActiveSpan()
-
-				if (span) {
-					span.addEvent(FEATURE_FLAG_SCOPE, eventAttributes)
-				}
-
-				this.track('evaluation', eventAttributes)
-
-				return data
-			},
-		})
+		// firstload integration necessary to immediately capture ld.identify
+		setupLaunchDarklyIntegration(this, client)
 	},
 }
 

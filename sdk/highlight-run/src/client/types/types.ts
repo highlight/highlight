@@ -31,6 +31,7 @@ export interface RecordMetric {
 
 export interface LDClientMin {
 	track(key: string, data?: any, metricValue?: number): void
+	identify(ctx: any): void
 	addHook(hook: Hook): void
 }
 
@@ -470,7 +471,7 @@ export declare interface HighlightPublicInterface {
 	addSessionFeedback: (feedbackOptions: SessionFeedbackOptions) => void
 	snapshot: (element: HTMLCanvasElement) => Promise<void>
 
-	register: (client: LDClientMin) => void
+	registerLD: (client: LDClientMin) => void
 }
 
 export declare interface SessionDetails {
