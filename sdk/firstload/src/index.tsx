@@ -36,6 +36,7 @@ import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
 import { getNoopSpan } from '@highlight-run/client/src/otel/utils.js'
+import { setupLaunchDarklyIntegration } from './launchdarkly.js'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -599,6 +600,15 @@ const H: HighlightPublicInterface = {
 		}
 
 		processQueue()
+	},
+	registerLD(client) {
+		// TODO(vkorolik): consolidate once firstload/client are merged
+		// client integration necessary to track events from ErrorListener
+		H.onHighlightReady(() => {
+			highlight_obj.registerLD(client)
+		})
+		// firstload integration necessary to immediately capture ld.identify
+		setupLaunchDarklyIntegration(this, client)
 	},
 }
 

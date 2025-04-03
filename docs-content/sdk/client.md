@@ -372,6 +372,24 @@ slug: client
 
 <section className="section">
   <div className="left">
+    <h3>H.registerLD</h3>
+    <p>This method allows connecting a LaunchDarkly client to the Highlight SDK</p>
+    <aside className="parameter">
+      <h5>ldClient<code>LaunchDarklyClient</code> <code>required</code></h5>
+      <p>The LD Client instance.</p>
+    </aside>
+  </div>
+  <div className="right">
+    <code>
+        H.init("<YOUR_PROJECT_ID>", {});
+        const ldClient = initialize("<YOUR_LD_CLIENT_TOKEN>");
+        H.registerLD(ldClient);
+    </code>
+  </div>
+</section>
+
+<section className="section">
+  <div className="left">
     <h3>H.start</h3>
     <p>This method is used to start Highlight if H.init() was called with manualStart set to true.</p>
     <h6>Method Parameters</h6>

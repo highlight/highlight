@@ -26,6 +26,7 @@ import {
 	HighlightOptions,
 	HighlightPublicInterface,
 	Integration,
+	LDClientMin,
 	Metadata,
 	Metric,
 	PrivacySettingOption,
@@ -102,7 +103,13 @@ import type { HighlightClientRequestWorker } from './workers/highlight-client-wo
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
 import { MessageType, PropertyType, Source } from './workers/types'
 import { parseError } from './utils/errors'
-import { Gauge, UpDownCounter, Histogram, Counter } from '@opentelemetry/api'
+import {
+	Gauge,
+	UpDownCounter,
+	Histogram,
+	Counter,
+	trace,
+} from '@opentelemetry/api'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -141,7 +148,7 @@ export type HighlightClassOptions = {
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 	storageMode?: 'sessionStorage' | 'localStorage'
-	sessionCookie?: true
+	skipCookieSessionDataLoad?: true
 	sendMode?: 'webworker' | 'local'
 	otlpEndpoint?: HighlightOptions['otlpEndpoint']
 	otel?: HighlightOptions['otel']
@@ -208,6 +215,7 @@ export class Highlight {
 		string,
 		UpDownCounter
 	>()
+	_ldClient?: LDClientMin
 
 	static create(options: HighlightClassOptions): Highlight {
 		return new Highlight(options)
@@ -236,7 +244,7 @@ export class Highlight {
 			)
 			setStorageMode(options.storageMode)
 		}
-		setCookieWriteEnabled(!!options?.sessionCookie)
+		setCookieWriteEnabled(!options?.skipCookieSessionDataLoad)
 
 		this._worker =
 			new HighlightClientWorker() as HighlightClientRequestWorker
@@ -449,6 +457,7 @@ export class Highlight {
 			user_identifier.toString(),
 		)
 		setItem(SESSION_STORAGE_KEYS.USER_OBJECT, JSON.stringify(user_object))
+		// TODO(vkorolik) call ldClient.identify() for messages not coming from the hook
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Identify,
@@ -497,6 +506,9 @@ export class Highlight {
 		if (type === 'React.ErrorBoundary') {
 			event = 'ErrorBoundary: ' + event
 		}
+		this._ldClient?.track('$ld:telemetry:error', {
+			sessionSecureID: this.sessionData.sessionSecureID,
+		})
 		const res = parseError(error)
 		this._firstLoadListeners.errors.push({
 			event,
@@ -521,6 +533,11 @@ export class Highlight {
 			} catch {
 				delete obj[key]
 			}
+		})
+		this._ldClient?.track('$ld:track', {
+			sessionSecureID: this.sessionData.sessionSecureID,
+			propertyType: typeArg,
+			...properties_obj,
 		})
 		this._worker.postMessage({
 			message: {
@@ -1499,6 +1516,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		record.takeFullSnapshot()
 		this._eventBytesSinceSnapshot = 0
 		this._lastSnapshotTime = new Date().getTime()
+	}
+
+	registerLD(client: LDClientMin) {
+		this._ldClient = client
 	}
 }
 
