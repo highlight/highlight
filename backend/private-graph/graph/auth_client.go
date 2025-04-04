@@ -2,6 +2,8 @@ package graph
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
@@ -24,6 +26,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -53,8 +56,9 @@ type OAuthClient struct {
 }
 
 type OAuthAuthClient struct {
-	store        *store.Store
-	oauthClients map[string]*OAuthClient
+	store                *store.Store
+	oauthClientsByID     map[string]*OAuthClient
+	oauthClientsByDomain map[string]*OAuthClient
 }
 
 type CloudAuthClient struct {
@@ -262,7 +266,7 @@ func (c *OAuthAuthClient) getOAuthConfig(r *http.Request) (*oauth2.Config, error
 	defer span.Finish()
 
 	clientID := extractClientID(r)
-	client := c.oauthClients[clientID]
+	client := c.oauthClientsByID[clientID]
 	if client == nil {
 		log.WithContext(ctx).WithField("clientID", clientID).Error("no oauth client found")
 		return nil, e.New(oauthError)
@@ -275,7 +279,7 @@ func (c *OAuthAuthClient) getOIDCProvider(r *http.Request) (*oidc.Provider, erro
 	defer span.Finish()
 
 	clientID := extractClientID(r)
-	client := c.oauthClients[clientID]
+	client := c.oauthClientsByID[clientID]
 	if client == nil {
 		log.WithContext(ctx).WithField("clientID", clientID).Error("no oauth client found for OIDC provider")
 		return nil, e.New(oauthError)
@@ -406,6 +410,48 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 	defer span.Finish()
 	// validate state cookie
 
+	if iss := r.URL.Query().Get("iss"); iss != "" {
+		span.SetAttribute("iss", iss)
+
+		u, err := url.Parse(iss)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to parse iss url")
+			http.Error(w, "failed to parse iss url", http.StatusBadRequest)
+			return
+		}
+
+		state, err := generateNonce(16)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to generate state")
+			http.Error(w, "failed to generate state", http.StatusBadRequest)
+			return
+		}
+		c.setCallbackCookie(w, r, stateCookieName, state)
+
+		nonce, err := generateNonce(16)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to generate nonce")
+			http.Error(w, "failed to generate nonce", http.StatusBadRequest)
+			return
+		}
+
+		queryParams := url.Values{}
+		client := c.oauthClientsByDomain[u.Host]
+		queryParams.Add("client_id", client.oauthConfig.ClientID)
+		queryParams.Add("response_type", "code")
+		queryParams.Add("redirect_uri", env.Config.OAuthRedirectUrl)
+		queryParams.Add("scope", oidc.ScopeOpenID)
+		queryParams.Add("state", state)
+		queryParams.Add("nonce", nonce)
+		queryParams.Add("iss", iss)
+		u.RawQuery = queryParams.Encode()
+
+		issUrl := u.String()
+		span.SetAttribute("redirect", issUrl)
+		http.Redirect(w, r, issUrl, http.StatusFound)
+		return
+	}
+
 	state, err := r.Cookie(stateCookieName)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to retrieve state cookie")
@@ -502,7 +548,7 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 	domain := parts[1]
 
 	var validated bool
-	var domains = lo.Flatten(lo.Map(lo.Values(c.oauthClients), func(item *OAuthClient, _ int) []string {
+	var domains = lo.Flatten(lo.Map(lo.Values(c.oauthClientsByID), func(item *OAuthClient, _ int) []string {
 		return item.domains
 	}))
 	for _, dom := range domains {
@@ -623,7 +669,8 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 		return nil, err
 	}
 
-	oauthClients := make(map[string]*OAuthClient)
+	oauthClientsByID := make(map[string]*OAuthClient)
+	oauthClientsByDomain := make(map[string]*OAuthClient)
 	for _, ssoClient := range ssoClients {
 		log.WithContext(ctx).WithField("clientID", ssoClient.ClientID).Info("setting up oauth client")
 		provider, err := oidc.NewProvider(ctx, ssoClient.ProviderURL)
@@ -644,18 +691,19 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 			Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
 		}
 
-		if _, ok := oauthClients[ssoClient.ClientID]; ok {
-			oauthClients[ssoClient.ClientID].domains = append(oauthClients[ssoClient.ClientID].domains, ssoClient.Domain)
+		if _, ok := oauthClientsByID[ssoClient.ClientID]; ok {
+			oauthClientsByID[ssoClient.ClientID].domains = append(oauthClientsByID[ssoClient.ClientID].domains, ssoClient.Domain)
 		} else {
-			oauthClients[ssoClient.ClientID] = &OAuthClient{
+			oauthClientsByID[ssoClient.ClientID] = &OAuthClient{
 				domains:      []string{ssoClient.Domain},
 				oidcProvider: provider,
 				oauthConfig:  &oauth2Config,
 			}
 		}
+		oauthClientsByDomain[ssoClient.Domain] = oauthClientsByID[ssoClient.ClientID]
 	}
 
-	return &OAuthAuthClient{store, oauthClients}, nil
+	return &OAuthAuthClient{store, oauthClientsByID, oauthClientsByDomain}, nil
 }
 
 func authenticateToken(ctx context.Context, tokenString string) (jwt.MapClaims, error) {
@@ -714,4 +762,14 @@ func extractClientID(r *http.Request) string {
 	}
 
 	return ""
+}
+
+func generateNonce(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	// Use URL-safe base64 encoding (no padding)
+	nonce := base64.RawURLEncoding.EncodeToString(bytes)
+	return nonce, nil
 }
