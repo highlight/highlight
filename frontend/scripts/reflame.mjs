@@ -1,6 +1,6 @@
 import * as path from 'node:path'
 
-import * as firstloadVersion from '../../sdk/firstload/scripts/version.mjs'
+import * as firstloadVersion from '../../sdk/highlight-run/scripts/version.mjs'
 import * as css from './build-css-bundle.mjs'
 import * as rrweb from './build-rrweb.mjs'
 
@@ -20,6 +20,6 @@ await Promise.all([
 		? Promise.resolve()
 		: rrweb.run({ rootDirectory: rootDirectoryFrontend }),
 	firstloadVersion.run({
-		rootDirectory: path.join(rootDirectory, 'sdk/firstload'),
+		rootDirectory: path.join(rootDirectory, 'sdk/highlight-run'),
 	}),
 ])

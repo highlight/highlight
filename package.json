@@ -37,7 +37,7 @@
 		"build:frontend": "yarn turbo run build --filter @highlight-run/frontend...",
 		"build:render": "yarn turbo run build --filter=render",
 		"build:sdk": "yarn turbo run build --filter highlight.run --filter @highlight-run/cloudflare --filter @highlight-run/react --filter @highlight-run/apollo... --filter @highlight-run/next... --filter @highlight-run/nest... --filter @highlight-run/pino... --filter @highlight-run/remix... --filter @highlight-run/hono...",
-		"build:wordpress": "cd sdk/highlight-wordpress && cp ../../sdk/firstload/dist/index.umd.js highlight-io/highlight.js && zip -r highlight-io.zip highlight-io -x '*/.*'",
+		"build:wordpress": "cd sdk/highlight-wordpress && cp ../../sdk/highlight-run/dist/index.umd.js highlight-io/highlight.js && zip -r highlight-io.zip highlight-io -x '*/.*'",
 		"cy:run": "cypress run",
 		"cy:run:chrome": "cypress run --headed --browser chrome",
 		"clean": "find . -depth -name node_modules -exec rm -r \"{}\" \\; && find . -name tsconfig.tsbuildinfo -delete && find . -depth -name dist -exec rm -r \"{}\" \\; && find . -depth -name build -exec rm -r \"{}\" \\; && find . -depth -name es -exec rm -r \"{}\" \\;",
