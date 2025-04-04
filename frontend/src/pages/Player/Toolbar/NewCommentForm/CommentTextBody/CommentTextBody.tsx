@@ -28,7 +28,7 @@ interface Props {
 	onDisplayTransformHandler?: (_id: string, display: string) => string
 	suggestionsPortalHost?: Element
 	newInput?: boolean
-	inputRef?: React.RefObject<HTMLTextAreaElement>
+	inputRef?: React.RefObject<HTMLTextAreaElement | null>
 }
 
 export const CommentTextBody = ({

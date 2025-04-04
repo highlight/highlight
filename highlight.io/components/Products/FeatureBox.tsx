@@ -1,6 +1,8 @@
 import { Typography } from '../common/Typography/Typography'
 import styles from './Products.module.scss'
 
+import type { JSX } from 'react'
+
 const FeatureBox = ({
 	title,
 	desc,

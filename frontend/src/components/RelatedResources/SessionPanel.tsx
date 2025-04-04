@@ -59,7 +59,7 @@ export const SessionPanel: React.FC<{ resource: RelatedSession }> = ({
 
 const SessionPanelBase: React.FC<{
 	resource: RelatedSession
-	playerRef: React.RefObject<HTMLDivElement>
+	playerRef: React.RefObject<HTMLDivElement | null>
 }> = ({ resource, playerRef }) => {
 	const { projectId } = useNumericProjectId()
 	const playerWrapperRef = useRef<HTMLDivElement>(null)

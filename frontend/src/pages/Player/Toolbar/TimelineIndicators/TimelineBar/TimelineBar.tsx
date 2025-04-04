@@ -24,7 +24,7 @@ interface IBar {
 	width: number
 	height: number
 	disabled: boolean
-	viewportRef: React.RefObject<HTMLElement>
+	viewportRef: React.RefObject<HTMLElement | null>
 }
 
 const MIN_RECTANGLE_HEIGHT = 10

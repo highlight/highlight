@@ -27,7 +27,7 @@ export function usePollQuery<
 	skip?: boolean
 	maxResults: number
 }) {
-	const pollTimeout = useRef<number>()
+	const pollTimeout = useRef<number | undefined>(undefined)
 	const [numMore, setNumMore] = useState<number>(0)
 	const [pollingExpired, setPollingExpired] = useState<boolean>(false)
 

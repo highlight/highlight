@@ -2,7 +2,7 @@ import { ButtonIcon, IconSolidAtSymbol } from '@highlight-run/ui/components'
 
 type Props = {
 	commentText: string
-	inputRef: React.RefObject<HTMLTextAreaElement>
+	inputRef: React.RefObject<HTMLTextAreaElement | null>
 	setCommentText: React.Dispatch<React.SetStateAction<string>>
 }
 

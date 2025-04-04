@@ -11,7 +11,7 @@ const ErrorBodyText = ({ errorBody }: Props) => {
 	const [truncated, setTruncated] = useState(true)
 	const [truncateable, setTruncateable] = useState(true)
 	const body = getErrorBody(errorBody)
-	const bodyRef = useRef<HTMLElement | undefined>()
+	const bodyRef = useRef<HTMLElement | undefined>(undefined)
 
 	useEffect(() => {
 		if (bodyRef.current) {

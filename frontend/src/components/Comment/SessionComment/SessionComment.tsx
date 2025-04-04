@@ -25,7 +25,7 @@ import SessionCommentHeader from './SessionCommentHeader'
 interface Props {
 	comment: ParsedSessionComment
 	hasShadow?: boolean
-	parentRef?: React.RefObject<HTMLDivElement>
+	parentRef?: React.RefObject<HTMLDivElement | null>
 	showReplies?: boolean
 }
 

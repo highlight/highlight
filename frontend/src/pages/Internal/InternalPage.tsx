@@ -5,7 +5,7 @@ import {
 	useGetNewUsersCountQuery,
 } from '../../graph/generated/hooks'
 
-function InternalPage(): ReactElement {
+function InternalPage(): ReactElement<any> {
 	const [value, setValue] = useState('foobar')
 	const {} = useGetNewUsersCountQuery({
 		variables: { lookback_days: 30, project_id: '1' },

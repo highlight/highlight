@@ -407,7 +407,7 @@ const StackTraceSectionCollapsible: React.FC<
 		expanded: boolean
 		setExpanded: (expanded: boolean) => void
 		isLast: boolean
-		title: string | React.ReactElement
+		title: string | React.ReactElement<any>
 	}>
 > = ({ children, expanded, setExpanded, isLast, title }) => {
 	return (

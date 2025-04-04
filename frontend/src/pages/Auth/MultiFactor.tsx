@@ -32,7 +32,8 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 	const { setLoadingState } = useAppLoadingContext()
 	const { signIn } = useAuthContext()
 	const navigate = useNavigate()
-	const recaptchaVerifier = useRef<firebase.auth.ApplicationVerifier>()
+	const recaptchaVerifier =
+		useRef<firebase.auth.ApplicationVerifier>(undefined)
 	const phoneAuthProvider = new firebase.auth.PhoneAuthProvider()
 	const formStore = Form.useStore({
 		defaultValues: {

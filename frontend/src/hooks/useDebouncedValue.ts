@@ -19,7 +19,7 @@ export function useDebouncedValue<T>(
 }
 
 function useLeadingDebounce<T>(value: T, { millis }: { millis: number }) {
-	const blockedRef = useRef<boolean>()
+	const blockedRef = useRef<boolean>(undefined)
 	const [debouncedValue, setDebouncedValue] = useState<T>(value)
 
 	useSafeEffect(
@@ -44,7 +44,7 @@ function useTrailingDebounce<T>(
 	value: T,
 	{ initializeValue, millis }: { initializeValue: boolean; millis: number },
 ) {
-	const timerRef = useRef<NodeJS.Timeout | undefined>()
+	const timerRef = useRef<NodeJS.Timeout | undefined>(undefined)
 	const [debouncedValue, setDebouncedValue] = useState<T | undefined>(
 		initializeValue ? value : undefined,
 	)

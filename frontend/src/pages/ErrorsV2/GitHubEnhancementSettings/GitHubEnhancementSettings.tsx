@@ -36,7 +36,7 @@ type StepAction = {
 	title: string
 	to?: string
 	onClick?: () => void
-	iconLeft?: React.ReactElement
+	iconLeft?: React.ReactElement<any>
 	emphasis?: 'low' | 'medium' | 'high'
 }
 

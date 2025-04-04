@@ -44,7 +44,7 @@ import * as style from './styles.css'
 type SessionViewProps = {
 	showLeftPanel: boolean
 	leftPanelWidth: number
-	playerRef: RefObject<HTMLDivElement>
+	playerRef: RefObject<HTMLDivElement | null>
 }
 
 export const SessionView: React.FC<SessionViewProps> = ({

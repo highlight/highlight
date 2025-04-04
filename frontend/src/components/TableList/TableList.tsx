@@ -108,7 +108,7 @@ export const TableList = ({
 									data={item.data}
 									downloadFileName={item.keyDisplayValue}
 									repr={
-										item.valueDisplayValue as ReactElement
+										item.valueDisplayValue as ReactElement<any>
 									}
 								/>
 							)}

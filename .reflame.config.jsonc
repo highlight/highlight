@@ -326,33 +326,6 @@
         "!index.ts",
       ],
     },
-    "@highlight-run/client": {
-      "sourceDirectory": "sdk/client/src",
-      "exports": {
-        ".": "./index.tsx",
-        "./src/listeners/first-load-listeners": "./listeners/first-load-listeners.tsx",
-        "./src/listeners/first-load-listeners.js": "./listeners/first-load-listeners.tsx",
-        "./src/listeners/network-listener/utils/utils": "./listeners/network-listener/utils/utils.ts",
-        "./src/utils/secure-id": "./utils/secure-id.ts",
-        "./src/utils/secure-id.js": "./utils/secure-id.ts",
-        "./src/utils/sessionStorage/highlightSession": "./utils/sessionStorage/highlightSession.ts",
-        "./src/utils/sessionStorage/highlightSession.js": "./utils/sessionStorage/highlightSession.ts",
-        "./src/utils/sessionStorage/sessionStorageKeys": "./utils/sessionStorage/sessionStorageKeys.ts",
-        "./src/utils/sessionStorage/sessionStorageKeys.js": "./utils/sessionStorage/sessionStorageKeys.ts",
-        "./src/utils/storage.js": "./utils/storage.ts",
-      },
-      "nodejsCompatibility": {
-        "packageJson": true
-      },
-      "specifierTransforms": {
-        "/publicGraphURI.ts": "consts:publicGraphURI",
-      },
-      "npmPackages": {
-        "rrweb": {
-          "version": "latest"
-        }
-      },
-    },
   },
   // NPM packages listed here will be installed by Reflame every time you update this file.
   //

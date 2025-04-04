@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { DismissButton, FocusScope, useOverlay } from 'react-aria'
 
 export default function Popover(props: any) {
-	let ref = useRef()
+	let ref = useRef(undefined)
 	let {
 		popoverRef = ref,
 		isOpen,

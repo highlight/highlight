@@ -9,7 +9,7 @@ import { Box } from '@highlight-run/ui/components'
 import PlanComparisonPage from '@pages/Billing/PlanComparisonPage'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
-import { PropsWithChildren, useCallback, useState } from 'react'
+import { PropsWithChildren, useCallback, useState, type JSX } from 'react'
 
 const FEATURE_DESCRIPTIONS = {
 	'Session Download': 'download a video .MP4 playback of the session.',

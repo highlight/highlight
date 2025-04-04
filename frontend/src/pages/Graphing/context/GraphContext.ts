@@ -4,7 +4,7 @@ import React from 'react'
 export type GraphData = { [graphID: string]: any[] }
 
 export interface GraphContext {
-	graphData: React.RefObject<GraphData>
+	graphData: React.RefObject<GraphData | null>
 	setGraphData: React.Dispatch<React.SetStateAction<GraphData>>
 	errors: string[]
 	setErrors: React.Dispatch<React.SetStateAction<string[]>>

@@ -1,0 +1,26 @@
+{
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"composite": true,
+		"declaration": true,
+		"declarationDir": "dist",
+		"downlevelIteration": true,
+		"emitDeclarationOnly": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"jsx": "react",
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"module": "esnext",
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
+		"rootDir": "..",
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "ESNext",
+		"types": ["@types/chrome", "@types/node", "vitest/globals"],
+	},
+	"include": ["src"],
+	"exclude": ["**/src/**/*.test.tsx"],
+	"files": ["package.json"],
+	"references": [{ "path": "../../rrweb/packages/rrweb" }]
+}

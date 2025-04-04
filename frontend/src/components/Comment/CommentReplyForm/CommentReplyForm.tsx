@@ -32,7 +32,7 @@ import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 
 interface CommentReplyFormProps {
 	commentID: string
-	parentRef?: React.RefObject<HTMLDivElement>
+	parentRef?: React.RefObject<HTMLDivElement | null>
 }
 
 export interface CommentReplyAction {

@@ -24,7 +24,7 @@ const BlogNavbar = ({
 	singleTag?: Tag
 	title: string
 	endPosition: number
-	attachUnder?: React.ReactElement
+	attachUnder?: React.ReactElement<any>
 }) => {
 	const [scrolled, setScrolled] = useState(false)
 	const [isOpen, setIsOpen] = useState(false)

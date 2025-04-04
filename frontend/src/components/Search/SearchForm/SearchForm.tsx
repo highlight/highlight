@@ -108,11 +108,11 @@ export type SearchFormProps = {
 	minDate: Date
 	timeMode: TIME_MODE
 	productType: ProductType
-	actions?: React.FC<{
+	actions?: (props: {
 		query: string
 		startDate: Date
 		endDate: Date
-	}>
+	}) => React.ReactNode
 	hideDatePicker?: boolean
 	hideCreateAlert?: boolean
 	savedSegmentType?: SavedSegmentEntityType
@@ -508,13 +508,15 @@ export const Search: React.FC<{
 	}
 
 	const debouncedGetKeysRef =
-		React.useRef<ReturnType<typeof debounce<typeof getKeys>>>()
+		React.useRef<ReturnType<typeof debounce<typeof getKeys>>>(undefined)
 	if (!debouncedGetKeysRef.current) {
 		debouncedGetKeysRef.current = debounce(getKeys, 300, { leading: true })
 	}
 
 	const debouncedGetKeyValuesRef =
-		React.useRef<ReturnType<typeof debounce<typeof getKeyValues>>>()
+		React.useRef<ReturnType<typeof debounce<typeof getKeyValues>>>(
+			undefined,
+		)
 	if (!debouncedGetKeyValuesRef.current) {
 		debouncedGetKeyValuesRef.current = debounce(getKeyValues, 300, {
 			leading: true,

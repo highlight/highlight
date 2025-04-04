@@ -110,7 +110,8 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 	const [loading, setLoading] = useState<boolean>(false)
 	const [phoneNumber, setPhoneNumber] = useState<string>('')
 	const [verificationId, setVerificationId] = useState<string>('')
-	const recaptchaVerifier = useRef<firebase.auth.ApplicationVerifier>()
+	const recaptchaVerifier =
+		useRef<firebase.auth.ApplicationVerifier>(undefined)
 
 	useEffect(() => {
 		recaptchaVerifier.current = new firebase.auth.RecaptchaVerifier(

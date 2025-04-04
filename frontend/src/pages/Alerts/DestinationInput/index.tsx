@@ -10,7 +10,7 @@ import {
 	Menu,
 } from '@highlight-run/ui/components'
 import * as React from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type JSX } from 'react'
 import { Link } from 'react-router-dom'
 
 import {

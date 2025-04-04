@@ -9,7 +9,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import moment from 'moment'
-import { useRef } from 'react'
+import { useRef, type JSX } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import LoadingBox from '@/components/LoadingBox'

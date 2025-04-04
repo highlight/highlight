@@ -147,7 +147,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 
 const Stat: React.FC<
 	React.PropsWithChildren<{
-		title: React.ReactElement
+		title: React.ReactElement<any>
 		noBorderRight?: boolean
 		noBorderBottom?: boolean
 	}>

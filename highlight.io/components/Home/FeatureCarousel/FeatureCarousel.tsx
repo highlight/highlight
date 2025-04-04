@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import useEmblaCarousel from 'embla-carousel-react'
 import { StaticImageData } from 'next/image'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type JSX } from 'react'
 import { isMobile } from 'react-device-detect'
 import {
 	HiBell,

@@ -13,6 +13,8 @@ import { SearchToken } from '@/components/Search/utils'
 
 import * as styles from './SearchForm.css'
 
+import type { JSX } from 'react'
+
 export const QueryPart: React.FC<{
 	typeaheadOpen: boolean
 	cursorIndex: number

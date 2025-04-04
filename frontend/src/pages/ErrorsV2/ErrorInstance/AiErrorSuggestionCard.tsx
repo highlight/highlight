@@ -2,6 +2,8 @@ import { Box, Stack, Text } from '@highlight-run/ui/components'
 
 import { Avatar } from '@/components/Avatar/Avatar'
 
+import type { JSX } from 'react'
+
 interface Props {
 	content: JSX.Element
 }

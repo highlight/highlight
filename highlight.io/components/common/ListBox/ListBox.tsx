@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import { useListBox, useOption } from 'react-aria'
 
 export default function ListBox(props: any) {
-	let ref = useRef()
+	let ref = useRef<HTMLUListElement>(null)
 	let { listBoxRef = ref, state } = props
 	let { listBoxProps } = useListBox(props, state, listBoxRef)
 
@@ -39,7 +39,7 @@ export function Option({
 	state: any
 	activeClass: string
 }) {
-	let ref = useRef<any>()
+	let ref = useRef<any>(null)
 	let { optionProps, isSelected, isFocused } = useOption(
 		{ key: item.key },
 		state,

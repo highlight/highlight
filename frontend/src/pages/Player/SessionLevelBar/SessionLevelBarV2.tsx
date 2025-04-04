@@ -250,7 +250,7 @@ export const SessionViewportMetadata = () => {
 export const SessionCurrentUrl = () => {
 	const { currentUrl } = useReplayerContext()
 	const [copyShown, setCopyShown] = useState<boolean>(false)
-	const delayRef = useRef<number>()
+	const delayRef = useRef<number>(undefined)
 
 	return (
 		<>

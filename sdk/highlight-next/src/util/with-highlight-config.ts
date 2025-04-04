@@ -123,9 +123,9 @@ const getHighlightConfig = async (
 			let re:
 				| Rewrite[]
 				| {
-						beforeFiles: Rewrite[]
-						afterFiles: Rewrite[]
-						fallback: Rewrite[]
+						beforeFiles?: Rewrite[]
+						afterFiles?: Rewrite[]
+						fallback?: Rewrite[]
 				  }
 			if (!config.rewrites) {
 				re = new Array<Rewrite>()

@@ -119,7 +119,7 @@ export const getTimelineEventTooltipText = (name: string) => {
 
 export const useResizePlayer = (
 	replayer: Replayer | undefined,
-	playerWrapperRef: React.RefObject<HTMLDivElement>,
+	playerWrapperRef: React.RefObject<HTMLDivElement | null>,
 	setScale: React.Dispatch<React.SetStateAction<number>>,
 ) => {
 	const { viewport } = useReplayerContext()

@@ -43,8 +43,10 @@ const COLUMNS = [
 				id: any
 				name:
 					| boolean
-					| React.ReactChild
-					| React.ReactFragment
+					| React.ReactElement<any>
+					| number
+					| string
+					| Iterable<React.ReactNode>
 					| React.ReactPortal
 					| null
 					| undefined
@@ -65,8 +67,10 @@ const COLUMNS = [
 		render: (
 			value:
 				| boolean
-				| React.ReactChild
-				| React.ReactFragment
+				| React.ReactElement<any>
+				| number
+				| string
+				| Iterable<React.ReactNode>
 				| React.ReactPortal
 				| null
 				| undefined,

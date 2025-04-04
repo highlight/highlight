@@ -17,7 +17,7 @@ export enum RightPlayerTab {
 interface PlayerUIContext {
 	isPlayerFullscreen: boolean
 	setIsPlayerFullscreen: React.Dispatch<React.SetStateAction<boolean>>
-	playerCenterPanelRef: React.RefObject<HTMLDivElement>
+	playerCenterPanelRef: React.RefObject<HTMLDivElement | null>
 	/** Used to show detailed information. */
 	selectedRightPanelTab: RightPlayerTab
 	setSelectedRightPanelTab: (newValue: RightPlayerTab) => void

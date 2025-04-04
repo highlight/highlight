@@ -240,7 +240,7 @@ interface onChunksLoad {
 	type: PlayerActionType.onChunksLoad
 	showPlayerMouseTail: boolean
 	time: number | undefined
-	playerRef: RefObject<HTMLDivElement>
+	playerRef: RefObject<HTMLDivElement | null>
 	action: ReplayerState
 }
 
@@ -271,7 +271,7 @@ interface setSessionResults {
 interface setIsLiveMode {
 	type: PlayerActionType.setIsLiveMode
 	isLiveMode: SetStateAction<boolean>
-	playerRef: RefObject<HTMLDivElement>
+	playerRef: RefObject<HTMLDivElement | null>
 }
 
 export const PlayerInitialState = {
@@ -551,7 +551,7 @@ const initReplayer = (
 	s: PlayerState,
 	events: HighlightEvent[],
 	showPlayerMouseTail: boolean,
-	playerRef: RefObject<HTMLDivElement>,
+	playerRef: RefObject<HTMLDivElement | null>,
 ) => {
 	const playerMountingRoot = playerRef.current
 	if (!playerMountingRoot) {

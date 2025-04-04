@@ -5,6 +5,8 @@ import CopyIcon from '../../../public/images/copy.svg'
 import highlightCodeTheme from '../../common/CodeBlock/highlight-code-theme'
 import styles from '../../Home/Home.module.scss'
 
+import type { JSX } from 'react'
+
 export const CodeSnippet = ({
 	content,
 	HeaderImage,

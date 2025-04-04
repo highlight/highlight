@@ -37,7 +37,9 @@ export const generateIdFromProps = (component: React.ReactNode) => {
 		if (typeof node === 'string') return node
 		if (Array.isArray(node)) return node.map(getNodeText).join('')
 		if (typeof node === 'object' && node != null)
-			return 'props' in node ? getNodeText(node.props.children) : ''
+			return 'props' in node
+				? getNodeText((node.props as any).children)
+				: ''
 		return String(node)
 	}
 	const text = getNodeText(component)

@@ -1,6 +1,6 @@
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
-import { useCallback, useEffect, useRef, useState, Fragment } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { BiChevronLeft, BiChevronRight } from 'react-icons/bi'
 import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa'
 import {
@@ -50,6 +50,7 @@ import Image from 'next/image'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 const DOCS_GITHUB_LINK = `github.com/highlight/highlight/blob/main/docs-content`
+
 export interface DocPath {
 	// e.g. '[tips, sessions-search-deep-linking.md]'
 	array_path: string[]
@@ -1035,13 +1036,13 @@ export default function DocPage({
 												DocsCard,
 												EnterpriseSelfHostCalendlyComponent,
 												DocsCardGroup,
-												h1: (props) => (
+												h1: ({ ref, ...props }) => (
 													<h1
 														{...props}
 														className="docH1"
 													/>
 												),
-												h2: (props) => {
+												h2: ({ ref, ...props }) => {
 													const id =
 														generateIdFromProps(
 															props.children,
@@ -1059,7 +1060,7 @@ export default function DocPage({
 														</Link>
 													)
 												},
-												h3: (props) => {
+												h3: ({ ref, ...props }) => {
 													const id =
 														generateIdFromProps(
 															props.children,
@@ -1077,13 +1078,13 @@ export default function DocPage({
 														</Link>
 													)
 												},
-												h4: (props) => (
+												h4: ({ ref, ...props }) => (
 													<h4 {...props} />
 												),
-												h5: (props) => (
+												h5: ({ ref, ...props }) => (
 													<h5 {...props} />
 												),
-												code: (props) => {
+												code: ({ ref, ...props }) => {
 													// check if props.children is a string
 													if (
 														props.children &&
@@ -1137,9 +1138,13 @@ export default function DocPage({
 														</code>
 													)
 												},
-												ul: MarkdownList,
-												ol: MarkdownList,
-												table: (props) => {
+												ul: ({ ref, ...props }) => (
+													<MarkdownList {...props} />
+												),
+												ol: ({ ref, ...props }) => (
+													<MarkdownList {...props} />
+												),
+												table: ({ ref, ...props }) => {
 													return (
 														<div
 															className={
@@ -1154,7 +1159,7 @@ export default function DocPage({
 														</div>
 													)
 												},
-												img: (props) => {
+												img: ({ ref, ...props }) => {
 													return (
 														<picture>
 															<Image

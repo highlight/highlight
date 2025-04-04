@@ -1,9 +1,11 @@
-import type { InkeepChatButtonProps } from '@inkeep/uikit'
+import type { InkeepChatButtonProps } from '@inkeep/cxkit-react'
 import useInkeepSettings from '@/hooks/useInkeepSettings'
 import { lazy, Suspense } from 'react'
 
 const ChatButton = lazy(() =>
-	import('@inkeep/uikit').then((mod) => ({ default: mod.InkeepChatButton })),
+	import('@inkeep/cxkit-react').then((mod) => ({
+		default: mod.InkeepChatButton,
+	})),
 )
 
 function InkeepChatButton() {

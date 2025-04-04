@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, type JSX } from 'react'
 import moment from 'moment'
 
 import * as buttonStyles from '@components/Button/style.css'

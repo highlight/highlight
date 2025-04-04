@@ -16,6 +16,6 @@
 	},
 	"include": ["src"],
 	"references": [{
-		"path": "../firstload"
+		"path": "../highlight-run"
 	}]
 }

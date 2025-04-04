@@ -25,6 +25,7 @@ import React, {
 	useMemo,
 	useRef,
 	useState,
+	type JSX,
 } from 'react'
 import { Area, Tooltip as RechartsTooltip, ReferenceArea } from 'recharts'
 import { CategoricalChartState } from 'recharts/types/chart/types'

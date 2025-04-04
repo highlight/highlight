@@ -57,7 +57,7 @@ import usePlayerConfiguration from './utils/usePlayerConfiguration'
 import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 
 export const usePlayer = (
-	playerRef: RefObject<HTMLDivElement>,
+	playerRef: RefObject<HTMLDivElement | null>,
 	autoPlay = false,
 ): ReplayerContextInterface => {
 	const noChunkRemoval = useFeatureFlag(Feature.PlayerNoChunkRemoval)
@@ -161,7 +161,7 @@ export const usePlayer = (
 	// chunk indexes that are currently being loaded (fetched over the network)
 	const loadingChunks = useRef<Set<number>>(new Set<number>())
 	// on blocking load, represents the next state
-	const blockingLoad = useRef<ReplayerState>()
+	const blockingLoad = useRef<ReplayerState>(undefined)
 	// the timestamp we are moving to next.
 	const target = useRef<{
 		time?: number
@@ -170,7 +170,7 @@ export const usePlayer = (
 		state: ReplayerState.Paused,
 	})
 
-	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>()
+	const unsubscribeSessionPayloadFn = useRef<(() => void) | null>(undefined)
 	const animationFrameID = useRef<number>(0)
 
 	const [

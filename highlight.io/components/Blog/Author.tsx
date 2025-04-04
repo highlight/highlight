@@ -5,7 +5,13 @@ import { HiGlobeAlt } from 'react-icons/hi'
 import { Typography } from '../common/Typography/Typography'
 import { Author } from './BlogPost/BlogPost'
 
-const SocialLink = ({ href, icon }: { href: string; icon: ReactElement }) => (
+const SocialLink = ({
+	href,
+	icon,
+}: {
+	href: string
+	icon: ReactElement<any>
+}) => (
 	<a
 		href={href}
 		className="transition-colors text-copy-on-dark"

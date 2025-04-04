@@ -188,7 +188,7 @@ export default function OTelCourse() {
 		setPlayer(newPlayer)
 	}
 
-	const clearProgressInterval = useRef<() => void>()
+	const clearProgressInterval = useRef<() => void>(undefined)
 	const onPlayerStateChange = (event: YT.OnStateChangeEvent) => {
 		if (event.data === window.YT.PlayerState.ENDED) {
 			updateVideoProgress(currentVideo!, 100)

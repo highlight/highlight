@@ -3,7 +3,7 @@ import type {
 	InkeepSearchSettings,
 	InkeepBaseSettings,
 	InkeepModalSettings,
-} from '@inkeep/uikit'
+} from '@inkeep/cxkit-react'
 
 type InkeepSharedSettings = {
 	baseSettings: InkeepBaseSettings
@@ -15,18 +15,48 @@ type InkeepSharedSettings = {
 const useInkeepSettings = (): InkeepSharedSettings => {
 	const baseSettings: InkeepBaseSettings = {
 		apiKey: '3721b3f00a2e161d2eb143932695e984a9db05ffb89bdb57',
-		integrationId: 'clxout8nk014hvhjs0jc5ccfb',
-		organizationId: 'org_k9k0yeE7ovNoTgrC',
 		primaryBrandColor: '#6C37F4',
 		organizationDisplayName: 'Highlight.io',
 		theme: {
-			stylesheetUrls: ['/styles/inkeep.css'],
-			tokens: {
-				fonts: {
-					body: "'Poppins",
-					heading: "'Poppins'",
-					mono: "'IBM Plex Mono'",
+			styles: [
+				{
+					key: 'custom-theme',
+					type: 'style',
+					value: `.ikp-search-bar-trigger__container {
+  border-radius: 40px;
+  margin: 0 16px;
+  border: 1px solid var(--divider-on-dark) !important;
+  background-color: var(--color-primary-background);
+  width: fit-content;
+}
+
+@media screen and (max-width: 768px) {
+  .ikp-search-bar-trigger__container {
+    width: fit-content;
+    margin: 0;
+  }
+
+  .ikp-search-bar-trigger__icon {
+    margin: 0;
+  }
+
+  .ikp-search-bar-trigger__kbd,
+  .ikp-search-bar-trigger__text {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .ikp-search-bar-trigger__container {
+    height: var(--ikp-sizes-7);
+  }
+}`,
 				},
+			],
+			fontFamily: {
+				body: "'Poppins",
+				heading: "'Poppins'",
+				mono: "'IBM Plex Mono'",
 			},
 		},
 	}
@@ -39,25 +69,31 @@ const useInkeepSettings = (): InkeepSharedSettings => {
 
 	const aiChatSettings: InkeepAIChatSettings = {
 		chatSubjectName: 'Highlight.io',
-		botAvatarSrcUrl:
+		aiAssistantAvatar:
 			'https://storage.googleapis.com/organization-image-assets/highlightio-botAvatarSrcUrl-1718084264557.svg',
-		getHelpCallToActions: [
+		getHelpOptions: [
 			{
 				name: 'Discord',
-				url: 'https://discord.gg/yxaXEAqgwN',
+				action: {
+					type: 'open_link',
+					url: 'https://discord.gg/yxaXEAqgwN',
+				},
 				icon: {
 					builtIn: 'FaDiscord',
 				},
 			},
 			{
 				name: 'Github',
-				url: 'https://github.com/highlight/highlight',
+				action: {
+					type: 'open_link',
+					url: 'https://github.com/highlight/highlight',
+				},
 				icon: {
 					builtIn: 'FaGithub',
 				},
 			},
 		],
-		quickQuestions: [
+		exampleQuestions: [
 			'How do I filter out sensitive data?',
 			'What backend languages are supported?',
 			'How do I record canvas or WebGL?',

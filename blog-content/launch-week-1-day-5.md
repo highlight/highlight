@@ -27,7 +27,7 @@ RRweb is a project that allows developers to record and replay dom interactions 
 
 "RRweb is an open source web session replay library, which provides easy-to-use APIs to record user's interactions and replay it remotely."
 
-When we started building Highlight, we used RRweb in only parts of our application, but as time went on, we began to rely more and more on it. Now, RRweb is the main recording library that powers the local Highlight recorder, which can be found [here](https://github.com/highlight/highlight/tree/main/sdk/firstload "https://github.com/highlight/highlight/tree/main/sdk/firstload"). Overall,we have a very good relationship with the RRweb team, and are very appreciative of their willingness to help clarify issues we're facing with the library.
+When we started building Highlight, we used RRweb in only parts of our application, but as time went on, we began to rely more and more on it. Now, RRweb is the main recording library that powers the local Highlight recorder, which can be found [here](https://github.com/highlight/highlight/tree/main/sdk/highlight-run "https://github.com/highlight/highlight/tree/main/sdk/highlight-run"). Overall,we have a very good relationship with the RRweb team, and are very appreciative of their willingness to help clarify issues we're facing with the library.
 
 Highlight is proudly a Gold Sponsor of the RRweb project, and we're very supportive of the direction the creators are taking the project in. Check it out at [https://rrweb.io](https://rrweb.io "https://rrweb.io").
 

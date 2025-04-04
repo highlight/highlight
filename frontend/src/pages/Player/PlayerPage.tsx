@@ -67,9 +67,9 @@ import { SessionView } from './SessionView'
 import * as style from './styles.css'
 import { formatResult } from '@pages/Sessions/SessionsFeedV3/SessionFeedConfigDropdown/helpers'
 
-const PlayerPageBase: React.FC<{ playerRef: RefObject<HTMLDivElement> }> = ({
-	playerRef,
-}) => {
+const PlayerPageBase: React.FC<{
+	playerRef: RefObject<HTMLDivElement | null>
+}> = ({ playerRef }) => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId, sessionSecureId } = useSessionParams()
 	const { sessionViewability, session } = useReplayerContext()

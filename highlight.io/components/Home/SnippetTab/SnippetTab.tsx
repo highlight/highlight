@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, type JSX } from 'react'
 
 import { AiOutlineDown } from 'react-icons/ai'
 import GoImage from '../../../public/images/language/GoIcon'

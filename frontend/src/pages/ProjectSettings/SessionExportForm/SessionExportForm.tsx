@@ -27,7 +27,7 @@ export const SessionExportForm = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
 	const { projectId } = useProjectId()
-	const ref = React.useRef<HTMLDivElement>()
+	const ref = React.useRef<HTMLDivElement>(undefined)
 	const { data, loading } = useGetSessionExportsQuery({
 		variables: {
 			project_id: projectId,

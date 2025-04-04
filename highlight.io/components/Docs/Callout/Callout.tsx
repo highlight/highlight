@@ -11,9 +11,9 @@ export const Callout = (props: { content: string }) => {
 				</div>
 			</div>
 			<div className={styles.calloutContent}>
-				<ReactMarkdown className={styles.contentRender}>
-					{props.content}
-				</ReactMarkdown>
+				<div className={styles.contentRender}>
+					<ReactMarkdown>{props.content}</ReactMarkdown>
+				</div>
 			</div>
 		</div>
 	)

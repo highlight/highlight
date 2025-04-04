@@ -1,12 +1,12 @@
 import { lazy, Suspense, useCallback, useState } from 'react'
-import type { InkeepCustomTriggerProps } from '@inkeep/uikit'
+import type { InkeepModalSearchAndChatProps } from '@inkeep/cxkit-react'
 import useInkeepSettings from '@/hooks/useInkeepSettings'
 import { Box, IconSolidChat, Menu } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 
 const CustomTrigger = lazy(() =>
-	import('@inkeep/uikit').then((mod) => ({
-		default: mod.InkeepCustomTrigger,
+	import('@inkeep/cxkit-react').then((mod) => ({
+		default: mod.InkeepModalSearchAndChat,
 	})),
 )
 
@@ -15,18 +15,17 @@ function InkeepChatSupportMenuItem() {
 	const { baseSettings, aiChatSettings, searchSettings, modalSettings } =
 		useInkeepSettings()
 
-	const handleClose = useCallback(() => {
-		console.log('Modal closed')
-		setIsOpen(false)
-	}, [])
+	const onOpenChange = useCallback(setIsOpen, [setIsOpen])
 
-	const customTriggerProps: InkeepCustomTriggerProps = {
-		isOpen,
-		onClose: handleClose,
+	const customTriggerProps: InkeepModalSearchAndChatProps = {
 		baseSettings,
 		aiChatSettings,
 		searchSettings,
-		modalSettings,
+		modalSettings: {
+			isOpen,
+			onOpenChange,
+			...modalSettings,
+		},
 	}
 
 	return (

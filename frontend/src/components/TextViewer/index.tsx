@@ -16,10 +16,10 @@ import { Button } from '@/components/Button'
 import { styledHorizontalScrollbar } from '@/style/common.css'
 
 type Props = {
-	title: React.ReactElement
+	title: React.ReactElement<any>
 	data: object
 	downloadFileName?: string
-	repr?: React.ReactElement
+	repr?: React.ReactElement<any>
 }
 
 const TextViewer = React.memo(
