@@ -42,6 +42,7 @@
 		"firebase": "^11.3.1",
 		"framer-motion": "^6.3.15",
 		"graphql": "^15.9.0",
+		"highlight.io": "workspace:*",
 		"highlight.run": "workspace:*",
 		"js-cookie": "^3.0.1",
 		"launchdarkly-react-client-sdk": "^3.6.1",

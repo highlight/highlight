@@ -10258,6 +10258,7 @@ __metadata:
     framer-motion: "npm:^6.3.15"
     graphql: "npm:^15.9.0"
     happy-dom: "npm:^15.10.2"
+    highlight.io: "workspace:*"
     highlight.run: "workspace:*"
     js-cookie: "npm:^3.0.1"
     jsonc-parser: "npm:^3.2.0"
@@ -40114,7 +40115,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highlight.io@workspace:highlight.io":
+"highlight.io@workspace:*, highlight.io@workspace:highlight.io":
   version: 0.0.0-use.local
   resolution: "highlight.io@workspace:highlight.io"
   dependencies:
