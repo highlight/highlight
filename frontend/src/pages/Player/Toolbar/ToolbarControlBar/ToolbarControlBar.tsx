@@ -64,6 +64,7 @@ import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import clsx from 'clsx'
 import { useCallback, useState } from 'react'
+import { useAuthContext } from '@/authentication/AuthContext'
 
 import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.css'
 import style from './ToolbarControlBar.module.css'
@@ -71,6 +72,7 @@ import style from './ToolbarControlBar.module.css'
 const EventTypeToExclude: readonly string[] = []
 
 export const ToolbarControlBar = () => {
+	const { isLoggedIn } = useAuthContext()
 	const {
 		setTime,
 		time,
@@ -105,6 +107,7 @@ export const ToolbarControlBar = () => {
 	const disableControls =
 		state === ReplayerState.Loading || !canViewSession || !isPlayerReady
 	const showLiveToggle = session?.processed === false && !disableControls
+	const disableDevTools = disableControls || !isLoggedIn || isPlayerFullscreen
 
 	const [showSettings, setShowSettings] = useState(false)
 
@@ -330,14 +333,12 @@ export const ToolbarControlBar = () => {
 										setShowDevTools(!showDevTools)
 									}}
 									checked={showDevTools}
-									disabled={
-										isPlayerFullscreen || disableControls
-									}
+									disabled={disableDevTools}
 									iconLeft={<IconSolidTerminal size={14} />}
 								/>
 							}
 							delayed
-							disabled={isPlayerFullscreen || disableControls}
+							disabled={disableDevTools}
 						>
 							<KeyboardShortcut
 								label="Dev tools"
@@ -404,6 +405,7 @@ interface ControlSettingsProps {
 }
 const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 	const { projectId } = useProjectId()
+	const { isLoggedIn } = useAuthContext()
 	const [showSessionSettings, setShowSessionSettings] = useState(true)
 	const { currentWorkspace } = useApplicationContext()
 	const {
@@ -493,6 +495,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			<button
 				className={style.settingsButton}
 				onClick={() => setShowDevTools(!showDevTools)}
+				disabled={!isLoggedIn}
 			>
 				<IconSolidTerminal />
 				<Text color="secondaryContentText">Dev tools</Text>
@@ -503,6 +506,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				<Switch
 					trackingId="DevToolsMenuToggle"
 					checked={showDevTools}
+					disabled={!isLoggedIn}
 					onChange={(checked: boolean) => {
 						setShowDevTools(checked)
 					}}

@@ -10,6 +10,7 @@ import usePlayerConfiguration, {
 import analytics from '@util/analytics'
 import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { useAuthContext } from '@/authentication/AuthContext'
 
 import { ReplayerState, useReplayerContext } from '../ReplayerContext'
 
@@ -41,6 +42,7 @@ export const getNewTimeWithSkip = ({
 }
 
 export const usePlayerKeyboardShortcuts = () => {
+	const { isLoggedIn } = useAuthContext()
 	const { state, play, pause, time, replayer, sessionMetadata } =
 		useReplayerContext()
 	const { setIsPlayerFullscreen, setRightPanelView } = usePlayerUIContext()
@@ -265,6 +267,11 @@ export const usePlayerKeyboardShortcuts = () => {
 	useHotkeys(
 		'cmd+/, ctrl+/',
 		(e) => {
+			if (!isLoggedIn) {
+				toast.error('Must be logged in to view the dev tools.')
+				return
+			}
+
 			analytics.track('PlayerToggleDevToolsKeyboardShortcut')
 			moveFocusToDocument(e)
 
