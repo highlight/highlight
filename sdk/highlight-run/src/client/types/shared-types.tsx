@@ -1,6 +1,6 @@
 import StackTrace from 'stacktrace-js'
 
-export type Source = 'segment' | 'launchdarkly' | undefined
+export type Source = 'segment' | 'LaunchDarkly' | undefined
 
 export type ConsoleMessage = {
 	value?: Array<string>

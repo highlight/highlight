@@ -78,7 +78,12 @@ import {
 	IFRAME_PARENT_READY,
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
-import { ConsoleMessage, ErrorMessageType, Source } from './types/shared-types'
+import {
+	ConsoleMessage,
+	ErrorMessage,
+	ErrorMessageType,
+	Source,
+} from './types/shared-types'
 import { getSimpleSelector } from './utils/dom'
 import { getGraphQLRequestWrapper } from './utils/graph'
 import { clearHighlightLogs, getHighlightLogs } from './utils/highlight-logging'
@@ -110,6 +115,7 @@ import {
 	Counter,
 	trace,
 } from '@opentelemetry/api'
+import { LDIdentify, LDTrack } from 'integrations/launchdarkly'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -457,20 +463,6 @@ export class Highlight {
 			user_identifier.toString(),
 		)
 		setItem(SESSION_STORAGE_KEYS.USER_OBJECT, JSON.stringify(user_object))
-		// for messages not coming from the hook
-		if (source !== 'launchdarkly') {
-			this._ldClient?.identify({
-				kind: 'multi',
-				user: {
-					key: user_identifier,
-					identifier: user_identifier,
-				},
-				session: {
-					key: this.sessionData.sessionSecureID,
-					sessionSecureID: this.sessionData.sessionSecureID,
-				},
-			})
-		}
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Identify,
@@ -479,6 +471,15 @@ export class Highlight {
 				source,
 			},
 		})
+		if (this._ldClient) {
+			LDIdentify(
+				this._ldClient,
+				this.sessionData.sessionSecureID,
+				user_identifier,
+				user_object,
+				source,
+			)
+		}
 	}
 
 	pushCustomError(message: string, payload?: string) {
@@ -519,11 +520,8 @@ export class Highlight {
 		if (type === 'React.ErrorBoundary') {
 			event = 'ErrorBoundary: ' + event
 		}
-		this._ldClient?.track('$ld:telemetry:error', {
-			sessionSecureID: this.sessionData.sessionSecureID,
-		})
 		const res = parseError(error)
-		this._firstLoadListeners.errors.push({
+		const errorMsg: ErrorMessage = {
 			event,
 			type: type ?? 'custom',
 			url: window.location.href,
@@ -533,7 +531,11 @@ export class Highlight {
 			stackTrace: res,
 			timestamp: new Date().toISOString(),
 			payload: JSON.stringify(payload),
-		})
+		}
+		this._firstLoadListeners.errors.push(errorMsg)
+		if (this._ldClient) {
+			LDTrack(this._ldClient, this.sessionData.sessionSecureID, errorMsg)
+		}
 	}
 
 	addProperties(properties_obj = {}, typeArg?: PropertyType) {

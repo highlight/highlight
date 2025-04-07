@@ -40,7 +40,7 @@ import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
 import { getNoopSpan } from './client/otel/utils.js'
-import { setupLaunchDarklyIntegration } from './launchdarkly.js'
+import { setupLaunchDarklyIntegration } from './client/integrations/launchdarkly.js'
 import { ViewportResizeListenerArgs } from './client/listeners/viewport-resize-listener'
 
 enum MetricCategory {
