@@ -3,7 +3,7 @@ import { eventWithTime, listenerHandler } from '@rrweb/types'
 import { print } from 'graphql'
 import { GraphQLClient } from 'graphql-request'
 import stringify from 'json-stringify-safe'
-import { record, addCustomEvent as rrwebAddCustomEvent } from 'rrweb'
+import { addCustomEvent as rrwebAddCustomEvent, record } from 'rrweb'
 import {
 	getSdk,
 	PushPayloadDocument,
@@ -108,14 +108,8 @@ import type { HighlightClientRequestWorker } from './workers/highlight-client-wo
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
 import { MessageType, PropertyType } from './workers/types'
 import { parseError } from './utils/errors'
-import {
-	Gauge,
-	UpDownCounter,
-	Histogram,
-	Counter,
-	trace,
-} from '@opentelemetry/api'
-import { LDIdentify, LDTrack } from 'integrations/launchdarkly'
+import { Counter, Gauge, Histogram, UpDownCounter } from '@opentelemetry/api'
+import { LDIdentify, LDTrack } from './integrations/launchdarkly'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
