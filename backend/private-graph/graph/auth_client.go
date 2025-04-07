@@ -435,8 +435,16 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 			return
 		}
 
-		queryParams := url.Values{}
+		// validates the redirect hostname (u.Host) against known clients
+		// to protect from arbitrary redirects
 		client := c.oauthClientsByDomain[u.Host]
+		if client == nil {
+			log.WithContext(ctx).WithField("domain", u.Host).Error("no oauth client found")
+			http.Error(w, "no oauth client found", http.StatusBadRequest)
+			return
+		}
+
+		queryParams := url.Values{}
 		queryParams.Add("client_id", client.oauthConfig.ClientID)
 		queryParams.Add("response_type", "code")
 		queryParams.Add("redirect_uri", env.Config.OAuthRedirectUrl)
