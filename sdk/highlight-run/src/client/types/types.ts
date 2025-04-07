@@ -5,11 +5,11 @@ import {
 	IntegrationOptions,
 	MetricCategory,
 	NetworkRecordingOptions,
-	SessionShortcutOptions,
 	OtelOptions,
+	SessionShortcutOptions,
 } from './client'
 import { ErrorMessageType, Source } from './shared-types'
-import { Hook } from './Hooks.js'
+import { LDClientMin } from '../integrations/launchdarkly'
 
 export declare interface Metadata {
 	[key: string]: string | boolean | number
@@ -27,12 +27,6 @@ export interface RecordMetric {
 	category?: MetricCategory
 	group?: string
 	tags?: { name: string; value: string }[]
-}
-
-export interface LDClientMin {
-	track(key: string, data?: any, metricValue?: number): void
-	identify(ctx: any): void
-	addHook(hook: Hook): void
 }
 
 export type PrivacySettingOption = 'strict' | 'default' | 'none'

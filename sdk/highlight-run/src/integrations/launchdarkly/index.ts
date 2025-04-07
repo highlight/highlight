@@ -1,16 +1,14 @@
 import type { LDMultiKindContext } from './types/LDMultiKindContext'
 import type { LDContext } from './types/LDContext'
 import type { LDContextCommon } from './types/LDContextCommon'
-import type {
+import {
+	Hook,
 	IdentifySeriesContext,
 	IdentifySeriesData,
 	IdentifySeriesResult,
 } from '@highlight-run/client/src/types/Hooks'
 import { trace } from '@opentelemetry/api'
-import type {
-	HighlightPublicInterface,
-	LDClientMin,
-} from '@highlight-run/client/src/types/types'
+import type { HighlightPublicInterface } from '@highlight-run/client/src/types/types'
 import type {
 	ErrorMessage,
 	Source,
@@ -49,6 +47,14 @@ function getCanonicalKey(context: LDContext) {
 	}
 
 	return context.key
+}
+
+export interface LDClientMin {
+	track(key: string, data?: any, metricValue?: number): void
+
+	identify(ctx: any): void
+
+	addHook(hook: Hook): void
 }
 
 export function setupLaunchDarklyIntegration(
