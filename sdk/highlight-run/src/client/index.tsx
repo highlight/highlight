@@ -78,7 +78,7 @@ import {
 	IFRAME_PARENT_READY,
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
-import { ConsoleMessage, ErrorMessageType } from './types/shared-types'
+import { ConsoleMessage, ErrorMessageType, Source } from './types/shared-types'
 import { getSimpleSelector } from './utils/dom'
 import { getGraphQLRequestWrapper } from './utils/graph'
 import { clearHighlightLogs, getHighlightLogs } from './utils/highlight-logging'
@@ -101,7 +101,7 @@ import {
 import { getDefaultDataURLOptions } from './utils/utils'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
-import { MessageType, PropertyType, Source } from './workers/types'
+import { MessageType, PropertyType } from './workers/types'
 import { parseError } from './utils/errors'
 import {
 	Gauge,
@@ -457,7 +457,20 @@ export class Highlight {
 			user_identifier.toString(),
 		)
 		setItem(SESSION_STORAGE_KEYS.USER_OBJECT, JSON.stringify(user_object))
-		// TODO(vkorolik) call ldClient.identify() for messages not coming from the hook
+		// for messages not coming from the hook
+		if (source !== 'launchdarkly') {
+			this._ldClient?.identify({
+				kind: 'multi',
+				user: {
+					key: user_identifier,
+					identifier: user_identifier,
+				},
+				session: {
+					key: this.sessionData.sessionSecureID,
+					sessionSecureID: this.sessionData.sessionSecureID,
+				},
+			})
+		}
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Identify,
@@ -534,7 +547,7 @@ export class Highlight {
 				delete obj[key]
 			}
 		})
-		this._ldClient?.track('$ld:track', {
+		this._ldClient?.track('$ld:telemetry:addProperties', {
 			sessionSecureID: this.sessionData.sessionSecureID,
 			propertyType: typeArg,
 			...properties_obj,

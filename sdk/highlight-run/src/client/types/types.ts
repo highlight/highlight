@@ -8,7 +8,7 @@ import {
 	SessionShortcutOptions,
 	OtelOptions,
 } from './client'
-import { ErrorMessageType } from './shared-types'
+import { ErrorMessageType, Source } from './shared-types'
 import { Hook } from './Hooks.js'
 
 export declare interface Metadata {
@@ -286,7 +286,7 @@ export declare interface HighlightPublicInterface {
 	 * @param identifier Is commonly set as an email or UUID.
 	 * @param metadata Additional details you want to associate to the user.
 	 */
-	identify: (identifier: string, metadata?: Metadata) => void
+	identify: (identifier: string, metadata?: Metadata, source?: Source) => void
 	/**
 	 * Call this to record when you want to track a specific event happening in your application.
 	 * @example track('startedCheckoutProcess', { cartSize: 10, value: 85 })

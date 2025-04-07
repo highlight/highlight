@@ -23,7 +23,10 @@ import {
 } from './integrations/mixpanel.js'
 
 import { HIGHLIGHT_URL } from './client/constants/sessions.js'
-import type { ErrorMessageType } from './client/types/shared-types'
+import type {
+	ErrorMessageType,
+	Source,
+} from './client/types/shared-types'
 import {
 	getPreviousSessionData,
 	loadCookieSessionData,
@@ -323,10 +326,14 @@ const H: HighlightPublicInterface = {
 			H.onHighlightReady(() => highlight_obj.stopRecording(true))
 		}
 	},
-	identify: (identifier: string, metadata: Metadata = {}) => {
+	identify: (
+		identifier: string,
+		metadata: Metadata = {},
+		source?: Source,
+	) => {
 		try {
 			H.onHighlightReady(() =>
-				highlight_obj.identify(identifier, metadata),
+				highlight_obj.identify(identifier, metadata, source),
 			)
 		} catch (e) {
 			HighlightWarning('identify', e)
