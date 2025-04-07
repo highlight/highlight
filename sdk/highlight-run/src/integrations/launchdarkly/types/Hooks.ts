@@ -1,4 +1,4 @@
-import { LDContext } from './LDContext'
+import { LDContext } from '../integrations/launchdarkly/types/LDContext'
 
 /**
  * Contextual information provided to evaluation stages.

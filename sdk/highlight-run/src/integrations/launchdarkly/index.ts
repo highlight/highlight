@@ -1,17 +1,20 @@
-import { LDMultiKindContext } from '@highlight-run/client/src/types/LDMultiKindContext'
-import { LDContext } from '@highlight-run/client/src/types/LDContext'
-import { LDContextCommon } from '@highlight-run/client/src/types/LDContextCommon'
-import {
+import type { LDMultiKindContext } from './types/LDMultiKindContext'
+import type { LDContext } from './types/LDContext'
+import type { LDContextCommon } from './types/LDContextCommon'
+import type {
 	IdentifySeriesContext,
 	IdentifySeriesData,
 	IdentifySeriesResult,
 } from '@highlight-run/client/src/types/Hooks'
 import { trace } from '@opentelemetry/api'
-import {
+import type {
 	HighlightPublicInterface,
 	LDClientMin,
 } from '@highlight-run/client/src/types/types'
-import { ErrorMessage, Source } from '../types/shared-types'
+import type {
+	ErrorMessage,
+	Source,
+} from '@highlight-run/client/src/types/shared-types'
 
 const FEATURE_FLAG_SCOPE = 'feature_flag'
 const FEATURE_FLAG_KEY_ATTR = `${FEATURE_FLAG_SCOPE}.key`
