@@ -20,10 +20,15 @@ H.registerLD(ldClient);
 
 ## API
 
+### `identify()`
+
+Calling [`H.identify()`](../../sdk/client.md#Htrack) will forward the data to LaunchDarkly's `identify()`. 
+
+
 ### `track()`
 
 Calling [`H.track()`](../../sdk/client.md#Htrack) will forward the data to LaunchDarkly's `track()`. 
 
 ### `consumeError()`
 
-Calling [`H.consumeError()`](../../sdk/client.md#Hidentify) will forward the data to LaunchDarkly's `consumeError()`.
+Calling [`H.consumeError()`](../../sdk/client.md#Hidentify) will forward the data to LaunchDarkly's `track()` as a `$ld:telemetry:error` event.
