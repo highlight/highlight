@@ -109,7 +109,7 @@ import HighlightClientWorker from './workers/highlight-client-worker?worker&inli
 import { MessageType, PropertyType } from './workers/types'
 import { parseError } from './utils/errors'
 import { Counter, Gauge, Histogram, UpDownCounter } from '@opentelemetry/api'
-import { LDIdentify, LDTrack } from './integrations/launchdarkly'
+import { LDIdentify, LDError, LDTrack } from './integrations/launchdarkly'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -465,15 +465,13 @@ export class Highlight {
 				source,
 			},
 		})
-		if (this._ldClient) {
-			LDIdentify(
-				this._ldClient,
-				this.sessionData.sessionSecureID,
-				user_identifier,
-				user_object,
-				source,
-			)
-		}
+		LDIdentify(
+			this._ldClient,
+			this.sessionData.sessionSecureID,
+			user_identifier,
+			user_object,
+			source,
+		)
 	}
 
 	pushCustomError(message: string, payload?: string) {
@@ -527,9 +525,7 @@ export class Highlight {
 			payload: JSON.stringify(payload),
 		}
 		this._firstLoadListeners.errors.push(errorMsg)
-		if (this._ldClient) {
-			LDTrack(this._ldClient, this.sessionData.sessionSecureID, errorMsg)
-		}
+		LDError(this._ldClient, this.sessionData.sessionSecureID, errorMsg)
 	}
 
 	addProperties(properties_obj = {}, typeArg?: PropertyType) {
@@ -543,7 +539,7 @@ export class Highlight {
 				delete obj[key]
 			}
 		})
-		this._ldClient?.track('$ld:telemetry:addProperties', {
+		LDTrack(this._ldClient, this.sessionData.sessionSecureID, {
 			sessionSecureID: this.sessionData.sessionSecureID,
 			propertyType: typeArg,
 			...properties_obj,

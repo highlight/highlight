@@ -1,4 +1,4 @@
-import { LDContextCommon } from './LDContextCommon';
+import { LDContextCommon } from './LDContextCommon'
 
 /**
  * A context which represents a single kind.
@@ -17,8 +17,8 @@ import { LDContextCommon } from './LDContextCommon';
  * for that organization, and a single attribute 'someAttribute'.
  */
 export interface LDSingleKindContext extends LDContextCommon {
-  /**
-   * The kind of the context.
-   */
-  kind: string;
+	/**
+	 * The kind of the context.
+	 */
+	kind: string
 }

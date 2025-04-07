@@ -21,6 +21,7 @@ const FEATURE_FLAG_VARIANT_ATTR = `${FEATURE_FLAG_SCOPE}.variant`
 const FEATURE_FLAG_SPAN_NAME = 'evaluation'
 
 const LD_ERROR_EVENT = '$ld:telemetry:error'
+const LD_TRACK_EVENT = '$ld:telemetry:track'
 
 function encodeKey(key: string): string {
 	if (key.includes('%') || key.includes(':')) {
@@ -102,12 +103,15 @@ export function setupLaunchDarklyIntegration(
 }
 
 export function LDIdentify(
-	client: LDClientMin,
+	client: LDClientMin | undefined,
 	sessionSecureID: string,
 	user_identifier: string,
 	user_object = {},
 	source?: Source,
 ) {
+	if (!client) {
+		return
+	}
 	// for messages not coming from the hook
 	if (source !== 'LaunchDarkly') {
 		client.identify({
@@ -125,13 +129,30 @@ export function LDIdentify(
 	}
 }
 
-export function LDTrack(
-	client: LDClientMin,
+export function LDError(
+	client: LDClientMin | undefined,
 	sessionSecureID: string,
 	error: ErrorMessage,
 ) {
+	if (!client) {
+		return
+	}
 	client.track(LD_ERROR_EVENT, {
 		...error,
+		sessionSecureID,
+	})
+}
+
+export function LDTrack(
+	client: LDClientMin | undefined,
+	sessionSecureID: string,
+	metadata: object,
+) {
+	if (!client) {
+		return
+	}
+	client.track(LD_TRACK_EVENT, {
+		...metadata,
 		sessionSecureID,
 	})
 }

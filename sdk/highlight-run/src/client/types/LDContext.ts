@@ -1,6 +1,6 @@
-import { LDMultiKindContext } from './LDMultiKindContext';
-import { LDSingleKindContext } from './LDSingleKindContext';
-import { LDUser } from './LDUser';
+import { LDMultiKindContext } from './LDMultiKindContext'
+import { LDSingleKindContext } from './LDSingleKindContext'
+import { LDUser } from './LDUser'
 
 /**
  * A LaunchDarkly context object.  LaunchDarkly contexts are objects representing users, devices, organizations, and
@@ -20,4 +20,4 @@ import { LDUser } from './LDUser';
  * See {@link LDSingleKindContext} and {@link LDMultiKindContext} for examples.  {@link LDContextCommon} includes
  * additional propert
  */
-export type LDContext = LDUser | LDSingleKindContext | LDMultiKindContext;
+export type LDContext = LDUser | LDSingleKindContext | LDMultiKindContext

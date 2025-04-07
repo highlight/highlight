@@ -1,4 +1,4 @@
-import { LDContextCommon } from './LDContextCommon';
+import { LDContextCommon } from './LDContextCommon'
 
 /**
  * A context which represents multiple kinds. Each kind having its own key and attributes.
@@ -32,16 +32,16 @@ import { LDContextCommon } from './LDContextCommon';
  * attributes, and _meta attributes.
  */
 export interface LDMultiKindContext {
-  /**
-   * The kind of the context.
-   */
-  kind: 'multi';
+	/**
+	 * The kind of the context.
+	 */
+	kind: 'multi'
 
-  /**
-   * The contexts which compose this multi-kind context.
-   *
-   * These should be of type LDContextCommon. "multi" is to allow
-   * for the top level "kind" attribute.
-   */
-  [kind: string]: 'multi' | LDContextCommon;
+	/**
+	 * The contexts which compose this multi-kind context.
+	 *
+	 * These should be of type LDContextCommon. "multi" is to allow
+	 * for the top level "kind" attribute.
+	 */
+	[kind: string]: 'multi' | LDContextCommon
 }
