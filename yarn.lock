@@ -10192,7 +10192,6 @@ __metadata:
     "@highlight-run/sourcemap-uploader": "workspace:*"
     "@highlight-run/ui": "workspace:*"
     "@inkeep/uikit": "npm:^0.3.19"
-    "@launchdarkly/js-client-sdk": "npm:^0.4.1"
     "@mux/mux-player": "npm:^2.4.1"
     "@mux/mux-player-react": "npm:^2.4.1"
     "@opentelemetry/api": "npm:^1.9.0"
@@ -11971,31 +11970,6 @@ __metadata:
   bin:
     ladle: lib/cli/cli.js
   checksum: 10/901dbfd067207360e2bb3043f05185a905ae4d00e0c9c979c2dc7f683a374aec2b8f50f32fe22fdd7e479e0aff861dd57a60a74aab9a11881e14c3b5977bc8c0
-  languageName: node
-  linkType: hard
-
-"@launchdarkly/js-client-sdk-common@npm:1.12.3":
-  version: 1.12.3
-  resolution: "@launchdarkly/js-client-sdk-common@npm:1.12.3"
-  dependencies:
-    "@launchdarkly/js-sdk-common": "npm:2.13.0"
-  checksum: 10/1a68b443c0d4f577cf9ad20dc5ed2a4d01b87a17a4621db8aaf9931bf506bcf92042202de4a1822921cd7cbdea759a8787af50b3dafe38275a3cbe8613871aea
-  languageName: node
-  linkType: hard
-
-"@launchdarkly/js-client-sdk@npm:^0.4.1":
-  version: 0.4.1
-  resolution: "@launchdarkly/js-client-sdk@npm:0.4.1"
-  dependencies:
-    "@launchdarkly/js-client-sdk-common": "npm:1.12.3"
-  checksum: 10/b949ef137eb8ceeb90afd1ac61e6854f9ec3829fca15a4c1d10cdec0ef0f5baac96acaffaf6c71c1c27a9744cd027a79e5e3fdc79b833dccb53e903f9ba02b33
-  languageName: node
-  linkType: hard
-
-"@launchdarkly/js-sdk-common@npm:2.13.0":
-  version: 2.13.0
-  resolution: "@launchdarkly/js-sdk-common@npm:2.13.0"
-  checksum: 10/2c32ff5b5d77af8cfc228476a512ad6191868811af402d0b85586d871c1974cc3386e1a2efa9aece4529d37815b183575e74e7c01179d8183507b5dfd548290e
   languageName: node
   linkType: hard
 
