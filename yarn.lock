@@ -11973,6 +11973,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@launchdarkly/js-client-sdk-common@npm:1.12.3":
+  version: 1.12.3
+  resolution: "@launchdarkly/js-client-sdk-common@npm:1.12.3"
+  dependencies:
+    "@launchdarkly/js-sdk-common": "npm:2.13.0"
+  checksum: 10/1a68b443c0d4f577cf9ad20dc5ed2a4d01b87a17a4621db8aaf9931bf506bcf92042202de4a1822921cd7cbdea759a8787af50b3dafe38275a3cbe8613871aea
+  languageName: node
+  linkType: hard
+
+"@launchdarkly/js-client-sdk@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "@launchdarkly/js-client-sdk@npm:0.4.1"
+  dependencies:
+    "@launchdarkly/js-client-sdk-common": "npm:1.12.3"
+  checksum: 10/b949ef137eb8ceeb90afd1ac61e6854f9ec3829fca15a4c1d10cdec0ef0f5baac96acaffaf6c71c1c27a9744cd027a79e5e3fdc79b833dccb53e903f9ba02b33
+  languageName: node
+  linkType: hard
+
+"@launchdarkly/js-sdk-common@npm:2.13.0":
+  version: 2.13.0
+  resolution: "@launchdarkly/js-sdk-common@npm:2.13.0"
+  checksum: 10/2c32ff5b5d77af8cfc228476a512ad6191868811af402d0b85586d871c1974cc3386e1a2efa9aece4529d37815b183575e74e7c01179d8183507b5dfd548290e
+  languageName: node
+  linkType: hard
+
 "@leeoniya/ufuzzy@npm:1.0.14":
   version: 1.0.14
   resolution: "@leeoniya/ufuzzy@npm:1.0.14"
@@ -49106,6 +49131,7 @@ __metadata:
   dependencies:
     "@highlight-run/next": "workspace:*"
     "@highlight-run/pino": "workspace:*"
+    "@launchdarkly/js-client-sdk": "npm:^0.4.1"
     "@next/env": "npm:^15.1.7"
     "@prisma/client": "npm:^6.4.1"
     "@prisma/instrumentation": "npm:^6.4.1"

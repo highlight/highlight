@@ -15,13 +15,27 @@ export function HighlightButtons() {
 		>
 			<Button
 				onClick={() => {
-					H.identify('vadim@highlight.io', {
-						foo: 'bar',
-						host: window.location.host,
+					// @ts-ignore
+					const flag = window.ldClient.variation(
+						'my-boolean-flag',
+						true,
+					)
+					console.log('flag', flag)
+				}}
+			>
+				Variation
+			</Button>
+			<Button
+				onClick={() => {
+					// @ts-ignore
+					window.ldClient.identify({
+						kind: 'multi',
+						user: { key: 'vadim' },
+						org: { key: 'tester' },
 					})
 				}}
 			>
-				Identify As Vadim
+				Identify
 			</Button>
 			<Button
 				onClick={() => {
