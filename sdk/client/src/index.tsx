@@ -141,7 +141,7 @@ export type HighlightClassOptions = {
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 	storageMode?: 'sessionStorage' | 'localStorage'
-	skipCookieSessionDataLoad?: true
+	sessionCookie?: true
 	sendMode?: 'webworker' | 'local'
 	otlpEndpoint?: HighlightOptions['otlpEndpoint']
 	otel?: HighlightOptions['otel']
@@ -236,7 +236,7 @@ export class Highlight {
 			)
 			setStorageMode(options.storageMode)
 		}
-		setCookieWriteEnabled(!options?.skipCookieSessionDataLoad)
+		setCookieWriteEnabled(!!options?.sessionCookie)
 
 		this._worker =
 			new HighlightClientWorker() as HighlightClientRequestWorker

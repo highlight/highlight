@@ -73,6 +73,7 @@ const track = (event: string, metadata?: rudderanalytics.apiObject) => {
 	rudderanalytics.track(event, omit(metadata, rudderstackReserved))
 }
 
+// LaunchDarkly identify calls happen inside LaunchDarklyProvider.
 const identify = (email: string, traits?: rudderanalytics.apiObject) => {
 	H.identify(email, traits as Metadata)
 
@@ -98,7 +99,7 @@ const identify = (email: string, traits?: rudderanalytics.apiObject) => {
 }
 
 // The LaunchDarkly SDK should track page views automatically based on changes
-// made view the history object.
+// made to the history object.
 const page = (name: string, properties?: rudderanalytics.apiObject) => {
 	if (isDisabled) {
 		console.debug(`highlight analytics disabled`)
