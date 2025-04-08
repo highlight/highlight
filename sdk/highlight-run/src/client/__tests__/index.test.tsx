@@ -31,7 +31,8 @@ describe('LD integration', () => {
 
 		highlight.identify('123', {})
 		highlight.addProperties('test', {})
-		expect(client.identify).toHaveBeenCalled()
+		// noop for launchdarkly
+		expect(client.identify).not.toHaveBeenCalled()
 		expect(client.track).toHaveBeenCalled()
 	})
 })

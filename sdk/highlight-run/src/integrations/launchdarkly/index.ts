@@ -121,21 +121,7 @@ export class LaunchDarklyIntegration implements IntegrationClient {
 		user_object = {},
 		source?: Source,
 	) {
-		// for messages not coming from the hook
-		if (source !== 'LaunchDarkly') {
-			this.client.identify({
-				kind: 'multi',
-				user: {
-					...user_object,
-					key: user_identifier,
-					identifier: user_identifier,
-				},
-				session: {
-					key: sessionSecureID,
-					sessionSecureID,
-				},
-			})
-		}
+		// noop - no highlight forwarding of identify call
 	}
 
 	error(sessionSecureID: string, error: ErrorMessage) {
