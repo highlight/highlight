@@ -1,5 +1,6 @@
 import { H } from 'highlight.run'
 import { HighlightPublicInterface } from '../client'
+import { LDClientMin } from '../integrations/launchdarkly'
 
 // Don't run tests for now. Need to move code from firstload to client for backend errors.
 describe.skip('should work outside of the browser in unit test', () => {
@@ -51,5 +52,31 @@ describe.skip('should work outside of the browser in unit test', () => {
 
 	it('should handle getSessionDetails', () => {
 		highlight.getSessionDetails()
+	})
+})
+
+describe('LD integration', () => {
+	let highlight: HighlightPublicInterface
+
+	beforeEach(() => {
+		jest.useFakeTimers()
+		highlight = H
+	})
+
+	afterEach(() => {
+		jest.useRealTimers()
+	})
+
+	it('should handle register', () => {
+		const client: LDClientMin = {
+			track: jest.fn(),
+			identify: jest.fn(),
+			addHook: jest.fn(),
+		}
+		highlight.registerLD(client)
+
+		expect(client.addHook).toHaveBeenCalled()
+		expect(client.identify).not.toHaveBeenCalled()
+		expect(client.track).not.toHaveBeenCalled()
 	})
 })
