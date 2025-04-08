@@ -3,7 +3,6 @@ export const flags: Record<
 	{
 		type: 'boolean' | 'multivariate'
 		defaultValue: string | boolean
-		variants?: Record<string, string>
 	}
 > = {
 	'enable-session-card-text': {
@@ -13,20 +12,10 @@ export const flags: Record<
 	'enable-session-card-style': {
 		type: 'multivariate',
 		defaultValue: 'normal',
-		variants: {
-			normal: 'normal',
-			good: 'good',
-			bad: 'bad',
-		},
 	},
 	'rename-setup': {
 		type: 'multivariate',
 		defaultValue: 'connect',
-		variants: {
-			connect: 'connect',
-			setup: 'setup',
-			onboarding: 'onboarding',
-		},
 	},
 	'session-results-verbose': {
 		type: 'boolean',
