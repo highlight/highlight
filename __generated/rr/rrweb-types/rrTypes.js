@@ -83,12 +83,22 @@ var ReplayerEvents = /* @__PURE__ */ ((ReplayerEvents2) => {
   ReplayerEvents2["Destroy"] = "destroy";
   return ReplayerEvents2;
 })(ReplayerEvents || {});
+var NodeType = /* @__PURE__ */ ((NodeType2) => {
+  NodeType2[NodeType2["Document"] = 0] = "Document";
+  NodeType2[NodeType2["DocumentType"] = 1] = "DocumentType";
+  NodeType2[NodeType2["Element"] = 2] = "Element";
+  NodeType2[NodeType2["Text"] = 3] = "Text";
+  NodeType2[NodeType2["CDATA"] = 4] = "CDATA";
+  NodeType2[NodeType2["Comment"] = 5] = "Comment";
+  return NodeType2;
+})(NodeType || {});
 export {
   CanvasContext,
   EventType,
   IncrementalSource,
   MediaInteractions,
   MouseInteractions,
+  NodeType,
   PointerTypes,
   ReplayerEvents
 };

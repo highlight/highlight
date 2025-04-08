@@ -30,7 +30,7 @@ import { ProjectRouter } from '@routers/ProjectRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
 import log from '@util/log'
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useMemo } from 'react'
 import {
 	Navigate,
 	Route,
@@ -243,24 +243,24 @@ export const AppRouter = () => {
 			projectOrWorkspaceData?.project?.workspace?.projects || []
 	}
 
-	const currentWorkspace =
-		data?.workspaces?.find((w) => w?.id === currentWorkspaceId) ||
-		(currentWorkspaceId === undefined && data?.workspaces?.at(0)) ||
-		projectOrWorkspaceData?.workspace ||
-		projectOrWorkspaceData?.project?.workspace ||
-		undefined
+	const currentWorkspace = useMemo(() => {
+		return (
+			data?.workspaces?.find((w) => w?.id === currentWorkspaceId) ||
+			(currentWorkspaceId === undefined && data?.workspaces?.at(0)) ||
+			projectOrWorkspaceData?.workspace ||
+			projectOrWorkspaceData?.project?.workspace ||
+			undefined
+		)
+	}, [currentWorkspaceId, data?.workspaces, projectOrWorkspaceData])
 
 	useEffect(() => {
 		if (currentWorkspaceId) {
-			console.log(
-				'::: Updating LD context with workspace:',
-				currentWorkspaceId,
-			)
 			setWorkspaceContext({
 				workspaceId: currentWorkspaceId,
 			})
 		}
-	}, [currentWorkspaceId, setWorkspaceContext])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentWorkspaceId])
 
 	// Ensure auth and current workspace data has loaded
 	if (

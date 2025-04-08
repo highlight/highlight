@@ -75,12 +75,6 @@ const createLDContext = (
 	userContext?: UserContext,
 	workspaceContext?: WorkspaceContext,
 ): LDSingleKindContext | LDMultiKindContext => {
-	console.log(
-		'::: createLDContext',
-		deviceContext,
-		userContext,
-		workspaceContext,
-	)
 	if (!userContext && !workspaceContext) {
 		return { ...deviceContext, anonymous: true }
 	}
@@ -112,10 +106,8 @@ const LaunchDarklyProviderContent: React.FC<
 > = ({ children, context = {} }) => {
 	const client = useLDClient()
 
-	console.log('::: LaunchDarklyProviderContent', context)
 	useEffect(() => {
 		if (client) {
-			console.log('::: identify:', context)
 			client.identify(context).then(() => {
 				client.flush()
 			})
@@ -143,21 +135,10 @@ export const LaunchDarklyProvider: React.FC<
 		WorkspaceContext | undefined
 	>(undefined)
 
-	const ldContext = useMemo(() => {
-		const newContext = createLDContext(
-			deviceContext,
-			userContext,
-			workspaceContext,
-		)
-		console.log(
-			'::: newContext',
-			deviceContext,
-			userContext,
-			workspaceContext,
-			newContext,
-		)
-		return newContext
-	}, [deviceContext, userContext, workspaceContext])
+	const ldContext = useMemo(
+		() => createLDContext(deviceContext, userContext, workspaceContext),
+		[deviceContext, userContext, workspaceContext],
+	)
 
 	useEffect(() => {
 		if (email) {
@@ -166,7 +147,6 @@ export const LaunchDarklyProvider: React.FC<
 	}, [email, setUserContext])
 
 	useEffect(() => {
-		console.log('::: setLocalStorageId', clientId)
 		if (!clientId && !localStorage.getItem('device-id')) {
 			localStorage.setItem('device-id', deviceId)
 		}
@@ -175,8 +155,6 @@ export const LaunchDarklyProvider: React.FC<
 	if (!clientSideID || import.meta.env.MODE === 'test') {
 		return <>{children}</>
 	}
-
-	console.log('::: ldContext', ldContext)
 
 	const handleSetWorkspaceContext = (
 		workspaceContext: Omit<WorkspaceContext, 'kind' | 'key'>,
