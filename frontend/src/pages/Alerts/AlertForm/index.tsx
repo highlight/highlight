@@ -48,7 +48,7 @@ import { Combobox } from '@/pages/Graphing/Combobox'
 import {
 	Editor,
 	EDITOR_OPTIONS,
-	FUNCTION_TYPES,
+	FUNCTION_TYPE_OPTIONS,
 	PRODUCT_OPTIONS,
 } from '@/pages/Graphing/constants'
 import { HeaderDivider } from '@/pages/Graphing/Dashboard'
@@ -645,7 +645,7 @@ export const AlertForm: React.FC = () => {
 									<Box cssClass={style.editorSection}>
 										<Box cssClass={style.editorHeader}>
 											<Box cssClass={style.editorSelect}>
-												<OptionDropdown<Editor>
+												<OptionDropdown
 													options={EDITOR_OPTIONS}
 													selection={settings.editor}
 													setSelection={setEditor}
@@ -788,7 +788,7 @@ export const AlertForm: React.FC = () => {
 																		functionType
 																	}
 																	options={
-																		FUNCTION_TYPES
+																		FUNCTION_TYPE_OPTIONS
 																	}
 																	selection={
 																		functionType

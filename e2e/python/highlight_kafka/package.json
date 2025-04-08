@@ -1,0 +1,11 @@
+{
+	"name": "highlight_kafka",
+	"packageManager": "yarn@4.6.0",
+	"dependencies": {
+		"@highlight-run/node": "workspace:*",
+		"kafkajs": "^2.2.4"
+	},
+	"scripts": {
+		"start": "node kafka.mjs"
+	}
+}

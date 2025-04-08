@@ -105,16 +105,6 @@ type ClickhouseSession struct {
 	Normalness         *float64
 }
 
-type ClickhouseField struct {
-	ProjectID        int32
-	Type             string
-	Name             string
-	SessionCreatedAt time.Time
-	SessionID        int64
-	Value            string
-	Timestamp        time.Time
-}
-
 // These keys show up as recommendations, not in fields table due to high cardinality or post processing booleans
 var defaultSessionsKeys = []*modelInputs.QueryKey{
 	{Name: string(modelInputs.ReservedSessionKeyActiveLength), Type: modelInputs.KeyTypeNumeric},
@@ -146,7 +136,6 @@ var booleanKeys = map[string]bool{
 
 const SessionsJoinedTable = "sessions_joined_vw"
 const SessionsTable = "sessions"
-const FieldsTable = "fields"
 const SessionKeysTable = "session_keys"
 const timeRangeField = "custom_created_at"
 const sampleField = "custom_sample"
@@ -450,39 +439,6 @@ func (client *Client) QueryFieldNames(ctx context.Context, projectId int, start 
 	}
 
 	return fields, nil
-}
-
-func (client *Client) QueryFieldValues(ctx context.Context, projectId int, count int, fieldType string, fieldName string, query string, start time.Time, end time.Time) ([]string, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	sql, args := sb.
-		Select("Value").
-		From("fields").
-		Where(sb.And(
-			sb.Equal("ProjectID", projectId),
-			sb.Equal("Type", fieldType),
-			sb.Equal("Name", fieldName),
-			fmt.Sprintf("Value ILIKE %s", sb.Var("%"+query+"%")),
-			sb.Between("SessionCreatedAt", start, end))).
-		GroupBy("1").
-		OrderBy("count() DESC").
-		Limit(count).
-		BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	rows, err := client.conn.Query(ctx, sql, args...)
-	if err != nil {
-		return nil, err
-	}
-
-	values := []string{}
-	for rows.Next() {
-		var value string
-		if err := rows.Scan(&value); err != nil {
-			return nil, err
-		}
-		values = append(values, value)
-	}
-
-	return values, nil
 }
 
 func (client *Client) DeleteSessions(ctx context.Context, projectId int, sessionIds []int) error {

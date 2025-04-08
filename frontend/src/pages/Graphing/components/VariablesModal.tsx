@@ -18,7 +18,7 @@ import { useProjectId } from '@/hooks/useProjectId'
 import { SuggestionType, Variable } from '@/graph/generated/schemas'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
-import { SUGGESTION_TYPES } from '@/pages/Graphing/constants'
+import { SUGGESTION_TYPE_OPTIONS } from '@/pages/Graphing/constants'
 import { Combobox, ValueCombobox } from '@/pages/Graphing/Combobox'
 
 import * as style from './VariablesModal.css'
@@ -230,7 +230,7 @@ const InnerModal = ({
 									</Table.Cell>
 									<Table.Cell>
 										<OptionDropdown<SuggestionType>
-											options={SUGGESTION_TYPES}
+											options={SUGGESTION_TYPE_OPTIONS}
 											selection={variable.suggestionType}
 											setSelection={(suggestionType) => {
 												setVariable(

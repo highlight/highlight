@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"private": true,
 	"dependencies": {
-		"@highlight-run/node": "3.12.0"
+		"@highlight-run/node": "latest"
 	},
 	"scripts": {
 		"build": "sam build",

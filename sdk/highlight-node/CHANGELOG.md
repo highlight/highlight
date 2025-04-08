@@ -1,5 +1,11 @@
 # @highlight-run/node
 
+## 3.12.1
+
+### Patch Changes
+
+-   f54bce0: ensure @highlight-run/node serverless handlers flush trace
+
 ## 3.12.0
 
 ### Minor Changes

@@ -6,7 +6,10 @@ import { LabeledRow } from '@/pages/Graphing/LabeledRow'
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
 import { useGraphingEditorContext } from '@/pages/Graphing/GraphingEditor/GraphingEditorContext'
 import { Combobox } from '@/pages/Graphing/Combobox'
-import { FUNCTION_TYPES, MAX_LIMIT_SIZE } from '@pages/Graphing/constants'
+import {
+	FUNCTION_TYPE_OPTIONS,
+	MAX_LIMIT_SIZE,
+} from '@pages/Graphing/constants'
 import { SidebarSection } from '@/pages/Graphing/GraphingEditor/FormPanel/SidebarSection'
 
 import * as style from '../GraphingEditor.css'
@@ -85,7 +88,7 @@ export const GroupBySection: React.FC<Props> = ({
 						tooltip="The function used to determine which groups are included."
 					>
 						<OptionDropdown
-							options={FUNCTION_TYPES}
+							options={FUNCTION_TYPE_OPTIONS}
 							selection={settings.limitFunctionType}
 							setSelection={setLimitFunctionType}
 							disabled={isPreview}

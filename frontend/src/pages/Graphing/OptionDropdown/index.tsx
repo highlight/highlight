@@ -1,13 +1,14 @@
 import {
 	Box,
+	IconSolidInformationCircle,
 	Select,
 	SelectOption,
 	Stack,
+	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
-import React, { useMemo } from 'react'
-
-type Options<T> = T[] | SelectOption[]
+import { useMemo } from 'react'
 
 export const OptionDropdown = <T extends string>({
 	options,
@@ -15,7 +16,7 @@ export const OptionDropdown = <T extends string>({
 	setSelection,
 	disabled,
 }: {
-	options: Options<T>
+	options: SelectOption[]
 	selection: T
 	setSelection: (option: T) => void
 	disabled?: boolean
@@ -36,7 +37,6 @@ export const OptionDropdown = <T extends string>({
 						</Text>
 					)
 				}}
-				options={options}
 				onValueChange={(v: SelectOption) => {
 					const newSelection = v.value as T
 					if (newSelection !== selection) {
@@ -44,32 +44,63 @@ export const OptionDropdown = <T extends string>({
 					}
 				}}
 				disabled={disabled}
-			/>
+			>
+				{options.map((option) => (
+					<Select.Option
+						key={option.value}
+						value={String(option.value)}
+					>
+						<Stack
+							direction="row"
+							justifyContent="space-between"
+							width="full"
+							align="center"
+							color="secondaryContentOnEnabled"
+						>
+							<Stack direction="row" gap="6" align="center">
+								{option.icon}
+								<Text>{option.name}</Text>
+							</Stack>
+							{option.info && (
+								<Tooltip
+									trigger={
+										<Tag
+											kind="secondary"
+											size="medium"
+											shape="basic"
+											emphasis="low"
+											iconRight={
+												<IconSolidInformationCircle />
+											}
+										/>
+									}
+								>
+									{option.info}
+								</Tooltip>
+							)}
+						</Stack>
+					</Select.Option>
+				))}
+			</Select>
 		</Box>
 	)
 }
 
-const SelectValue = <T extends string>({
+const SelectValue = ({
 	options,
 	value,
 }: {
-	options: Options<T>
-	value: T
+	options: SelectOption[]
+	value: string
 }) => {
 	const selectedOption = useMemo(() => {
-		if (typeof options === 'string') {
-			return value
-		}
-
 		return (
-			(options as SelectOption[]).find((opt) => opt.value === value) ||
-			value
+			(options as SelectOption[]).find((opt) => opt.value === value) || {
+				name: value,
+				value: value,
+			}
 		)
 	}, [options, value])
-
-	if (typeof selectedOption === 'string') {
-		return value
-	}
 
 	return (
 		<>

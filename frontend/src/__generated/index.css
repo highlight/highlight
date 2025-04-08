@@ -6108,7 +6108,7 @@ body {
   font-weight: 500 !important;
   max-width: calc(100% - 24px);
   padding-bottom: 12px;
-  padding-right: 14px;
+  padding-right: 10px;
   padding-top: 12px;
   pointer-events: none;
   position: absolute;
@@ -7452,6 +7452,29 @@ body {
   position: absolute;
   top: 8px;
   z-index: 1;
+}
+._1wtm1xf0 {
+  border: var(--_1pyqka91o) solid 1px;
+  border-radius: 4px;
+  display: flex;
+  padding: 1px;
+}
+._1wtm1xf1 {
+  justify-content: space-between;
+}
+._1wtm1xf2 {
+  border-radius: 4px;
+  padding: 8px 4px;
+  width: 100%;
+}
+._1wtm1xf3 {
+  width: 300px;
+  z-index: 1000;
+}
+._1wtm1xf4 {
+  line-height: 25px;
+  overflow: hidden;
+  width: 250px;
 }
 .ltrwrc0 {
   position: fixed;

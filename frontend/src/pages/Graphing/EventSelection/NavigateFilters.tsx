@@ -32,11 +32,23 @@ enum NavigateTypeFilter {
 	ExitPage = 'exit_page',
 }
 
-const NAVIGATE_TYPES: NavigateType[] = [
-	NavigateType.Visited,
-	NavigateType.Reloaded,
-	NavigateType.LandingPage,
-	NavigateType.ExitPage,
+const NAVIGATE_TYPE_OPTIONS = [
+	{
+		name: NavigateType.Visited,
+		value: NavigateType.Visited,
+	},
+	{
+		name: NavigateType.Reloaded,
+		value: NavigateType.Reloaded,
+	},
+	{
+		name: NavigateType.LandingPage,
+		value: NavigateType.LandingPage,
+	},
+	{
+		name: NavigateType.ExitPage,
+		value: NavigateType.ExitPage,
+	},
 ]
 
 const NAVIGATE_TYPE_TO_FILTER = {
@@ -171,7 +183,7 @@ export const NavigateFilters: React.FC<Props> = ({
 			<Box display="flex" flexDirection="row" gap="4">
 				<LabeledRow label="Navigate type" name="navigateType">
 					<OptionDropdown
-						options={NAVIGATE_TYPES}
+						options={NAVIGATE_TYPE_OPTIONS}
 						selection={navigateType}
 						setSelection={setNavigateType}
 					/>

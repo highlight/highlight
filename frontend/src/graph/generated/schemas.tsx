@@ -951,6 +951,12 @@ export enum KeyType {
 	String = 'String',
 }
 
+export type KeyValueSuggestion = {
+	__typename?: 'KeyValueSuggestion'
+	key: Scalars['String']
+	values: Array<ValueSuggestion>
+}
+
 export type LengthRange = {
 	__typename?: 'LengthRange'
 	max?: Maybe<Scalars['Float']>
@@ -2181,7 +2187,6 @@ export type Query = {
 	events_keys: Array<QueryKey>
 	events_metrics: MetricsBuckets
 	existing_logs_traces: Array<Scalars['String']>
-	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>
@@ -2200,6 +2205,7 @@ export type Query = {
 	jira_projects?: Maybe<Array<JiraProject>>
 	joinable_workspaces?: Maybe<Array<Maybe<Workspace>>>
 	key_values: Array<Scalars['String']>
+	key_values_suggestions: Array<KeyValueSuggestion>
 	keys: Array<QueryKey>
 	last_alert_state_changes: Array<Maybe<AlertStateChange>>
 	linear_teams?: Maybe<Array<LinearTeam>>
@@ -2231,7 +2237,6 @@ export type Query = {
 	projectSettings?: Maybe<AllProjectSettings>
 	projectSuggestion: Array<Maybe<Project>>
 	projects?: Maybe<Array<Maybe<Project>>>
-	property_suggestion?: Maybe<Array<Maybe<Field>>>
 	rageClicksForProject: Array<RageClickEventForProject>
 	rage_click_alerts: Array<Maybe<SessionAlert>>
 	rage_clicks: Array<RageClickEvent>
@@ -2586,12 +2591,6 @@ export type QueryExisting_Logs_TracesArgs = {
 	trace_ids: Array<Scalars['String']>
 }
 
-export type QueryField_SuggestionArgs = {
-	name: Scalars['String']
-	project_id: Scalars['ID']
-	query: Scalars['String']
-}
-
 export type QueryGenerate_Zapier_Access_TokenArgs = {
 	project_id: Scalars['ID']
 }
@@ -2667,6 +2666,13 @@ export type QueryKey_ValuesArgs = {
 	product_type?: InputMaybe<ProductType>
 	project_id: Scalars['ID']
 	query?: InputMaybe<Scalars['String']>
+}
+
+export type QueryKey_Values_SuggestionsArgs = {
+	date_range: DateRangeRequiredInput
+	keys: Array<Scalars['String']>
+	product_type: ProductType
+	project_id: Scalars['ID']
 }
 
 export type QueryKeysArgs = {
@@ -2841,12 +2847,6 @@ export type QueryProjectSettingsArgs = {
 
 export type QueryProjectSuggestionArgs = {
 	query: Scalars['String']
-}
-
-export type QueryProperty_SuggestionArgs = {
-	project_id: Scalars['ID']
-	query: Scalars['String']
-	type: Scalars['String']
 }
 
 export type QueryRageClicksForProjectArgs = {
@@ -3998,6 +3998,13 @@ export type UserProperty = {
 export type UserPropertyInput = {
 	id: Scalars['ID']
 	name: Scalars['String']
+	value: Scalars['String']
+}
+
+export type ValueSuggestion = {
+	__typename?: 'ValueSuggestion'
+	count: Scalars['UInt64']
+	rank: Scalars['UInt64']
 	value: Scalars['String']
 }
 

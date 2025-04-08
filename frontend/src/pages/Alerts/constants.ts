@@ -1,15 +1,24 @@
 import { ThresholdCondition, ThresholdType } from '@/graph/generated/schemas'
 
 export const THRESHOLD_CONDITION_OPTIONS = [
-	ThresholdCondition.Above,
-	ThresholdCondition.Below,
-	ThresholdCondition.Outside,
+	{
+		name: ThresholdCondition.Above,
+		value: ThresholdCondition.Above,
+	},
+	{
+		name: ThresholdCondition.Below,
+		value: ThresholdCondition.Below,
+	},
+	{
+		name: ThresholdCondition.Outside,
+		value: ThresholdCondition.Outside,
+	},
 ]
 
 export const getThresholdConditionOptions = (thresholdType: ThresholdType) => {
 	if (thresholdType === ThresholdType.Constant) {
 		return THRESHOLD_CONDITION_OPTIONS.filter(
-			(o) => o !== ThresholdCondition.Outside,
+			(o) => o.value !== ThresholdCondition.Outside,
 		)
 	}
 
@@ -17,6 +26,12 @@ export const getThresholdConditionOptions = (thresholdType: ThresholdType) => {
 }
 
 export const THRESHOLD_TYPE_OPTIONS = [
-	ThresholdType.Constant,
-	ThresholdType.Anomaly,
+	{
+		name: ThresholdType.Constant,
+		value: ThresholdType.Constant,
+	},
+	{
+		name: ThresholdType.Anomaly,
+		value: ThresholdType.Anomaly,
+	},
 ]

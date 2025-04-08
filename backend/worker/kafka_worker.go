@@ -551,45 +551,12 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 			}
 			sessionSpan.Finish()
 
-			fieldObjs := []*model.Field{}
-			fieldSpan, _ := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.readFields", k.Name))
-			if err := k.Worker.PublicResolver.DB.WithContext(ctx).Model(&model.Field{}).Where("id IN (SELECT field_id FROM session_fields sf WHERE sf.session_id IN ?)", chunk).Find(&fieldObjs).Error; err != nil {
-				log.WithContext(ctx).Error(err)
-				return err
-			}
-			fieldSpan.Finish()
-			fieldsById := lo.KeyBy(fieldObjs, func(f *model.Field) int64 {
-				return f.ID
-			})
-
-			type sessionField struct {
-				SessionID int
-				FieldID   int64
-			}
-			sessionFieldObjs := []*sessionField{}
-			sessionFieldSpan, _ := util.StartSpanFromContext(ctx, fmt.Sprintf("worker.kafka.%s.flush.readSessionFields", k.Name))
-			if err := k.Worker.PublicResolver.DB.WithContext(ctx).Table("session_fields").Where("session_id IN ?", chunk).Find(&sessionFieldObjs).Error; err != nil {
-				log.WithContext(ctx).Error(err)
-				return err
-			}
-			sessionFieldSpan.Finish()
-			sessionToFields := lo.GroupBy(sessionFieldObjs, func(sf *sessionField) int {
-				return sf.SessionID
-			})
-
 			for _, session := range sessionObjs {
-				session.Fields = lo.Map(sessionToFields[session.ID], func(sf *sessionField, _ int) *model.Field {
-					return fieldsById[sf.FieldID]
-				})
-				// fields are populated, so calculate whether session is excluded
-				if k.Worker.PublicResolver.IsSessionExcludedByFilter(ctx, session) {
-					reason := privateModel.SessionExcludedReasonExclusionFilter
-					session.Excluded = true
-					session.ExcludedReason = &reason
-					if err := k.Worker.PublicResolver.DB.WithContext(ctx).Model(&model.Session{Model: model.Model{ID: session.ID}}).
-						Select("Excluded", "ExcludedReason").Updates(&session).Error; err != nil {
-						return err
-					}
+				var err error
+				session.Fields, err = k.Worker.Resolver.Redis.GetSessionFields(ctx, session.SecureID)
+				if err != nil {
+					log.WithContext(ctx).Error(err)
+					return err
 				}
 			}
 
