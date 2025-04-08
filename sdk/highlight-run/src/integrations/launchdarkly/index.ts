@@ -6,13 +6,11 @@ import {
 	IdentifySeriesContext,
 	IdentifySeriesData,
 	IdentifySeriesResult,
-} from '@highlight-run/client/src/types/Hooks'
+} from '../../types/Hooks'
 import { trace } from '@opentelemetry/api'
-import type { HighlightPublicInterface } from '@highlight-run/client/src/types/types'
-import type {
-	ErrorMessage,
-	Source,
-} from '@highlight-run/client/src/types/shared-types'
+import type { HighlightPublicInterface } from '../../types/types'
+import type { ErrorMessage, Source } from '../../types/shared-types'
+import { IntegrationClient } from '../index'
 
 const FEATURE_FLAG_SCOPE = 'feature_flag'
 const FEATURE_FLAG_KEY_ATTR = `${FEATURE_FLAG_SCOPE}.key`
@@ -111,57 +109,46 @@ export function setupLaunchDarklyIntegration(
 	})
 }
 
-export function LDIdentify(
-	client: LDClientMin | undefined,
-	sessionSecureID: string,
-	user_identifier: string,
-	user_object = {},
-	source?: Source,
-) {
-	if (!client) {
-		return
+export class LaunchDarklyIntegration implements IntegrationClient {
+	client: LDClientMin
+	constructor(client: LDClientMin) {
+		this.client = client
 	}
-	// for messages not coming from the hook
-	if (source !== 'LaunchDarkly') {
-		client.identify({
-			kind: 'multi',
-			user: {
-				...user_object,
-				key: user_identifier,
-				identifier: user_identifier,
-			},
-			session: {
-				key: sessionSecureID,
-				sessionSecureID,
-			},
+
+	identify(
+		sessionSecureID: string,
+		user_identifier: string,
+		user_object = {},
+		source?: Source,
+	) {
+		// for messages not coming from the hook
+		if (source !== 'LaunchDarkly') {
+			this.client.identify({
+				kind: 'multi',
+				user: {
+					...user_object,
+					key: user_identifier,
+					identifier: user_identifier,
+				},
+				session: {
+					key: sessionSecureID,
+					sessionSecureID,
+				},
+			})
+		}
+	}
+
+	error(sessionSecureID: string, error: ErrorMessage) {
+		this.client.track(LD_ERROR_EVENT, {
+			...error,
+			sessionSecureID,
 		})
 	}
-}
 
-export function LDError(
-	client: LDClientMin | undefined,
-	sessionSecureID: string,
-	error: ErrorMessage,
-) {
-	if (!client) {
-		return
+	track(sessionSecureID: string, metadata: object) {
+		this.client.track(LD_TRACK_EVENT, {
+			...metadata,
+			sessionSecureID,
+		})
 	}
-	client.track(LD_ERROR_EVENT, {
-		...error,
-		sessionSecureID,
-	})
-}
-
-export function LDTrack(
-	client: LDClientMin | undefined,
-	sessionSecureID: string,
-	metadata: object,
-) {
-	if (!client) {
-		return
-	}
-	client.track(LD_TRACK_EVENT, {
-		...metadata,
-		sessionSecureID,
-	})
 }

@@ -108,10 +108,9 @@ import HighlightClientWorker from './workers/highlight-client-worker?worker&inli
 import { MessageType, PropertyType } from './workers/types'
 import { parseError } from './utils/errors'
 import { Counter, Gauge, Histogram, UpDownCounter } from '@opentelemetry/api'
+import { IntegrationClient } from './integrations'
 import {
-	LDIdentify,
-	LDError,
-	LDTrack,
+	LaunchDarklyIntegration,
 	LDClientMin,
 } from './integrations/launchdarkly'
 
@@ -219,7 +218,7 @@ export class Highlight {
 		string,
 		UpDownCounter
 	>()
-	_ldClient?: LDClientMin
+	_integrations: IntegrationClient[] = []
 
 	static create(options: HighlightClassOptions): Highlight {
 		return new Highlight(options)
@@ -469,13 +468,14 @@ export class Highlight {
 				source,
 			},
 		})
-		LDIdentify(
-			this._ldClient,
-			this.sessionData.sessionSecureID,
-			user_identifier,
-			user_object,
-			source,
-		)
+		for (const integration of this._integrations) {
+			integration.identify(
+				this.sessionData.sessionSecureID,
+				user_identifier,
+				user_object,
+				source,
+			)
+		}
 	}
 
 	pushCustomError(message: string, payload?: string) {
@@ -529,7 +529,9 @@ export class Highlight {
 			payload: JSON.stringify(payload),
 		}
 		this._firstLoadListeners.errors.push(errorMsg)
-		LDError(this._ldClient, this.sessionData.sessionSecureID, errorMsg)
+		for (const integration of this._integrations) {
+			integration.error(this.sessionData.sessionSecureID, errorMsg)
+		}
 	}
 
 	addProperties(properties_obj = {}, typeArg?: PropertyType) {
@@ -543,11 +545,13 @@ export class Highlight {
 				delete obj[key]
 			}
 		})
-		LDTrack(this._ldClient, this.sessionData.sessionSecureID, {
-			sessionSecureID: this.sessionData.sessionSecureID,
-			propertyType: typeArg,
-			...properties_obj,
-		})
+		for (const integration of this._integrations) {
+			integration.track(this.sessionData.sessionSecureID, {
+				sessionSecureID: this.sessionData.sessionSecureID,
+				propertyType: typeArg,
+				...properties_obj,
+			})
+		}
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Properties,
@@ -1528,7 +1532,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}
 
 	registerLD(client: LDClientMin) {
-		this._ldClient = client
+		this._integrations.push(new LaunchDarklyIntegration(client))
 	}
 }
 
