@@ -86,7 +86,7 @@ require (
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stripe/stripe-go/v78 v78.5.0
 	github.com/urfave/cli/v2 v2.27.2
-	github.com/vektah/gqlparser/v2 v2.5.15
+	github.com/vektah/gqlparser/v2 v2.5.24
 	go.openly.dev/pointy v1.3.0
 	go.opentelemetry.io/collector/pdata v1.23.0
 	go.opentelemetry.io/otel v1.33.0
@@ -206,7 +206,7 @@ require (
 	cloud.google.com/go/storage v1.41.0 // indirect
 	github.com/ClickHouse/clickhouse-go/v2 v2.30.1
 	github.com/ReneKroon/ttlcache v1.7.0
-	github.com/agnivade/levenshtein v1.1.1 // indirect
+	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/aws/aws-lambda-go v1.46.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.11 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.1 // indirect
