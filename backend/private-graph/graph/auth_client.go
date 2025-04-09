@@ -56,9 +56,9 @@ type OAuthClient struct {
 }
 
 type OAuthAuthClient struct {
-	store                *store.Store
-	oauthClientsByID     map[string]*OAuthClient
-	oauthClientsByDomain map[string]*OAuthClient
+	store                  *store.Store
+	oauthClientsByID       map[string]*OAuthClient
+	oauthClientsByProvider map[string]*OAuthClient
 }
 
 type CloudAuthClient struct {
@@ -410,15 +410,8 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 	defer span.Finish()
 	// validate state cookie
 
-	if iss := r.URL.Query().Get("iss"); iss != "" {
-		span.SetAttribute("iss", iss)
-
-		u, err := url.Parse(iss)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to parse iss url")
-			http.Error(w, "failed to parse iss url", http.StatusBadRequest)
-			return
-		}
+	if provider := r.URL.Query().Get("iss"); provider != "" {
+		span.SetAttribute("provider", provider)
 
 		state, err := generateNonce(16)
 		if err != nil {
@@ -435,12 +428,10 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 			return
 		}
 
-		// validates the redirect hostname (u.Host) against known clients
-		// to protect from arbitrary redirects
-		client := c.oauthClientsByDomain[u.Host]
+		client := c.oauthClientsByProvider[provider]
 		if client == nil {
-			log.WithContext(ctx).WithField("domain", u.Host).Error("no oauth client found")
-			http.Error(w, "no oauth client found", http.StatusBadRequest)
+			log.WithContext(ctx).WithField("provider", provider).Error("no oauth client found for provider")
+			http.Error(w, "no oauth client found for provider", http.StatusBadRequest)
 			return
 		}
 
@@ -451,12 +442,19 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 		queryParams.Add("scope", oidc.ScopeOpenID)
 		queryParams.Add("state", state)
 		queryParams.Add("nonce", nonce)
-		queryParams.Add("iss", iss)
+		queryParams.Add("iss", provider)
+
+		u, err := url.Parse(client.oauthConfig.RedirectURL)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to parse provider url")
+			http.Error(w, "failed to parse provider url", http.StatusBadRequest)
+			return
+		}
 		u.RawQuery = queryParams.Encode()
 
-		issUrl := u.String()
-		span.SetAttribute("redirect", issUrl)
-		http.Redirect(w, r, issUrl, http.StatusFound)
+		redirect := u.String()
+		span.SetAttribute("redirect", redirect)
+		http.Redirect(w, r, redirect, http.StatusFound)
 		return
 	}
 
@@ -678,7 +676,7 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 	}
 
 	oauthClientsByID := make(map[string]*OAuthClient)
-	oauthClientsByDomain := make(map[string]*OAuthClient)
+	oauthClientsByProvider := make(map[string]*OAuthClient)
 	for _, ssoClient := range ssoClients {
 		log.WithContext(ctx).WithField("clientID", ssoClient.ClientID).Info("setting up oauth client")
 		provider, err := oidc.NewProvider(ctx, ssoClient.ProviderURL)
@@ -708,10 +706,10 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 				oauthConfig:  &oauth2Config,
 			}
 		}
-		oauthClientsByDomain[ssoClient.Domain] = oauthClientsByID[ssoClient.ClientID]
+		oauthClientsByProvider[ssoClient.ProviderURL] = oauthClientsByID[ssoClient.ClientID]
 	}
 
-	return &OAuthAuthClient{store, oauthClientsByID, oauthClientsByDomain}, nil
+	return &OAuthAuthClient{store, oauthClientsByID, oauthClientsByProvider}, nil
 }
 
 func authenticateToken(ctx context.Context, tokenString string) (jwt.MapClaims, error) {
