@@ -442,7 +442,6 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 		queryParams.Add("scope", oidc.ScopeOpenID)
 		queryParams.Add("state", state)
 		queryParams.Add("nonce", nonce)
-		queryParams.Add("iss", provider)
 
 		u, err := url.Parse(client.oauthConfig.RedirectURL)
 		if err != nil {
