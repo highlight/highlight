@@ -106,10 +106,6 @@ const page = (name: string, properties?: rudderanalytics.apiObject) => {
 		return
 	}
 
-	if (Array.isArray(window._hsq)) {
-		window._hsq.push(['trackPageView'])
-	}
-
 	rudderanalytics.page(name, omit(properties, rudderstackReserved))
 }
 

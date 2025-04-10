@@ -5,7 +5,7 @@ import {
 	ProviderConfig,
 	useLDClient,
 } from 'launchdarkly-react-client-sdk'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import analytics from '@/util/analytics'
 import { createContext } from '@/util/context/context'
 
@@ -152,23 +152,21 @@ export const LaunchDarklyProvider: React.FC<
 		}
 	}, [deviceId, clientId])
 
-	if (!clientSideID || import.meta.env.MODE === 'test') {
-		return <>{children}</>
-	}
+	const handleSetWorkspaceContext = useCallback(
+		(workspaceContext: Omit<WorkspaceContext, 'kind' | 'key'>) => {
+			setWorkspaceContext((w) =>
+				createWorkspaceContext({ ...w, ...workspaceContext }),
+			)
+		},
+		[setWorkspaceContext],
+	)
 
-	const handleSetWorkspaceContext = (
-		workspaceContext: Omit<WorkspaceContext, 'kind' | 'key'>,
-	) => {
-		setWorkspaceContext((w) =>
-			createWorkspaceContext({ ...w, ...workspaceContext }),
-		)
-	}
-
-	const handleSetUserContext = (
-		userContext: Omit<UserContext, 'kind' | 'key'>,
-	) => {
-		setUserContext((u) => createUserContext({ ...u, ...userContext }))
-	}
+	const handleSetUserContext = useCallback(
+		(userContext: Omit<UserContext, 'kind' | 'key'>) => {
+			setUserContext((u) => createUserContext({ ...u, ...userContext }))
+		},
+		[setUserContext],
+	)
 
 	return (
 		<LaunchDarklyContextProvider
