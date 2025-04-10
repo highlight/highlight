@@ -421,27 +421,13 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 		}
 		c.setCallbackCookie(w, r, stateCookieName, state)
 
-		nonce, err := generateNonce(16)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to generate nonce")
-			http.Error(w, "failed to generate nonce", http.StatusBadRequest)
-			return
-		}
-
 		client := c.oauthClientsByProvider[provider]
 		if client == nil {
 			log.WithContext(ctx).WithField("provider", provider).Error("no oauth client found for provider")
 			http.Error(w, "no oauth client found for provider", http.StatusBadRequest)
 			return
 		}
-
-		queryParams := url.Values{}
-		queryParams.Add("client_id", client.oauthConfig.ClientID)
-		queryParams.Add("response_type", "code")
-		queryParams.Add("redirect_uri", env.Config.OAuthRedirectUrl)
-		queryParams.Add("scope", oidc.ScopeOpenID)
-		queryParams.Add("state", state)
-		queryParams.Add("nonce", nonce)
+		c.setCallbackCookie(w, r, oauthClientIDCookieName, client.oauthConfig.ClientID)
 
 		u, err := url.Parse(client.oauthConfig.RedirectURL)
 		if err != nil {
@@ -449,6 +435,9 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 			http.Error(w, "failed to parse provider url", http.StatusBadRequest)
 			return
 		}
+
+		queryParams := url.Values{}
+		queryParams.Add("state", state)
 		u.RawQuery = queryParams.Encode()
 
 		redirect := u.String()
