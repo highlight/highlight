@@ -2,6 +2,8 @@ package graph
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
@@ -53,8 +55,9 @@ type OAuthClient struct {
 }
 
 type OAuthAuthClient struct {
-	store        *store.Store
-	oauthClients map[string]*OAuthClient
+	store                  *store.Store
+	oauthClientsByID       map[string]*OAuthClient
+	oauthClientsByProvider map[string]*OAuthClient
 }
 
 type CloudAuthClient struct {
@@ -262,7 +265,7 @@ func (c *OAuthAuthClient) getOAuthConfig(r *http.Request) (*oauth2.Config, error
 	defer span.Finish()
 
 	clientID := extractClientID(r)
-	client := c.oauthClients[clientID]
+	client := c.oauthClientsByID[clientID]
 	if client == nil {
 		log.WithContext(ctx).WithField("clientID", clientID).Error("no oauth client found")
 		return nil, e.New(oauthError)
@@ -275,7 +278,7 @@ func (c *OAuthAuthClient) getOIDCProvider(r *http.Request) (*oidc.Provider, erro
 	defer span.Finish()
 
 	clientID := extractClientID(r)
-	client := c.oauthClients[clientID]
+	client := c.oauthClientsByID[clientID]
 	if client == nil {
 		log.WithContext(ctx).WithField("clientID", clientID).Error("no oauth client found for OIDC provider")
 		return nil, e.New(oauthError)
@@ -406,6 +409,29 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 	defer span.Finish()
 	// validate state cookie
 
+	if provider := r.URL.Query().Get("iss"); provider != "" {
+		span.SetAttribute("provider", provider)
+
+		state, err := generateNonce(16)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to generate state")
+			http.Error(w, "failed to generate state", http.StatusBadRequest)
+			return
+		}
+		c.setCallbackCookie(w, r, stateCookieName, state)
+
+		client := c.oauthClientsByProvider[provider]
+		if client == nil {
+			log.WithContext(ctx).WithField("provider", provider).Error("no oauth client found for provider")
+			http.Error(w, "no oauth client found for provider", http.StatusBadRequest)
+			return
+		}
+		c.setCallbackCookie(w, r, oauthClientIDCookieName, client.oauthConfig.ClientID)
+
+		http.Redirect(w, r, client.oauthConfig.AuthCodeURL(state), http.StatusFound)
+		return
+	}
+
 	state, err := r.Cookie(stateCookieName)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to retrieve state cookie")
@@ -502,7 +528,7 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 	domain := parts[1]
 
 	var validated bool
-	var domains = lo.Flatten(lo.Map(lo.Values(c.oauthClients), func(item *OAuthClient, _ int) []string {
+	var domains = lo.Flatten(lo.Map(lo.Values(c.oauthClientsByID), func(item *OAuthClient, _ int) []string {
 		return item.domains
 	}))
 	for _, dom := range domains {
@@ -623,7 +649,8 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 		return nil, err
 	}
 
-	oauthClients := make(map[string]*OAuthClient)
+	oauthClientsByID := make(map[string]*OAuthClient)
+	oauthClientsByProvider := make(map[string]*OAuthClient)
 	for _, ssoClient := range ssoClients {
 		log.WithContext(ctx).WithField("clientID", ssoClient.ClientID).Info("setting up oauth client")
 		provider, err := oidc.NewProvider(ctx, ssoClient.ProviderURL)
@@ -644,18 +671,19 @@ func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, 
 			Scopes: []string{oidc.ScopeOpenID, "profile", "email"},
 		}
 
-		if _, ok := oauthClients[ssoClient.ClientID]; ok {
-			oauthClients[ssoClient.ClientID].domains = append(oauthClients[ssoClient.ClientID].domains, ssoClient.Domain)
+		if _, ok := oauthClientsByID[ssoClient.ClientID]; ok {
+			oauthClientsByID[ssoClient.ClientID].domains = append(oauthClientsByID[ssoClient.ClientID].domains, ssoClient.Domain)
 		} else {
-			oauthClients[ssoClient.ClientID] = &OAuthClient{
+			oauthClientsByID[ssoClient.ClientID] = &OAuthClient{
 				domains:      []string{ssoClient.Domain},
 				oidcProvider: provider,
 				oauthConfig:  &oauth2Config,
 			}
 		}
+		oauthClientsByProvider[ssoClient.ProviderURL] = oauthClientsByID[ssoClient.ClientID]
 	}
 
-	return &OAuthAuthClient{store, oauthClients}, nil
+	return &OAuthAuthClient{store, oauthClientsByID, oauthClientsByProvider}, nil
 }
 
 func authenticateToken(ctx context.Context, tokenString string) (jwt.MapClaims, error) {
@@ -714,4 +742,14 @@ func extractClientID(r *http.Request) string {
 	}
 
 	return ""
+}
+
+func generateNonce(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	// Use URL-safe base64 encoding (no padding)
+	nonce := base64.RawURLEncoding.EncodeToString(bytes)
+	return nonce, nil
 }
