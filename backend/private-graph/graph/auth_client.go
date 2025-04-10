@@ -26,7 +26,6 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -429,20 +428,7 @@ func (c *OAuthAuthClient) handleOAuth2Callback(w http.ResponseWriter, r *http.Re
 		}
 		c.setCallbackCookie(w, r, oauthClientIDCookieName, client.oauthConfig.ClientID)
 
-		u, err := url.Parse(client.oauthConfig.RedirectURL)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to parse provider url")
-			http.Error(w, "failed to parse provider url", http.StatusBadRequest)
-			return
-		}
-
-		queryParams := url.Values{}
-		queryParams.Add("state", state)
-		u.RawQuery = queryParams.Encode()
-
-		redirect := u.String()
-		span.SetAttribute("redirect", redirect)
-		http.Redirect(w, r, redirect, http.StatusFound)
+		http.Redirect(w, r, client.oauthConfig.AuthCodeURL(state), http.StatusFound)
 		return
 	}
 
