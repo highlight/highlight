@@ -140,6 +140,10 @@ export const LaunchDarklyProvider: React.FC<
 		[deviceContext, userContext, workspaceContext],
 	)
 
+	const isDisabled = useMemo(() => {
+		return !clientSideID || import.meta.env.MODE === 'test'
+	}, [clientSideID])
+
 	useEffect(() => {
 		if (email) {
 			setUserContext(createUserContext({ email }))
@@ -175,24 +179,28 @@ export const LaunchDarklyProvider: React.FC<
 				setUserContext: handleSetUserContext,
 			}}
 		>
-			<LDProvider
-				clientSideID={clientSideID}
-				context={ldContext}
-				options={{
-					streaming: true,
-					wrapperName: 'LaunchDarklyProvider',
-					bootstrap: 'localStorage',
-					sendEvents: true,
-					flushInterval: 2000,
-				}}
-				reactOptions={{
-					useCamelCaseFlagKeys: false,
-				}}
-			>
-				<LaunchDarklyProviderContent context={ldContext}>
-					{children}
-				</LaunchDarklyProviderContent>
-			</LDProvider>
+			{isDisabled ? (
+				<>{children}</>
+			) : (
+				<LDProvider
+					clientSideID={clientSideID}
+					context={ldContext}
+					options={{
+						streaming: true,
+						wrapperName: 'LaunchDarklyProvider',
+						bootstrap: 'localStorage',
+						sendEvents: true,
+						flushInterval: 2000,
+					}}
+					reactOptions={{
+						useCamelCaseFlagKeys: false,
+					}}
+				>
+					<LaunchDarklyProviderContent context={ldContext}>
+						{children}
+					</LaunchDarklyProviderContent>
+				</LDProvider>
+			)}
 		</LaunchDarklyContextProvider>
 	)
 }
