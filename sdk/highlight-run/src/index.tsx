@@ -631,12 +631,12 @@ export {
 	H,
 	HighlightSegmentMiddleware,
 	GenerateSecureID,
+	__testing,
 }
-export type {
+export {
 	HighlightOptions,
 	ViewportResizeListenerArgs,
 	Metadata,
 	RequestResponsePair,
 	MetricCategory,
-	__testing,
 }
