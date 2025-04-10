@@ -30,7 +30,7 @@ import { ProjectRouter } from '@routers/ProjectRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
 import log from '@util/log'
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useMemo } from 'react'
 import {
 	Navigate,
 	Route,
@@ -58,6 +58,7 @@ import {
 	ErrorTagsContainer,
 	ErrorTagsSearch,
 } from '@/pages/ErrorTags'
+import { useLaunchDarklyContext } from '@/components/LaunchDarkly/LaunchDarklyProvider'
 
 const Buttons = lazy(() => import('../../pages/Buttons/Buttons'))
 const CanvasPage = lazy(() => import('../../pages/Buttons/CanvasV2'))
@@ -96,6 +97,7 @@ const DebugRoutes: React.FC<React.PropsWithChildren> = ({ children }) => {
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
 		useAuthContext()
+	const { setWorkspaceContext } = useLaunchDarklyContext()
 	const location = useLocation()
 	const previousLocation = location.state?.previousLocation as
 		| Location
@@ -241,12 +243,24 @@ export const AppRouter = () => {
 			projectOrWorkspaceData?.project?.workspace?.projects || []
 	}
 
-	const currentWorkspace =
-		data?.workspaces?.find((w) => w?.id === currentWorkspaceId) ||
-		(currentWorkspaceId === undefined && data?.workspaces?.at(0)) ||
-		projectOrWorkspaceData?.workspace ||
-		projectOrWorkspaceData?.project?.workspace ||
-		undefined
+	const currentWorkspace = useMemo(() => {
+		return (
+			data?.workspaces?.find((w) => w?.id === currentWorkspaceId) ||
+			(currentWorkspaceId === undefined && data?.workspaces?.at(0)) ||
+			projectOrWorkspaceData?.workspace ||
+			projectOrWorkspaceData?.project?.workspace ||
+			undefined
+		)
+	}, [currentWorkspaceId, data?.workspaces, projectOrWorkspaceData])
+
+	useEffect(() => {
+		if (currentWorkspaceId) {
+			setWorkspaceContext({
+				workspaceId: currentWorkspaceId,
+			})
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentWorkspaceId])
 
 	// Ensure auth and current workspace data has loaded
 	if (

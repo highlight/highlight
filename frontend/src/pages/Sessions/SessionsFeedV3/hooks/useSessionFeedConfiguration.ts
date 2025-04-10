@@ -7,13 +7,13 @@ import {
 	SESSION_FEED_SORT_ORDER,
 	SESSION_HISTOGRAM_FORMAT,
 } from '@/pages/Sessions/SessionsFeedV3/context/SessionFeedConfigurationContext'
-import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 import { useEffect } from 'react'
+import { useFeatureFlag } from '@/components/LaunchDarkly/useFeatureFlag'
 
 const LOCAL_STORAGE_KEY_PREFIX = 'highlightSessionFeedConfiguration'
 
 export const useSessionFeedConfiguration = () => {
-	const sessionResultsVerbose = useFeatureFlag(Feature.SessionResultsVerbose)
+	const sessionResultsVerbose = useFeatureFlag('session-results-verbose')
 	const [datetimeFormat, setDatetimeFormat] =
 		useLocalStorage<SESSION_FEED_DATETIME_FORMAT>(
 			`${LOCAL_STORAGE_KEY_PREFIX}DatetimeFormatV2`,

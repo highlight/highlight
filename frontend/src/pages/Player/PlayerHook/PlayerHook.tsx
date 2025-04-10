@@ -54,13 +54,11 @@ import {
 	useSetPlayerTimestampFromSearchParam,
 } from './utils'
 import usePlayerConfiguration from './utils/usePlayerConfiguration'
-import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 
 export const usePlayer = (
 	playerRef: RefObject<HTMLDivElement>,
 	autoPlay = false,
 ): ReplayerContextInterface => {
-	const noChunkRemoval = useFeatureFlag(Feature.PlayerNoChunkRemoval)
 	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
 	const { sessionSecureId, projectId } = useSessionParams()
 	const navigate = useNavigate()
@@ -262,16 +260,6 @@ export const usePlayer = (
 			startIdx: number,
 		): Set<number> => {
 			const toRemove = new Set<number>()
-
-			if (noChunkRemoval) {
-				log(
-					'PlayerHook.tsx:ensureChunksLoaded',
-					'getChunksToRemove',
-					'chunk removal disabled',
-				)
-				return toRemove
-			}
-
 			const chunksIndexesWithData = Array.from(chunkEvents.entries())
 				.filter(([, v]) => !!v.length)
 				.map(([k]) => k)
@@ -295,7 +283,7 @@ export const usePlayer = (
 			}
 			return toRemove
 		},
-		[getChunkTs, noChunkRemoval],
+		[getChunkTs],
 	)
 
 	const getLastLoadedEventTimestamp = useCallback(() => {
