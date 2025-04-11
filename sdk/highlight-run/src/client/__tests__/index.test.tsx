@@ -8,8 +8,8 @@ describe('LD integration', () => {
 	beforeEach(() => {
 		vi.useFakeTimers()
 		highlight = new Highlight({
-			organizationID: '',
-			sessionSecureID: '',
+			organizationID: '456',
+			sessionSecureID: 'abc123',
 		})
 	})
 
@@ -36,10 +36,22 @@ describe('LD integration', () => {
 		expect(worker.postMessage).not.toHaveBeenCalled()
 
 		highlight.identify('123', {})
-		highlight.addProperties('test', {})
+		highlight.addProperties({
+			...{ key: 'value', foo: 1.2 },
+			event: 'event_key',
+		})
 		// noop for launchdarkly
 		expect(client.identify).not.toHaveBeenCalled()
-		expect(client.track).toHaveBeenCalled()
+		expect(client.track).toHaveBeenCalledWith(
+			'$ld:telemetry:track:event_key',
+			{
+				key: 'value',
+				foo: 1.2,
+				sessionSecureID: 'abc123',
+				event: 'event_key',
+				propertyType: undefined,
+			},
+		)
 		expect(worker.postMessage).toHaveBeenCalled()
 	})
 })
