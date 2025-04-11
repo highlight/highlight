@@ -47,8 +47,8 @@ export const ErrorListener = (
 	const initialOnError = (window.onerror = (
 		event: any,
 		source: string | undefined,
-		lineno: number | undefined,
-		colno: number | undefined,
+		_lineno: number | undefined,
+		_colno: number | undefined,
 		error: Error | undefined,
 	): void => {
 		handleError(callback, event, source, error)

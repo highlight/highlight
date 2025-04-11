@@ -10163,6 +10163,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@highlight-run/emails@workspace:packages/react-email-templates":
+  version: 0.0.0-use.local
+  resolution: "@highlight-run/emails@workspace:packages/react-email-templates"
+  dependencies:
+    "@react-email/components": "npm:0.0.6"
+    "@react-email/render": "npm:^0.0.7"
+    "@types/aws-lambda": "npm:^8.10.119"
+    aws-lambda: "npm:^1.0.7"
+    react-email: "npm:^1.9.4"
+    tsup: "npm:^8.3.6"
+    typescript: "npm:^5.1.6"
+  languageName: unknown
+  linkType: soft
+
 "@highlight-run/frontend@workspace:frontend":
   version: 0.0.0-use.local
   resolution: "@highlight-run/frontend@workspace:frontend"
@@ -11970,6 +11984,31 @@ __metadata:
   bin:
     ladle: lib/cli/cli.js
   checksum: 10/901dbfd067207360e2bb3043f05185a905ae4d00e0c9c979c2dc7f683a374aec2b8f50f32fe22fdd7e479e0aff861dd57a60a74aab9a11881e14c3b5977bc8c0
+  languageName: node
+  linkType: hard
+
+"@launchdarkly/js-client-sdk-common@npm:1.12.3":
+  version: 1.12.3
+  resolution: "@launchdarkly/js-client-sdk-common@npm:1.12.3"
+  dependencies:
+    "@launchdarkly/js-sdk-common": "npm:2.13.0"
+  checksum: 10/1a68b443c0d4f577cf9ad20dc5ed2a4d01b87a17a4621db8aaf9931bf506bcf92042202de4a1822921cd7cbdea759a8787af50b3dafe38275a3cbe8613871aea
+  languageName: node
+  linkType: hard
+
+"@launchdarkly/js-client-sdk@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "@launchdarkly/js-client-sdk@npm:0.4.1"
+  dependencies:
+    "@launchdarkly/js-client-sdk-common": "npm:1.12.3"
+  checksum: 10/b949ef137eb8ceeb90afd1ac61e6854f9ec3829fca15a4c1d10cdec0ef0f5baac96acaffaf6c71c1c27a9744cd027a79e5e3fdc79b833dccb53e903f9ba02b33
+  languageName: node
+  linkType: hard
+
+"@launchdarkly/js-sdk-common@npm:2.13.0":
+  version: 2.13.0
+  resolution: "@launchdarkly/js-sdk-common@npm:2.13.0"
+  checksum: 10/2c32ff5b5d77af8cfc228476a512ad6191868811af402d0b85586d871c1974cc3386e1a2efa9aece4529d37815b183575e74e7c01179d8183507b5dfd548290e
   languageName: node
   linkType: hard
 
@@ -18259,25 +18298,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-commonjs@npm:^25.0.7":
-  version: 25.0.7
-  resolution: "@rollup/plugin-commonjs@npm:25.0.7"
-  dependencies:
-    "@rollup/pluginutils": "npm:^5.0.1"
-    commondir: "npm:^1.0.1"
-    estree-walker: "npm:^2.0.2"
-    glob: "npm:^8.0.3"
-    is-reference: "npm:1.2.1"
-    magic-string: "npm:^0.30.3"
-  peerDependencies:
-    rollup: ^2.68.0||^3.0.0||^4.0.0
-  peerDependenciesMeta:
-    rollup:
-      optional: true
-  checksum: 10/89b108e245d1af6e7878ac949bfcd44e48f7d0c1eda0cb0b7e89c231ae73de455ffe2ac65eb03a398da4e8c300ce404f997fe66f8dde3d4d4794ffd2c1241fc3
-  languageName: node
-  linkType: hard
-
 "@rollup/plugin-commonjs@npm:^28.0.2":
   version: 28.0.2
   resolution: "@rollup/plugin-commonjs@npm:28.0.2"
@@ -18309,25 +18329,6 @@ __metadata:
     rollup:
       optional: true
   checksum: 10/cc018d20c80242a2b8b44fae61a968049cf31bb8406218187cc7cda35747616594e79452dd65722e7da6dd825b392e90d4599d43cd4461a02fefa2865945164e
-  languageName: node
-  linkType: hard
-
-"@rollup/plugin-node-resolve@npm:^15.2.3":
-  version: 15.2.3
-  resolution: "@rollup/plugin-node-resolve@npm:15.2.3"
-  dependencies:
-    "@rollup/pluginutils": "npm:^5.0.1"
-    "@types/resolve": "npm:1.20.2"
-    deepmerge: "npm:^4.2.2"
-    is-builtin-module: "npm:^3.2.1"
-    is-module: "npm:^1.0.0"
-    resolve: "npm:^1.22.1"
-  peerDependencies:
-    rollup: ^2.78.0||^3.0.0||^4.0.0
-  peerDependenciesMeta:
-    rollup:
-      optional: true
-  checksum: 10/d36a6792fbe9d8673d3a7c7dc88920be669ac54fba02ac0093d3c00fc9463fce2e87da1906a2651016742709c3d202b367fb49a62acd0d98f18409343f27b8b4
   languageName: node
   linkType: hard
 
@@ -18365,7 +18366,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-typescript@npm:^11.1.5, @rollup/plugin-typescript@npm:^11.1.6":
+"@rollup/plugin-typescript@npm:^11.1.5":
   version: 11.1.6
   resolution: "@rollup/plugin-typescript@npm:11.1.6"
   dependencies:
@@ -28047,14 +28048,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aws-lambda@workspace:e2e/aws-lambda":
-  version: 0.0.0-use.local
-  resolution: "aws-lambda@workspace:e2e/aws-lambda"
-  dependencies:
-    "@highlight-run/node": "npm:latest"
-  languageName: unknown
-  linkType: soft
-
 "aws-sdk@npm:^2.814.0":
   version: 2.1415.0
   resolution: "aws-sdk@npm:2.1415.0"
@@ -33282,6 +33275,14 @@ __metadata:
   languageName: node
   linkType: hard
 
+"e2e-aws-lambda@workspace:e2e/aws-lambda":
+  version: 0.0.0-use.local
+  resolution: "e2e-aws-lambda@workspace:e2e/aws-lambda"
+  dependencies:
+    "@highlight-run/node": "npm:latest"
+  languageName: unknown
+  linkType: soft
+
 "e2e-express-ts@workspace:e2e/express-ts":
   version: 0.0.0-use.local
   resolution: "e2e-express-ts@workspace:e2e/express-ts"
@@ -33308,6 +33309,57 @@ __metadata:
   dependencies:
     "@highlight-run/node": "workspace:*"
     express: "npm:^4.19.2"
+  languageName: unknown
+  linkType: soft
+
+"e2e-react-native@workspace:e2e/react-native":
+  version: 0.0.0-use.local
+  resolution: "e2e-react-native@workspace:e2e/react-native"
+  dependencies:
+    "@babel/core": "npm:^7.25.2"
+    "@expo/ngrok": "npm:^4.1.3"
+    "@expo/vector-icons": "npm:^14.0.2"
+    "@opentelemetry/api": "npm:^1.9.0"
+    "@opentelemetry/core": "npm:^1.30.0"
+    "@opentelemetry/resources": "npm:^1.30.0"
+    "@opentelemetry/sdk-trace-base": "npm:^1.30.0"
+    "@react-navigation/bottom-tabs": "npm:^7.2.0"
+    "@react-navigation/native": "npm:^7.0.14"
+    "@types/jest": "npm:^29.5.12"
+    "@types/react": "npm:~18.3.12"
+    "@types/react-test-renderer": "npm:^18.3.0"
+    eslint: "npm:^8.57.1"
+    eslint-config-prettier: "npm:^8.10.0"
+    eslint-plugin-import: "npm:^2.31.0"
+    eslint-plugin-react: "npm:^7.37.2"
+    eslint-plugin-react-hooks: "npm:^5.0.0"
+    eslint-plugin-tailwindcss: "npm:^3.17.5"
+    eslint-plugin-unused-imports: "npm:^3.2.0"
+    expo: "npm:~52.0.23"
+    expo-blur: "npm:~14.0.1"
+    expo-constants: "npm:~17.0.3"
+    expo-font: "npm:~13.0.2"
+    expo-haptics: "npm:~14.0.0"
+    expo-linking: "npm:~7.0.3"
+    expo-router: "npm:~4.0.15"
+    expo-splash-screen: "npm:~0.29.18"
+    expo-status-bar: "npm:~2.0.0"
+    expo-symbols: "npm:~0.2.0"
+    expo-system-ui: "npm:~4.0.6"
+    expo-web-browser: "npm:~14.0.1"
+    jest: "npm:^29.2.1"
+    jest-expo: "npm:~52.0.2"
+    react: "npm:18.3.1"
+    react-dom: "npm:18.3.1"
+    react-native: "npm:0.76.6"
+    react-native-gesture-handler: "npm:~2.20.2"
+    react-native-reanimated: "npm:~3.16.1"
+    react-native-safe-area-context: "npm:4.12.0"
+    react-native-screens: "npm:~4.4.0"
+    react-native-web: "npm:~0.19.13"
+    react-native-webview: "npm:13.12.5"
+    react-test-renderer: "npm:18.3.1"
+    typescript: "npm:^5.3.3"
   languageName: unknown
   linkType: soft
 
@@ -33431,20 +33483,6 @@ __metadata:
   checksum: 10/54326419778f80bfc3a76fec2e5a9122d81e7b04758da0b9c4d8bac612e6740f67f8a072b30ba62729f8ff5946fab3e2e1060936d1424eb5594c41baa9d82023
   languageName: node
   linkType: hard
-
-"emails@workspace:packages/react-email-templates":
-  version: 0.0.0-use.local
-  resolution: "emails@workspace:packages/react-email-templates"
-  dependencies:
-    "@react-email/components": "npm:0.0.6"
-    "@react-email/render": "npm:^0.0.7"
-    "@types/aws-lambda": "npm:^8.10.119"
-    aws-lambda: "npm:^1.0.7"
-    react-email: "npm:^1.9.4"
-    tsup: "npm:^8.3.6"
-    typescript: "npm:^5.1.6"
-  languageName: unknown
-  linkType: soft
 
 "embla-carousel-react@npm:^7.0.5":
   version: 7.1.0
@@ -40230,10 +40268,6 @@ __metadata:
     "@opentelemetry/sdk-metrics": "npm:^1.30.1"
     "@opentelemetry/sdk-trace-web": "npm:^1.30.1"
     "@opentelemetry/semantic-conventions": "npm:^1.28.0"
-    "@rollup/plugin-commonjs": "npm:^25.0.7"
-    "@rollup/plugin-json": "npm:^6.1.0"
-    "@rollup/plugin-node-resolve": "npm:^15.2.3"
-    "@rollup/plugin-typescript": "npm:^11.1.6"
     "@rrweb/rrweb-plugin-sequential-id-record": "workspace:*"
     "@rrweb/types": "workspace:*"
     "@size-limit/file": "npm:^8.1.0"
@@ -49106,6 +49140,7 @@ __metadata:
   dependencies:
     "@highlight-run/next": "workspace:*"
     "@highlight-run/pino": "workspace:*"
+    "@launchdarkly/js-client-sdk": "npm:^0.4.1"
     "@next/env": "npm:^15.1.7"
     "@prisma/client": "npm:^6.4.1"
     "@prisma/instrumentation": "npm:^6.4.1"
@@ -55001,57 +55036,6 @@ __metadata:
   checksum: 10/81a613fb10e5277d1a780dc6dd6b43ebb1bb6a5e576b3334a844b57fa80f8cc45fec35b47e05d168786345def0a9f31b953a151bd79d0e9af1651beb9e7ab9ee
   languageName: node
   linkType: hard
-
-"react-native@workspace:e2e/react-native":
-  version: 0.0.0-use.local
-  resolution: "react-native@workspace:e2e/react-native"
-  dependencies:
-    "@babel/core": "npm:^7.25.2"
-    "@expo/ngrok": "npm:^4.1.3"
-    "@expo/vector-icons": "npm:^14.0.2"
-    "@opentelemetry/api": "npm:^1.9.0"
-    "@opentelemetry/core": "npm:^1.30.0"
-    "@opentelemetry/resources": "npm:^1.30.0"
-    "@opentelemetry/sdk-trace-base": "npm:^1.30.0"
-    "@react-navigation/bottom-tabs": "npm:^7.2.0"
-    "@react-navigation/native": "npm:^7.0.14"
-    "@types/jest": "npm:^29.5.12"
-    "@types/react": "npm:~18.3.12"
-    "@types/react-test-renderer": "npm:^18.3.0"
-    eslint: "npm:^8.57.1"
-    eslint-config-prettier: "npm:^8.10.0"
-    eslint-plugin-import: "npm:^2.31.0"
-    eslint-plugin-react: "npm:^7.37.2"
-    eslint-plugin-react-hooks: "npm:^5.0.0"
-    eslint-plugin-tailwindcss: "npm:^3.17.5"
-    eslint-plugin-unused-imports: "npm:^3.2.0"
-    expo: "npm:~52.0.23"
-    expo-blur: "npm:~14.0.1"
-    expo-constants: "npm:~17.0.3"
-    expo-font: "npm:~13.0.2"
-    expo-haptics: "npm:~14.0.0"
-    expo-linking: "npm:~7.0.3"
-    expo-router: "npm:~4.0.15"
-    expo-splash-screen: "npm:~0.29.18"
-    expo-status-bar: "npm:~2.0.0"
-    expo-symbols: "npm:~0.2.0"
-    expo-system-ui: "npm:~4.0.6"
-    expo-web-browser: "npm:~14.0.1"
-    jest: "npm:^29.2.1"
-    jest-expo: "npm:~52.0.2"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
-    react-native: "npm:0.76.6"
-    react-native-gesture-handler: "npm:~2.20.2"
-    react-native-reanimated: "npm:~3.16.1"
-    react-native-safe-area-context: "npm:4.12.0"
-    react-native-screens: "npm:~4.4.0"
-    react-native-web: "npm:~0.19.13"
-    react-native-webview: "npm:13.12.5"
-    react-test-renderer: "npm:18.3.1"
-    typescript: "npm:^5.3.3"
-  languageName: unknown
-  linkType: soft
 
 "react-popper@npm:2.3.0":
   version: 2.3.0

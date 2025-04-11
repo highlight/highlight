@@ -23,7 +23,7 @@ import {
 } from './integrations/mixpanel.js'
 
 import { HIGHLIGHT_URL } from './client/constants/sessions.js'
-import type { ErrorMessageType } from './client/types/shared-types'
+import type { ErrorMessageType, Source } from './client/types/shared-types'
 import {
 	getPreviousSessionData,
 	loadCookieSessionData,
@@ -36,8 +36,10 @@ import configureElectronHighlight from './environments/electron.js'
 import { HighlightSegmentMiddleware } from './integrations/segment.js'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
-import { ViewportResizeListenerArgs } from './client/listeners/viewport-resize-listener'
 import { getNoopSpan } from './client/otel/utils.js'
+import { setupLaunchDarklyIntegration } from './integrations/launchdarkly'
+import type { LDClientMin } from './integrations/launchdarkly/types/LDClient'
+import { ViewportResizeListenerArgs } from './client/listeners/viewport-resize-listener'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -322,10 +324,14 @@ const H: HighlightPublicInterface = {
 			H.onHighlightReady(() => highlight_obj.stopRecording(true))
 		}
 	},
-	identify: (identifier: string, metadata: Metadata = {}) => {
+	identify: (
+		identifier: string,
+		metadata: Metadata = {},
+		source?: Source,
+	) => {
 		try {
 			H.onHighlightReady(() =>
-				highlight_obj.identify(identifier, metadata),
+				highlight_obj.identify(identifier, metadata, source),
 			)
 		} catch (e) {
 			HighlightWarning('identify', e)
@@ -602,6 +608,15 @@ const H: HighlightPublicInterface = {
 
 		processQueue()
 	},
+	registerLD(client) {
+		// TODO(vkorolik): consolidate once firstload/client are merged
+		// client integration necessary to track events from ErrorListener
+		H.onHighlightReady(() => {
+			highlight_obj.registerLD(client)
+		})
+		// firstload integration necessary to immediately capture ld.identify
+		setupLaunchDarklyIntegration(this, client)
+	},
 }
 
 if (typeof window !== 'undefined') {
@@ -633,8 +648,9 @@ export {
 	GenerateSecureID,
 	__testing,
 }
-export {
+export type {
 	HighlightOptions,
+	LDClientMin,
 	ViewportResizeListenerArgs,
 	Metadata,
 	RequestResponsePair,

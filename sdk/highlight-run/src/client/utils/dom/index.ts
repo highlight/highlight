@@ -72,10 +72,10 @@ export function getElementSelectorNew(
 	try {
 		const defaults: Options = {
 			root: document.body,
-			idName: (name: string) => true,
-			className: (name: string) => true,
-			tagName: (name: string) => true,
-			attr: (name: string, value: string) => false,
+			idName: (_name: string) => true,
+			className: (_name: string) => true,
+			tagName: (_name: string) => true,
+			attr: (_name: string, _value: string) => false,
 			seedMinLength: 1,
 			optimizedMinLength: 2,
 			threshold: 50,

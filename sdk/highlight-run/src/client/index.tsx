@@ -3,7 +3,7 @@ import { eventWithTime, listenerHandler } from '@rrweb/types'
 import { print } from 'graphql'
 import { GraphQLClient } from 'graphql-request'
 import stringify from 'json-stringify-safe'
-import { record, addCustomEvent as rrwebAddCustomEvent } from 'rrweb'
+import { addCustomEvent as rrwebAddCustomEvent, record } from 'rrweb'
 import {
 	getSdk,
 	PushPayloadDocument,
@@ -77,7 +77,12 @@ import {
 	IFRAME_PARENT_READY,
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
-import { ConsoleMessage, ErrorMessageType } from './types/shared-types'
+import {
+	ConsoleMessage,
+	ErrorMessage,
+	ErrorMessageType,
+	Source,
+} from './types/shared-types'
 import { getSimpleSelector } from './utils/dom'
 import { getGraphQLRequestWrapper } from './utils/graph'
 import { clearHighlightLogs, getHighlightLogs } from './utils/highlight-logging'
@@ -100,9 +105,12 @@ import {
 import { getDefaultDataURLOptions } from './utils/utils'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
-import { MessageType, PropertyType, Source } from './workers/types'
+import { MessageType, PropertyType } from './workers/types'
 import { parseError } from './utils/errors'
-import { Gauge, UpDownCounter, Histogram, Counter } from '@opentelemetry/api'
+import { Counter, Gauge, Histogram, UpDownCounter } from '@opentelemetry/api'
+import { IntegrationClient } from '../integrations'
+import { LaunchDarklyIntegration } from '../integrations/launchdarkly'
+import type { LDClientMin } from '../integrations/launchdarkly/types/LDClient'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -208,6 +216,7 @@ export class Highlight {
 		string,
 		UpDownCounter
 	>()
+	_integrations: IntegrationClient[] = []
 
 	static create(options: HighlightClassOptions): Highlight {
 		return new Highlight(options)
@@ -457,6 +466,14 @@ export class Highlight {
 				source,
 			},
 		})
+		for (const integration of this._integrations) {
+			integration.identify(
+				this.sessionData.sessionSecureID,
+				user_identifier,
+				user_object,
+				source,
+			)
+		}
 	}
 
 	pushCustomError(message: string, payload?: string) {
@@ -498,7 +515,7 @@ export class Highlight {
 			event = 'ErrorBoundary: ' + event
 		}
 		const res = parseError(error)
-		this._firstLoadListeners.errors.push({
+		const errorMsg: ErrorMessage = {
 			event,
 			type: type ?? 'custom',
 			url: window.location.href,
@@ -508,7 +525,11 @@ export class Highlight {
 			stackTrace: res,
 			timestamp: new Date().toISOString(),
 			payload: JSON.stringify(payload),
-		})
+		}
+		this._firstLoadListeners.errors.push(errorMsg)
+		for (const integration of this._integrations) {
+			integration.error(this.sessionData.sessionSecureID, errorMsg)
+		}
 	}
 
 	addProperties(properties_obj = {}, typeArg?: PropertyType) {
@@ -522,6 +543,13 @@ export class Highlight {
 				delete obj[key]
 			}
 		})
+		for (const integration of this._integrations) {
+			integration.track(this.sessionData.sessionSecureID, {
+				sessionSecureID: this.sessionData.sessionSecureID,
+				propertyType: typeArg,
+				...properties_obj,
+			})
+		}
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Properties,
@@ -808,6 +836,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.ready = true
 			this.state = 'Recording'
 			this.manualStopped = false
+
+			// report initialization only if recording actually starts
+			for (const integration of this._integrations) {
+				integration.init(this.sessionData.sessionSecureID)
+			}
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)
@@ -1187,6 +1220,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			category: metric.category,
 			'highlight.session_id': this.sessionData.sessionSecureID,
 		})
+
+		for (const integration of this._integrations) {
+			integration.recordMetric(this.sessionData.sessionSecureID, metric)
+		}
 	}
 
 	recordCount(metric: RecordMetric) {
@@ -1499,6 +1536,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		record.takeFullSnapshot()
 		this._eventBytesSinceSnapshot = 0
 		this._lastSnapshotTime = new Date().getTime()
+	}
+
+	registerLD(client: LDClientMin) {
+		this._integrations.push(new LaunchDarklyIntegration(client))
 	}
 }
 

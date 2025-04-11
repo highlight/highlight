@@ -15,9 +15,13 @@
 		"resolveJsonModule": true,
 		"rootDir": "..",
 		"skipLibCheck": true,
-		"strict": true,
 		"target": "ESNext",
 		"types": ["@types/chrome", "@types/node", "vitest/globals"],
+		/* Linting */
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true
 	},
 	"include": ["src"],
 	"exclude": ["**/src/**/*.test.tsx"],
