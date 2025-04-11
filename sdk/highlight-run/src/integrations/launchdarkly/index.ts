@@ -7,10 +7,11 @@ import {
 	IdentifySeriesResult,
 } from './types/Hooks'
 import { trace } from '@opentelemetry/api'
-import type { HighlightPublicInterface, Metric } from '../../client'
+import { HighlightPublicInterface, MetricCategory } from '../../client'
 import type { ErrorMessage, Source } from '../../client/types/shared-types'
 import { IntegrationClient } from '../index'
 import { LDClientMin } from './types/LDClient'
+import { RecordMetric } from '../../client/types/types'
 
 const FEATURE_FLAG_SCOPE = 'feature_flag'
 const FEATURE_FLAG_KEY_ATTR = `${FEATURE_FLAG_SCOPE}.key`
@@ -116,7 +117,15 @@ export class LaunchDarklyIntegration implements IntegrationClient {
 		})
 	}
 
-	recordMetric(sessionSecureID: string, metric: Metric) {
+	recordMetric(sessionSecureID: string, metric: RecordMetric) {
+		// only record web vitals
+		if (metric.category !== MetricCategory.WebVital) {
+			return
+		}
+		// ignore Jank metric, sent on interaction
+		if (metric.name === 'Jank') {
+			return
+		}
 		this.client.track(
 			LD_METRIC_EVENT,
 			{
