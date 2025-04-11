@@ -153,9 +153,13 @@ export class LaunchDarklyIntegration implements IntegrationClient {
 	}
 
 	track(sessionSecureID: string, metadata: object) {
-		this.client.track(LD_TRACK_EVENT, {
-			...metadata,
-			sessionSecureID,
-		})
+		const event = (metadata as unknown as { event?: string }).event
+		this.client.track(
+			event ? `${LD_TRACK_EVENT}:${event}` : LD_TRACK_EVENT,
+			{
+				...metadata,
+				sessionSecureID,
+			},
+		)
 	}
 }
