@@ -13,24 +13,6 @@
 		"@highlight-run/component-preview",
 		"@highlight-run/frontend",
 		"react-native",
-		"rrdom",
-		"rrdom-nodejs",
-		"rrweb",
-		"rrweb-player",
-		"rrweb-snapshot",
-		"@rrweb/all",
-		"@rrweb/types",
-		"@rrweb/record",
-		"@rrweb/replay",
-		"@rrweb/packer",
-		"@rrweb/rrweb-plugin-canvas-webrtc-record",
-		"@rrweb/rrweb-plugin-canvas-webrtc-replay",
-		"@rrweb/rrweb-plugin-console-record",
-		"@rrweb/rrweb-plugin-console-replay",
-		"@rrweb/rrweb-plugin-sequential-id-record",
-		"@rrweb/rrweb-plugin-sequential-id-replay",
-		"@rrweb/utils",
-		"@rrweb/web-extension",
 		"@highlight-run/ui",
 		"angular.io-example",
 		"aws-lambda",
@@ -46,7 +28,6 @@
 		"react-router",
 		"react-three-vite",
 		"remix",
-		"render",
-		"rrvideo"
+		"render"
 	]
 }
