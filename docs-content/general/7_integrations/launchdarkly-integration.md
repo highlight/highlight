@@ -18,12 +18,7 @@ const ldClient = initialize("<YOUR_LD_CLIENT_TOKEN>");
 H.registerLD(ldClient);
 ```
 
-## API
-
-### `identify()`
-
-Calling [`H.identify()`](../../sdk/client.md#Htrack) will forward the data to LaunchDarkly's `identify()`. 
-
+## Highlight APIs forwarded to LaunchDarkly
 
 ### `track()`
 
@@ -32,3 +27,15 @@ Calling [`H.track()`](../../sdk/client.md#Htrack) will forward the data to Launc
 ### `consumeError()`
 
 Calling [`H.consumeError()`](../../sdk/client.md#Hidentify) will forward the data to LaunchDarkly's `track()` as a `$ld:telemetry:error` event.
+
+## LaunchDarkly APIs forwarded to Highlight
+
+### `ldClient.identify()`
+
+Calling [`ldClient.identify()`](https://launchdarkly.github.io/js-client-sdk/interfaces/LDClient.html#identify) will 
+forward the data to Highlight's `H.identify()`.
+
+### `ldClient.variation()`
+
+Calling [`ldClient.variation()`](https://launchdarkly.github.io/js-client-sdk/interfaces/LDClient.html#variation) will 
+forward the data to Highlight's `H.track()` and record the flag evaluation as a span in the current trace.
