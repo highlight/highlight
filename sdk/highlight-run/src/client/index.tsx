@@ -836,6 +836,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this.ready = true
 			this.state = 'Recording'
 			this.manualStopped = false
+
+			// report initialization only if recording actually starts
+			for (const integration of this._integrations) {
+				integration.init(this.sessionData.sessionSecureID)
+			}
 		} catch (e) {
 			if (this._isOnLocalHost) {
 				console.error(e)
@@ -1215,6 +1220,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			category: metric.category,
 			'highlight.session_id': this.sessionData.sessionSecureID,
 		})
+
+		for (const integration of this._integrations) {
+			integration.recordMetric(this.sessionData.sessionSecureID, metric)
+		}
 	}
 
 	recordCount(metric: RecordMetric) {

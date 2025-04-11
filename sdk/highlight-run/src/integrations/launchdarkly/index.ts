@@ -7,7 +7,7 @@ import {
 	IdentifySeriesResult,
 } from './types/Hooks'
 import { trace } from '@opentelemetry/api'
-import type { HighlightPublicInterface } from '../../client'
+import type { HighlightPublicInterface, Metric } from '../../client'
 import type { ErrorMessage, Source } from '../../client/types/shared-types'
 import { IntegrationClient } from '../index'
 import { LDClientMin } from './types/LDClient'
@@ -19,8 +19,10 @@ const FEATURE_FLAG_CONTEXT_KEY_ATTR = `${FEATURE_FLAG_SCOPE}.context.key`
 const FEATURE_FLAG_VARIANT_ATTR = `${FEATURE_FLAG_SCOPE}.variant`
 const FEATURE_FLAG_SPAN_NAME = 'evaluation'
 
+const LD_INITIALIZE_EVENT = '$ld:telemetry:initialize'
 const LD_ERROR_EVENT = '$ld:telemetry:error'
 const LD_TRACK_EVENT = '$ld:telemetry:track'
+const LD_METRIC_EVENT = '$ld:telemetry:metric'
 
 function encodeKey(key: string): string {
 	if (key.includes('%') || key.includes(':')) {
@@ -103,8 +105,26 @@ export function setupLaunchDarklyIntegration(
 
 export class LaunchDarklyIntegration implements IntegrationClient {
 	client: LDClientMin
+
 	constructor(client: LDClientMin) {
 		this.client = client
+	}
+
+	init(sessionSecureID: string) {
+		this.client.track(LD_INITIALIZE_EVENT, {
+			sessionSecureID,
+		})
+	}
+
+	recordMetric(sessionSecureID: string, metric: Metric) {
+		this.client.track(
+			LD_METRIC_EVENT,
+			{
+				...metric,
+				sessionSecureID,
+			},
+			metric.value,
+		)
 	}
 
 	identify(
