@@ -38,6 +38,7 @@ import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
 import { getNoopSpan } from './client/otel/utils.js'
 import { setupLaunchDarklyIntegration } from './integrations/launchdarkly'
+import type { LDClientMin } from '../../integrations/launchdarkly/types/LDClient'
 import { ViewportResizeListenerArgs } from './client/listeners/viewport-resize-listener'
 
 enum MetricCategory {
@@ -647,8 +648,9 @@ export {
 	GenerateSecureID,
 	__testing,
 }
-export {
+export type {
 	HighlightOptions,
+	LDClientMin,
 	ViewportResizeListenerArgs,
 	Metadata,
 	RequestResponsePair,

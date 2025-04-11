@@ -1,4 +1,4 @@
-import StackTrace from 'stacktrace-js'
+import type { StackFrame } from 'stacktrace-js'
 
 export type Source = 'segment' | 'LaunchDarkly' | undefined
 
@@ -7,7 +7,7 @@ export type ConsoleMessage = {
 	attributes?: string
 	time: number
 	type: string
-	trace?: StackTrace.StackFrame[]
+	trace?: StackFrame[]
 }
 
 export type ErrorMessageType =
@@ -24,7 +24,7 @@ export type ErrorMessage = {
 	source: string
 	lineNumber: number
 	columnNumber: number
-	stackTrace: StackTrace.StackFrame[]
+	stackTrace: StackFrame[]
 	/** The Unix Time of when the error was thrown. */
 	timestamp: string
 	payload?: string

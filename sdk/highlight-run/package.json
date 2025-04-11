@@ -42,16 +42,14 @@
 	"module": "./dist/index.js",
 	"unpkg": "./dist/index.umd.js",
 	"jsdelivr": "./dist/index.umd.js",
-	"browser": "./dist/index.umd.js",
 	"types": "./dist/highlight-run/src/index.d.ts",
 	"exports": {
 		"types": "./dist/highlight-run/src/index.d.ts",
-		"import": "./dist/index.js",
-		"require": "./dist/index.js",
 		"unpkg": "./dist/index.umd.js",
 		"jsdelivr": "./dist/index.umd.js",
-		"browser": "./dist/index.umd.js",
-		"default": "./dist/index.umd.js"
+		"import": "./dist/index.js",
+		"require": "./dist/index.js",
+		"default": "./dist/index.js"
 	},
 	"files": [
 		"dist"
@@ -118,7 +116,7 @@
 				"dist/*.js",
 				"!dist/*.umd.js"
 			],
-			"limit": "512 kB",
+			"limit": "256 kB",
 			"brotli": true
 		}
 	]

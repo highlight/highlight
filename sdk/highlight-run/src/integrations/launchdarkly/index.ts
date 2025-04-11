@@ -47,14 +47,6 @@ function getCanonicalKey(context: LDContext) {
 	return context.key
 }
 
-export interface LDClientMin {
-	track(key: string, data?: any, metricValue?: number): void
-
-	identify(ctx: any): void
-
-	addHook(hook: Hook): void
-}
-
 export function setupLaunchDarklyIntegration(
 	hClient: HighlightPublicInterface,
 	ldClient: LDClientMin,
