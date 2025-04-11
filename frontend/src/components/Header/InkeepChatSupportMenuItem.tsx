@@ -18,7 +18,7 @@ function InkeepChatSupportMenuItem() {
 	const handleClose = useCallback(() => {
 		console.log('Modal closed')
 		setIsOpen(false)
-	}, [])
+	}, [setIsOpen])
 
 	const customTriggerProps: InkeepCustomTriggerProps = {
 		isOpen,

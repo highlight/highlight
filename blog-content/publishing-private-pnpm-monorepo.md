@@ -80,7 +80,7 @@ import { H } from 'highlight.run'
 H.init('...')
 ```
 
-Yarn knows that `highlight.run` exists under `sdk/...` because that directory is part of the `workspaces` key and has the corresponding name in its [package.json](https://github.com/highlight/highlight/blob/main/sdk/firstload/package.json "https://github.com/highlight/highlight/blob/main/sdk/firstload/package.json"). That's all
+Yarn knows that `highlight.run` exists under `sdk/...` because that directory is part of the `workspaces` key and has the corresponding name in its [package.json](https://github.com/highlight/highlight/blob/main/sdk/highlight-run/package.json "https://github.com/highlight/highlight/blob/main/sdk/highlight-run/package.json"). That's all
 
 ### Publishing an NPM package with workspace dependencies
 
@@ -94,7 +94,7 @@ Next, we tried to use relative imports to make sure that the bundle didn't have 
 
 After a bit of trial and error, we arrived at a solution: use relative path imports and rely on code splitting and `type` imports.
 
-Here's a snippet of the imports from our [highlight.run entrypoint](https://github.com/highlight/highlight/blob/main/sdk/firstload/src/index.tsx "https://github.com/highlight/highlight/blob/main/sdk/firstload/src/index.tsx").
+Here's a snippet of the imports from our [highlight.run entrypoint](https://github.com/highlight/highlight/blob/main/sdk/highlight-run/src/index.tsx "https://github.com/highlight/highlight/blob/main/sdk/highlight-run/src/index.tsx").
 
 ```
 ...
