@@ -9,7 +9,7 @@ import {
 	SessionShortcutOptions,
 } from './client'
 import { ErrorMessageType, Source } from './shared-types'
-import { LDClientMin } from '../integrations/launchdarkly'
+import { LDClientMin } from '../../integrations/launchdarkly'
 
 export declare interface Metadata {
 	[key: string]: string | boolean | number

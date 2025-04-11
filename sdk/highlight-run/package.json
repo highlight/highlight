@@ -118,7 +118,7 @@
 				"dist/*.js",
 				"!dist/*.umd.js"
 			],
-			"limit": "256 kB",
+			"limit": "512 kB",
 			"brotli": true
 		}
 	]

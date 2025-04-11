@@ -1,4 +1,4 @@
-import type { ErrorMessage, Source } from '../types/shared-types'
+import type { ErrorMessage, Source } from '../client/types/shared-types'
 
 export interface IntegrationClient {
 	identify(

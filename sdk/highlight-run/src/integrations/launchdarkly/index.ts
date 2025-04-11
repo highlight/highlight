@@ -6,10 +6,10 @@ import {
 	IdentifySeriesContext,
 	IdentifySeriesData,
 	IdentifySeriesResult,
-} from '../../types/Hooks'
+} from './types/Hooks'
 import { trace } from '@opentelemetry/api'
-import type { HighlightPublicInterface } from '../../types/types'
-import type { ErrorMessage, Source } from '../../types/shared-types'
+import type { HighlightPublicInterface } from '../../client'
+import type { ErrorMessage, Source } from '../../client/types/shared-types'
 import { IntegrationClient } from '../index'
 
 const FEATURE_FLAG_SCOPE = 'feature_flag'

@@ -108,11 +108,11 @@ import HighlightClientWorker from './workers/highlight-client-worker?worker&inli
 import { MessageType, PropertyType } from './workers/types'
 import { parseError } from './utils/errors'
 import { Counter, Gauge, Histogram, UpDownCounter } from '@opentelemetry/api'
-import { IntegrationClient } from './integrations'
+import { IntegrationClient } from '../integrations'
 import {
 	LaunchDarklyIntegration,
 	LDClientMin,
-} from './integrations/launchdarkly'
+} from '../integrations/launchdarkly'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
