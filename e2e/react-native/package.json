@@ -1,5 +1,5 @@
 {
-	"name": "react-native",
+	"name": "e2e-react-native",
 	"private": true,
 	"main": "expo-router/entry",
 	"version": "1.0.0",

@@ -1,5 +1,5 @@
 {
-	"name": "aws-lambda",
+	"name": "e2e-aws-lambda",
 	"description": "aws-lambda",
 	"version": "0.0.1",
 	"private": true,

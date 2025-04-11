@@ -1,5 +1,5 @@
 {
-	"name": "emails",
+	"name": "@highlight-run/emails",
 	"private": true,
 	"version": "0.0.0",
 	"main": "./dist/index.js",
