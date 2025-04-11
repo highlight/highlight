@@ -1,8 +1,5 @@
 import { getActiveSpan } from '../../../otel'
-import {
-	getNetworkSessionSecureID,
-	getSessionSecureID,
-} from '../../../utils/sessionStorage/highlightSession'
+import { getNetworkSessionSecureID } from '../../../utils/sessionStorage/highlightSession'
 import { RequestResponsePair } from './models'
 import { sanitizeResource } from './network-sanitizer'
 
@@ -260,7 +257,7 @@ const isHighlightNetworkResourceFilter = (
 export const shouldNetworkRequestBeRecorded = (
 	url: string,
 	highlightEndpoints: string[],
-	tracingOrigins?: boolean | (string | RegExp)[],
+	_tracingOrigins?: boolean | (string | RegExp)[],
 ) => {
 	return !isHighlightNetworkResourceFilter(url, highlightEndpoints)
 }

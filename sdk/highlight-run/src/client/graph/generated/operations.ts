@@ -470,7 +470,7 @@ const defaultWrapper: SdkFunctionWrapper = (
 	action,
 	_operationName,
 	_operationType,
-	variables,
+	_variables,
 ) => action()
 
 export function getSdk(

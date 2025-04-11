@@ -2,7 +2,6 @@ import type { LDMultiKindContext } from './types/LDMultiKindContext'
 import type { LDContext } from './types/LDContext'
 import type { LDContextCommon } from './types/LDContextCommon'
 import {
-	Hook,
 	IdentifySeriesContext,
 	IdentifySeriesData,
 	IdentifySeriesResult,
@@ -11,6 +10,7 @@ import { trace } from '@opentelemetry/api'
 import type { HighlightPublicInterface } from '../../client'
 import type { ErrorMessage, Source } from '../../client/types/shared-types'
 import { IntegrationClient } from '../index'
+import { LDClientMin } from './types/LDClient'
 
 const FEATURE_FLAG_SCOPE = 'feature_flag'
 const FEATURE_FLAG_KEY_ATTR = `${FEATURE_FLAG_SCOPE}.key`
@@ -60,7 +60,7 @@ export function setupLaunchDarklyIntegration(
 		afterIdentify: (
 			hookContext: IdentifySeriesContext,
 			data: IdentifySeriesData,
-			result: IdentifySeriesResult,
+			_result: IdentifySeriesResult,
 		) => {
 			hClient.identify(
 				getCanonicalKey(hookContext.context),
@@ -108,10 +108,10 @@ export class LaunchDarklyIntegration implements IntegrationClient {
 	}
 
 	identify(
-		sessionSecureID: string,
-		user_identifier: string,
-		user_object = {},
-		source?: Source,
+		_sessionSecureID: string,
+		_user_identifier: string,
+		_user_object = {},
+		_source?: Source,
 	) {
 		// noop - no highlight forwarding of identify call
 	}
