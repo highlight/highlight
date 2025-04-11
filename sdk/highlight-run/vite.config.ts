@@ -22,7 +22,7 @@ export default defineConfig({
 		},
 		minify: true,
 		sourcemap: true,
-		emptyOutDir: true,
+		emptyOutDir: false,
 		rollupOptions: {
 			treeshake: 'smallest',
 			output: {
