@@ -77,7 +77,7 @@
 		"publish:ai": "yarn workspace @highlight-run/ai publish",
 		"publish:client": "yarn workspace scripts publish:client",
 		"publish:frontend": "yarn workspace @highlight-run/frontend publish",
-		"publish:react-email-templates": "yarn workspace emails publish",
+		"publish:react-email-templates": "yarn workspace @highlight-run/emails publish",
 		"publish:render": "yarn workspace render publish",
 		"publish:turbo": "yarn workspaces foreach -R --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish",
 		"test:all": "yarn turbo run test --filter=!render --filter=!rrweb --filter=!rrvideo --filter=!@rrweb/rrweb-plugin-console-record --filter=!@rrweb/_monorepo --filter=!@rrweb/all --filter=!@rrweb/record --filter=!@rrweb/replay --filter=!@rrweb/types --filter=!@rrweb/packer --filter=!@rrweb/utils --filter=!@rrweb/web-extension --filter=!rrweb-snapshot --filter=!rrweb-player --filter=!rrdom --filter=!rrdom-nodejs --filter=!nextjs",
