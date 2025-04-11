@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.16.0
+
+### Minor Changes
+
+-   eace04b: introduce launchdarkly sdk integration for event forwarding
+
 ## 9.15.0
 
 ### Minor Changes
