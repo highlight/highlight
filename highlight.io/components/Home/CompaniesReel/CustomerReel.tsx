@@ -72,22 +72,6 @@ export const CustomerReel = () => {
 					style={{ transform: 'scale(0.8)' }}
 				/>
 			</div>
-			<div className={styles.companiesLastRowContainer}>
-				<div className={styles.companiesLastRow}>
-					<Image
-						src={Whop}
-						alt="Whop"
-						className={styles.scaleHeight}
-						style={{ transform: 'scale(0.8)' }}
-					/>
-					<Image
-						src={Aurora}
-						alt="Aurora"
-						className={styles.scaleHeight}
-						style={{ transform: 'scale(0.8)' }}
-					/>
-				</div>
-			</div>
 		</div>
 	)
 }
