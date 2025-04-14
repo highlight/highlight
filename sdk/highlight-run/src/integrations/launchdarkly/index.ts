@@ -7,17 +7,18 @@ import {
 	IdentifySeriesResult,
 } from './types/Hooks'
 import { trace } from '@opentelemetry/api'
-import { HighlightPublicInterface, MetricCategory } from '../../client'
+import { type HighlightPublicInterface, MetricCategory } from '../../client'
 import type { ErrorMessage, Source } from '../../client/types/shared-types'
-import { IntegrationClient } from '../index'
-import { LDClientMin } from './types/LDClient'
-import { RecordMetric } from '../../client/types/types'
+import type { IntegrationClient } from '../index'
+import type { LDClientMin } from './types/LDClient'
+import type { RecordMetric } from '../../client/types/types'
 
 const FEATURE_FLAG_SCOPE = 'feature_flag'
+// TODO(vkorolik) reporting environment as `${FEATURE_FLAG_SCOPE}.set.id`
 const FEATURE_FLAG_KEY_ATTR = `${FEATURE_FLAG_SCOPE}.key`
-const FEATURE_FLAG_PROVIDER_ATTR = `${FEATURE_FLAG_SCOPE}.provider_name`
+const FEATURE_FLAG_PROVIDER_ATTR = `${FEATURE_FLAG_SCOPE}.provider.name`
 const FEATURE_FLAG_CONTEXT_KEY_ATTR = `${FEATURE_FLAG_SCOPE}.context.key`
-const FEATURE_FLAG_VARIANT_ATTR = `${FEATURE_FLAG_SCOPE}.variant`
+const FEATURE_FLAG_VARIANT_ATTR = `${FEATURE_FLAG_SCOPE}.result.variant`
 const FEATURE_FLAG_SPAN_NAME = 'evaluation'
 
 const LD_INITIALIZE_EVENT = '$ld:telemetry:initialize'
@@ -67,7 +68,7 @@ export function setupLaunchDarklyIntegration(
 		) => {
 			hClient.identify(
 				getCanonicalKey(hookContext.context),
-				undefined,
+				hookContext.context,
 				'LaunchDarkly',
 			)
 			return data
@@ -127,7 +128,7 @@ export class LaunchDarklyIntegration implements IntegrationClient {
 			return
 		}
 		this.client.track(
-			LD_METRIC_EVENT,
+			`${LD_METRIC_EVENT}:${metric.name.toLowerCase()}`,
 			{
 				...metric,
 				sessionSecureID,
@@ -154,6 +155,10 @@ export class LaunchDarklyIntegration implements IntegrationClient {
 
 	track(sessionSecureID: string, metadata: object) {
 		const event = (metadata as unknown as { event?: string }).event
+		// skip integration hClient.track() calls
+		if (event === FEATURE_FLAG_SPAN_NAME) {
+			return
+		}
 		this.client.track(
 			event ? `${LD_TRACK_EVENT}:${event}` : LD_TRACK_EVENT,
 			{
