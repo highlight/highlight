@@ -155,6 +155,10 @@ export class LaunchDarklyIntegration implements IntegrationClient {
 
 	track(sessionSecureID: string, metadata: object) {
 		const event = (metadata as unknown as { event?: string }).event
+		// skip integration hClient.track() calls
+		if (event === FEATURE_FLAG_SPAN_NAME) {
+			return
+		}
 		this.client.track(
 			event ? `${LD_TRACK_EVENT}:${event}` : LD_TRACK_EVENT,
 			{
