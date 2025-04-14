@@ -8,6 +8,7 @@ import {
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import analytics from '@/util/analytics'
 import { createContext } from '@/util/context/context'
+import { H } from 'highlight.run'
 
 // Matches the clientID in the client SDK. Not exporting from the client SDK
 // because we don't want to make this public.
@@ -105,6 +106,12 @@ const LaunchDarklyProviderContent: React.FC<
 	}>
 > = ({ children, context = {} }) => {
 	const client = useLDClient()
+
+	useEffect(() => {
+		if (client) {
+			H.registerLD(client)
+		}
+	}, [client])
 
 	useEffect(() => {
 		if (client) {
