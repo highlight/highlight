@@ -10276,7 +10276,7 @@ __metadata:
     highlight.run: "workspace:*"
     js-cookie: "npm:^3.0.1"
     jsonc-parser: "npm:^3.2.0"
-    launchdarkly-react-client-sdk: "npm:^3.6.1"
+    launchdarkly-react-client-sdk: "npm:^3.7.0-beta.1"
     less: "npm:^4.1.3"
     lightningcss: "npm:^1.22.1"
     lodash: "npm:^4.17.21"
@@ -44729,38 +44729,38 @@ __metadata:
   languageName: node
   linkType: hard
 
-"launchdarkly-js-client-sdk@npm:^3.5.0":
-  version: 3.5.0
-  resolution: "launchdarkly-js-client-sdk@npm:3.5.0"
+"launchdarkly-js-client-sdk@npm:3.6.0-beta.3":
+  version: 3.6.0-beta.3
+  resolution: "launchdarkly-js-client-sdk@npm:3.6.0-beta.3"
   dependencies:
     escape-string-regexp: "npm:^4.0.0"
-    launchdarkly-js-sdk-common: "npm:5.4.0"
-  checksum: 10/9767481b10321acd20450d850fb86ce12aa098be27d3d4a8043a79832fdc37b8cce462ac8b46140ea9c5da6d0b095c582fa7e2bbefdfb80d28f5ff0d6b3d8471
+    launchdarkly-js-sdk-common: "npm:5.5.0-beta.3"
+  checksum: 10/90b2caf10dad625bca2f3b11132240f482cb0788c4b73de314992e9acb9732d12efacc29ab3d69a2a2d37b26698e894adce995d0f2d1580bbe8044d8a068cdbe
   languageName: node
   linkType: hard
 
-"launchdarkly-js-sdk-common@npm:5.4.0":
-  version: 5.4.0
-  resolution: "launchdarkly-js-sdk-common@npm:5.4.0"
+"launchdarkly-js-sdk-common@npm:5.5.0-beta.3":
+  version: 5.5.0-beta.3
+  resolution: "launchdarkly-js-sdk-common@npm:5.5.0-beta.3"
   dependencies:
     base64-js: "npm:^1.3.0"
     fast-deep-equal: "npm:^2.0.1"
     uuid: "npm:^8.0.0"
-  checksum: 10/b51159dd183e1a184cf9720a0e47287112f5baa29f5af8af64f20fbd1cca9fbfae3797a68162eb02973d1a2c381607cd907bfd36fb14feb2aac16e543edfc9f9
+  checksum: 10/323e9c73cf9108b37d3d4d31a18f20c40913c196264254226c1690cdf362dc4cf0b01bf9b4bcd2b5018c5a99bed349d2c5e2dc7d67ef808403aa92bef0a8abe7
   languageName: node
   linkType: hard
 
-"launchdarkly-react-client-sdk@npm:^3.6.1":
-  version: 3.6.1
-  resolution: "launchdarkly-react-client-sdk@npm:3.6.1"
+"launchdarkly-react-client-sdk@npm:^3.7.0-beta.1":
+  version: 3.7.0-beta.1
+  resolution: "launchdarkly-react-client-sdk@npm:3.7.0-beta.1"
   dependencies:
     hoist-non-react-statics: "npm:^3.3.2"
-    launchdarkly-js-client-sdk: "npm:^3.5.0"
+    launchdarkly-js-client-sdk: "npm:3.6.0-beta.3"
     lodash.camelcase: "npm:^4.3.0"
   peerDependencies:
     react: ^16.6.3 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-dom: ^16.8.4 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/4491f8591173fd28f7a562ff3798687d6946a22e1a0b30460a3fd5d4569bf87d3e2e46bc007b2bc2ca644ce6f7fd7291e60db5b05525f3cdfd3f09dc2306b707
+  checksum: 10/889382d0da99dc81bcd05834af0432c080ba47e27e2ca00e19271551787fc2db50b40a574662853c81948142cad2ccb1f2727d91b9544ac079d3fb464506a08c
   languageName: node
   linkType: hard
 
