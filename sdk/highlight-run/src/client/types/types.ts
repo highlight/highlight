@@ -12,7 +12,7 @@ import { ErrorMessageType, Source } from './shared-types'
 import { LDClientMin } from '../../integrations/launchdarkly/types/LDClient'
 
 export declare interface Metadata {
-	[key: string]: string | boolean | number
+	[key: string]: any
 }
 
 export declare interface Metric {
