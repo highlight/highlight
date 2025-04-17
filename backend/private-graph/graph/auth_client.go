@@ -240,12 +240,12 @@ func (c *FirebaseAuthClient) updateContextWithAuthenticatedUser(ctx context.Cont
 	var uid string
 	email := ""
 	if token != "" {
-		t, err := c.authClient.VerifyIDToken(r.Context(), token)
+		t, err := c.authClient.VerifyIDToken(ctx, token)
 		if err != nil {
 			return ctx, e.Wrap(err, "invalid id token")
 		}
 		uid = t.UID
-		if userRecord, err := c.authClient.GetUser(r.Context(), uid); err == nil {
+		if userRecord, err := c.authClient.GetUser(ctx, uid); err == nil {
 			email = userRecord.Email
 
 			// This is to prevent attackers from impersonating Highlight staff.

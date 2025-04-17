@@ -258,7 +258,7 @@ func sendErrorAlert(ctx context.Context, slackAccessToken string, alertInput *de
 	}
 
 	if stackTraceBlock != nil {
-		highlightLogo := *slack.NewImageBlockElement("https://beta.highlight.io/logo192.png", "Highlight logo")
+		highlightLogo := *slack.NewImageBlockElement("https://app.highlight.io/logo192.png", "Highlight logo")
 		bodyBlockSet = append(bodyBlockSet, slack.NewContextBlock("", highlightLogo, stackTraceBlock))
 	}
 

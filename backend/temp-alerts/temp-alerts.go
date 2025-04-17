@@ -469,7 +469,7 @@ func sendSlackAlert(ctx context.Context, db *gorm.DB, obj *model.AlertDeprecated
 			stackTraceString = input.ErrorObject.StackTrace
 		}
 
-		if err := json.Unmarshal([]byte(*stackTraceString), &stackTrace); err == nil {
+		if err := json.Unmarshal([]byte(*stackTraceString), &stackTrace); err == nil && len(stackTrace) > 0 {
 			firstTrace := stackTrace[0]
 
 			var fileLocation string
@@ -496,7 +496,7 @@ func sendSlackAlert(ctx context.Context, db *gorm.DB, obj *model.AlertDeprecated
 		bodyBlockSet = append(bodyBlockSet, slack.NewSectionBlock(eventBlock, nil, nil))
 		bodyBlockSet = append(bodyBlockSet, slack.NewActionBlock("", actionBlocks...))
 		if stackTraceBlock != nil {
-			highlightLogo := *slack.NewImageBlockElement("https://beta.highlight.io/logo192.png", "Highlight logo")
+			highlightLogo := *slack.NewImageBlockElement("https://app.highlight.io/logo192.png", "Highlight logo")
 			bodyBlockSet = append(bodyBlockSet, slack.NewContextBlock("", highlightLogo, stackTraceBlock))
 		}
 	case model.AlertType.NEW_USER:
