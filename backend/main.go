@@ -459,6 +459,14 @@ func main() {
 
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(cors.New(PRIVATE_GRAPH_CORS_OPTIONS).Handler)
+			r.Use(highlightChi.UseMiddleware(trace.WithSpanKind(trace.SpanKindServer)))
+			// auth routes should not use the middleware since requests will not have a session
+			log.WithContext(ctx).WithField("private", privateEndpoint).Info("setting up private graph auth listeners")
+			private.AuthClient.SetupListeners(r)
+		})
+
+		r.Route(privateEndpoint, func(r chi.Router) {
+			r.Use(cors.New(PRIVATE_GRAPH_CORS_OPTIONS).Handler)
 			r.Use(highlightChi.Middleware)
 			r.Use(private.PrivateMiddleware)
 			if fsClient, ok := storageClient.(*storage.FilesystemClient); ok {
@@ -466,9 +474,6 @@ func main() {
 			}
 			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
-
-			log.WithContext(ctx).WithField("private", privateEndpoint).Info("setting up private graph auth listeners")
-			private.AuthClient.SetupListeners(r)
 
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{
