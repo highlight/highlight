@@ -16,12 +16,10 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/util"
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -298,7 +296,6 @@ func (c *OAuthAuthClient) GetUser(ctx context.Context, uid string) (*auth.UserRe
 func (c *OAuthAuthClient) SetupListeners(r chi.Router) {
 	log.WithContext(context.Background()).Info("configuring oauth server listeners")
 	r.Route("/", func(r chi.Router) {
-		r.Use(highlightChi.UseMiddleware(trace.WithSpanKind(trace.SpanKindServer)))
 		r.Get("/oauth/login", c.handleRedirect)
 		r.Post("/oauth/logout", c.handleLogout)
 		r.Get("/oauth/callback", c.handleOAuth2Callback)
