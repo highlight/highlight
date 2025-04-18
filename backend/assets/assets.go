@@ -11,6 +11,7 @@ import (
 
 const ParamKey = "url"
 
+// HandleAsset proxies assets bypassing CORS. response headers set by main.go CORS middleware
 func HandleAsset(w http.ResponseWriter, r *http.Request) {
 	qs := r.URL.Query()
 	urlStr := qs.Get(ParamKey)
@@ -32,11 +33,6 @@ func HandleAsset(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
-	// always allow access origin
-	w.Header().Add("Access-Control-Allow-Origin", u.Host)
-	w.Header().Add("Access-Control-Allow-Credentials", "true")
-	w.Header().Add("Access-Control-Allow-Methods", "GET")
 
 	// create the request to server
 	req, err := http.NewRequest(r.Method, u.String(), r.Body)
