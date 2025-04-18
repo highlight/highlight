@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/assets"
 	"io"
 	"math/rand"
 	"net/http"
@@ -27,7 +28,6 @@ import (
 	"github.com/gorilla/websocket"
 	golang_lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/highlight-run/go-resthooks"
-	"github.com/highlight-run/highlight/backend/assets"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/enterprise"
