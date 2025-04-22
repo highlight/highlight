@@ -819,6 +819,10 @@ const BillingBanner: React.FC = () => {
 		)}.`
 	}
 
+	if (moment().isAfter('2025-04-23T12:00:00Z')) {
+		return <AcquisitionBanner />
+	}
+
 	if (!bannerMessage && !hasTrial) {
 		const isLaunchWeek = moment().isBetween(
 			'2024-10-21T13:00:00Z', // 6AM PST
@@ -940,6 +944,31 @@ const LaunchWeekBanner = () => {
 				Follow along
 			</a>{' '}
 			to see what we've been building!
+		</span>
+	)
+
+	return (
+		<div className={clsx(styles.trialWrapper, styles.launchWeek)}>
+			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
+		</div>
+	)
+}
+
+const AcquisitionBanner = () => {
+	const { toggleShowBanner } = useGlobalContext()
+	toggleShowBanner(true)
+
+	const bannerMessage = (
+		<span>
+			Highlight is now part of LaunchDarkly 🎉{' '}
+			<a
+				target="_blank"
+				href="https://www.highlight.io/blog/joining-launchdarkly?utm_source=highlight-app-banner"
+				className={styles.trialLink}
+				rel="noreferrer"
+			>
+				Learn more on our blog.
+			</a>
 		</span>
 	)
 
