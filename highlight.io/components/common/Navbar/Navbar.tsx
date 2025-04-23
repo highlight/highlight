@@ -40,12 +40,14 @@ const LaunchWeekBanner = () => {
 const PromotionBanner = () => {
 	return (
 		<Link
-			href="/otel-course-signup?utm_source=highlight-banner"
+			href="/blog/joining-launchdarkly?utm_source=highlight-banner"
 			className="hidden md:flex text-center justify-center items-center w-full py-2.5 px-3 bg-color-primary-200 text-white hover:bg-opacity-90"
 		>
 			<Typography type="copy3">
-				Master OpenTelemetry with our free comprehensive course -{' '}
-				<span className="font-semibold underline">Start Learning</span>
+				Highlight is now part of LaunchDarkly 🎉{' '}
+				<span className="font-semibold underline">
+					Learn more on our blog.
+				</span>
 			</Typography>
 		</Link>
 	)
