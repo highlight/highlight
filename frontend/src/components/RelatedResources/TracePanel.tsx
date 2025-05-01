@@ -11,7 +11,8 @@ import {
 	useRelatedResource,
 } from '@/components/RelatedResources/hooks'
 import { useEffect, useState } from 'react'
-import { SearchContext } from '../Search/SearchContext'
+import { SearchContext, useSearchContext } from '../Search/SearchContext'
+import { FlameGraphSpan } from '@/pages/Traces/utils'
 
 export const TracePanel: React.FC<{ resource: RelatedTrace }> = () => {
 	const { highlightedSpan, loading, selectedSpan, traces } = useTrace()
@@ -49,11 +50,24 @@ export const TracePanel: React.FC<{ resource: RelatedTrace }> = () => {
 							</Text>
 							<Box bb="dividerWeak" mt="12" mb="8" />
 
-							{span && <TraceSpanAttributes span={span} />}
+							{span && <TraceAttributes span={span} />}
 						</Box>
 					</Box>
 				)}
 			</Box>
 		</SearchContext>
+	)
+}
+
+const TraceAttributes: React.FC<{ span: FlameGraphSpan }> = ({ span }) => {
+	const { onSubmit, queryParts, query } = useSearchContext()
+
+	return (
+		<TraceSpanAttributes
+			span={span}
+			query={query}
+			queryParts={queryParts}
+			onSubmitQuery={onSubmit}
+		/>
 	)
 }
