@@ -347,10 +347,10 @@
       ],
     },
     "highlight.run": {
-      "version": "9.4.2"
+      "version": "9.16.0"
     },
     "@highlight-run/react": {
-      "version": "6.0.2"
+      "version": "17.0.0"
     },
     "antd": {
       "entryPoints": [
