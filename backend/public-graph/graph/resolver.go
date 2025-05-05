@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"hash/fnv"
@@ -17,8 +18,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/goccy/go-json"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
