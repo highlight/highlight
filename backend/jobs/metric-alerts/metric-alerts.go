@@ -3,6 +3,7 @@ package metric_alerts
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/store"
 	"strings"
 	"time"
 
@@ -37,14 +38,14 @@ func applyDefaultFilters(productType modelInputs.ProductType) string {
 	return ""
 }
 
-func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) {
+func WatchMetricAlerts(ctx context.Context, store *store.Store, MailClient *sendgrid.Client, ccClient *clickhouse.Client, lambdaClient *lambda.Client) {
 	log.WithContext(ctx).Info("Starting to watch metric alerts")
 
 	alertWorkerpool := workerpool.New(maxWorkers)
 	alertWorkerpool.SetPanicHandler(util.Recover)
 
 	processAlertsImpl := func() {
-		alerts := getMetricAlerts(ctx, DB)
+		alerts := getMetricAlerts(ctx, store.DB)
 		log.WithContext(ctx).Infof("processing %d metric alerts", len(alerts))
 
 		for _, alert := range alerts {
@@ -53,7 +54,7 @@ func WatchMetricAlerts(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Cl
 				func() {
 					ctx := context.Background()
 
-					err := processMetricAlert(ctx, DB, MailClient, alert, ccClient, lambdaClient)
+					err := processMetricAlert(ctx, store, MailClient, alert, ccClient, lambdaClient)
 					if err != nil {
 						log.WithContext(ctx).Error(err)
 					}
@@ -78,7 +79,7 @@ func getMetricAlerts(ctx context.Context, DB *gorm.DB) []*model.Alert {
 
 const timeFormatSecondsNoTz = "2006-01-02T15:04:05"
 
-func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.Client, alert *model.Alert, ccClient *clickhouse.Client, lambdaClient *lambda.Client) error {
+func processMetricAlert(ctx context.Context, store *store.Store, MailClient *sendgrid.Client, alert *model.Alert, ccClient *clickhouse.Client, lambdaClient *lambda.Client) error {
 	span, ctx := util.StartSpanFromContext(ctx, "WatchMetricAlerts.processMetricAlert")
 	span.SetAttribute("alert_id", alert.ID)
 	span.SetAttribute("project_id", alert.ProjectID)
@@ -313,7 +314,7 @@ func processMetricAlert(ctx context.Context, DB *gorm.DB, MailClient *sendgrid.C
 					"alertProductType": alert.ProductType,
 				}).Info("alerting metric alert")
 
-			err := alertsV2.SendAlerts(ctx, DB, MailClient, lambdaClient, alert, groupByKey, strings.Join(bucket.Group, ""), *bucket.MetricValue)
+			err := alertsV2.SendAlerts(ctx, store, MailClient, lambdaClient, alert, groupByKey, strings.Join(bucket.Group, ""), *bucket.MetricValue)
 			if err != nil {
 				log.WithContext(ctx).WithFields(
 					log.Fields{
