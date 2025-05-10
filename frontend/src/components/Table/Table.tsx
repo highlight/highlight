@@ -1,4 +1,4 @@
-import { CircularSpinner } from '@components/Loading/Loading'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
 import { Table as AntDesignTable, ConfigProvider, TableProps } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
@@ -38,7 +38,9 @@ const Table = ({
 					[styles.interactable]: !!props.onRow,
 				})}
 				loading={
-					props.loading ? { indicator: <CircularSpinner /> } : false
+					props.loading
+						? { indicator: <IconAnimatedLoading /> }
+						: false
 				}
 			/>
 		</ConfigProvider>
