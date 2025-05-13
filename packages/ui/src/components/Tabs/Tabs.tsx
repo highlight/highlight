@@ -169,11 +169,11 @@ const TabPanel: React.FC<TabPanelProps> = ({
 					flexGrow={1}
 					id={props.id}
 					overflowY={scrollable ? 'auto' : undefined}
-				>
-					{children}
-				</Stack>
+				/>
 			}
-		/>
+		>
+			{children}
+		</Ariakit.TabPanel>
 	)
 }
 
