@@ -38,7 +38,7 @@ const usePlayerConfiguration = () => {
 
 	const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage<Tab>(
 		'tabs-DevTools-active-tab',
-		Tab.Errors,
+		Tab.Console,
 	)
 
 	const [selectedRightPlayerPanelTab, setSelectedRightPlayerPanelTab] =

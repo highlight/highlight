@@ -205,6 +205,7 @@ const DevToolsWindowV2: React.FC<
 							</Box>
 						) : (
 							<Tabs
+								selectedId={selectedDevToolsTab}
 								onChange={(id) => {
 									setSelectedDevToolsTab(id as Tab)
 									setQuery(
@@ -427,7 +428,10 @@ const DevToolsWindowV2: React.FC<
 										)}
 									</Stack>
 								</Tabs.List>
-								<Tabs.Panel id={Tab.Console}>
+								<Tabs.Panel
+									id={Tab.Console}
+									tabId={Tab.Console}
+								>
 									<ConsolePage
 										autoScroll={autoScroll}
 										filter={filter}
@@ -435,14 +439,17 @@ const DevToolsWindowV2: React.FC<
 										panelHeight={panelHeight}
 									/>
 								</Tabs.Panel>
-								<Tabs.Panel id={Tab.Errors}>
+								<Tabs.Panel id={Tab.Errors} tabId={Tab.Errors}>
 									<ErrorsPage
 										autoScroll={autoScroll}
 										filter={filter}
 										time={time}
 									/>
 								</Tabs.Panel>
-								<Tabs.Panel id={Tab.Network}>
+								<Tabs.Panel
+									id={Tab.Network}
+									tabId={Tab.Network}
+								>
 									<NetworkPage
 										autoScroll={autoScroll}
 										requestTypes={requestTypes}
@@ -451,7 +458,7 @@ const DevToolsWindowV2: React.FC<
 										time={time}
 									/>
 								</Tabs.Panel>
-								<Tabs.Panel id={Tab.Traces}>
+								<Tabs.Panel id={Tab.Traces} tabId={Tab.Traces}>
 									<TracesPage
 										autoScroll={autoScroll}
 										filter={filter}
@@ -462,6 +469,7 @@ const DevToolsWindowV2: React.FC<
 								<Tabs.Panel
 									id={Tab.Performance}
 									style={{ height: '100%' }}
+									tabId={Tab.Performance}
 								>
 									<PerformancePage />
 								</Tabs.Panel>
