@@ -32,7 +32,7 @@ export const formatDatetime = (
 		case 'Date and Time':
 			return dt.format('M/D/YY h:mm A')
 		case 'Date and Time with Milliseconds':
-			return dt.format('M/D/YY h:mm:s A')
+			return dt.format('M/D/YY h:mm:ss A')
 		case 'Unix':
 			return dt.format('X')
 		case 'Unix With Milliseconds':
