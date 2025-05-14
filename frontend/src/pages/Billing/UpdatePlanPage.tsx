@@ -35,7 +35,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { loadStripe, Stripe } from '@stripe/stripe-js'
+import type { Stripe } from '@stripe/stripe-js'
 import { getPlanChangeEmail } from '@util/billing/billing'
 import { formatNumber, formatNumberWithDelimiters } from '@util/numbers'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
@@ -152,14 +152,6 @@ export const getNextBillingDate = (
 	} else {
 		return moment().add(1, 'M').toDate()
 	}
-}
-
-export const getStripePromiseOrNull = () => {
-	const stripe_publishable_key = import.meta.env.REACT_APP_STRIPE_API_PK
-	if (stripe_publishable_key) {
-		return loadStripe(stripe_publishable_key)
-	}
-	return null
 }
 
 type ProductCardProps = {
@@ -603,8 +595,14 @@ const UpdatePlanPage = ({
 
 	useEffect(() => {
 		const loadStripeIfNeeded = () => {
-			const stripeInstance = getStripePromiseOrNull()
-			setStripePromise(stripeInstance)
+			const stripe_publishable_key = import.meta.env
+				.REACT_APP_STRIPE_API_PK
+
+			if (stripe_publishable_key) {
+				import('@stripe/stripe-js').then(({ loadStripe }) => {
+					setStripePromise(loadStripe(stripe_publishable_key))
+				})
+			}
 		}
 
 		loadStripeIfNeeded()
@@ -1633,7 +1631,7 @@ const FAQEntry = ({
 	faq: { question: string; answer: string }
 	bottomBorder?: boolean
 }) => {
-	const [expanded, setExpanded] = React.useState<boolean>(false)
+	const [expanded, setExpanded] = useState<boolean>(false)
 	return (
 		<Box
 			key={faq.question}
@@ -1753,11 +1751,11 @@ export const UpdatePlanModal: React.FC<{
 	currentPlanType: Exclude<PlanType, PlanType.Free>
 }> = ({ step, setStep, currentPlanType }) => {
 	const [selectedPlanType, setSelectedPlanType] =
-		React.useState<PlanType>(currentPlanType)
-	const [hasChanges, setHasChanges] = React.useState<boolean>(false)
+		useState<PlanType>(currentPlanType)
+	const [hasChanges, setHasChanges] = useState<boolean>(false)
 	const [showConfirmCloseModal, setShowConfirmCloseModal] =
-		React.useState<boolean>(false)
-	React.useEffect(() => {
+		useState<boolean>(false)
+	useEffect(() => {
 		if (step === null) {
 			setHasChanges(false)
 			setShowConfirmCloseModal(false)
