@@ -37,6 +37,7 @@ import {
 	getAllPerformanceEvents,
 	getAllUrlEvents,
 	getBrowserExtensionScriptURLs,
+	getNonCustomEvents,
 } from '@pages/Player/SessionLevelBar/utils/utils'
 import {
 	customEvent,
@@ -359,7 +360,7 @@ export const PlayerReducer = (
 		case PlayerActionType.addLiveEvents:
 			s.liveEventCount += 1
 			s.lastActiveTimestamp = action.lastActiveTimestamp
-			s.replayer?.replaceEventsV2(events)
+			s.replayer?.replaceEventsV2(getNonCustomEvents(events))
 			s.replayer?.play(events[events.length - 1].timestamp)
 			s.replayerState = ReplayerState.Playing
 			break
@@ -425,9 +426,7 @@ export const PlayerReducer = (
 		case PlayerActionType.updateEvents:
 			if (s.replayer) {
 				log('updateEvents', { events })
-				s.replayer.replaceEventsV2(
-					events.filter((e) => e.type !== EventType.Custom),
-				)
+				s.replayer.replaceEventsV2(getNonCustomEvents(events))
 			}
 			break
 		case PlayerActionType.updateViewport:
@@ -476,9 +475,7 @@ export const PlayerReducer = (
 				}
 			} else {
 				log('onChunksLoad', { events })
-				s.replayer.replaceEventsV2(
-					events.filter((e) => e.type !== EventType.Custom),
-				)
+				s.replayer.replaceEventsV2(getNonCustomEvents(events))
 			}
 			s = replayerAction(
 				PlayerActionType.onChunksLoad,
