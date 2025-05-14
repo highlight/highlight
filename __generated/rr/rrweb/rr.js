@@ -15004,12 +15004,8 @@ var Timer = class {
   }
   replaceActionsV2(actions) {
     const rafWasActive = this.raf === true;
-    if (this.actions.length > actions.length * 2) {
-      this.actions = [...actions];
-    } else {
-      this.actions.length = 0;
-      this.actions.push(...actions);
-    }
+    this.actions.length = 0;
+    this.actions = [...actions];
     if (rafWasActive) {
       this.raf = requestAnimationFrame(this.rafCheck.bind(this));
     }
