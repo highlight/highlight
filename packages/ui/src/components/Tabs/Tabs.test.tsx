@@ -11,8 +11,12 @@ describe('Tabs', () => {
 					<Tabs.Tab id="1">Tab 1</Tabs.Tab>
 					<Tabs.Tab id="2">Tab 2</Tabs.Tab>
 				</Tabs.List>
-				<Tabs.Panel id="1">Panel 1</Tabs.Panel>
-				<Tabs.Panel id="2">Panel 2</Tabs.Panel>
+				<Tabs.Panel id="1" unmountOnHide={false}>
+					Panel 1
+				</Tabs.Panel>
+				<Tabs.Panel id="2" unmountOnHide={false}>
+					Panel 2
+				</Tabs.Panel>
 			</Tabs>,
 		)
 
