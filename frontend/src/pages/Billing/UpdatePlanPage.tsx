@@ -35,13 +35,13 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { loadStripe } from '@stripe/stripe-js'
+import { loadStripe, Stripe } from '@stripe/stripe-js'
 import { getPlanChangeEmail } from '@util/billing/billing'
 import { formatNumber, formatNumberWithDelimiters } from '@util/numbers'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
-import React from 'react'
+import { useState, useEffect } from 'react'
 import ReactCollapsible from 'react-collapsible'
 import { useNavigate } from 'react-router-dom'
 
@@ -161,8 +161,6 @@ export const getStripePromiseOrNull = () => {
 	}
 	return null
 }
-
-const stripePromiseOrNull = getStripePromiseOrNull()
 
 type ProductCardProps = {
 	productIcon: React.ReactElement<IconProps>
@@ -600,6 +598,18 @@ const UpdatePlanPage = ({
 		workspace_id: string
 	}>()
 
+	const [stripePromise, setStripePromise] =
+		useState<Promise<Stripe | null> | null>(null)
+
+	useEffect(() => {
+		const loadStripeIfNeeded = () => {
+			const stripeInstance = getStripePromiseOrNull()
+			setStripePromise(stripeInstance)
+		}
+
+		loadStripeIfNeeded()
+	}, [])
+
 	const formStore = Form.useStore<UpdatePlanForm>({
 		defaultValues: {
 			sessionsRetention: RetentionPeriod.SevenDays,
@@ -673,9 +683,9 @@ const UpdatePlanPage = ({
 		refetchQueries: [namedOperations.Query.GetBillingDetails],
 	})
 
-	if (stripeData?.createOrUpdateStripeSubscription && stripePromiseOrNull) {
+	if (stripeData?.createOrUpdateStripeSubscription && stripePromise) {
 		;(async function () {
-			const stripe = await stripePromiseOrNull
+			const stripe = await stripePromise
 			stripe
 				? await stripe.redirectToCheckout({
 						sessionId:
@@ -686,7 +696,7 @@ const UpdatePlanPage = ({
 	}
 	const isPaying = data?.billingDetails.plan.type !== PlanType.Free
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!loading && !isPaying) {
 			setHasChanges(true)
 		}
