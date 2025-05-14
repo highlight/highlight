@@ -1,7 +1,6 @@
 import '../../App.css'
 
 import { useAuthContext } from '@authentication/AuthContext'
-import { DemoModal } from '@components/DemoModal/DemoModal'
 import { Box } from '@highlight-run/ui/components'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
@@ -290,7 +289,6 @@ export const AppRouter = () => {
 						}
 					/>
 				) : null}
-				{projectId === DEMO_PROJECT_ID ? <DemoModal /> : null}
 				<DebugRoutes>
 					<Routes location={previousLocation ?? location}>
 						<Route
@@ -452,6 +450,25 @@ export const AppRouter = () => {
 								) : (
 									<AuthRouter />
 								)
+							}
+						/>
+
+						<Route
+							path="/demo/*"
+							element={
+								<Navigate
+									to="https://launchdarkly.com/request-a-demo/"
+									replace
+								/>
+							}
+						/>
+						<Route
+							path="/demo"
+							element={
+								<Navigate
+									to="https://launchdarkly.com/request-a-demo/"
+									replace
+								/>
 							}
 						/>
 

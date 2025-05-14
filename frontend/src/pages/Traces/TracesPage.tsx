@@ -61,10 +61,6 @@ import analytics from '@/util/analytics'
 import { formatNumber } from '@/util/numbers'
 
 import * as styles from './TracesPage.css'
-import {
-	DEMO_PROJECT_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { GetMetricsQuery } from '@/graph/generated/operations'
 import { LeftPanel } from '@/components/Search/LeftPanel'
 import { useLeftPanel } from '@/components/Search/LeftPanel/useLeftPanel'
