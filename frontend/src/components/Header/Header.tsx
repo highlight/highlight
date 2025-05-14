@@ -36,6 +36,7 @@ import {
 	IconSolidBell,
 	IconSolidSwitchHorizontal,
 	IconSolidTraces,
+	IconSolidUser,
 	IconSolidUserCircle,
 	IconSolidViewGridAdd,
 	Menu,
@@ -174,6 +175,10 @@ const PAGES: Page[] = [
 	{
 		key: 'dashboards',
 		icon: IconSolidChartBar,
+	},
+	{
+		key: 'users',
+		icon: IconSolidUser,
 	},
 	{
 		key: 'alerts',
