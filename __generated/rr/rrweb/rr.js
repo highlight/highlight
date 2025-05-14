@@ -15002,6 +15002,18 @@ var Timer = class {
     this.actions.length = 0;
     this.actions.splice(0, 0, ...actions);
   }
+  replaceActionsV2(actions) {
+    const rafWasActive = this.raf === true;
+    if (this.actions.length > actions.length * 2) {
+      this.actions = [...actions];
+    } else {
+      this.actions.length = 0;
+      this.actions.push(...actions);
+    }
+    if (rafWasActive) {
+      this.raf = requestAnimationFrame(this.rafCheck.bind(this));
+    }
+  }
   /* End Highlight Code */
   start() {
     this.timeOffset = 0;
@@ -15237,6 +15249,10 @@ function createPlayerService(context, { getCastFn, applyEventsSynchronously, emi
             REPLACE_EVENTS: {
               target: "playing",
               actions: ["replaceEvents"]
+            },
+            REPLACE_EVENTS_V2: {
+              target: "playing",
+              actions: ["replaceEventsV2"]
             }
           }
         },
@@ -15261,6 +15277,10 @@ function createPlayerService(context, { getCastFn, applyEventsSynchronously, emi
             REPLACE_EVENTS: {
               target: "paused",
               actions: ["replaceEvents"]
+            },
+            REPLACE_EVENTS_V2: {
+              target: "paused",
+              actions: ["replaceEventsV2"]
             }
           }
         },
@@ -15376,6 +15396,29 @@ function createPlayerService(context, { getCastFn, applyEventsSynchronously, emi
             if (timer.isActive()) {
               timer.replaceActions(actions);
             }
+          }
+          return { ...ctx, events: curEvents };
+        }),
+        replaceEventsV2: o((ctx, machineEvent) => {
+          if (machineEvent.type !== "REPLACE_EVENTS_V2") return ctx;
+          const { events: curEvents, timer, baselineTime } = ctx;
+          const { events: newEvents } = machineEvent.payload;
+          if (newEvents.length === 0) return ctx;
+          curEvents.length = 0;
+          const actions = [];
+          const timeThreshold = timer.timeOffset + baselineTime;
+          for (const event of newEvents) {
+            addDelay(event, baselineTime);
+            curEvents.push(event);
+            if (event.timestamp >= timeThreshold) {
+              actions.push({
+                doAction: getCastFn(event, false),
+                delay: event.delay
+              });
+            }
+          }
+          if (timer.isActive()) {
+            timer.replaceActionsV2(actions);
           }
           return { ...ctx, events: curEvents };
         }),
@@ -16512,6 +16555,15 @@ var Replayer = class {
       }
     }
     this.service.send({ type: "REPLACE_EVENTS", payload: { events } });
+  }
+  replaceEventsV2(events) {
+    for (const event of events) {
+      if (indicatesTouchDevice(event)) {
+        this.mouse.classList.add("touch-device");
+        break;
+      }
+    }
+    this.service.send({ type: "REPLACE_EVENTS_V2", payload: { events } });
   }
   enableInteract() {
     this.iframe.setAttribute("scrolling", "auto");

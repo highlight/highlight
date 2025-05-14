@@ -359,7 +359,7 @@ export const PlayerReducer = (
 		case PlayerActionType.addLiveEvents:
 			s.liveEventCount += 1
 			s.lastActiveTimestamp = action.lastActiveTimestamp
-			s.replayer?.replaceEvents(events)
+			s.replayer?.replaceEventsV2(events)
 			s.replayer?.play(events[events.length - 1].timestamp)
 			s.replayerState = ReplayerState.Playing
 			break
@@ -425,7 +425,9 @@ export const PlayerReducer = (
 		case PlayerActionType.updateEvents:
 			if (s.replayer) {
 				log('updateEvents', { events })
-				s.replayer.replaceEvents(events)
+				s.replayer.replaceEventsV2(
+					events.filter((e) => e.type !== EventType.Custom),
+				)
 			}
 			break
 		case PlayerActionType.updateViewport:
@@ -474,7 +476,9 @@ export const PlayerReducer = (
 				}
 			} else {
 				log('onChunksLoad', { events })
-				s.replayer.replaceEvents(events)
+				s.replayer.replaceEventsV2(
+					events.filter((e) => e.type !== EventType.Custom),
+				)
 			}
 			s = replayerAction(
 				PlayerActionType.onChunksLoad,
