@@ -9,7 +9,6 @@ import { ConnectRouter } from '@/pages/Connect/ConnectRouter'
 import React from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
-import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { RelatedResourcePanel } from '@/components/RelatedResources/RelatedResourcePanel'
 import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'

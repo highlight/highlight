@@ -19,10 +19,6 @@ import { IndexedDBLink } from '@util/db'
 import { invalidateRefetch } from '@util/gql'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 
-import {
-	DEMO_PROJECT_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { PRIVATE_GRAPH_URI } from '@/constants'
 
 const highlightGraph = new IndexedDBLink(

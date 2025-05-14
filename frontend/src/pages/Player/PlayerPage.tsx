@@ -36,10 +36,6 @@ import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { StringParam, useQueryParam, withDefault } from 'use-query-params'
 
-import {
-	DEMO_PROJECT_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { AiSuggestion, SearchContext } from '@/components/Search/SearchContext'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import {
@@ -223,7 +219,6 @@ export const PlayerPage = () => {
 			billingDetails?.billingDetailsForProject &&
 			integrated &&
 			projectId !== DEMO_PROJECT_ID &&
-			projectId !== DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
 			billingDetails.billingDetailsForProject.meter < 15
 
 		const defaultValue = showLiveSessions

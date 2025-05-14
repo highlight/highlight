@@ -42,10 +42,6 @@ import {
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import {
-	DEMO_PROJECT_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
-import {
 	useGetDropdownOptionsQuery,
 	useGetProjectOrWorkspaceQuery,
 } from '@/graph/generated/hooks'
