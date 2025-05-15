@@ -55,6 +55,48 @@ import {
 } from './utils'
 import usePlayerConfiguration from './utils/usePlayerConfiguration'
 
+// Performance metrics tracking - Session ID → metrics
+const playerPerformanceMetrics = new Map<
+	string,
+	{
+		freezeCount: number
+		recoveryAttempts: number
+		successfulRecoveries: number
+		averageMemoryBeforeFreeze: number
+		memoryReadings: number[]
+		lastMemoryReading: number
+		totalEvents: number[]
+	}
+>()
+
+// Helper function to check if recovery is enabled via localStorage
+const isReplayerRecoveryEnabled = (): boolean => {
+	try {
+		const storageValue = localStorage.getItem(
+			'highlight-enable-replayer-recovery',
+		)
+		// If not set, default to enabled (true)
+		if (storageValue === null) return true
+		return storageValue === 'true'
+	} catch (e) {
+		// If localStorage is not available, default to enabled
+		return true
+	}
+}
+
+// Helper to set the localStorage flag (can be called from console for debugging)
+export const setReplayerRecoveryEnabled = (enabled: boolean): void => {
+	try {
+		localStorage.setItem(
+			'highlight-enable-replayer-recovery',
+			enabled.toString(),
+		)
+		console.log(`Replayer recovery ${enabled ? 'enabled' : 'disabled'}`)
+	} catch (e) {
+		console.error('Failed to set replayer recovery flag', e)
+	}
+}
+
 export const usePlayer = (
 	playerRef: RefObject<HTMLDivElement>,
 	autoPlay = false,
@@ -189,6 +231,127 @@ export const usePlayer = (
 	const { setPlayerTimestamp } = useSetPlayerTimestampFromSearchParam((t) =>
 		seek(t),
 	)
+
+	// Watchdog timer for frozen replayer detection
+	const lastFrameTimestamp = useRef<number>(Date.now())
+	const freezeDetectionAttempts = useRef<number>(0)
+	const MAX_FROZEN_TIME_MS = 3000 // 3 seconds threshold
+	const MAX_RECOVERY_ATTEMPTS = 3 // Maximum number of recovery attempts before waiting longer
+	const MEMORY_PRESSURE_TIME_WINDOW = 30000 // 30 seconds window (15s before and after current time)
+	const recoveryEnabled = useRef<boolean>(isReplayerRecoveryEnabled())
+
+	// Check localStorage on mount and when window gets focus
+	useEffect(() => {
+		const updateRecoveryEnabledState = () => {
+			recoveryEnabled.current = isReplayerRecoveryEnabled()
+		}
+
+		// Update on focus (in case settings were changed in another tab)
+		window.addEventListener('focus', updateRecoveryEnabledState)
+
+		// Initial check
+		updateRecoveryEnabledState()
+
+		return () => {
+			window.removeEventListener('focus', updateRecoveryEnabledState)
+		}
+	}, [])
+
+	// Memory tracking for performance metrics
+	const trackPlayerMemory = useCallback(() => {
+		// Skip if recovery is disabled
+		if (!recoveryEnabled.current || !sessionSecureId) return
+
+		// Initialize metrics for this session if needed
+		if (!playerPerformanceMetrics.has(sessionSecureId)) {
+			playerPerformanceMetrics.set(sessionSecureId, {
+				freezeCount: 0,
+				recoveryAttempts: 0,
+				successfulRecoveries: 0,
+				averageMemoryBeforeFreeze: 0,
+				memoryReadings: [],
+				lastMemoryReading: 0,
+				totalEvents: [],
+			})
+		}
+
+		// Get current memory usage if available
+		let memoryUsage = 0
+		if (performance && 'memory' in performance) {
+			// @ts-ignore - Chrome-specific API
+			memoryUsage = performance.memory?.usedJSHeapSize || 0
+		}
+
+		if (memoryUsage > 0) {
+			const metrics = playerPerformanceMetrics.get(sessionSecureId)!
+			metrics.lastMemoryReading = memoryUsage
+			metrics.memoryReadings.push(memoryUsage)
+
+			// Keep only the last 10 readings
+			if (metrics.memoryReadings.length > 10) {
+				metrics.memoryReadings.shift()
+			}
+
+			// Track total event count
+			const eventCount = getEvents(chunkEventsRef.current).length
+			metrics.totalEvents.push(eventCount)
+			if (metrics.totalEvents.length > 10) {
+				metrics.totalEvents.shift()
+			}
+		}
+	}, [sessionSecureId, chunkEventsRef])
+
+	// Add keyboard shortcut to toggle recovery
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			// Ctrl+Shift+R to toggle recovery feature
+			if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+				const newState = !recoveryEnabled.current
+				setReplayerRecoveryEnabled(newState)
+				recoveryEnabled.current = newState
+				console.log(
+					`Replayer recovery ${newState ? 'enabled' : 'disabled'} by keyboard shortcut`,
+				)
+
+				// Show visual feedback
+				const notification = document.createElement('div')
+				notification.style.position = 'fixed'
+				notification.style.top = '20px'
+				notification.style.left = '50%'
+				notification.style.transform = 'translateX(-50%)'
+				notification.style.padding = '10px 20px'
+				notification.style.backgroundColor = newState
+					? '#4CAF50'
+					: '#F44336'
+				notification.style.color = 'white'
+				notification.style.borderRadius = '4px'
+				notification.style.zIndex = '10000'
+				notification.style.fontWeight = 'bold'
+				notification.textContent = `Replayer recovery ${newState ? 'enabled' : 'disabled'}`
+
+				document.body.appendChild(notification)
+				setTimeout(() => {
+					notification.style.opacity = '0'
+					notification.style.transition = 'opacity 0.5s'
+					setTimeout(
+						() => document.body.removeChild(notification),
+						500,
+					)
+				}, 2000)
+			}
+		}
+
+		window.addEventListener('keydown', handleKeyDown)
+		return () => window.removeEventListener('keydown', handleKeyDown)
+	}, [])
+
+	// Setup memory tracking interval
+	useEffect(() => {
+		if (recoveryEnabled.current && sessionSecureId && state.replayer) {
+			const memoryTrackingInterval = setInterval(trackPlayerMemory, 10000) // every 10 seconds
+			return () => clearInterval(memoryTrackingInterval)
+		}
+	}, [sessionSecureId, state.replayer, trackPlayerMemory, recoveryEnabled])
 
 	const resetPlayer = useCallback(() => {
 		if (unsubscribeSessionPayloadFn.current) {
@@ -657,10 +820,147 @@ export const usePlayer = (
 		],
 	)
 
+	// Modify checkReplayerHealth to check if recovery is enabled
+	const checkReplayerHealth = useCallback(() => {
+		// Skip if recovery is disabled
+		if (!recoveryEnabled.current) return
+
+		const now = Date.now()
+		// Only check when playing and not in live mode
+		if (
+			state.replayerState === ReplayerState.Playing &&
+			!state.isLiveMode &&
+			now - lastFrameTimestamp.current > MAX_FROZEN_TIME_MS
+		) {
+			console.warn(
+				`Replayer appears frozen for ${now - lastFrameTimestamp.current}ms, attempting recovery`,
+			)
+
+			// Record freeze metrics
+			if (
+				sessionSecureId &&
+				playerPerformanceMetrics.has(sessionSecureId)
+			) {
+				const metrics = playerPerformanceMetrics.get(sessionSecureId)!
+				metrics.freezeCount++
+
+				// Calculate average memory before freeze
+				if (metrics.memoryReadings.length > 0) {
+					const sum = metrics.memoryReadings.reduce(
+						(a, b) => a + b,
+						0,
+					)
+					metrics.averageMemoryBeforeFreeze =
+						sum / metrics.memoryReadings.length
+				}
+
+				log('PlayerHook.tsx', 'Performance metrics at freeze', {
+					metrics,
+					sessionSecureId,
+					freezeDuration: now - lastFrameTimestamp.current,
+				})
+			}
+
+			// Limit recovery attempts to avoid spamming actions
+			if (freezeDetectionAttempts.current < MAX_RECOVERY_ATTEMPTS) {
+				freezeDetectionAttempts.current += 1
+
+				// Track recovery attempt
+				if (
+					sessionSecureId &&
+					playerPerformanceMetrics.has(sessionSecureId)
+				) {
+					playerPerformanceMetrics.get(sessionSecureId)!
+						.recoveryAttempts++
+				}
+
+				// Release memory pressure by focusing on events around current time
+				dispatch({
+					type: PlayerActionType.releaseMemoryPressure,
+					currentTime: state.time,
+					timeWindow: MEMORY_PRESSURE_TIME_WINDOW,
+				})
+
+				// Use proper attribute types for H.consumeError
+				log('Replayer freeze detected, attempting recovery', {
+					sessionId: sessionSecureId || '',
+					currentTime: `${state.time}`,
+					freezeDuration: `${now - lastFrameTimestamp.current}`,
+					recoveryAttempt: `${freezeDetectionAttempts.current}`,
+				})
+			} else if (
+				freezeDetectionAttempts.current === MAX_RECOVERY_ATTEMPTS
+			) {
+				// After max attempts, pause the player to prevent further issues
+				freezeDetectionAttempts.current += 1
+				console.error(
+					'Maximum recovery attempts reached, pausing player',
+				)
+				pause(state.time).then(() => {
+					// After pausing, try one more memory recovery with a larger window
+					dispatch({
+						type: PlayerActionType.releaseMemoryPressure,
+						currentTime: state.time,
+						timeWindow: MEMORY_PRESSURE_TIME_WINDOW * 2,
+					})
+				})
+
+				// Use proper attribute types for H.consumeError
+				log(
+					'Maximum replayer recovery attempts reached, pausing player',
+					{
+						sessionId: sessionSecureId || '',
+						currentTime: `${state.time}`,
+					},
+				)
+			}
+		}
+	}, [
+		state.replayerState,
+		state.isLiveMode,
+		state.time,
+		sessionSecureId,
+		pause,
+	])
+
+	// Reset frame timestamp during normal operation
+	const resetFrameTimestamp = useCallback(() => {
+		const now = Date.now()
+		// If there was a freeze and we've started getting frames again, that's a recovery
+		if (
+			recoveryEnabled.current &&
+			freezeDetectionAttempts.current > 0 &&
+			now - lastFrameTimestamp.current > MAX_FROZEN_TIME_MS
+		) {
+			// Track successful recovery
+			if (
+				sessionSecureId &&
+				playerPerformanceMetrics.has(sessionSecureId)
+			) {
+				playerPerformanceMetrics.get(sessionSecureId)!
+					.successfulRecoveries++
+
+				// Log recovery success
+				log('PlayerHook.tsx', 'Replayer successfully recovered', {
+					sessionId: sessionSecureId,
+					recoveryAttempt: freezeDetectionAttempts.current,
+				})
+			}
+		}
+
+		lastFrameTimestamp.current = now
+		// If we've gone 5 seconds without freezing, reset the attempt counter
+		if (freezeDetectionAttempts.current > 0) {
+			freezeDetectionAttempts.current = 0
+		}
+	}, [sessionSecureId])
+
+	// Modify onFrame to include health check and timestamp reset
 	const onFrame = useMemo(
 		() =>
 			_.throttle(
 				() => {
+					resetFrameTimestamp()
 					dispatch({
 						type: PlayerActionType.onFrame,
 					})
@@ -672,6 +972,37 @@ export const usePlayer = (
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[],
 	)
+
+	const frameAction = useCallback(() => {
+		animationFrameID.current = requestAnimationFrame(frameAction)
+		onFrame()
+	}, [onFrame])
+
+	// "Subscribes" the time with the Replayer when the Player is playing.
+	useEffect(() => {
+		if (
+			(state.replayerState === ReplayerState.Playing ||
+				state.isLiveMode) &&
+			!animationFrameID.current
+		) {
+			animationFrameID.current = requestAnimationFrame(frameAction)
+		} else if (
+			!(state.replayerState === ReplayerState.Playing || state.isLiveMode)
+		) {
+			cancelAnimationFrame(animationFrameID.current)
+			animationFrameID.current = 0
+		}
+		return () => {
+			cancelAnimationFrame(animationFrameID.current)
+			animationFrameID.current = 0
+		}
+	}, [
+		frameAction,
+		sessionSecureId,
+		state.isLiveMode,
+		state.replayer,
+		state.replayerState,
+	])
 
 	const onEvent = useCallback((event: any) => {
 		if (
@@ -888,35 +1219,24 @@ export const usePlayer = (
 		}
 	}, [state.replayer, showPlayerMouseTail])
 
-	const frameAction = useCallback(() => {
-		animationFrameID.current = requestAnimationFrame(frameAction)
-		onFrame()
-	}, [onFrame])
-
-	// "Subscribes" the time with the Replayer when the Player is playing.
+	// Add health check interval, only if recovery is enabled
 	useEffect(() => {
 		if (
+			recoveryEnabled.current &&
 			(state.replayerState === ReplayerState.Playing ||
 				state.isLiveMode) &&
-			!animationFrameID.current
+			state.replayer
 		) {
-			animationFrameID.current = requestAnimationFrame(frameAction)
-		} else if (
-			!(state.replayerState === ReplayerState.Playing || state.isLiveMode)
-		) {
-			cancelAnimationFrame(animationFrameID.current)
-			animationFrameID.current = 0
-		}
-		return () => {
-			cancelAnimationFrame(animationFrameID.current)
-			animationFrameID.current = 0
+			// Set up health check interval (every second)
+			const healthCheckInterval = setInterval(checkReplayerHealth, 1000)
+			return () => clearInterval(healthCheckInterval)
 		}
 	}, [
-		frameAction,
-		sessionSecureId,
+		state.replayerState,
 		state.isLiveMode,
 		state.replayer,
-		state.replayerState,
+		checkReplayerHealth,
+		recoveryEnabled,
 	])
 
 	useEffect(() => {

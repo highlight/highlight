@@ -70,7 +70,7 @@ export const THROTTLED_UPDATE_MS = FRAME_MS * 15
 export const CHUNKING_DISABLED_PROJECTS: string[] = []
 export const LOOKAHEAD_MS = 1000 * 30
 export const BUFFER_MS = 1000 * 3
-export const MAX_CHUNK_COUNT = 5
+export const MAX_CHUNK_COUNT = 2
 
 export enum SessionViewability {
 	VIEWABLE,
@@ -153,6 +153,7 @@ export enum PlayerActionType {
 	updateCurrentUrl,
 	updateEvents,
 	updateViewport,
+	releaseMemoryPressure,
 }
 
 type PlayerAction =
@@ -174,6 +175,7 @@ type PlayerAction =
 	| updateEvents
 	| updateCurrentUrl
 	| updateViewport
+	| releaseMemoryPressure
 
 interface play {
 	type: PlayerActionType.play
@@ -272,6 +274,12 @@ interface setIsLiveMode {
 	type: PlayerActionType.setIsLiveMode
 	isLiveMode: SetStateAction<boolean>
 	playerRef: RefObject<HTMLDivElement>
+}
+
+interface releaseMemoryPressure {
+	type: PlayerActionType.releaseMemoryPressure
+	currentTime: number
+	timeWindow: number
 }
 
 export const PlayerInitialState = {
@@ -534,6 +542,9 @@ export const PlayerReducer = (
 				s.sessionResults,
 				action.sessionResults,
 			)
+			break
+		case PlayerActionType.releaseMemoryPressure:
+			s = releaseMemoryPressure(s, action.currentTime, action.timeWindow)
 			break
 	}
 	return s
@@ -951,4 +962,87 @@ export const getEvents = (
 	}
 
 	return events
+}
+
+const releaseMemoryPressure = (
+	s: PlayerState,
+	currentTime: number,
+	timeWindow: number,
+): PlayerState => {
+	if (!s.replayer) return s
+
+	const events = getEvents(s.chunkEventsRef.current)
+	log('PlayerState.ts', 'Releasing memory pressure', {
+		totalEvents: events.length,
+		currentTime,
+		timeWindow,
+	})
+
+	// Find events that are within the time window, plus essential events
+	const relevantEvents = events.filter((event) => {
+		// Convert to relative time (player time)
+		const relativeTime = event.timestamp - s.sessionMetadata.startTime
+
+		// Always keep essential events for proper playback
+		const isEssentialEvent =
+			event.type === EventType.Meta ||
+			event.type === EventType.DomContentLoaded ||
+			event.type === EventType.Load
+
+		return (
+			isEssentialEvent ||
+			Math.abs(relativeTime - currentTime) < timeWindow
+		)
+	})
+
+	// Replace events with the filtered set
+	if (s.replayer && relevantEvents.length > 0) {
+		const percentReduction =
+			events.length > 0
+				? (
+						((events.length - relevantEvents.length) /
+							events.length) *
+						100
+					).toFixed(2) + '%'
+				: '0%'
+
+		log('PlayerState.ts', 'Replacing events with filtered set', {
+			originalCount: events.length,
+			filteredCount: relevantEvents.length,
+			reducedBy: events.length - relevantEvents.length,
+			percentReduction,
+		})
+
+		s.replayer.replaceEvents(relevantEvents)
+
+		// Attempt to trigger browser garbage collection indirectly
+		setTimeout(() => {
+			// Create and release a large array to hint to the browser
+			// that it might want to run garbage collection
+			const largeArray = new Array(1000000)
+			for (let i = 0; i < 1000000; i++) {
+				largeArray[i] = i
+			}
+			// Release the reference
+			largeArray.length = 0
+		}, 1000)
+	}
+
+	// Log memory pressure release for monitoring
+	const percentReduction =
+		events.length > 0
+			? (
+					((events.length - relevantEvents.length) / events.length) *
+					100
+				).toFixed(2) + '%'
+			: '0%'
+
+	log('PlayerState.ts', 'Memory pressure released', {
+		originalEventCount: events.length,
+		newEventCount: relevantEvents.length,
+		reducedBy: events.length - relevantEvents.length,
+		percentReduction,
+	})
+
+	return s
 }
