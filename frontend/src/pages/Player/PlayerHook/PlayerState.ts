@@ -70,7 +70,7 @@ export const THROTTLED_UPDATE_MS = FRAME_MS * 15
 export const CHUNKING_DISABLED_PROJECTS: string[] = []
 export const LOOKAHEAD_MS = 1000 * 30
 export const BUFFER_MS = 1000 * 3
-export const MAX_CHUNK_COUNT = 5
+export const MAX_CHUNK_COUNT = 2
 
 export enum SessionViewability {
 	VIEWABLE,
