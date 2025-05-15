@@ -284,13 +284,8 @@ export const TracesPage: React.FC = () => {
 
 	useEffect(() => {
 		if (!resource) {
-			const redirectProjectId =
-				projectId === DEMO_PROJECT_ID
-					? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-					: projectId
-
 			navigate({
-				pathname: `/${redirectProjectId}/traces`,
+				pathname: `/${projectId}/traces`,
 				search: location.search,
 			})
 		}

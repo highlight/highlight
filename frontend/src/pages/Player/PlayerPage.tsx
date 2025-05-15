@@ -74,7 +74,7 @@ const PlayerPageBase: React.FC<{ playerRef: RefObject<HTMLDivElement> }> = ({
 	useEffect(() => {
 		if (
 			!isLoggedIn &&
-			projectId !== DEMO_PROJECT_ID &&
+			projectId &&
 			sessionViewability === SessionViewability.VIEWABLE &&
 			((session && !session?.is_public) || !sessionSecureId)
 		) {
@@ -155,8 +155,7 @@ const PlayerPageBase: React.FC<{ playerRef: RefObject<HTMLDivElement> }> = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	const showLeftPanel =
-		showLeftPanelPreference && (isLoggedIn || projectId === DEMO_PROJECT_ID)
+	const showLeftPanel = showLeftPanelPreference && (isLoggedIn || projectId)
 
 	const { playerCenterPanelRef } = usePlayerUIContext()
 
@@ -211,21 +210,20 @@ export const PlayerPage = () => {
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: projectId! },
-		skip: !projectId || projectId === DEMO_PROJECT_ID,
+		skip: !projectId,
 	})
 
 	const sessionQueryParam = useMemo(() => {
 		const showLiveSessions =
 			billingDetails?.billingDetailsForProject &&
 			integrated &&
-			projectId !== DEMO_PROJECT_ID &&
 			billingDetails.billingDetailsForProject.meter < 15
 
 		const defaultValue = showLiveSessions
 			? `completed=(true OR false) `
 			: `completed=true `
 		return withDefault(StringParam, defaultValue)
-	}, [billingDetails?.billingDetailsForProject, integrated, projectId])
+	}, [billingDetails?.billingDetailsForProject, integrated])
 
 	const [query, setQuery] = useQueryParam('query', sessionQueryParam)
 	const [page, setPage] = useQueryParam('page', PAGE_PARAM)

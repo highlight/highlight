@@ -174,18 +174,6 @@ export const AppRouter = () => {
 			navigate(ABOUT_YOU_ROUTE, { replace: true })
 			return
 		}
-
-		// Redirects from `DEMO_PROJECT_ID/*` to `demo/*` so that we can keep the
-		// demo URL schema consistent even if the project changes.
-		const pathSegments = location.pathname.split('/').filter(Boolean)
-		if (pathSegments[0] === DEMO_PROJECT_ID) {
-			pathSegments[0] = DEMO_WORKSPACE_PROXY_APPLICATION_ID
-
-			navigate(`/${pathSegments.join('/')}${location.search}`, {
-				replace: true,
-			})
-			return
-		}
 	}, [
 		admin,
 		isVercelIntegrationFlow,
