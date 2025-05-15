@@ -422,9 +422,7 @@ export const AppRouter = () => {
 						<Route
 							path="/*"
 							element={
-								projectId &&
-								(isValidProjectId ||
-									projectId === DEMO_PROJECT_ID) ? (
+								projectId && isValidProjectId ? (
 									<ProjectRouter />
 								) : isLoggedIn ? (
 									isNewWorkspacePage ||
