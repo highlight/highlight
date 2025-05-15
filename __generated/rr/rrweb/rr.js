@@ -14999,10 +14999,6 @@ var Timer = class {
     this.actions = this.actions.concat(actions);
   }
   replaceActions(actions) {
-    this.actions.length = 0;
-    this.actions.splice(0, 0, ...actions);
-  }
-  replaceActionsV2(actions) {
     const rafWasActive = this.raf === true;
     this.actions.length = 0;
     this.actions = [...actions];
@@ -15245,10 +15241,6 @@ function createPlayerService(context, { getCastFn, applyEventsSynchronously, emi
             REPLACE_EVENTS: {
               target: "playing",
               actions: ["replaceEvents"]
-            },
-            REPLACE_EVENTS_V2: {
-              target: "playing",
-              actions: ["replaceEventsV2"]
             }
           }
         },
@@ -15273,10 +15265,6 @@ function createPlayerService(context, { getCastFn, applyEventsSynchronously, emi
             REPLACE_EVENTS: {
               target: "paused",
               actions: ["replaceEvents"]
-            },
-            REPLACE_EVENTS_V2: {
-              target: "paused",
-              actions: ["replaceEventsV2"]
             }
           }
         },
@@ -15371,32 +15359,7 @@ function createPlayerService(context, { getCastFn, applyEventsSynchronously, emi
         }),
         /* Highlight Code Start */
         replaceEvents: o((ctx, machineEvent) => {
-          const { events: curEvents, timer, baselineTime } = ctx;
-          if (machineEvent.type === "REPLACE_EVENTS") {
-            const { events: newEvents } = machineEvent.payload;
-            curEvents.length = 0;
-            const actions = [];
-            for (const event of newEvents) {
-              addDelay(event, baselineTime);
-              curEvents.push(event);
-              if (event.timestamp >= timer.timeOffset + baselineTime) {
-                const castFn = getCastFn(event, false);
-                actions.push({
-                  doAction: () => {
-                    castFn();
-                  },
-                  delay: event.delay
-                });
-              }
-            }
-            if (timer.isActive()) {
-              timer.replaceActions(actions);
-            }
-          }
-          return { ...ctx, events: curEvents };
-        }),
-        replaceEventsV2: o((ctx, machineEvent) => {
-          if (machineEvent.type !== "REPLACE_EVENTS_V2") return ctx;
+          if (machineEvent.type !== "REPLACE_EVENTS") return ctx;
           const { events: curEvents, timer, baselineTime } = ctx;
           const { events: newEvents } = machineEvent.payload;
           if (newEvents.length === 0) return ctx;
@@ -15414,7 +15377,7 @@ function createPlayerService(context, { getCastFn, applyEventsSynchronously, emi
             }
           }
           if (timer.isActive()) {
-            timer.replaceActionsV2(actions);
+            timer.replaceActions(actions);
           }
           return { ...ctx, events: curEvents };
         }),
@@ -16551,15 +16514,6 @@ var Replayer = class {
       }
     }
     this.service.send({ type: "REPLACE_EVENTS", payload: { events } });
-  }
-  replaceEventsV2(events) {
-    for (const event of events) {
-      if (indicatesTouchDevice(event)) {
-        this.mouse.classList.add("touch-device");
-        break;
-      }
-    }
-    this.service.send({ type: "REPLACE_EVENTS_V2", payload: { events } });
   }
   enableInteract() {
     this.iframe.setAttribute("scrolling", "auto");
