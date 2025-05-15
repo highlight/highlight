@@ -66,6 +66,7 @@ jobs:
                   COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
                   REF: ${{ github.ref }}
                   REPO: ${{ github.event.pull_request.head.repo.full_name }}
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
               run: |
                   export RUN_SESSION_SCREENSHOT_LAMBDA=false
                   if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
