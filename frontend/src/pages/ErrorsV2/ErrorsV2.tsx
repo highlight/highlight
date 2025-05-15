@@ -221,12 +221,7 @@ export default function ErrorsV2() {
 	}, [])
 
 	useEffect(() => {
-		if (
-			!isLoggedIn &&
-			project_id !== DEMO_PROJECT_ID &&
-			!data?.error_group?.is_public &&
-			!loading
-		) {
+		if (!isLoggedIn && !data?.error_group?.is_public && !loading) {
 			navigate(SIGN_IN_ROUTE, { replace: true })
 		}
 	}, [
@@ -399,7 +394,7 @@ function TopBar({
 		changeErrorGroupIndex,
 	} = navigation
 
-	return (isLoggedIn || projectId === DEMO_PROJECT_ID) && !isBlocked ? (
+	return isLoggedIn && !isBlocked ? (
 		<Box
 			display="flex"
 			alignItems="center"
@@ -675,11 +670,9 @@ function useIsBlocked({
 		const canJoin = joinableWorkspaces?.some((w) =>
 			w?.projects.map((p) => p?.id).includes(projectId),
 		)
-		const isDemo = projectId === DEMO_PROJECT_ID
 
 		return (
 			!isPublic &&
-			!isDemo &&
 			!loading &&
 			!canJoin &&
 			currentProject?.id !== projectId
