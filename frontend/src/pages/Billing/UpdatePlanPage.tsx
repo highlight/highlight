@@ -35,13 +35,13 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { loadStripe } from '@stripe/stripe-js'
+import type { Stripe } from '@stripe/stripe-js'
 import { getPlanChangeEmail } from '@util/billing/billing'
 import { formatNumber, formatNumberWithDelimiters } from '@util/numbers'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
-import React from 'react'
+import { useState, useEffect } from 'react'
 import ReactCollapsible from 'react-collapsible'
 import { useNavigate } from 'react-router-dom'
 
@@ -153,16 +153,6 @@ export const getNextBillingDate = (
 		return moment().add(1, 'M').toDate()
 	}
 }
-
-export const getStripePromiseOrNull = () => {
-	const stripe_publishable_key = import.meta.env.REACT_APP_STRIPE_API_PK
-	if (stripe_publishable_key) {
-		return loadStripe(stripe_publishable_key)
-	}
-	return null
-}
-
-const stripePromiseOrNull = getStripePromiseOrNull()
 
 type ProductCardProps = {
 	productIcon: React.ReactElement<IconProps>
@@ -600,6 +590,24 @@ const UpdatePlanPage = ({
 		workspace_id: string
 	}>()
 
+	const [stripePromise, setStripePromise] =
+		useState<Promise<Stripe | null> | null>(null)
+
+	useEffect(() => {
+		const loadStripeIfNeeded = () => {
+			const stripe_publishable_key = import.meta.env
+				.REACT_APP_STRIPE_API_PK
+
+			if (stripe_publishable_key) {
+				import('@stripe/stripe-js').then(({ loadStripe }) => {
+					setStripePromise(loadStripe(stripe_publishable_key))
+				})
+			}
+		}
+
+		loadStripeIfNeeded()
+	}, [])
+
 	const formStore = Form.useStore<UpdatePlanForm>({
 		defaultValues: {
 			sessionsRetention: RetentionPeriod.SevenDays,
@@ -673,9 +681,9 @@ const UpdatePlanPage = ({
 		refetchQueries: [namedOperations.Query.GetBillingDetails],
 	})
 
-	if (stripeData?.createOrUpdateStripeSubscription && stripePromiseOrNull) {
+	if (stripeData?.createOrUpdateStripeSubscription && stripePromise) {
 		;(async function () {
-			const stripe = await stripePromiseOrNull
+			const stripe = await stripePromise
 			stripe
 				? await stripe.redirectToCheckout({
 						sessionId:
@@ -686,7 +694,7 @@ const UpdatePlanPage = ({
 	}
 	const isPaying = data?.billingDetails.plan.type !== PlanType.Free
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!loading && !isPaying) {
 			setHasChanges(true)
 		}
@@ -1623,7 +1631,7 @@ const FAQEntry = ({
 	faq: { question: string; answer: string }
 	bottomBorder?: boolean
 }) => {
-	const [expanded, setExpanded] = React.useState<boolean>(false)
+	const [expanded, setExpanded] = useState<boolean>(false)
 	return (
 		<Box
 			key={faq.question}
@@ -1743,11 +1751,11 @@ export const UpdatePlanModal: React.FC<{
 	currentPlanType: Exclude<PlanType, PlanType.Free>
 }> = ({ step, setStep, currentPlanType }) => {
 	const [selectedPlanType, setSelectedPlanType] =
-		React.useState<PlanType>(currentPlanType)
-	const [hasChanges, setHasChanges] = React.useState<boolean>(false)
+		useState<PlanType>(currentPlanType)
+	const [hasChanges, setHasChanges] = useState<boolean>(false)
 	const [showConfirmCloseModal, setShowConfirmCloseModal] =
-		React.useState<boolean>(false)
-	React.useEffect(() => {
+		useState<boolean>(false)
+	useEffect(() => {
 		if (step === null) {
 			setHasChanges(false)
 			setShowConfirmCloseModal(false)

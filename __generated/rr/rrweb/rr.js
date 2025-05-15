@@ -14999,8 +14999,12 @@ var Timer = class {
     this.actions = this.actions.concat(actions);
   }
   replaceActions(actions) {
+    const rafWasActive = this.raf === true;
     this.actions.length = 0;
-    this.actions.splice(0, 0, ...actions);
+    this.actions = [...actions];
+    if (rafWasActive) {
+      this.raf = requestAnimationFrame(this.rafCheck.bind(this));
+    }
   }
   /* End Highlight Code */
   start() {
@@ -15355,27 +15359,25 @@ function createPlayerService(context, { getCastFn, applyEventsSynchronously, emi
         }),
         /* Highlight Code Start */
         replaceEvents: o((ctx, machineEvent) => {
+          if (machineEvent.type !== "REPLACE_EVENTS") return ctx;
           const { events: curEvents, timer, baselineTime } = ctx;
-          if (machineEvent.type === "REPLACE_EVENTS") {
-            const { events: newEvents } = machineEvent.payload;
-            curEvents.length = 0;
-            const actions = [];
-            for (const event of newEvents) {
-              addDelay(event, baselineTime);
-              curEvents.push(event);
-              if (event.timestamp >= timer.timeOffset + baselineTime) {
-                const castFn = getCastFn(event, false);
-                actions.push({
-                  doAction: () => {
-                    castFn();
-                  },
-                  delay: event.delay
-                });
-              }
+          const { events: newEvents } = machineEvent.payload;
+          if (newEvents.length === 0) return ctx;
+          curEvents.length = 0;
+          const actions = [];
+          const timeThreshold = timer.timeOffset + baselineTime;
+          for (const event of newEvents) {
+            addDelay(event, baselineTime);
+            curEvents.push(event);
+            if (event.timestamp >= timeThreshold) {
+              actions.push({
+                doAction: getCastFn(event, false),
+                delay: event.delay
+              });
             }
-            if (timer.isActive()) {
-              timer.replaceActions(actions);
-            }
+          }
+          if (timer.isActive()) {
+            timer.replaceActions(actions);
           }
           return { ...ctx, events: curEvents };
         }),

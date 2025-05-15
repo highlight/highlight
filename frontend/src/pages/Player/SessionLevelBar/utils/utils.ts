@@ -1,4 +1,4 @@
-import { customEvent } from '@rrweb/types'
+import { customEvent, EventType } from '@rrweb/types'
 
 import {
 	HighlightEvent,
@@ -60,6 +60,10 @@ export const getAllUrlEvents = (events: HighlightEvent[]) => {
 	})
 
 	return urlEvents as customEvent<string>[]
+}
+
+export const getNonCustomEvents = (events: HighlightEvent[]) => {
+	return events.filter((event) => event.type !== EventType.Custom)
 }
 
 export const getBrowserExtensionScriptURLs = (events: HighlightEvent[]) => {

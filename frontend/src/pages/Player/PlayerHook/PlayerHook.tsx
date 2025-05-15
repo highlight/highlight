@@ -263,6 +263,8 @@ export const usePlayer = (
 			const chunksIndexesWithData = Array.from(chunkEvents.entries())
 				.filter(([, v]) => !!v.length)
 				.map(([k]) => k)
+
+			// TODO(o11y): Experiment with lowering max chunk count to see if it reduces memory usage
 			if (chunksIndexesWithData.length <= MAX_CHUNK_COUNT) {
 				return toRemove
 			}
@@ -455,6 +457,7 @@ export const usePlayer = (
 					state.sessionMetadata.startTime + startTime,
 				)
 				if (currentChunkIdx) {
+					// TODO(o11y): Confirm this is clearing everything out and reduces memory usage
 					toRemove.delete(currentChunkIdx)
 				}
 				log('PlayerHook.tsx:ensureChunksLoaded', 'getChunksToRemove', {
@@ -657,6 +660,7 @@ export const usePlayer = (
 		],
 	)
 
+	// TODO(o11y): Experiment with bumping the throttle time
 	const onFrame = useMemo(
 		() =>
 			_.throttle(

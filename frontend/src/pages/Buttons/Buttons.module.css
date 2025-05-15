@@ -26,9 +26,3 @@
 	flex-direction: column;
 	width: 100%;
 }
-
-.sourcemapErrors {
-	margin: 20px auto;
-	max-width: 980px;
-	padding: 0 20px;
-}
