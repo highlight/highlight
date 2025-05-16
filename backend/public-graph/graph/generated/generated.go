@@ -49,9 +49,27 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AttributeMatchConfig struct {
+		Attribute func(childComplexity int) int
+		Key       func(childComplexity int) int
+	}
+
 	InitializeSessionResponse struct {
 		ProjectID func(childComplexity int) int
+		Sampling  func(childComplexity int) int
 		SecureID  func(childComplexity int) int
+	}
+
+	LogSamplingConfig struct {
+		Attributes    func(childComplexity int) int
+		Message       func(childComplexity int) int
+		SamplingRatio func(childComplexity int) int
+		SeverityText  func(childComplexity int) int
+	}
+
+	MatchConfig struct {
+		MatchValue func(childComplexity int) int
+		RegexValue func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -67,7 +85,13 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Ignore func(childComplexity int, id int) int
+		Ignore   func(childComplexity int, id int) int
+		Sampling func(childComplexity int, organizationVerboseID string) int
+	}
+
+	SamplingConfig struct {
+		Logs  func(childComplexity int) int
+		Spans func(childComplexity int) int
 	}
 
 	Session struct {
@@ -75,6 +99,18 @@ type ComplexityRoot struct {
 		OrganizationID func(childComplexity int) int
 		ProjectID      func(childComplexity int) int
 		SecureID       func(childComplexity int) int
+	}
+
+	SpanEventMatchConfig struct {
+		Attributes func(childComplexity int) int
+		Name       func(childComplexity int) int
+	}
+
+	SpanSamplingConfig struct {
+		Attributes    func(childComplexity int) int
+		Events        func(childComplexity int) int
+		Name          func(childComplexity int) int
+		SamplingRatio func(childComplexity int) int
 	}
 }
 
@@ -91,6 +127,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Ignore(ctx context.Context, id int) (interface{}, error)
+	Sampling(ctx context.Context, organizationVerboseID string) (*model.SamplingConfig, error)
 }
 type SessionResolver interface {
 	OrganizationID(ctx context.Context, obj *model1.Session) (int, error)
@@ -115,6 +152,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "AttributeMatchConfig.attribute":
+		if e.complexity.AttributeMatchConfig.Attribute == nil {
+			break
+		}
+
+		return e.complexity.AttributeMatchConfig.Attribute(childComplexity), true
+
+	case "AttributeMatchConfig.key":
+		if e.complexity.AttributeMatchConfig.Key == nil {
+			break
+		}
+
+		return e.complexity.AttributeMatchConfig.Key(childComplexity), true
+
 	case "InitializeSessionResponse.project_id":
 		if e.complexity.InitializeSessionResponse.ProjectID == nil {
 			break
@@ -122,12 +173,61 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.InitializeSessionResponse.ProjectID(childComplexity), true
 
+	case "InitializeSessionResponse.sampling":
+		if e.complexity.InitializeSessionResponse.Sampling == nil {
+			break
+		}
+
+		return e.complexity.InitializeSessionResponse.Sampling(childComplexity), true
+
 	case "InitializeSessionResponse.secure_id":
 		if e.complexity.InitializeSessionResponse.SecureID == nil {
 			break
 		}
 
 		return e.complexity.InitializeSessionResponse.SecureID(childComplexity), true
+
+	case "LogSamplingConfig.attributes":
+		if e.complexity.LogSamplingConfig.Attributes == nil {
+			break
+		}
+
+		return e.complexity.LogSamplingConfig.Attributes(childComplexity), true
+
+	case "LogSamplingConfig.message":
+		if e.complexity.LogSamplingConfig.Message == nil {
+			break
+		}
+
+		return e.complexity.LogSamplingConfig.Message(childComplexity), true
+
+	case "LogSamplingConfig.samplingRatio":
+		if e.complexity.LogSamplingConfig.SamplingRatio == nil {
+			break
+		}
+
+		return e.complexity.LogSamplingConfig.SamplingRatio(childComplexity), true
+
+	case "LogSamplingConfig.severityText":
+		if e.complexity.LogSamplingConfig.SeverityText == nil {
+			break
+		}
+
+		return e.complexity.LogSamplingConfig.SeverityText(childComplexity), true
+
+	case "MatchConfig.matchValue":
+		if e.complexity.MatchConfig.MatchValue == nil {
+			break
+		}
+
+		return e.complexity.MatchConfig.MatchValue(childComplexity), true
+
+	case "MatchConfig.regexValue":
+		if e.complexity.MatchConfig.RegexValue == nil {
+			break
+		}
+
+		return e.complexity.MatchConfig.RegexValue(childComplexity), true
 
 	case "Mutation.addSessionFeedback":
 		if e.complexity.Mutation.AddSessionFeedback == nil {
@@ -249,6 +349,32 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Ignore(childComplexity, args["id"].(int)), true
 
+	case "Query.sampling":
+		if e.complexity.Query.Sampling == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sampling_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Sampling(childComplexity, args["organization_verbose_id"].(string)), true
+
+	case "SamplingConfig.logs":
+		if e.complexity.SamplingConfig.Logs == nil {
+			break
+		}
+
+		return e.complexity.SamplingConfig.Logs(childComplexity), true
+
+	case "SamplingConfig.spans":
+		if e.complexity.SamplingConfig.Spans == nil {
+			break
+		}
+
+		return e.complexity.SamplingConfig.Spans(childComplexity), true
+
 	case "Session.id":
 		if e.complexity.Session.ID == nil {
 			break
@@ -276,6 +402,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.SecureID(childComplexity), true
+
+	case "SpanEventMatchConfig.attributes":
+		if e.complexity.SpanEventMatchConfig.Attributes == nil {
+			break
+		}
+
+		return e.complexity.SpanEventMatchConfig.Attributes(childComplexity), true
+
+	case "SpanEventMatchConfig.name":
+		if e.complexity.SpanEventMatchConfig.Name == nil {
+			break
+		}
+
+		return e.complexity.SpanEventMatchConfig.Name(childComplexity), true
+
+	case "SpanSamplingConfig.attributes":
+		if e.complexity.SpanSamplingConfig.Attributes == nil {
+			break
+		}
+
+		return e.complexity.SpanSamplingConfig.Attributes(childComplexity), true
+
+	case "SpanSamplingConfig.events":
+		if e.complexity.SpanSamplingConfig.Events == nil {
+			break
+		}
+
+		return e.complexity.SpanSamplingConfig.Events(childComplexity), true
+
+	case "SpanSamplingConfig.name":
+		if e.complexity.SpanSamplingConfig.Name == nil {
+			break
+		}
+
+		return e.complexity.SpanSamplingConfig.Name(childComplexity), true
+
+	case "SpanSamplingConfig.samplingRatio":
+		if e.complexity.SpanSamplingConfig.SamplingRatio == nil {
+			break
+		}
+
+		return e.complexity.SpanSamplingConfig.SamplingRatio(childComplexity), true
 
 	}
 	return 0, false
@@ -477,9 +645,106 @@ input ReplayEventsInput {
 	events: [ReplayEventInput]!
 }
 
+"""
+A match configuration. Each field of this type represents a different type of match
+configuration. One and only 1 field should be populated.
+
+This is effectively a sum type/discriminated union, but isn't implemented as such to avoid
+this bug: https://github.com/99designs/gqlgen/issues/2741
+"""
+type MatchConfig {
+	"""
+	A match configuration which matches against a regular expression.
+	Can only match string attributes.
+	"""
+	regexValue: String
+	"""
+	A match configuration which does an exact match against any value.
+	"""
+	matchValue: Any
+}
+
+"""
+An attribute match configuration which can match an attribute key and value.
+"""
+type AttributeMatchConfig {
+	key: MatchConfig!
+	attribute: MatchConfig!
+}
+
+"""
+An event matcher configuration which matches span events within a span.
+"""
+type SpanEventMatchConfig {
+	name: MatchConfig
+	attributes: [AttributeMatchConfig!]
+}
+
+"""
+A match based span sampling configuration. A span matches if each specified matching configuration
+matches.
+If no matching configuration is specified, then all spans will match.
+The sampling ratio will be applied to all matching spans.
+"""
+type SpanSamplingConfig {
+	name: MatchConfig
+
+	"""
+	A list of attribute match configs.
+	In order to match each attribute listed must match. This is an implicit AND operation.
+	"""
+	attributes: [AttributeMatchConfig!]
+
+	"""
+	A list of span event match configs.
+	"""
+	events: [SpanEventMatchConfig!]
+
+	"""
+	The ratio of spans to sample. Expressed in the form 1/n. So if the ratio is 10, then 1 out of
+	every 10 spans will be sampled. Setting the ratio to 0 will disable sampling for the span.
+	"""
+	samplingRatio: Int!
+}
+
+"""
+A match based log sampling configuration. A log matches if each specified matching configuration matches.
+If no matching configuration is specified, then all spans will match.
+The sampling ratio will be applied to all matching spans.
+"""
+type LogSamplingConfig {
+	"""
+	A list of attribute match configs.
+	In order to match each attribute listed must match. This is an implicit AND operation.
+	"""
+	attributes: [AttributeMatchConfig!]
+
+	"""
+	Matches against the log message.
+	"""
+	message: MatchConfig
+
+	"""
+	Matches against the severity of the log.
+	"""
+	severityText: MatchConfig
+
+	"""
+	The ratio of logs to sample. Expressed in the form 1/n. So if the ratio is 10, then 1 out of
+	every 10 logs will be sampled. Setting the ratio to 0 will disable sampling for the log.
+	"""
+	samplingRatio: Int!
+}
+
+type SamplingConfig {
+	spans: [SpanSamplingConfig!]
+	logs: [LogSamplingConfig!]
+}
+
 type InitializeSessionResponse {
 	secure_id: String!
 	project_id: ID!
+	sampling: SamplingConfig
 }
 
 type Mutation {
@@ -547,6 +812,7 @@ type Mutation {
 
 type Query {
 	ignore(id: ID!): Any
+	sampling(organization_verbose_id: String!): SamplingConfig!
 }
 
 enum PublicGraphError {
@@ -1040,6 +1306,21 @@ func (ec *executionContext) field_Query_ignore_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_sampling_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["organization_verbose_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_verbose_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_verbose_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1077,6 +1358,106 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _AttributeMatchConfig_key(ctx context.Context, field graphql.CollectedField, obj *model.AttributeMatchConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AttributeMatchConfig_key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.MatchConfig)
+	fc.Result = res
+	return ec.marshalNMatchConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMatchConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AttributeMatchConfig_key(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AttributeMatchConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "regexValue":
+				return ec.fieldContext_MatchConfig_regexValue(ctx, field)
+			case "matchValue":
+				return ec.fieldContext_MatchConfig_matchValue(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MatchConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AttributeMatchConfig_attribute(ctx context.Context, field graphql.CollectedField, obj *model.AttributeMatchConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AttributeMatchConfig_attribute(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Attribute, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.MatchConfig)
+	fc.Result = res
+	return ec.marshalNMatchConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMatchConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AttributeMatchConfig_attribute(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AttributeMatchConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "regexValue":
+				return ec.fieldContext_MatchConfig_regexValue(ctx, field)
+			case "matchValue":
+				return ec.fieldContext_MatchConfig_matchValue(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MatchConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _InitializeSessionResponse_secure_id(ctx context.Context, field graphql.CollectedField, obj *model.InitializeSessionResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_InitializeSessionResponse_secure_id(ctx, field)
@@ -1166,6 +1547,320 @@ func (ec *executionContext) fieldContext_InitializeSessionResponse_project_id(ct
 	return fc, nil
 }
 
+func (ec *executionContext) _InitializeSessionResponse_sampling(ctx context.Context, field graphql.CollectedField, obj *model.InitializeSessionResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_InitializeSessionResponse_sampling(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Sampling, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SamplingConfig)
+	fc.Result = res
+	return ec.marshalOSamplingConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSamplingConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_InitializeSessionResponse_sampling(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "InitializeSessionResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "spans":
+				return ec.fieldContext_SamplingConfig_spans(ctx, field)
+			case "logs":
+				return ec.fieldContext_SamplingConfig_logs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SamplingConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogSamplingConfig_attributes(ctx context.Context, field graphql.CollectedField, obj *model.LogSamplingConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogSamplingConfig_attributes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Attributes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.AttributeMatchConfig)
+	fc.Result = res
+	return ec.marshalOAttributeMatchConfig2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐAttributeMatchConfigᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogSamplingConfig_attributes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogSamplingConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "key":
+				return ec.fieldContext_AttributeMatchConfig_key(ctx, field)
+			case "attribute":
+				return ec.fieldContext_AttributeMatchConfig_attribute(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AttributeMatchConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogSamplingConfig_message(ctx context.Context, field graphql.CollectedField, obj *model.LogSamplingConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogSamplingConfig_message(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.MatchConfig)
+	fc.Result = res
+	return ec.marshalOMatchConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMatchConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogSamplingConfig_message(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogSamplingConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "regexValue":
+				return ec.fieldContext_MatchConfig_regexValue(ctx, field)
+			case "matchValue":
+				return ec.fieldContext_MatchConfig_matchValue(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MatchConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogSamplingConfig_severityText(ctx context.Context, field graphql.CollectedField, obj *model.LogSamplingConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogSamplingConfig_severityText(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SeverityText, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.MatchConfig)
+	fc.Result = res
+	return ec.marshalOMatchConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMatchConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogSamplingConfig_severityText(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogSamplingConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "regexValue":
+				return ec.fieldContext_MatchConfig_regexValue(ctx, field)
+			case "matchValue":
+				return ec.fieldContext_MatchConfig_matchValue(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MatchConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LogSamplingConfig_samplingRatio(ctx context.Context, field graphql.CollectedField, obj *model.LogSamplingConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LogSamplingConfig_samplingRatio(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SamplingRatio, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LogSamplingConfig_samplingRatio(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LogSamplingConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MatchConfig_regexValue(ctx context.Context, field graphql.CollectedField, obj *model.MatchConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MatchConfig_regexValue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RegexValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MatchConfig_regexValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MatchConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MatchConfig_matchValue(ctx context.Context, field graphql.CollectedField, obj *model.MatchConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_MatchConfig_matchValue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MatchValue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(interface{})
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_MatchConfig_matchValue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MatchConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Any does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_initializeSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_initializeSession(ctx, field)
 	if err != nil {
@@ -1209,6 +1904,8 @@ func (ec *executionContext) fieldContext_Mutation_initializeSession(ctx context.
 				return ec.fieldContext_InitializeSessionResponse_secure_id(ctx, field)
 			case "project_id":
 				return ec.fieldContext_InitializeSessionResponse_project_id(ctx, field)
+			case "sampling":
+				return ec.fieldContext_InitializeSessionResponse_sampling(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type InitializeSessionResponse", field.Name)
 		},
@@ -1722,6 +2419,67 @@ func (ec *executionContext) fieldContext_Query_ignore(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_sampling(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_sampling(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Sampling(rctx, fc.Args["organization_verbose_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.SamplingConfig)
+	fc.Result = res
+	return ec.marshalNSamplingConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSamplingConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_sampling(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "spans":
+				return ec.fieldContext_SamplingConfig_spans(ctx, field)
+			case "logs":
+				return ec.fieldContext_SamplingConfig_logs(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SamplingConfig", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_sampling_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -1846,6 +2604,108 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SamplingConfig_spans(ctx context.Context, field graphql.CollectedField, obj *model.SamplingConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SamplingConfig_spans(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Spans, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.SpanSamplingConfig)
+	fc.Result = res
+	return ec.marshalOSpanSamplingConfig2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSpanSamplingConfigᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SamplingConfig_spans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SamplingConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_SpanSamplingConfig_name(ctx, field)
+			case "attributes":
+				return ec.fieldContext_SpanSamplingConfig_attributes(ctx, field)
+			case "events":
+				return ec.fieldContext_SpanSamplingConfig_events(ctx, field)
+			case "samplingRatio":
+				return ec.fieldContext_SpanSamplingConfig_samplingRatio(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SpanSamplingConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SamplingConfig_logs(ctx context.Context, field graphql.CollectedField, obj *model.SamplingConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SamplingConfig_logs(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Logs, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.LogSamplingConfig)
+	fc.Result = res
+	return ec.marshalOLogSamplingConfig2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐLogSamplingConfigᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SamplingConfig_logs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SamplingConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "attributes":
+				return ec.fieldContext_LogSamplingConfig_attributes(ctx, field)
+			case "message":
+				return ec.fieldContext_LogSamplingConfig_message(ctx, field)
+			case "severityText":
+				return ec.fieldContext_LogSamplingConfig_severityText(ctx, field)
+			case "samplingRatio":
+				return ec.fieldContext_LogSamplingConfig_samplingRatio(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LogSamplingConfig", field.Name)
 		},
 	}
 	return fc, nil
@@ -2019,6 +2879,285 @@ func (ec *executionContext) fieldContext_Session_project_id(ctx context.Context,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SpanEventMatchConfig_name(ctx context.Context, field graphql.CollectedField, obj *model.SpanEventMatchConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SpanEventMatchConfig_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.MatchConfig)
+	fc.Result = res
+	return ec.marshalOMatchConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMatchConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SpanEventMatchConfig_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SpanEventMatchConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "regexValue":
+				return ec.fieldContext_MatchConfig_regexValue(ctx, field)
+			case "matchValue":
+				return ec.fieldContext_MatchConfig_matchValue(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MatchConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SpanEventMatchConfig_attributes(ctx context.Context, field graphql.CollectedField, obj *model.SpanEventMatchConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SpanEventMatchConfig_attributes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Attributes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.AttributeMatchConfig)
+	fc.Result = res
+	return ec.marshalOAttributeMatchConfig2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐAttributeMatchConfigᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SpanEventMatchConfig_attributes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SpanEventMatchConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "key":
+				return ec.fieldContext_AttributeMatchConfig_key(ctx, field)
+			case "attribute":
+				return ec.fieldContext_AttributeMatchConfig_attribute(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AttributeMatchConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SpanSamplingConfig_name(ctx context.Context, field graphql.CollectedField, obj *model.SpanSamplingConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SpanSamplingConfig_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.MatchConfig)
+	fc.Result = res
+	return ec.marshalOMatchConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMatchConfig(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SpanSamplingConfig_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SpanSamplingConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "regexValue":
+				return ec.fieldContext_MatchConfig_regexValue(ctx, field)
+			case "matchValue":
+				return ec.fieldContext_MatchConfig_matchValue(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MatchConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SpanSamplingConfig_attributes(ctx context.Context, field graphql.CollectedField, obj *model.SpanSamplingConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SpanSamplingConfig_attributes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Attributes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.AttributeMatchConfig)
+	fc.Result = res
+	return ec.marshalOAttributeMatchConfig2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐAttributeMatchConfigᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SpanSamplingConfig_attributes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SpanSamplingConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "key":
+				return ec.fieldContext_AttributeMatchConfig_key(ctx, field)
+			case "attribute":
+				return ec.fieldContext_AttributeMatchConfig_attribute(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AttributeMatchConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SpanSamplingConfig_events(ctx context.Context, field graphql.CollectedField, obj *model.SpanSamplingConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SpanSamplingConfig_events(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Events, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.SpanEventMatchConfig)
+	fc.Result = res
+	return ec.marshalOSpanEventMatchConfig2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSpanEventMatchConfigᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SpanSamplingConfig_events(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SpanSamplingConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_SpanEventMatchConfig_name(ctx, field)
+			case "attributes":
+				return ec.fieldContext_SpanEventMatchConfig_attributes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SpanEventMatchConfig", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SpanSamplingConfig_samplingRatio(ctx context.Context, field graphql.CollectedField, obj *model.SpanSamplingConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SpanSamplingConfig_samplingRatio(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SamplingRatio, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SpanSamplingConfig_samplingRatio(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SpanSamplingConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4315,6 +5454,50 @@ func (ec *executionContext) unmarshalInputStackFrameInput(ctx context.Context, o
 
 // region    **************************** object.gotpl ****************************
 
+var attributeMatchConfigImplementors = []string{"AttributeMatchConfig"}
+
+func (ec *executionContext) _AttributeMatchConfig(ctx context.Context, sel ast.SelectionSet, obj *model.AttributeMatchConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, attributeMatchConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AttributeMatchConfig")
+		case "key":
+			out.Values[i] = ec._AttributeMatchConfig_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "attribute":
+			out.Values[i] = ec._AttributeMatchConfig_attribute(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var initializeSessionResponseImplementors = []string{"InitializeSessionResponse"}
 
 func (ec *executionContext) _InitializeSessionResponse(ctx context.Context, sel ast.SelectionSet, obj *model.InitializeSessionResponse) graphql.Marshaler {
@@ -4336,6 +5519,91 @@ func (ec *executionContext) _InitializeSessionResponse(ctx context.Context, sel 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "sampling":
+			out.Values[i] = ec._InitializeSessionResponse_sampling(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var logSamplingConfigImplementors = []string{"LogSamplingConfig"}
+
+func (ec *executionContext) _LogSamplingConfig(ctx context.Context, sel ast.SelectionSet, obj *model.LogSamplingConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, logSamplingConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LogSamplingConfig")
+		case "attributes":
+			out.Values[i] = ec._LogSamplingConfig_attributes(ctx, field, obj)
+		case "message":
+			out.Values[i] = ec._LogSamplingConfig_message(ctx, field, obj)
+		case "severityText":
+			out.Values[i] = ec._LogSamplingConfig_severityText(ctx, field, obj)
+		case "samplingRatio":
+			out.Values[i] = ec._LogSamplingConfig_samplingRatio(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var matchConfigImplementors = []string{"MatchConfig"}
+
+func (ec *executionContext) _MatchConfig(ctx context.Context, sel ast.SelectionSet, obj *model.MatchConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, matchConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MatchConfig")
+		case "regexValue":
+			out.Values[i] = ec._MatchConfig_regexValue(ctx, field, obj)
+		case "matchValue":
+			out.Values[i] = ec._MatchConfig_matchValue(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4493,6 +5761,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "sampling":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sampling(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -4501,6 +5791,44 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var samplingConfigImplementors = []string{"SamplingConfig"}
+
+func (ec *executionContext) _SamplingConfig(ctx context.Context, sel ast.SelectionSet, obj *model.SamplingConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, samplingConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SamplingConfig")
+		case "spans":
+			out.Values[i] = ec._SamplingConfig_spans(ctx, field, obj)
+		case "logs":
+			out.Values[i] = ec._SamplingConfig_logs(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4582,6 +5910,89 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_project_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var spanEventMatchConfigImplementors = []string{"SpanEventMatchConfig"}
+
+func (ec *executionContext) _SpanEventMatchConfig(ctx context.Context, sel ast.SelectionSet, obj *model.SpanEventMatchConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, spanEventMatchConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SpanEventMatchConfig")
+		case "name":
+			out.Values[i] = ec._SpanEventMatchConfig_name(ctx, field, obj)
+		case "attributes":
+			out.Values[i] = ec._SpanEventMatchConfig_attributes(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var spanSamplingConfigImplementors = []string{"SpanSamplingConfig"}
+
+func (ec *executionContext) _SpanSamplingConfig(ctx context.Context, sel ast.SelectionSet, obj *model.SpanSamplingConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, spanSamplingConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SpanSamplingConfig")
+		case "name":
+			out.Values[i] = ec._SpanSamplingConfig_name(ctx, field, obj)
+		case "attributes":
+			out.Values[i] = ec._SpanSamplingConfig_attributes(ctx, field, obj)
+		case "events":
+			out.Values[i] = ec._SpanSamplingConfig_events(ctx, field, obj)
+		case "samplingRatio":
+			out.Values[i] = ec._SpanSamplingConfig_samplingRatio(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -4953,6 +6364,16 @@ func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) marshalNAttributeMatchConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐAttributeMatchConfig(ctx context.Context, sel ast.SelectionSet, v *model.AttributeMatchConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AttributeMatchConfig(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBackendErrorObjectInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐBackendErrorObjectInput(ctx context.Context, v interface{}) ([]*model.BackendErrorObjectInput, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -5061,6 +6482,26 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) marshalNLogSamplingConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐLogSamplingConfig(ctx context.Context, sel ast.SelectionSet, v *model.LogSamplingConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LogSamplingConfig(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNMatchConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMatchConfig(ctx context.Context, sel ast.SelectionSet, v *model.MatchConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MatchConfig(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNMetricInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricInput(ctx context.Context, v interface{}) ([]*model.MetricInput, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -5105,9 +6546,43 @@ func (ec *executionContext) unmarshalNReplayEventsInput2githubᚗcomᚋhighlight
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNSamplingConfig2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSamplingConfig(ctx context.Context, sel ast.SelectionSet, v model.SamplingConfig) graphql.Marshaler {
+	return ec._SamplingConfig(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSamplingConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSamplingConfig(ctx context.Context, sel ast.SelectionSet, v *model.SamplingConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SamplingConfig(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNServiceInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐServiceInput(ctx context.Context, v interface{}) (*model.ServiceInput, error) {
 	res, err := ec.unmarshalInputServiceInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSpanEventMatchConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSpanEventMatchConfig(ctx context.Context, sel ast.SelectionSet, v *model.SpanEventMatchConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SpanEventMatchConfig(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSpanSamplingConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSpanSamplingConfig(ctx context.Context, sel ast.SelectionSet, v *model.SpanSamplingConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SpanSamplingConfig(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNStackFrameInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInput(ctx context.Context, v interface{}) ([]*model.StackFrameInput, error) {
@@ -5458,6 +6933,53 @@ func (ec *executionContext) marshalOAny2ᚕinterface(ctx context.Context, sel as
 	return ret
 }
 
+func (ec *executionContext) marshalOAttributeMatchConfig2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐAttributeMatchConfigᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AttributeMatchConfig) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAttributeMatchConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐAttributeMatchConfig(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOBackendErrorObjectInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐBackendErrorObjectInput(ctx context.Context, v interface{}) (*model.BackendErrorObjectInput, error) {
 	if v == nil {
 		return nil, nil
@@ -5542,6 +7064,60 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
+func (ec *executionContext) marshalOLogSamplingConfig2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐLogSamplingConfigᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.LogSamplingConfig) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLogSamplingConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐLogSamplingConfig(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOMatchConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMatchConfig(ctx context.Context, sel ast.SelectionSet, v *model.MatchConfig) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._MatchConfig(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOMetricInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐMetricInput(ctx context.Context, v interface{}) (*model.MetricInput, error) {
 	if v == nil {
 		return nil, nil
@@ -5576,6 +7152,107 @@ func (ec *executionContext) unmarshalOReplayEventInput2ᚖgithubᚗcomᚋhighlig
 	}
 	res, err := ec.unmarshalInputReplayEventInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSamplingConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSamplingConfig(ctx context.Context, sel ast.SelectionSet, v *model.SamplingConfig) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SamplingConfig(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOSpanEventMatchConfig2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSpanEventMatchConfigᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SpanEventMatchConfig) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSpanEventMatchConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSpanEventMatchConfig(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOSpanSamplingConfig2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSpanSamplingConfigᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SpanSamplingConfig) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSpanSamplingConfig2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐSpanSamplingConfig(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOStackFrameInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInput(ctx context.Context, v interface{}) (*model.StackFrameInput, error) {

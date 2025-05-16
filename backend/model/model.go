@@ -189,6 +189,7 @@ var Models = []interface{}{
 	&ErrorGroupAdminsView{},
 	&LogAdminsView{},
 	&ProjectFilterSettings{},
+	&ProjectClientSamplingSettings{},
 	&AllWorkspaceSettings{},
 	&ErrorGroupActivityLog{},
 	&UserJourneyStep{},
@@ -456,6 +457,14 @@ type ProjectFilterSettings struct {
 	LogExclusionQuery                 *string
 	TraceExclusionQuery               *string
 	MetricExclusionQuery              *string
+}
+
+type ProjectClientSamplingSettings struct {
+	Model
+	Project             *Project
+	ProjectID           int
+	SpanSamplingConfigs *string `gorm:"type:jsonb"`
+	LogSamplingConfigs  *string `gorm:"type:jsonb"`
 }
 
 type AllWorkspaceSettings struct {

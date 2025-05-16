@@ -7,6 +7,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/DmitriyVTitov/size"
@@ -23,6 +24,7 @@ import (
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm"
 )
 
 // InitializeSession is the resolver for the initializeSession field.
@@ -34,6 +36,8 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 	ip := ctx.Value(model.ContextKeys.IP).(string)
 
 	projectID, err := model.FromVerboseID(organizationVerboseID)
+	sampling := customModels.SamplingConfig{}
+
 	if err != nil {
 		log.WithContext(ctx).Errorf("An unsupported verboseID was used: %s, %s", organizationVerboseID, clientConfig)
 	} else {
@@ -71,6 +75,25 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 				err = e.New(string(customModels.PublicGraphErrorBillingQuotaExceeded))
 			}
 		}
+
+		if err == nil {
+			// Errors for sampling are not going to be fatal, and will not propagate to the client.
+			dbConfig, dbErr := r.Store.GetClientSideSamplingConfiguration(ctx, projectID)
+
+			if !errors.Is(dbErr, gorm.ErrRecordNotFound) {
+				log.WithContext(ctx).WithFields(log.Fields{"project_id": projectID}).
+					Error(e.Wrap(err, "failed to get client side sampling configuration"))
+			}
+
+			if dbErr == nil {
+				uErr := UnmarshalClientSamplingConfig(*dbConfig, &sampling)
+
+				if uErr != nil {
+					log.WithContext(ctx).WithFields(log.Fields{"project_id": projectID}).
+						Error(e.Wrap(uErr, "failed to unmarshal client side sampling configuration"))
+				}
+			}
+		}
 	}
 
 	s.SetAttribute("success", err == nil)
@@ -78,6 +101,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 	return &customModels.InitializeSessionResponse{
 		SecureID:  sessionSecureID,
 		ProjectID: projectID,
+		Sampling:  &sampling,
 	}, err
 }
 
@@ -287,6 +311,37 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionSecure
 // Ignore is the resolver for the ignore field.
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {
 	return nil, nil
+}
+
+// Sampling is the resolver for the sampling field.
+func (r *queryResolver) Sampling(ctx context.Context, organizationVerboseID string) (*customModels.SamplingConfig, error) {
+	sampling := customModels.SamplingConfig{}
+
+	projectID, err := model.FromVerboseID(organizationVerboseID)
+
+	if err != nil {
+		log.WithContext(ctx).Errorf("An unsupported verboseID was used: %s", organizationVerboseID)
+		return &sampling, nil
+	}
+
+	dbConfig, err := r.Store.GetClientSideSamplingConfiguration(ctx, projectID)
+
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.WithContext(ctx).WithFields(log.Fields{"project_id": projectID}).
+				Error(e.Wrap(err, "failed to get client side sampling configuration"))
+		}
+		return &sampling, nil
+	}
+
+	err = UnmarshalClientSamplingConfig(*dbConfig, &sampling)
+
+	if err != nil {
+		log.WithContext(ctx).WithFields(log.Fields{"project_id": projectID}).
+			Error(e.Wrap(err, "failed to unmarshal client side sampling configuration"))
+	}
+
+	return &sampling, nil
 }
 
 // OrganizationID is the resolver for the organization_id field.

@@ -9,6 +9,12 @@ import (
 	"time"
 )
 
+// An attribute match configuration which can match an attribute key and value.
+type AttributeMatchConfig struct {
+	Key       *MatchConfig `json:"key"`
+	Attribute *MatchConfig `json:"attribute"`
+}
+
 type BackendErrorObjectInput struct {
 	SessionSecureID *string       `json:"session_secure_id,omitempty"`
 	RequestID       *string       `json:"request_id,omitempty"`
@@ -39,8 +45,38 @@ type ErrorObjectInput struct {
 }
 
 type InitializeSessionResponse struct {
-	SecureID  string `json:"secure_id"`
-	ProjectID int    `json:"project_id"`
+	SecureID  string          `json:"secure_id"`
+	ProjectID int             `json:"project_id"`
+	Sampling  *SamplingConfig `json:"sampling,omitempty"`
+}
+
+// A match based log sampling configuration. A log matches if each specified matching configuration matches.
+// If no matching configuration is specified, then all spans will match.
+// The sampling ratio will be applied to all matching spans.
+type LogSamplingConfig struct {
+	// A list of attribute match configs.
+	// In order to match each attribute listed must match. This is an implicit AND operation.
+	Attributes []*AttributeMatchConfig `json:"attributes,omitempty"`
+	// Matches against the log message.
+	Message *MatchConfig `json:"message,omitempty"`
+	// Matches against the severity of the log.
+	SeverityText *MatchConfig `json:"severityText,omitempty"`
+	// The ratio of logs to sample. Expressed in the form 1/n. So if the ratio is 10, then 1 out of
+	// every 10 logs will be sampled. Setting the ratio to 0 will disable sampling for the log.
+	SamplingRatio int `json:"samplingRatio"`
+}
+
+// A match configuration. Each field of this type represents a different type of match
+// configuration. One and only 1 field should be populated.
+//
+// This is effectively a sum type/discriminated union, but isn't implemented as such to avoid
+// this bug: https://github.com/99designs/gqlgen/issues/2741
+type MatchConfig struct {
+	// A match configuration which matches against a regular expression.
+	// Can only match string attributes.
+	RegexValue *string `json:"regexValue,omitempty"`
+	// A match configuration which does an exact match against any value.
+	MatchValue interface{} `json:"matchValue,omitempty"`
 }
 
 type MetricInput struct {
@@ -75,9 +111,36 @@ type ReplayEventsInput struct {
 	Events []*ReplayEventInput `json:"events"`
 }
 
+type SamplingConfig struct {
+	Spans []*SpanSamplingConfig `json:"spans,omitempty"`
+	Logs  []*LogSamplingConfig  `json:"logs,omitempty"`
+}
+
 type ServiceInput struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
+}
+
+// An event matcher configuration which matches span events within a span.
+type SpanEventMatchConfig struct {
+	Name       *MatchConfig            `json:"name,omitempty"`
+	Attributes []*AttributeMatchConfig `json:"attributes,omitempty"`
+}
+
+// A match based span sampling configuration. A span matches if each specified matching configuration
+// matches.
+// If no matching configuration is specified, then all spans will match.
+// The sampling ratio will be applied to all matching spans.
+type SpanSamplingConfig struct {
+	Name *MatchConfig `json:"name,omitempty"`
+	// A list of attribute match configs.
+	// In order to match each attribute listed must match. This is an implicit AND operation.
+	Attributes []*AttributeMatchConfig `json:"attributes,omitempty"`
+	// A list of span event match configs.
+	Events []*SpanEventMatchConfig `json:"events,omitempty"`
+	// The ratio of spans to sample. Expressed in the form 1/n. So if the ratio is 10, then 1 out of
+	// every 10 spans will be sampled. Setting the ratio to 0 will disable sampling for the span.
+	SamplingRatio int `json:"samplingRatio"`
 }
 
 type StackFrameInput struct {

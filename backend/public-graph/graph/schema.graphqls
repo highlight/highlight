@@ -85,9 +85,106 @@ input ReplayEventsInput {
 	events: [ReplayEventInput]!
 }
 
+"""
+A match configuration. Each field of this type represents a different type of match
+configuration. One and only 1 field should be populated.
+
+This is effectively a sum type/discriminated union, but isn't implemented as such to avoid
+this bug: https://github.com/99designs/gqlgen/issues/2741
+"""
+type MatchConfig {
+	"""
+	A match configuration which matches against a regular expression.
+	Can only match string attributes.
+	"""
+	regexValue: String
+	"""
+	A match configuration which does an exact match against any value.
+	"""
+	matchValue: Any
+}
+
+"""
+An attribute match configuration which can match an attribute key and value.
+"""
+type AttributeMatchConfig {
+	key: MatchConfig!
+	attribute: MatchConfig!
+}
+
+"""
+An event matcher configuration which matches span events within a span.
+"""
+type SpanEventMatchConfig {
+	name: MatchConfig
+	attributes: [AttributeMatchConfig!]
+}
+
+"""
+A match based span sampling configuration. A span matches if each specified matching configuration
+matches.
+If no matching configuration is specified, then all spans will match.
+The sampling ratio will be applied to all matching spans.
+"""
+type SpanSamplingConfig {
+	name: MatchConfig
+
+	"""
+	A list of attribute match configs.
+	In order to match each attribute listed must match. This is an implicit AND operation.
+	"""
+	attributes: [AttributeMatchConfig!]
+
+	"""
+	A list of span event match configs.
+	"""
+	events: [SpanEventMatchConfig!]
+
+	"""
+	The ratio of spans to sample. Expressed in the form 1/n. So if the ratio is 10, then 1 out of
+	every 10 spans will be sampled. Setting the ratio to 0 will disable sampling for the span.
+	"""
+	samplingRatio: Int!
+}
+
+"""
+A match based log sampling configuration. A log matches if each specified matching configuration matches.
+If no matching configuration is specified, then all spans will match.
+The sampling ratio will be applied to all matching spans.
+"""
+type LogSamplingConfig {
+	"""
+	A list of attribute match configs.
+	In order to match each attribute listed must match. This is an implicit AND operation.
+	"""
+	attributes: [AttributeMatchConfig!]
+
+	"""
+	Matches against the log message.
+	"""
+	message: MatchConfig
+
+	"""
+	Matches against the severity of the log.
+	"""
+	severityText: MatchConfig
+
+	"""
+	The ratio of logs to sample. Expressed in the form 1/n. So if the ratio is 10, then 1 out of
+	every 10 logs will be sampled. Setting the ratio to 0 will disable sampling for the log.
+	"""
+	samplingRatio: Int!
+}
+
+type SamplingConfig {
+	spans: [SpanSamplingConfig!]
+	logs: [LogSamplingConfig!]
+}
+
 type InitializeSessionResponse {
 	secure_id: String!
 	project_id: ID!
+	sampling: SamplingConfig
 }
 
 type Mutation {
@@ -155,6 +252,7 @@ type Mutation {
 
 type Query {
 	ignore(id: ID!): Any
+	sampling(organization_verbose_id: String!): SamplingConfig!
 }
 
 enum PublicGraphError {
