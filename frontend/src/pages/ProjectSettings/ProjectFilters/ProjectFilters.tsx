@@ -38,7 +38,6 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { SearchContext } from '@/components/Search/SearchContext'
-import { DEMO_PROJECT_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 
 const DATE_RANGE_PRESETS = [DEFAULT_TIME_PRESETS[1], DEFAULT_TIME_PRESETS[3]]
 const DEFAULT_PRESET = DATE_RANGE_PRESETS[0]
@@ -141,7 +140,7 @@ export const ProjectProductFilters: React.FC<{
 	})
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: projectId! },
-		skip: !projectId || projectId === DEMO_PROJECT_ID,
+		skip: !projectId,
 	})
 	const [editProjectSettingsMutation, { loading: saveLoading }] =
 		useEditProjectSettingsMutation({

@@ -11,14 +11,11 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { SIGN_UP_ROUTE } from '@pages/Auth/AuthRouter'
 import { generateRandomColor } from '@util/color'
-import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useProjectId } from '@/hooks/useProjectId'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
@@ -33,7 +30,6 @@ const ProjectPicker = () => {
 	const isWorkspaceLevel = workspace_id !== undefined
 	const navigate = useNavigate()
 	const location = useLocation()
-	const isInDemoProject = projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID
 
 	const projectOptions = allProjects
 		? allProjects.map((project) => {
@@ -82,9 +78,7 @@ const ProjectPicker = () => {
 
 	const headerDisplayValue = isWorkspaceLevel
 		? 'Back to Project'
-		: isInDemoProject
-			? DEMO_PROJECT_NAME
-			: currentProject?.name
+		: currentProject?.name
 
 	return (
 		<Box display="flex" flexShrink={0} style={{ maxWidth: 200 }}>
@@ -101,15 +95,9 @@ const ProjectPicker = () => {
 						)
 					}
 				>
-					{isInDemoProject ? (
-						<Link to={SIGN_UP_ROUTE} className={linkStyle}>
-							<Text lines="1">{headerDisplayValue}</Text>
-						</Link>
-					) : (
-						<Text lines="1">{headerDisplayValue}</Text>
-					)}
+					<Text lines="1">{headerDisplayValue}</Text>
 				</Menu.Button>
-				{!isInDemoProject && (
+				{!isWorkspaceLevel && (
 					<Menu.List>
 						{projectOptions}
 						{projectId && (

@@ -9,8 +9,6 @@ import { IntegrationType } from '@graph/schemas'
 import { useParams } from '@util/react-router/useParams'
 import { useCallback } from 'react'
 
-import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
-
 export const useVercelIntegration = (projectId?: string) => {
 	let { project_id } = useParams<{ project_id: string }>()
 	if (projectId !== undefined) {
@@ -19,7 +17,7 @@ export const useVercelIntegration = (projectId?: string) => {
 
 	const { data, loading } = useGetWorkspaceIsIntegratedWithVercelQuery({
 		variables: { project_id: project_id! },
-		skip: !project_id || project_id === DEMO_PROJECT_ID,
+		skip: !project_id,
 	})
 
 	const [addIntegrationToProject] = useAddIntegrationToProjectMutation({

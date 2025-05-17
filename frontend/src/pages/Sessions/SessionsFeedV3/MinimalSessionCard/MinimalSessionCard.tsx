@@ -1,8 +1,4 @@
 import { Avatar } from '@components/Avatar/Avatar'
-import {
-	DEMO_PROJECT_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { Session } from '@graph/schemas'
 import SvgBugIcon from '@icons/BugIcon'
@@ -66,10 +62,6 @@ const MinimalSessionCard = React.memo(
 			segment_id: string
 			session_secure_id: string
 		}>()
-		const projectIdRemapped =
-			project_id === DEMO_PROJECT_ID
-				? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-				: project_id
 		const showDetailedSessionView =
 			showDetailedSessionViewPlayerConfiguration ||
 			showDetailedViewOverride
@@ -384,7 +376,7 @@ const MinimalSessionCard = React.memo(
 				) : (
 					<Link
 						target={target}
-						to={`/${projectIdRemapped}/sessions/${
+						to={`/${project_id}/sessions/${
 							session.secure_id
 						}${urlParams || ''}`}
 					>

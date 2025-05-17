@@ -1,8 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import {
-	DEMO_PROJECT_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPicker'
 import { betaTag, linkStyle } from '@components/Header/styles.css'
 import { useBillingHook } from '@components/Header/useBillingHook'
@@ -256,8 +252,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 								</Text>
 							</Box>
 						</LinkButton>
-					) : inProjectOrWorkspace ||
-					  projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID ? (
+					) : inProjectOrWorkspace || projectId === 'demo' ? (
 						<Box
 							display="flex"
 							alignItems="center"
@@ -713,7 +708,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 }
 
 const getBanner = (projectId: string) => {
-	if (projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID) {
+	if (projectId === 'demo') {
 		return <DemoWorkspaceBanner />
 	}
 
@@ -737,7 +732,7 @@ const BillingBanner: React.FC = () => {
 	})
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: projectId! },
-		skip: !projectId || projectId === DEMO_PROJECT_ID,
+		skip: !projectId || projectId === 'demo',
 	})
 	const [hasReportedTrialExtension, setHasReportedTrialExtension] =
 		useLocalStorage('highlightReportedTrialExtension', false)

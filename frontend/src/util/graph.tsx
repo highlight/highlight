@@ -2,7 +2,6 @@ import 'firebase/compat/auth'
 
 import {
 	ApolloClient,
-	ApolloLink,
 	createHttpLink,
 	from,
 	InMemoryCache,
@@ -19,10 +18,6 @@ import { IndexedDBLink } from '@util/db'
 import { invalidateRefetch } from '@util/gql'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 
-import {
-	DEMO_PROJECT_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { PRIVATE_GRAPH_URI } from '@/constants'
 
 const highlightGraph = new IndexedDBLink(
@@ -115,23 +110,8 @@ const cache = new InMemoryCache({
 	},
 })
 
-const remappedVariables = ['project_id', 'id']
-
-const projectIdLink = new ApolloLink((operation, forward) => {
-	remappedVariables.forEach((variable) => {
-		if (
-			operation.variables[variable] ===
-			DEMO_WORKSPACE_PROXY_APPLICATION_ID
-		) {
-			operation.variables[variable] = DEMO_PROJECT_ID
-		}
-	})
-
-	return forward(operation)
-})
-
 export const client = new ApolloClient({
-	link: from([projectIdLink, authLink.concat(splitLink || highlightGraph)]),
+	link: from([authLink.concat(splitLink || highlightGraph)]),
 	defaultOptions: {
 		mutate: {
 			onQueryUpdated: invalidateRefetch,

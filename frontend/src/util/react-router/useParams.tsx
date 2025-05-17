@@ -1,11 +1,6 @@
-import {
-	DEMO_PROJECT_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 // This is the implementation for our custom useParams, exempting from rule
 // eslint-disable-next-line no-restricted-imports
 import { useParams as ReactRouterUseParams } from 'react-router-dom'
-import validator from 'validator'
 
 /**
  * This is a proxy for `react-router`'s `useParams`.
@@ -18,21 +13,6 @@ import validator from 'validator'
 export const useParams: typeof ReactRouterUseParams = () => {
 	const matches: ReturnType<typeof ReactRouterUseParams> =
 		ReactRouterUseParams()
-
-	if (typeof matches === 'object' && matches?.project_id) {
-		if (matches.project_id === DEMO_WORKSPACE_PROXY_APPLICATION_ID) {
-			return {
-				...matches,
-				project_id: DEMO_PROJECT_ID,
-			} as const
-		}
-		if (!validator.isNumeric(matches.project_id)) {
-			return {
-				...matches,
-				project_id: undefined,
-			} as const
-		}
-	}
 
 	return matches
 }
