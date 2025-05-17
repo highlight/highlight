@@ -6,6 +6,7 @@ import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import LogsPage from '@pages/LogsPage/LogsPage'
 import { PlayerPage } from '@pages/Player/PlayerPage'
 import { ConnectRouter } from '@/pages/Connect/ConnectRouter'
+import UsersPage from '@/pages/Users/UsersPage'
 import React from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
@@ -46,6 +47,7 @@ const ApplicationRouter: React.FC = () => {
 							path="logs/:log_cursor?"
 							element={<LogsPage />}
 						/>
+						<Route path="users" element={<UsersPage />} />
 						<Route path="settings/*" element={<SettingsRouter />} />
 						<Route path="alerts/*" element={<AlertsRouter />} />
 						<Route
