@@ -210,6 +210,12 @@ export const AppRouter = () => {
 		}
 	}, [admin])
 
+	useEffect(() => {
+		if (location.pathname === '/demo') {
+			window.location.href = 'https://launchdarkly.com/request-a-demo/'
+		}
+	}, [location.pathname])
+
 	const currentProject =
 		data?.projects?.find((p) => p?.id === projectId) ||
 		projectOrWorkspaceData?.project ||
@@ -432,25 +438,6 @@ export const AppRouter = () => {
 								) : (
 									<AuthRouter />
 								)
-							}
-						/>
-
-						<Route
-							path="/demo/*"
-							element={
-								<Navigate
-									to="https://launchdarkly.com/request-a-demo/"
-									replace
-								/>
-							}
-						/>
-						<Route
-							path="/demo"
-							element={
-								<Navigate
-									to="https://launchdarkly.com/request-a-demo/"
-									replace
-								/>
 							}
 						/>
 
