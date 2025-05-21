@@ -1,7 +1,6 @@
 import '../../App.css'
 
 import { useAuthContext } from '@authentication/AuthContext'
-import { DemoModal } from '@components/DemoModal/DemoModal'
 import { Box } from '@highlight-run/ui/components'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
@@ -42,10 +41,6 @@ import {
 } from 'react-router-dom'
 import { StringParam, useQueryParam } from 'use-query-params'
 
-import {
-	DEMO_PROJECT_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import {
 	useGetDropdownOptionsQuery,
 	useGetProjectOrWorkspaceQuery,
@@ -179,18 +174,6 @@ export const AppRouter = () => {
 			navigate(ABOUT_YOU_ROUTE, { replace: true })
 			return
 		}
-
-		// Redirects from `DEMO_PROJECT_ID/*` to `demo/*` so that we can keep the
-		// demo URL schema consistent even if the project changes.
-		const pathSegments = location.pathname.split('/').filter(Boolean)
-		if (pathSegments[0] === DEMO_PROJECT_ID) {
-			pathSegments[0] = DEMO_WORKSPACE_PROXY_APPLICATION_ID
-
-			navigate(`/${pathSegments.join('/')}${location.search}`, {
-				replace: true,
-			})
-			return
-		}
 	}, [
 		admin,
 		isVercelIntegrationFlow,
@@ -226,6 +209,12 @@ export const AppRouter = () => {
 			analytics.identify(admin.id, identifyMetadata)
 		}
 	}, [admin])
+
+	useEffect(() => {
+		if (location.pathname === '/demo') {
+			window.location.href = 'https://launchdarkly.com/request-a-demo/'
+		}
+	}, [location.pathname])
 
 	const currentProject =
 		data?.projects?.find((p) => p?.id === projectId) ||
@@ -290,7 +279,6 @@ export const AppRouter = () => {
 						}
 					/>
 				) : null}
-				{projectId === DEMO_PROJECT_ID ? <DemoModal /> : null}
 				<DebugRoutes>
 					<Routes location={previousLocation ?? location}>
 						<Route
@@ -440,9 +428,7 @@ export const AppRouter = () => {
 						<Route
 							path="/*"
 							element={
-								projectId &&
-								(isValidProjectId ||
-									projectId === DEMO_PROJECT_ID) ? (
+								projectId && isValidProjectId ? (
 									<ProjectRouter />
 								) : isLoggedIn ? (
 									isNewWorkspacePage ||

@@ -9,9 +9,7 @@ import { ConnectRouter } from '@/pages/Connect/ConnectRouter'
 import React from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
-import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { RelatedResourcePanel } from '@/components/RelatedResources/RelatedResourcePanel'
-import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
 import DashboardRouter from '@/pages/Graphing/DashboardRouter'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
@@ -20,7 +18,6 @@ import { TracesPage } from '@/pages/Traces/TracesPage'
 const BASE_PATH = 'sessions'
 
 const ApplicationRouter: React.FC = () => {
-	const { projectId } = useNumericProjectId()
 	const { isLoggedIn } = useAuthContext()
 
 	return (
@@ -36,7 +33,7 @@ const ApplicationRouter: React.FC = () => {
 					element={<ErrorsV2 />}
 				/>
 
-				{isLoggedIn || projectId === DEMO_PROJECT_ID ? (
+				{isLoggedIn ? (
 					<>
 						<Route
 							path="traces/:trace_id?/:span_id?"
