@@ -7,7 +7,8 @@ import NextError from 'next/error'
 
 export default pageRouterCustomErrorHandler(
 	{
-		projectId: '4d7k1xeo',
+		projectId: process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID!,
+		otlpEndpoint: 'https://otel.observability.app.launchdarkly.com',
 	},
 	/**
 	 *

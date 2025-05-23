@@ -11996,6 +11996,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@launchdarkly/js-client-sdk-common@npm:1.13.0":
+  version: 1.13.0
+  resolution: "@launchdarkly/js-client-sdk-common@npm:1.13.0"
+  dependencies:
+    "@launchdarkly/js-sdk-common": "npm:2.17.0"
+  checksum: 10/754d0b873714adac5d63fa3b5c416fcc8e089d09bf9061aa30e038a171c647cf4cfe0aded0f33ace02545cd0ef02e011500241ccdcda412fb6e514492b51e730
+  languageName: node
+  linkType: hard
+
+"@launchdarkly/js-client-sdk-common@npm:1.14.0":
+  version: 1.14.0
+  resolution: "@launchdarkly/js-client-sdk-common@npm:1.14.0"
+  dependencies:
+    "@launchdarkly/js-sdk-common": "npm:2.18.0"
+  checksum: 10/54953864d6aaf4f839d38646ae3cf6a2a7b1ecb26c0d649bc6223725b61a339cde799fd245c54fc15a2d1a5628f6ec75c6b8c2aeba0f9c0988d3552d92f1f57a
+  languageName: node
+  linkType: hard
+
 "@launchdarkly/js-client-sdk@npm:^0.4.1":
   version: 0.4.1
   resolution: "@launchdarkly/js-client-sdk@npm:0.4.1"
@@ -12005,10 +12023,60 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@launchdarkly/js-client-sdk@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "@launchdarkly/js-client-sdk@npm:0.6.0"
+  dependencies:
+    "@launchdarkly/js-client-sdk-common": "npm:1.13.0"
+  checksum: 10/b95fb6178055c4c4df9a8f1ca4eadd3a77eb160ec655a6175fa55e4103e03b979caa8eb1a35b9c91109f6fbda086bb34ba91f0ba626635a4bf985258c55463b5
+  languageName: node
+  linkType: hard
+
+"@launchdarkly/js-client-sdk@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "@launchdarkly/js-client-sdk@npm:0.7.0"
+  dependencies:
+    "@launchdarkly/js-client-sdk-common": "npm:1.14.0"
+  checksum: 10/7369bed8b5626099f290389577324e4f2899b3ed8f607e0ed560ee47b021a54b20bf0f164a054680b7380ce9ce4c036e10ad17460f77fe10b2578ae970dc4133
+  languageName: node
+  linkType: hard
+
 "@launchdarkly/js-sdk-common@npm:2.13.0":
   version: 2.13.0
   resolution: "@launchdarkly/js-sdk-common@npm:2.13.0"
   checksum: 10/2c32ff5b5d77af8cfc228476a512ad6191868811af402d0b85586d871c1974cc3386e1a2efa9aece4529d37815b183575e74e7c01179d8183507b5dfd548290e
+  languageName: node
+  linkType: hard
+
+"@launchdarkly/js-sdk-common@npm:2.17.0":
+  version: 2.17.0
+  resolution: "@launchdarkly/js-sdk-common@npm:2.17.0"
+  checksum: 10/09ae02cbfd809b5b926c76aaaf771db11ffa8625c19ecbacc4176a7effc65bd0ec4fcd9fc539312d66910147c263b8143d773a34cc8f9ed3bb8e0a36ff36e29d
+  languageName: node
+  linkType: hard
+
+"@launchdarkly/js-sdk-common@npm:2.18.0":
+  version: 2.18.0
+  resolution: "@launchdarkly/js-sdk-common@npm:2.18.0"
+  checksum: 10/1dd45dce7b81d94c96af8d0c9fb834def91ef1c31c258f4c2d4e8e96a8ae32d1a152b2aa4dcf08ae72719c86bfdfa5351f616802fc4db4ac829b8757da2adfdb
+  languageName: node
+  linkType: hard
+
+"@launchdarkly/observability@npm:^0.1.14":
+  version: 0.1.14
+  resolution: "@launchdarkly/observability@npm:0.1.14"
+  dependencies:
+    highlight.run: "npm:9.18.10"
+  checksum: 10/53ea318aab1ff9db5d766034e3442e71065da4bc509187daaf50bfffca37bf460962b142bdabc54ec63d63625a2c119c4385170c9f15e30ec4d6175d3fcf8600
+  languageName: node
+  linkType: hard
+
+"@launchdarkly/session-replay@npm:^0.1.14":
+  version: 0.1.14
+  resolution: "@launchdarkly/session-replay@npm:0.1.14"
+  dependencies:
+    highlight.run: "npm:9.18.10"
+  checksum: 10/9d8fdbaf443dcc5ecfc80bf63a0978a1cb9d5ab46636724fb8c64a421c85ad0184ecf570fed910aa67bed8905bc5d040733a7711dcfa40283e1bf85e4a18a9b0
   languageName: node
   linkType: hard
 
@@ -40162,6 +40230,9 @@ __metadata:
     "@heroicons/react": "npm:^2.0.13"
     "@highlight-run/next": "workspace:*"
     "@inkeep/uikit": "npm:^0.3.19"
+    "@launchdarkly/js-client-sdk": "npm:^0.7.0"
+    "@launchdarkly/observability": "npm:^0.1.14"
+    "@launchdarkly/session-replay": "npm:^0.1.14"
     "@radix-ui/react-slider": "npm:^1.1.0"
     "@supabase/supabase-js": "npm:^2.7.1"
     "@svgr/webpack": "npm:^8.1.0"
@@ -40244,6 +40315,15 @@ __metadata:
   version: 10.7.3
   resolution: "highlight.js@npm:10.7.3"
   checksum: 10/db8d10a541936b058e221dbde77869664b2b45bca75d660aa98065be2cd29f3924755fbc7348213f17fd931aefb6e6597448ba6fe82afba6d8313747a91983ee
+  languageName: node
+  linkType: hard
+
+"highlight.run@npm:9.18.10":
+  version: 9.18.10
+  resolution: "highlight.run@npm:9.18.10"
+  dependencies:
+    "@launchdarkly/js-client-sdk": "npm:^0.6.0"
+  checksum: 10/9572a39cebfa9c3ec6a79c6659dcb8ae0531261401c71b5bd6213b80669936ace006cb788285fe2929fa21b39a578e05fc3a14e170eb5f077794d5410f3c440b
   languageName: node
   linkType: hard
 
