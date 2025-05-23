@@ -3,9 +3,10 @@ import type { NodeOptions } from '@highlight-run/node'
 import type { LoggerOptions } from 'pino'
 
 const highlightConfig = {
-	projectID: '4d7k1xeo',
+	projectID: process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID!,
 	serviceName: 'highlight-io-pino',
 	serviceVersion: 'git-sha',
+	otlpEndpoint: 'https://otel.observability.app.launchdarkly.com',
 } as NodeOptions
 
 const pinoConfig = {
