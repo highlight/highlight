@@ -32,23 +32,17 @@ const ldClient = initialize(
 	{
 		// Not including plugins at all would be equivalent to the current LaunchDarkly SDK.
 		plugins: [
-			new Observability(
-				process.env.NEXT_PUBLIC_LAUNCHDARKLY_OBSERVABILITY_ID,
-				{
-					networkRecording: {
-						enabled: true,
-						recordHeadersAndBody: true,
-					},
-					serviceName: 'web',
+			new Observability(process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID, {
+				networkRecording: {
+					enabled: true,
+					recordHeadersAndBody: true,
 				},
-			),
-			new SessionReplay(
-				process.env.NEXT_PUBLIC_LAUNCHDARKLY_OBSERVABILITY_ID,
-				{
-					privacySetting: 'none',
-					serviceName: 'web',
-				},
-			),
+				serviceName: 'web',
+			}),
+			new SessionReplay(process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID, {
+				privacySetting: 'none',
+				serviceName: 'web',
+			}),
 		],
 	},
 )
