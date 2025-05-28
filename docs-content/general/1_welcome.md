@@ -5,6 +5,12 @@ createdAt: 2021-09-10T17:54:08.000Z
 updatedAt: 2022-08-18T22:36:12.000Z
 ---
 
+```hint
+Highlight has been acquired by [LaunchDarkly](https://launchdarkly.com)! Want to know more about our plans for the future? Read the [press release](https://launchdarkly.com/blog/welcome-highlight-to-launchdarkly/).
+
+This docs site is no longer being updated. Instead, check out the LaunchDarkly [observability docs](https://launchdarkly.com/docs/home/observability).
+```
+
 [highlight.io](https://highlight.io) is monitoring software for the next generation of developers. And it's all [open source](https://github.com/highlight/highlight) :).
 
 <DocsCardGroup>
@@ -19,7 +25,7 @@ updatedAt: 2022-08-18T22:36:12.000Z
 
 When highlight.io is fully integrated, this is what it looks like:
 
-<EmbeddedVideo 
+<EmbeddedVideo
   src="https://www.youtube.com/embed/EvGsmbt0F7s"
   title="Youtube Video Player"
   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
