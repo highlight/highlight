@@ -1,0 +1,101 @@
+# Default values for highlight.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+frontend:
+    image:
+        repository: ghcr.io/highlight/highlight-frontend
+        tag: latest
+        pullPolicy: IfNotPresent
+
+    config:
+        privateGraphUri: 'https://localhost:8082/private'
+        publicGraphUri: 'https://localhost:8082/public'
+        frontendUri: 'https://localhost:3000'
+
+backend:
+    image:
+        repository: ghcr.io/highlight/highlight-backend
+        tag: latest
+        pullPolicy: IfNotPresent
+
+    config:
+        port: 8082
+        storageSize: 5Gi
+
+zookeeper:
+    image:
+        repository: confluentinc/cp-zookeeper
+        tag: '7.3.0'
+        pullPolicy: IfNotPresent
+
+    config:
+        clientPort: '2181'
+        tickTime: '2000'
+
+kafka:
+    image:
+        repository: confluentinc/cp-kafka
+        tag: '7.3.0'
+        pullPolicy: IfNotPresent
+
+    config:
+        brokerID: '1'
+        port: '9092'
+        offsetsTopicReplicationFactor: '1'
+        transactionStateLogMinISR: '1'
+        transactionStateLogReplicationFactor: '1'
+        consumerMaxPartitionFetchBytes: '536870912'
+        messageMaxBytes: '536870912'
+        producerMaxRequestSize: '536870912'
+        replicaFetchMaxBytes: '536870912'
+
+redis:
+    image:
+        repository: redis
+        tag: '7.2.1'
+        pullPolicy: IfNotPresent
+
+    config:
+        port: '6379'
+        storageSize: 5Gi
+
+postgres:
+    image:
+        repository: ankane/pgvector
+        tag: 'v0.5.0'
+        pullPolicy: IfNotPresent
+
+    config:
+        authMethod: trust
+        port: '5432'
+        storageSize: 5Gi
+
+clickhouse:
+    image:
+        repository: clickhouse/clickhouse-server
+        tag: '23.5.1.3174'
+        pullPolicy: IfNotPresent
+
+    config:
+        clickhouseStorageSize: 5Gi
+        clickhouseLogsStorageSize: 5Gi
+
+opensearch:
+    image:
+        repository: opensearchproject/opensearch
+        tag: '1.1.0'
+        pullPolicy: IfNotPresent
+
+    config:
+        discoveryType: single-node
+        javaOpts: -Xms128m -Xmx128m
+        disableInstallDemoConfig: true
+        disableSecurityPlugin: true
+        storageSize: 5Gi
+
+collector:
+    image:
+        repository: otel/opentelemetry-collector-contrib
+        tag: 0.84.0
+        pullPolicy: IfNotPresent
