@@ -1,3 +1,10 @@
+---
+title: Nuxt Integration
+slug: nuxt-integration
+createdAt: 2025-06-01T23:57:09.000Z
+updatedAt: 2025-06-01T23:57:09.000Z
+---
+
 # Nuxt Integration with Highlight
 
 Easily add Session Replay, Error Monitoring, and more to your Nuxt 3 app with Highlight.
