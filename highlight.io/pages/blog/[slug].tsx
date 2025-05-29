@@ -222,7 +222,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			suggestedPosts,
 			source: mdxSource,
 			post: githubPost,
-		}
+		},
 	}
 }
 
