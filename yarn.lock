@@ -12062,21 +12062,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@launchdarkly/observability@npm:^0.1.14":
-  version: 0.1.14
-  resolution: "@launchdarkly/observability@npm:0.1.14"
+"@launchdarkly/observability@npm:^0.1.16":
+  version: 0.1.16
+  resolution: "@launchdarkly/observability@npm:0.1.16"
   dependencies:
-    highlight.run: "npm:9.18.10"
-  checksum: 10/53ea318aab1ff9db5d766034e3442e71065da4bc509187daaf50bfffca37bf460962b142bdabc54ec63d63625a2c119c4385170c9f15e30ec4d6175d3fcf8600
+    highlight.run: "npm:9.18.12"
+  checksum: 10/e422d97c84f94025904cb561b9e28d4de1ce0f50832e46a6bad8d40d6c6e299a4ac3a1539ceb74a088cd78e81e8a029d615a6cfc8a58ce340a59c032ac8b795b
   languageName: node
   linkType: hard
 
-"@launchdarkly/session-replay@npm:^0.1.14":
-  version: 0.1.14
-  resolution: "@launchdarkly/session-replay@npm:0.1.14"
+"@launchdarkly/session-replay@npm:^0.1.16":
+  version: 0.1.16
+  resolution: "@launchdarkly/session-replay@npm:0.1.16"
   dependencies:
-    highlight.run: "npm:9.18.10"
-  checksum: 10/9d8fdbaf443dcc5ecfc80bf63a0978a1cb9d5ab46636724fb8c64a421c85ad0184ecf570fed910aa67bed8905bc5d040733a7711dcfa40283e1bf85e4a18a9b0
+    highlight.run: "npm:9.18.12"
+  checksum: 10/82586f2af81b8b6afb629183795e4cf4c0345ef1a265e2f7087ba86091fa838b3046203c114230352b374f8ae533a2b2a09ca179c0495f24149c7de1865330f2
   languageName: node
   linkType: hard
 
@@ -40231,8 +40231,8 @@ __metadata:
     "@highlight-run/next": "workspace:*"
     "@inkeep/uikit": "npm:^0.3.19"
     "@launchdarkly/js-client-sdk": "npm:^0.7.0"
-    "@launchdarkly/observability": "npm:^0.1.14"
-    "@launchdarkly/session-replay": "npm:^0.1.14"
+    "@launchdarkly/observability": "npm:^0.1.16"
+    "@launchdarkly/session-replay": "npm:^0.1.16"
     "@radix-ui/react-slider": "npm:^1.1.0"
     "@supabase/supabase-js": "npm:^2.7.1"
     "@svgr/webpack": "npm:^8.1.0"
@@ -40318,12 +40318,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highlight.run@npm:9.18.10":
-  version: 9.18.10
-  resolution: "highlight.run@npm:9.18.10"
+"highlight.run@npm:9.18.12":
+  version: 9.18.12
+  resolution: "highlight.run@npm:9.18.12"
   dependencies:
     "@launchdarkly/js-client-sdk": "npm:^0.6.0"
-  checksum: 10/9572a39cebfa9c3ec6a79c6659dcb8ae0531261401c71b5bd6213b80669936ace006cb788285fe2929fa21b39a578e05fc3a14e170eb5f077794d5410f3c440b
+  checksum: 10/cb7c2680d78f998d0d7922317f602e8f3b5c94931e10fd85ac60bb098ab57230afb408fd8e09d087e542df2fa0105e96526dd08c3da73ff5af7cfef501ba19b1
   languageName: node
   linkType: hard
 
