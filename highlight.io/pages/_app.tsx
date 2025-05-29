@@ -29,9 +29,16 @@ Router.events.on('routeChangeComplete', () => {
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
-	const client = useMemo(() => {
-		return initialize(
-			process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_SIDE_ID!,
+	useEffect(() => {
+		if (
+			typeof window === 'undefined' ||
+			!process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_SIDE_ID ||
+			!process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID
+		) {
+			return
+		}
+		const client = initialize(
+			process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_SIDE_ID,
 			{
 				// Not including plugins at all would be equivalent to the current LaunchDarkly SDK.
 				plugins: [
@@ -55,6 +62,9 @@ function MyApp({ Component, pageProps }: AppProps) {
 				],
 			},
 		)
+		return () => {
+			client.close()
+		}
 	}, [])
 	return (
 		<HighlightErrorBoundary showDialog>
