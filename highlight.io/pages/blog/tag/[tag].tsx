@@ -33,7 +33,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			tags: VALID_TAGS,
 			currentTagSlug: params!.tag,
 		},
-		revalidate: 60,
 	}
 }
 

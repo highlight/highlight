@@ -25,8 +25,6 @@ export const getStaticProps: GetStaticProps = async () => {
 			tags: VALID_TAGS,
 			currentTagSlug: '',
 		},
-
-		revalidate: 60 * 60,
 	}
 }
 

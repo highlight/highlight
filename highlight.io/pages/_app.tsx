@@ -12,10 +12,11 @@ import Head from 'next/head'
 import Analytics from '../components/Analytics'
 import { Meta } from '../components/common/Head/Meta'
 import MetaImage from '../public/images/meta-image.jpg'
-import {
-	ErrorBoundary as HighlightErrorBoundary,
-	HighlightInit,
-} from '@highlight-run/next/client'
+import { ErrorBoundary as HighlightErrorBoundary } from '@highlight-run/next/client'
+import { initialize } from '@launchdarkly/js-client-sdk'
+import Observability from '@launchdarkly/observability'
+import SessionReplay from '@launchdarkly/session-replay'
+import { useEffect, useMemo } from 'react'
 
 Router.events.on('routeChangeStart', nProgress.start)
 Router.events.on('routeChangeError', nProgress.done)
@@ -28,17 +29,45 @@ Router.events.on('routeChangeComplete', () => {
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
+	useEffect(() => {
+		if (
+			typeof window === 'undefined' ||
+			!process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_SIDE_ID ||
+			!process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID
+		) {
+			return
+		}
+		const client = initialize(
+			process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_SIDE_ID,
+			{
+				// Not including plugins at all would be equivalent to the current LaunchDarkly SDK.
+				plugins: [
+					new Observability(
+						process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+						{
+							networkRecording: {
+								enabled: true,
+								recordHeadersAndBody: true,
+							},
+							serviceName: 'web',
+						},
+					),
+					new SessionReplay(
+						process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+						{
+							privacySetting: 'none',
+							serviceName: 'web',
+						},
+					),
+				],
+			},
+		)
+		return () => {
+			client.close()
+		}
+	}, [])
 	return (
 		<HighlightErrorBoundary showDialog>
-			<HighlightInit
-				projectId={'4d7k1xeo'}
-				serviceName="highlightio-nextjs-frontend"
-				tracingOrigins
-				networkRecording={{
-					enabled: true,
-					recordHeadersAndBody: true,
-				}}
-			/>
 			<Head>
 				<link
 					rel="preconnect"
