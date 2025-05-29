@@ -222,8 +222,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			suggestedPosts,
 			source: mdxSource,
 			post: githubPost,
-		},
-		revalidate: 60 * 60, // Cache response for 1 hour (60 seconds * 60 minutes)
+		}
 	}
 }
 
