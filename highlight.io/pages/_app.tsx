@@ -16,6 +16,7 @@ import { ErrorBoundary as HighlightErrorBoundary } from '@highlight-run/next/cli
 import { initialize } from '@launchdarkly/js-client-sdk'
 import Observability from '@launchdarkly/observability'
 import SessionReplay from '@launchdarkly/session-replay'
+import { useEffect, useMemo } from 'react'
 
 Router.events.on('routeChangeStart', nProgress.start)
 Router.events.on('routeChangeError', nProgress.done)
@@ -27,27 +28,34 @@ Router.events.on('routeChangeComplete', () => {
 	nProgress.done()
 })
 
-const ldClient = initialize(
-	process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_SIDE_ID!,
-	{
-		// Not including plugins at all would be equivalent to the current LaunchDarkly SDK.
-		plugins: [
-			new Observability(process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID, {
-				networkRecording: {
-					enabled: true,
-					recordHeadersAndBody: true,
-				},
-				serviceName: 'web',
-			}),
-			new SessionReplay(process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID, {
-				privacySetting: 'none',
-				serviceName: 'web',
-			}),
-		],
-	},
-)
-
 function MyApp({ Component, pageProps }: AppProps) {
+	const client = useMemo(() => {
+		return initialize(
+			process.env.NEXT_PUBLIC_LAUNCHDARKLY_CLIENT_SIDE_ID!,
+			{
+				// Not including plugins at all would be equivalent to the current LaunchDarkly SDK.
+				plugins: [
+					new Observability(
+						process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+						{
+							networkRecording: {
+								enabled: true,
+								recordHeadersAndBody: true,
+							},
+							serviceName: 'web',
+						},
+					),
+					new SessionReplay(
+						process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+						{
+							privacySetting: 'none',
+							serviceName: 'web',
+						},
+					),
+				],
+			},
+		)
+	}, [])
 	return (
 		<HighlightErrorBoundary showDialog>
 			<Head>
