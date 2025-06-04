@@ -120,7 +120,6 @@ jobs:
               run: yarn publish:react-email-templates
 
             - name: Publish render lambda
-              if: github.ref == 'refs/heads/main'
               run: yarn publish:render
 
             - name: Release changesets
