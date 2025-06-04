@@ -55,7 +55,7 @@ func (h *handlers) SaveSessionExport(ctx context.Context, event *utils.SaveSessi
 		Type:      event.Type,
 	}).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
-		DoUpdates: clause.AssignmentColumns([]string{"url", "error"}),
+		DoUpdates: clause.AssignmentColumns([]string{"url", "error", "updated_at", "created_at"}),
 	}).Create(&export)
 	if tx.Error != nil {
 		return nil, tx.Error

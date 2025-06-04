@@ -211,6 +211,14 @@ export async function render(
 		    	window.r.play(ts)
      		}
      	}
+     	
+     	const moveAhead = async () => {
+     		const start = window.r.getMetaData().startTime
+		    const timestamp = window.r.getCurrentTime() + start
+		    const ts = timestamp + 1000
+		    console.log('skipping from ' + timestamp + ' to ' + ts + ' as player is stuck')
+		    window.r.play(ts)
+     	}
         
         window.r.on('resize', (e) => {viewport = e});
         window.r.on('finish', window.onReplayFinish);
@@ -264,8 +272,20 @@ export async function render(
 		await page.evaluate(`r.play(${ts})`)
 		await page.evaluate(`
 			let lastLoop = 0;
+			let lastTimestamp = 0;
+			let lastTimestampUpdate = 0;
 			const inactivityLoop = async () => {
+				const timestamp = window.r.getCurrentTime() + window.r.getMetaData().startTime
+				if (lastTimestamp !== timestamp) {
+					lastTimestamp = timestamp
+					lastTimestampUpdate = (new Date()).getTime()
+				}
+				if ((new Date()).getTime() - lastLoopUpdate >= 10000) {
+					// skip ahead as we might be stuck
+					await window.r.play(ts)
+				}
 				if ((new Date()).getTime() - lastLoop >= 1000) {
+					// periodically check for inactivity
 					lastLoop = (new Date()).getTime();
 					await skipInactivity()
 				}

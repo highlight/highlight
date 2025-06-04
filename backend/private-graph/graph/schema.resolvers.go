@@ -764,7 +764,7 @@ func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID st
 		Type:      model.SessionExportFormatMP4,
 	}).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
-		DoUpdates: clause.AssignmentColumns([]string{"target_emails"}),
+		DoUpdates: clause.AssignmentColumns([]string{"target_emails", "updated_at", "created_at"}),
 	}).FirstOrCreate(&export)
 	if tx.Error != nil {
 		log.WithContext(ctx).WithError(tx.Error).Error("failed to create session export record")
