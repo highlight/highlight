@@ -15,7 +15,7 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment/moment'
 import React from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 
 enum ExportStatus {
 	Success = 'Success',
@@ -24,7 +24,6 @@ enum ExportStatus {
 }
 
 export const SessionExportForm = () => {
-	const navigate = useNavigate()
 	const location = useLocation()
 	const { projectId } = useProjectId()
 	const ref = React.useRef<HTMLDivElement>()
@@ -142,8 +141,9 @@ export const SessionExportForm = () => {
 														<IconSolidExternalLink />
 													}
 													onClick={() =>
-														navigate(
+														window.open(
 															`/${projectId}/sessions/${se.secure_id}`,
+															'_blank',
 														)
 													}
 												/>

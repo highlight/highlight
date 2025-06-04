@@ -269,7 +269,11 @@ export async function render(
 			ts,
 			tsEnd,
 		})
-		await page.evaluate(`r.play(${ts})`)
+		await page.evaluate(`
+			console.log("calling play ${ts}")
+			window.r.play(${ts})
+			console.log("called play ${ts}")
+		`)
 		await page.evaluate(`
 			let lastLoop = 0;
 			let lastTimestamp = 0;
@@ -291,12 +295,14 @@ export async function render(
 				}
 				window.requestAnimationFrame(inactivityLoop)
 			}
+			console.log("requesting inactivityLoop")
 			window.requestAnimationFrame(inactivityLoop);
 		`)
 		console.log(`puppeteer waiting for finishedPromise`)
 		await finishedPromise
 		console.log(`puppeteer done with finishedPromise`)
 		await recorder.stop()
+		console.log(`puppeteer stop requested with finishedPromise`)
 	} else {
 		let interval = 1000
 		let start = ts ?? meta.startTime
@@ -329,6 +335,7 @@ export async function render(
 
 	// puppeteer shutdown should not happen in lambda as it causes the lambda to hang
 	if (process.env.DEV?.length) {
+		console.log(`DEV, shutting down resoources`)
 		await page.close()
 		await browser.close()
 	}
