@@ -50,13 +50,16 @@ func (h *handlers) SaveSessionExport(ctx context.Context, event *utils.SaveSessi
 		Error:        event.Error,
 		TargetEmails: event.TargetEmails,
 	}
-	tx := h.db.Debug().Model(&export).Where(&model.SessionExport{
-		SessionID: event.SessionID,
-		Type:      event.Type,
-	}).Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
-		DoUpdates: clause.AssignmentColumns([]string{"url", "error", "updated_at", "created_at"}),
-	}).Create(&export)
+	tx := h.db.Debug().Model(&export).
+		Where(&model.SessionExport{
+			SessionID: event.SessionID,
+			Type:      event.Type,
+		}).
+		Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
+			DoUpdates: clause.AssignmentColumns([]string{"url", "error", "updated_at", "created_at"}),
+		}).
+		Create(&export)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}
