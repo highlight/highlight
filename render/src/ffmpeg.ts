@@ -1,6 +1,7 @@
-import { exec as execAsync } from 'child_process'
+import { exec as execAsync, spawn } from 'child_process'
 import * as fs from 'fs'
 import { promisify } from 'util'
+import { randomBytes } from 'crypto'
 
 const exec = promisify(execAsync)
 
@@ -29,9 +30,38 @@ export const combineMP4s = async function (...files: string[]) {
 		'/tmp/files.txt',
 		files.map((f) => `file '${f}'`).join('\n'),
 	)
-	const { stdout, stderr } = await exec(
-		`ffmpeg -f concat -safe 0 -i /tmp/files.txt -c copy /tmp/out.mp4`,
-	)
-	console.log('ffmpeg combineMP4', { stdout, stderr })
-	return '/tmp/out.mp4'
+	const outputFile = `/tmp/${randomFileName('mp4')}`
+	let child = spawn(`ffmpeg`, [
+		`-y`,
+		`-f`,
+		`concat`,
+		`-safe`,
+		`0`,
+		`-i`,
+		`/tmp/files.txt`,
+		`-c`,
+		`copy`,
+		outputFile,
+	])
+	child.stdout.on('data', function (data) {
+		console.log('combineMP4s ffmpeg', data.toString())
+	})
+	child.stderr.on('data', function (data) {
+		console.error('combineMP4s ffmpeg', data.toString())
+	})
+
+	const code = await new Promise<number | null>((r) => {
+		child.on('close', (code) => {
+			r(code)
+		})
+	})
+	if (code === null || code > 0) {
+		process.exit(code ?? 1)
+	}
+	return outputFile
+}
+
+const randomFileName = function (ext = '') {
+	const randomHex = randomBytes(16).toString('hex') // 32-char hex
+	return ext ? `${randomHex}.${ext.replace(/^\./, '')}` : randomHex
 }

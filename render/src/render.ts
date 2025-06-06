@@ -179,15 +179,13 @@ export async function render(
             UNSAFE_replayCanvas: true,
             liveMode: false,
             useVirtualDom: true,
-            speed: 32
+            speed: 8
         });
         window.getInactivityEnd = (time) => {
 			for (const interval of intervals) {
 				if (time >= interval.start_time && time < interval.end_time) {
 					if (!interval.active) {
 						return interval.end_time
-					} else {
-                        return undefined
 					}
 				}
 			}
@@ -198,7 +196,7 @@ export async function render(
 		    const start = window.r.getMetaData().startTime
 		    const intervalsEnd = intervals[intervals.length - 1].end_time
 		    const timestamp = window.r.getCurrentTime() + start
-		    console.log('RAF loop', JSON.stringify({start, intervalsEnd, timestamp}))
+		    console.log('RAF loop', JSON.stringify({start, intervalsEnd, timestamp, intervals}))
 		    if (timestamp >= intervalsEnd) {
 		    	console.log('done at ' + timestamp)
                 await window.onReplayFinish()
@@ -210,6 +208,14 @@ export async function render(
             	console.log('skipping from ' + timestamp + ' to ' + ts + ' due to inactivity')
 		    	window.r.play(ts)
      		}
+     	}
+     	
+     	const moveAhead = async () => {
+     		const start = window.r.getMetaData().startTime
+		    const timestamp = window.r.getCurrentTime() + start
+		    const ts = timestamp + 1000
+		    console.log('skipping from ' + timestamp + ' to ' + ts + ' as player is stuck')
+		    window.r.play(ts)
      	}
         
         window.r.on('resize', (e) => {viewport = e});
@@ -261,22 +267,51 @@ export async function render(
 			ts,
 			tsEnd,
 		})
-		await page.evaluate(`r.play(${ts})`)
+		await page.evaluate(`
+			console.log("calling play")
+			window.r.play()
+			console.log("called play")
+
+			// calculate start of first active interval relative to session start
+            for (const interval of intervals) {
+				if (interval.active) {
+				    const startTs = interval.start_time - window.r.getMetaData().startTime
+					window.r.play(startTs)
+					console.log("called play for ", startTs)
+					break
+				}
+			}
+		`)
 		await page.evaluate(`
 			let lastLoop = 0;
+			let lastTimestamp = 0;
+			let lastTimestampUpdate = 0;
 			const inactivityLoop = async () => {
+				const timestamp = window.r.getCurrentTime() + window.r.getMetaData().startTime
+				if (lastTimestamp !== timestamp) {
+					lastTimestamp = timestamp
+					lastTimestampUpdate = (new Date()).getTime()
+				}
+				if ((new Date()).getTime() - lastTimestampUpdate >= 10000) {
+					// skip ahead as we might be stuck
+					console.log('skipping from ' + lastTimestamp + ' to ' + (lastTimestamp + 1000) + ' as player might be stuck')
+					await window.r.play(lastTimestamp + 1000)
+				}
 				if ((new Date()).getTime() - lastLoop >= 1000) {
+					// periodically check for inactivity
 					lastLoop = (new Date()).getTime();
 					await skipInactivity()
 				}
 				window.requestAnimationFrame(inactivityLoop)
 			}
+			console.log("requesting inactivityLoop")
 			window.requestAnimationFrame(inactivityLoop);
 		`)
 		console.log(`puppeteer waiting for finishedPromise`)
 		await finishedPromise
 		console.log(`puppeteer done with finishedPromise`)
 		await recorder.stop()
+		console.log(`puppeteer stop requested with finishedPromise`)
 	} else {
 		let interval = 1000
 		let start = ts ?? meta.startTime
@@ -309,6 +344,7 @@ export async function render(
 
 	// puppeteer shutdown should not happen in lambda as it causes the lambda to hang
 	if (process.env.DEV?.length) {
+		console.log(`DEV, shutting down resoources`)
 		await page.close()
 		await browser.close()
 	}
