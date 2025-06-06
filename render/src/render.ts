@@ -179,15 +179,13 @@ export async function render(
             UNSAFE_replayCanvas: true,
             liveMode: false,
             useVirtualDom: true,
-            speed: 32
+            speed: 8
         });
         window.getInactivityEnd = (time) => {
 			for (const interval of intervals) {
 				if (time >= interval.start_time && time < interval.end_time) {
 					if (!interval.active) {
 						return interval.end_time
-					} else {
-                        return undefined
 					}
 				}
 			}
@@ -198,7 +196,7 @@ export async function render(
 		    const start = window.r.getMetaData().startTime
 		    const intervalsEnd = intervals[intervals.length - 1].end_time
 		    const timestamp = window.r.getCurrentTime() + start
-		    console.log('RAF loop', JSON.stringify({start, intervalsEnd, timestamp}))
+		    console.log('RAF loop', JSON.stringify({start, intervalsEnd, timestamp, intervals}))
 		    if (timestamp >= intervalsEnd) {
 		    	console.log('done at ' + timestamp)
                 await window.onReplayFinish()
@@ -270,9 +268,19 @@ export async function render(
 			tsEnd,
 		})
 		await page.evaluate(`
-			console.log("calling play ${ts}")
-			window.r.play(${ts})
-			console.log("called play ${ts}")
+			console.log("calling play")
+			window.r.play()
+			console.log("called play")
+
+			// calculate start of first active interval relative to session start
+            for (const interval of intervals) {
+				if (interval.active) {
+				    const startTs = interval.start_time - window.r.getMetaData().startTime
+					window.r.play(startTs)
+					console.log("called play for ", startTs)
+					break
+				}
+			}
 		`)
 		await page.evaluate(`
 			let lastLoop = 0;
@@ -284,9 +292,10 @@ export async function render(
 					lastTimestamp = timestamp
 					lastTimestampUpdate = (new Date()).getTime()
 				}
-				if ((new Date()).getTime() - lastLoopUpdate >= 10000) {
+				if ((new Date()).getTime() - lastTimestampUpdate >= 10000) {
 					// skip ahead as we might be stuck
-					await window.r.play(ts)
+					console.log('skipping from ' + lastTimestamp + ' to ' + (lastTimestamp + 1000) + ' as player might be stuck')
+					await window.r.play(lastTimestamp + 1000)
 				}
 				if ((new Date()).getTime() - lastLoop >= 1000) {
 					// periodically check for inactivity
