@@ -68,17 +68,14 @@ export const ConnectPage = () => {
 		}
 
 		// If no valid selected platform, find first valid platform
-		data?.project?.platforms?.forEach((platform) => {
+		const selectedSdks = data?.project?.platforms?.map((platform) => {
 			const [sdkLanguage, sdkPlatform] = platform.split('_')
-			const sdk = (quickStartContentReorganized as any)[sdkLanguage]
-				?.sdks[sdkPlatform] as QuickStartContent
-
-			if (sdk) {
-				return sdk
-			}
+			return (quickStartContentReorganized as any)[sdkLanguage]?.sdks[
+				sdkPlatform
+			] as QuickStartContent
 		})
 
-		return
+		return selectedSdks?.find((sdk) => sdk)
 	}, [language, platform, data])
 
 	if (!projectVerboseId || !platforms?.length) {
