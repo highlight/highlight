@@ -55,22 +55,30 @@ export const ConnectPage = () => {
 	useEffect(() => analytics.page('Connect'), [])
 
 	const guide = useMemo(() => {
-		let guideLanguage = language
-		let guidePlatform = platform
+		const guideLanguage = language
+		const guidePlatform = platform
 
-		if (!guideLanguage || !guidePlatform) {
-			const firstPlatform = data?.project?.platforms?.[0].split('_')
-			if (!firstPlatform) {
-				return
+		// return selected platform if valid
+		if (guideLanguage && guidePlatform) {
+			const sdk = (quickStartContentReorganized as any)[guideLanguage]
+				?.sdks[guidePlatform] as QuickStartContent
+			if (sdk) {
+				return sdk
 			}
-
-			guideLanguage = firstPlatform[0]
-			guidePlatform = firstPlatform[1]
 		}
 
-		return (quickStartContentReorganized as any)[guideLanguage!].sdks[
-			guidePlatform!
-		] as QuickStartContent
+		// If no valid selected platform, find first valid platform
+		data?.project?.platforms?.forEach((platform) => {
+			const [sdkLanguage, sdkPlatform] = platform.split('_')
+			const sdk = (quickStartContentReorganized as any)[sdkLanguage]
+				?.sdks[sdkPlatform] as QuickStartContent
+
+			if (sdk) {
+				return sdk
+			}
+		})
+
+		return
 	}, [language, platform, data])
 
 	if (!projectVerboseId || !platforms?.length) {
@@ -252,6 +260,7 @@ const SelectedPlatformButtons = ({
 					?.sdks[sdkPlatform] as QuickStartContent
 
 				if (!sdk) {
+					console.warn(`Invalid selected platform: ${identifier}`)
 					return null
 				}
 
