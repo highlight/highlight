@@ -55,13 +55,11 @@ export const ConnectPage = () => {
 	useEffect(() => analytics.page('Connect'), [])
 
 	const guide = useMemo(() => {
-		const guideLanguage = language
-		const guidePlatform = platform
-
 		// return selected platform if valid
-		if (guideLanguage && guidePlatform) {
-			const sdk = (quickStartContentReorganized as any)[guideLanguage]
-				?.sdks[guidePlatform] as QuickStartContent
+		if (language && platform) {
+			const sdk = (quickStartContentReorganized as any)[language]?.sdks[
+				platform
+			] as QuickStartContent
 			if (sdk) {
 				return sdk
 			}
