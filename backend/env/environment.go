@@ -108,6 +108,7 @@ type Configuration struct {
 	PrivateGraphUri             string `mapstructure:"REACT_APP_PRIVATE_GRAPH_URI"`
 	PublicGraphUri              string `mapstructure:"REACT_APP_PUBLIC_GRAPH_URI"`
 	RedisEndpoint               string `mapstructure:"REDIS_EVENTS_STAGING_ENDPOINT"`
+	RedisPassword               string `mapstructure:"REDIS_PASSWORD"`
 	Release                     string `mapstructure:"RELEASE"`
 	SQLDatabase                 string `mapstructure:"PSQL_DB"`
 	SQLDockerHost               string `mapstructure:"PSQL_DOCKER_HOST"`

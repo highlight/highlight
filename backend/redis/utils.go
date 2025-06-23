@@ -83,7 +83,7 @@ func NewClient() *Client {
 	if env.IsDevOrTestEnv() {
 		client := redis.NewClient(&redis.Options{
 			Addr:            ServerAddr,
-			Password:        "",
+			Password:        env.Config.RedisPassword,
 			ReadTimeout:     5 * time.Second,
 			WriteTimeout:    5 * time.Second,
 			ConnMaxIdleTime: 5 * time.Minute,
@@ -103,7 +103,7 @@ func NewClient() *Client {
 	} else {
 		c := redis.NewClusterClient(&redis.ClusterOptions{
 			Addrs:           []string{ServerAddr},
-			Password:        "",
+			Password:        env.Config.RedisPassword,
 			ReadTimeout:     5 * time.Second,
 			WriteTimeout:    5 * time.Second,
 			ConnMaxIdleTime: 5 * time.Minute,

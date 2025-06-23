@@ -46,6 +46,8 @@ services:
         container_name: redis
         image: ${REDIS_IMAGE_NAME}
         restart: on-failure
+        environment:
+            REDIS_PASSWORD: ${REDIS_PASSWORD}
         volumes:
             - redis-data:/data
         ports:
