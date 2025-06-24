@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/assets"
 	"io"
 	"math/rand"
 	"net/http"
@@ -28,6 +27,7 @@ import (
 	"github.com/gorilla/websocket"
 	golang_lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/highlight-run/go-resthooks"
+	"github.com/highlight-run/highlight/backend/assets"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/enterprise"
@@ -458,60 +458,54 @@ func main() {
 		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "microsoft-teams/bot"), privateResolver.MicrosoftTeamsBotEndpoint)
 
 		r.Route(privateEndpoint, func(r chi.Router) {
-			r.Group(func(r chi.Router) {
-				r.Use(cors.New(PRIVATE_GRAPH_CORS_OPTIONS).Handler)
-				r.Use(highlightChi.UseMiddleware(trace.WithSpanKind(trace.SpanKindServer)))
-				// auth routes should not use the middleware since requests will not have a session
-				log.WithContext(ctx).WithField("private", privateEndpoint).Info("setting up private graph auth listeners")
-				private.AuthClient.SetupListeners(r)
-			})
-			r.Group(func(r chi.Router) {
-				r.Use(cors.New(PRIVATE_GRAPH_CORS_OPTIONS).Handler)
-				r.Use(highlightChi.Middleware)
-				r.Use(private.PrivateMiddleware)
-				if fsClient, ok := storageClient.(*storage.FilesystemClient); ok {
-					fsClient.SetupHTTPSListener(r)
-				}
-				r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
-				r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
+			r.Use(cors.New(PRIVATE_GRAPH_CORS_OPTIONS).Handler)
+			r.Use(highlightChi.Middleware)
+			r.Use(private.PrivateMiddleware)
+			if fsClient, ok := storageClient.(*storage.FilesystemClient); ok {
+				fsClient.SetupHTTPSListener(r)
+			}
+			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
+			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
 
-				privateServer := ghandler.New(privategen.NewExecutableSchema(
-					privategen.Config{
-						Resolvers: privateResolver,
-					}),
-				)
+			log.WithContext(ctx).WithField("private", privateEndpoint).Info("setting up private graph auth listeners")
+			private.AuthClient.SetupListeners(r)
 
-				privateServer.AddTransport(transport.Websocket{
-					InitFunc: private.WebsocketInitializationFunction(),
-					Upgrader: websocket.Upgrader{
-						CheckOrigin: func(r *http.Request) bool {
-							if r == nil || r.Header["Origin"] == nil || len(r.Header["Origin"]) == 0 {
-								log.WithContext(ctx).Error("Couldn't validate websocket: no origin")
-								return false
-							}
-							validate, _ := validateOrigin(r, r.Header["Origin"][0])
-							return validate
-						},
+			privateServer := ghandler.New(privategen.NewExecutableSchema(
+				privategen.Config{
+					Resolvers: privateResolver,
+				}),
+			)
+
+			privateServer.AddTransport(transport.Websocket{
+				InitFunc: private.WebsocketInitializationFunction(),
+				Upgrader: websocket.Upgrader{
+					CheckOrigin: func(r *http.Request) bool {
+						if r == nil || r.Header["Origin"] == nil || len(r.Header["Origin"]) == 0 {
+							log.WithContext(ctx).Error("Couldn't validate websocket: no origin")
+							return false
+						}
+						validate, _ := validateOrigin(r, r.Header["Origin"][0])
+						return validate
 					},
-					KeepAlivePingInterval: 10 * time.Second,
-				})
-				privateServer.AddTransport(transport.Options{})
-				privateServer.AddTransport(transport.GET{})
-				privateServer.AddTransport(transport.POST{})
-				privateServer.AddTransport(transport.MultipartForm{})
-				privateServer.SetQueryCache(lru.New(1000))
-				privateServer.Use(extension.AutomaticPersistedQuery{
-					Cache: lru.New(10000),
-				})
-				privateServer.Use(private.NewGraphqlOAuthValidator(privateResolver.Store))
-				privateServer.Use(util.NewTracer(util.PrivateGraph))
-				privateServer.Use(htrace.NewGraphqlTracer(string(util.PrivateGraph), trace.WithSpanKind(trace.SpanKindConsumer)).WithRequestFieldLogging())
-				privateServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PrivateGraph)))
-				privateServer.SetRecoverFunc(htrace.GraphQLRecoverFunc())
-				r.Handle("/",
-					privateServer,
-				)
+				},
+				KeepAlivePingInterval: 10 * time.Second,
 			})
+			privateServer.AddTransport(transport.Options{})
+			privateServer.AddTransport(transport.GET{})
+			privateServer.AddTransport(transport.POST{})
+			privateServer.AddTransport(transport.MultipartForm{})
+			privateServer.SetQueryCache(lru.New(1000))
+			privateServer.Use(extension.AutomaticPersistedQuery{
+				Cache: lru.New(10000),
+			})
+			privateServer.Use(private.NewGraphqlOAuthValidator(privateResolver.Store))
+			privateServer.Use(util.NewTracer(util.PrivateGraph))
+			privateServer.Use(htrace.NewGraphqlTracer(string(util.PrivateGraph), trace.WithSpanKind(trace.SpanKindConsumer)).WithRequestFieldLogging())
+			privateServer.SetErrorPresenter(htrace.GraphQLErrorPresenter(string(util.PrivateGraph)))
+			privateServer.SetRecoverFunc(htrace.GraphQLRecoverFunc())
+			r.Handle("/",
+				privateServer,
+			)
 		})
 	}
 	if runtimeParsed.IsPublicGraph() {
