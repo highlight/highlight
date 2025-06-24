@@ -11,6 +11,7 @@ import (
 
 const ParamKey = "url"
 
+// HandleAsset proxies assets bypassing CORS. response headers set by main.go CORS middleware
 func HandleAsset(w http.ResponseWriter, r *http.Request) {
 	qs := r.URL.Query()
 	urlStr := qs.Get(ParamKey)
@@ -33,11 +34,6 @@ func HandleAsset(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// always allow access origin
-	w.Header().Add("Access-Control-Allow-Origin", u.Host)
-	w.Header().Add("Access-Control-Allow-Credentials", "true")
-	w.Header().Add("Access-Control-Allow-Methods", "GET")
-
 	// create the request to server
 	req, err := http.NewRequest(r.Method, u.String(), r.Body)
 	if err != nil {
@@ -46,7 +42,7 @@ func HandleAsset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// add ALL headers to the connection
+	// add ALL incoming request headers to proxied request
 	for n, h := range r.Header {
 		for _, h := range h {
 			req.Header.Add(n, h)
@@ -75,7 +71,10 @@ func HandleAsset(w http.ResponseWriter, r *http.Request) {
 
 	for h, v := range resp.Header {
 		for _, v := range v {
-			w.Header().Add(h, v)
+			// avoid propagating CORS headers from response
+			if !strings.HasPrefix(h, "Access-Control-") {
+				w.Header().Add(h, v)
+			}
 		}
 	}
 	// copy the response from the server to the connected client request

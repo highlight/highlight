@@ -128,7 +128,6 @@ service:
         logs:
             level: 'info'
         metrics:
-            address: '0.0.0.0:8888'
             level: detailed
     extensions: [health_check]
     pipelines:

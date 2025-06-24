@@ -650,7 +650,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Exclude the session if there's no events.
 	if len(accumulator.EventsForTimelineIndicator) == 0 && s.Length <= 0 {
-		return w.excludeSession(ctx, s, backend.SessionExcludedReasonNoTimelineIndicatorEvents)
+		log.WithContext(ctx).
+			WithField("session_secure_id", s.SecureID).
+			WithField("session_id", s.ID).
+			WithField("num_user_interaction_events", len(accumulator.UserInteractionEvents)).
+			Warn("would exclude session for no timeline indicator events")
 	}
 
 	payloadManager.SeekStart(ctx)
@@ -783,6 +787,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			})
 			startInterval = nextInterval
 		}
+	}
+	// if there is only 1 interval, make sure it's active to have the session playable
+	if len(allIntervals) == 1 && !activeInterval {
+		log.WithContext(ctx).
+			WithField("SessionSecureID", s.SecureID).
+			Info("single activity interval is not active; marked active.")
+		activeInterval = true
 	}
 	if len(allIntervals) > 0 {
 		finalIntervals = append(finalIntervals, model.SessionInterval{
