@@ -788,6 +788,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			startInterval = nextInterval
 		}
 	}
+	// if there is only 1 interval, make sure it's active to have the session playable
+	if len(allIntervals) == 1 && activeInterval == false {
+		log.WithContext(ctx).
+			WithField("SessionSecureID", s.SecureID).
+			Info("single activity interval is not active; marked active.")
+		activeInterval = true
+	}
 	if len(allIntervals) > 0 {
 		finalIntervals = append(finalIntervals, model.SessionInterval{
 			SessionSecureID: s.SecureID,
