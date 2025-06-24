@@ -789,7 +789,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 	// if there is only 1 interval, make sure it's active to have the session playable
-	if len(allIntervals) == 1 && activeInterval == false {
+	if len(allIntervals) == 1 && !activeInterval {
 		log.WithContext(ctx).
 			WithField("SessionSecureID", s.SecureID).
 			Info("single activity interval is not active; marked active.")
