@@ -116,7 +116,7 @@ export function ErrorBoundary() {
 	} else if (error instanceof Error) {
 		return (
 			<div>
-				<script src="https://unpkg.com/highlight.run"></script>
+				<script src="https://unpkg.com/highlight.run@9.14.0"></script>
 				<script
 					dangerouslySetInnerHTML={{
 						__html: \`
