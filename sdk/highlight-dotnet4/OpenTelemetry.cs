@@ -81,14 +81,14 @@ public class LogEnricher : ILogEventEnricher {
 
 
 public static class OpenTelemetry {
-    public const OtlpProtocol Protocol = OtlpProtocol.Grpc;
-    public const OtlpExportProtocol ExportProtocol = OtlpExportProtocol.Grpc;
+    public const OtlpProtocol Protocol = OtlpProtocol.HttpProtobuf;
+    public const OtlpExportProtocol ExportProtocol = OtlpExportProtocol.HttpProtobuf;
     public const string HighlightHeader = "x-highlight-request";
 
     public class Config {
         public string ProjectId;
         public string ServiceName;
-        public string OtlpEndpoint = "https://otel.highlight.io:4317";
+        public string OtlpEndpoint = "https://otel.highlight.io:4318";
     }
 
     public static Dictionary<string, object> GetResourceAttributes()
@@ -98,7 +98,7 @@ public static class OpenTelemetry {
             ["highlight.project_id"] = Cfg.ProjectId,
             ["service.name"] = Cfg.ServiceName,
             ["telemetry.distro.name"] = "Highlight.ASP4",
-            ["telemetry.distro.version"] = "0.2.10",
+            ["telemetry.distro.version"] = "0.2.11",
         };
     }
 
