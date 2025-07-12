@@ -1,20 +1,68 @@
-import Alert from '@components/Alert/Alert'
+import { useAuthContext } from '@/authentication/AuthContext'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import { AdminRole } from '@graph/schemas'
-import { Box } from '@highlight-run/ui/components'
-import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
-import { Authorization } from '@util/authorization/authorization'
-import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { useAuthContext } from '@/authentication/AuthContext'
 
+import { IconAnimatedLoading } from '@/components/Loading/IconAnimatedLoading'
+import { AutoJoinForm } from '@/pages/WorkspaceTeam/components/AutoJoinForm'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
+
+import { Box, Button, Callout, Form, Input } from '@highlight-run/ui/components'
+import { Authorization } from '@util/authorization/authorization'
+import clsx from 'clsx'
+import React from 'react'
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
-import { FieldsForm } from './FieldsForm/FieldsForm'
+import {
+	BaseFieldsForm,
+	FormButtonProps,
+	FormElementProps,
+	FormInputProps,
+} from './FieldsForm/BaseFieldsForm'
 import styles from './WorkspaceSettings.module.css'
 
 const WorkspaceSettings = () => {
 	const { currentWorkspace } = useApplicationContext()
 	const { workspaceRole } = useAuthContext()
 	const isAdminRole = workspaceRole === AdminRole.Admin
+
+	const FieldsForm = () => {
+		const form: React.FC<FormElementProps> = (props) => <Form {...props} />
+		const input: React.FC<FormInputProps> = ({ name, ...props }) => (
+			<Input name={name || ''} {...props} />
+		)
+		const button: React.FC<FormButtonProps> = ({
+			isSubmitting,
+			className,
+			...props
+		}) => (
+			<Button
+				className={clsx(className, styles.submitButton)}
+				size="medium"
+				kind="primary"
+				{...props}
+			>
+				{isSubmitting ? (
+					<IconAnimatedLoading
+						style={{
+							fontSize: 18,
+							color: 'var(--text-primary-inverted)',
+						}}
+					/>
+				) : (
+					'Save'
+				)}
+			</Button>
+		)
+
+		return (
+			<BaseFieldsForm
+				defaultName={currentWorkspace?.name}
+				disabled={!isAdminRole}
+				form={form}
+				input={input}
+				button={button}
+			/>
+		)
+	}
 
 	return (
 		<Box>
@@ -29,10 +77,7 @@ const WorkspaceSettings = () => {
 						</div>
 					</div>
 					<FieldsBox id="workspace">
-						<FieldsForm
-							defaultName={currentWorkspace?.name}
-							disabled={!isAdminRole}
-						/>
+						<FieldsForm />
 					</FieldsBox>
 					<FieldsBox id="autojoin">
 						<h3>Auto Join</h3>
@@ -43,12 +88,14 @@ const WorkspaceSettings = () => {
 						<Authorization
 							allowedRoles={[AdminRole.Admin]}
 							forbiddenFallback={
-								<Alert
-									trackingId="AdminNoAccessToAutoJoinDomains"
-									type="info"
-									message="You don't have access to auto-access domains."
-									description={`You don't have permission to configure auto-access domains. Please contact a workspace admin to make changes.`}
-								/>
+								<Callout
+									kind="warning"
+									title="You don't have access to auto-access domains."
+								>
+									You don't have permission to configure
+									auto-access domains. Please contact a
+									workspace admin to make changes.
+								</Callout>
 							}
 						>
 							<AutoJoinForm />

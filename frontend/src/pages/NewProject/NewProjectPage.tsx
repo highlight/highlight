@@ -1,7 +1,7 @@
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import { CardForm } from '@components/Card/Card'
 import Input from '@components/Input/Input'
-import { CircularSpinner } from '@components/Loading/Loading'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
 import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
@@ -377,7 +377,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id?: string }) => {
 								trackingId={`Create${pageTypeCaps}`}
 							>
 								{projectLoading || workspaceLoading ? (
-									<CircularSpinner
+									<IconAnimatedLoading
 										style={{
 											fontSize: 18,
 											color: 'var(--text-primary-inverted)',
