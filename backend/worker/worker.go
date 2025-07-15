@@ -813,7 +813,21 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	newActiveDuration := time.Duration(0.)
 	for _, interval := range finalIntervals {
 		if interval.Active {
-			newActiveDuration += time.Duration(interval.Duration) * time.Millisecond
+			intervalDur := time.Duration(interval.Duration) * time.Millisecond
+			if intervalDur > 7*24*time.Hour {
+				log.WithContext(ctx).
+					WithFields(log.Fields{
+						"project_id":           s.ProjectID,
+						"session_id":           s.ID,
+						"session_secure_id":    s.SecureID,
+						"interval_duration":    intervalDur,
+						"interval_duration_ms": intervalDur.Milliseconds(),
+						"num_intervals":        len(finalIntervals),
+					}).
+					Warn("session activity interval is longer than 7 days; ignoring.")
+				continue
+			}
+			newActiveDuration += intervalDur
 		}
 	}
 	oldActiveDuration := accumulator.ActiveDuration
