@@ -207,7 +207,7 @@ export const getActivePart = (
 			cursorIndex < nextPart.start
 		) {
 			// If cursor is closer to current part, return current part
-			if (!!currentPart.value.trim()) {
+			if (!!currentPart.value?.trim()) {
 				return {
 					key: BODY_KEY,
 					operator: DEFAULT_OPERATOR,
