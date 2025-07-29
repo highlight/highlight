@@ -5186,7 +5186,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 		return nil, err
 	}
 
-	retentionDate, err := r.GetProjectRetentionDate(s.ProjectID)
+	retentionDate, err := r.GetProjectSessionsRetentionDate(s.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -5459,7 +5459,7 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string, useClic
 	if err != nil {
 		return nil, err
 	}
-	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
+	retentionDate, err := r.GetProjectErrorsRetentionDate(eg.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -5538,7 +5538,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		return nil, err
 	}
 
-	retentionDate, err := r.GetProjectRetentionDate(errorGroup.ProjectID)
+	retentionDate, err := r.GetProjectErrorsRetentionDate(errorGroup.ProjectID)
 	if err != nil {
 		return nil, err
 	}

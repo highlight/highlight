@@ -3689,7 +3689,9 @@ func normalizeExpressions(column *string, metricTypes []modelInputs.MetricAggreg
 	return newExpressions, nil
 }
 
-func (r *Resolver) GetProjectRetentionDate(projectId int) (time.Time, error) {
+type GetRetentionPeriod func(workspace *model.Workspace) *modelInputs.RetentionPeriod
+
+func (r *Resolver) GetProjectRetentionDate(projectId int, getRetentionPeriod GetRetentionPeriod) (time.Time, error) {
 	var project *model.Project
 	if err := r.DB.WithContext(context.TODO()).Model(&model.Project{}).Where("id = ?", projectId).Take(&project).Error; err != nil {
 		return time.Time{}, e.Wrap(err, "error querying project")
@@ -3699,7 +3701,20 @@ func (r *Resolver) GetProjectRetentionDate(projectId int) (time.Time, error) {
 	if err != nil {
 		return time.Time{}, err
 	}
-	return GetRetentionDate(workspace.RetentionPeriod), nil
+
+	return GetRetentionDate(getRetentionPeriod(workspace)), nil
+}
+
+func (r *Resolver) GetProjectSessionsRetentionDate(projectId int) (time.Time, error) {
+	return r.GetProjectRetentionDate(projectId, func(workspace *model.Workspace) *modelInputs.RetentionPeriod {
+		return workspace.RetentionPeriod
+	})
+}
+
+func (r *Resolver) GetProjectErrorsRetentionDate(projectId int) (time.Time, error) {
+	return r.GetProjectRetentionDate(projectId, func(workspace *model.Workspace) *modelInputs.RetentionPeriod {
+		return workspace.ErrorsRetentionPeriod
+	})
 }
 
 func GetRetentionDate(retentionPeriodPtr *modelInputs.RetentionPeriod) time.Time {
