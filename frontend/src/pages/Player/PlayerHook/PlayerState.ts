@@ -943,7 +943,9 @@ export const getEvents = (
 	>,
 ) => {
 	const events = []
-	for (const [, v] of [...chunkEvents.entries()].sort((a, b) => a[0] - b[0])) {
+	for (const [, v] of [...chunkEvents.entries()].sort(
+		(a, b) => a[0] - b[0],
+	)) {
 		for (const val of v) {
 			if (val) {
 				events.push(val)
