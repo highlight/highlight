@@ -1,4 +1,4 @@
-FROM confluentinc/cp-kafka-connect:latest
+FROM confluentinc/cp-kafka-connect:7.2.15
 
 RUN curl "https://highlight-client-bundle.s3.us-east-2.amazonaws.com/assets/clickhouse-kafka-connect-v1.2.6-confluent.jar" --output /home/appuser/clickhouse-kafka-connect-v1.2.6.jar
 
