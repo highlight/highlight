@@ -840,37 +840,6 @@ func (s *S3Client) ReadCompressedEvents(ctx context.Context, sessionId int, proj
 	return resources, nil
 }
 
-// ReadUncompressedResourcesFromS3 is deprecated. Serves legacy uncompressed network data from S3.
-func (s *S3Client) ReadUncompressedResourcesFromS3(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	client, bucket := s.getSessionClientAndBucket(sessionId)
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: bucket,
-		Key: bucketKey(sessionId, projectId, NetworkResources)})
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting object from s3")
-	}
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(output.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
-	}
-	type resources struct {
-		Resources []interface{}
-	}
-	resourcesSlice := strings.Split(buf.String(), "\n\n\n")
-	var retResources []interface{}
-	for _, e := range resourcesSlice {
-		if e == "" {
-			continue
-		}
-		var tempResources resources
-		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
-			return nil, errors.Wrap(err, "error decoding resource data")
-		}
-		retResources = append(retResources, tempResources.Resources...)
-	}
-	return retResources, nil
-}
-
 func (s *S3Client) ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {
 	client, bucket := s.getSessionClientAndBucket(sessionId)
 
