@@ -3,6 +3,7 @@
 scalar Any
 scalar Timestamp
 scalar Int64
+scalar Int64ID
 
 type Session {
 	id: ID
@@ -190,6 +191,7 @@ type InitializeSessionResponse {
 type Mutation {
 	initializeSession(
 		session_secure_id: String!
+		session_key: String
 		organization_verbose_id: String!
 		enable_strict_privacy: Boolean!
 		enable_recording_network_contents: Boolean!
@@ -226,9 +228,26 @@ type Mutation {
 		has_session_unloaded: Boolean
 		highlight_logs: String
 	): Int!
+	pushPayload2(
+		session_secure_id: String!
+		payload_id: Int64ID!
+		events: ReplayEventsInput!
+		messages: String!
+		resources: String!
+		web_socket_events: String
+		errors: [ErrorObjectInput]!
+		is_beacon: Boolean
+		has_session_unloaded: Boolean
+		highlight_logs: String
+	): Int!
 	pushPayloadCompressed(
 		session_secure_id: String!
 		payload_id: ID!
+		data: String!
+	): Any
+	pushPayloadCompressed2(
+		session_secure_id: String!
+		payload_id: Int64ID!
 		data: String!
 	): Any
 	pushBackendPayload(

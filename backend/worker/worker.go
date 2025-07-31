@@ -205,9 +205,64 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 		return err
 	}
 
+	var storagePayloadType storage.PayloadType
+	switch payloadType {
+	case model.PayloadTypeEvents:
+		storagePayloadType = storage.SessionContentsCompressed
+	case model.PayloadTypeResources:
+		storagePayloadType = storage.NetworkResourcesCompressed
+	case model.PayloadTypeWebSocketEvents:
+		storagePayloadType = storage.WebSocketEventsCompressed
+	}
+
+	eventStringMap := map[int64]string{}
+	// only rebuild processed events if the session has a sessionKey (i.e. can reopen sessions)
+	if s.SessionKey != nil {
+		// fetch all processed events from s3
+		processedEvents, err := w.Resolver.StorageClient.ReadCompressedEvents(ctx, s.ID, s.ProjectID, storagePayloadType)
+		if err != nil {
+			return errors.Wrap(err, "error retrieving session events from S3")
+		}
+
+		type eventWithPayloadId struct {
+			PayloadId *int64
+		}
+
+		// pull out payloadIds from events
+		processedEventsMap := map[int64][]interface{}{}
+		for _, event := range processedEvents {
+			var eventPayload eventWithPayloadId
+			marshalledEvent, err := json.Marshal(event)
+			if err != nil {
+				return err
+			}
+			if err := json.Unmarshal(marshalledEvent, &eventPayload); err != nil {
+				return errors.Wrap(err, "error decoding event data")
+			}
+			if eventPayload.PayloadId != nil {
+				processedEventsMap[*eventPayload.PayloadId] = append(processedEventsMap[*eventPayload.PayloadId], event)
+			}
+		}
+
+		// group events by payloadIds
+		for payloadId, events := range processedEventsMap {
+			marshalledEvents, err := json.Marshal(events)
+			if err != nil {
+				return err
+			}
+			eventStringMap[payloadId] = string(marshalledEvents)
+		}
+	}
+
+	// fetch all raw events from s3
 	s3Events, err := w.Resolver.StorageClient.GetRawData(ctx, s.ID, s.ProjectID, payloadType)
 	if err != nil {
 		return errors.Wrap(err, "error retrieving objects from S3")
+	}
+
+	// overwrite any raw events with processed events with same payloadIds
+	for payloadId, eventString := range eventStringMap {
+		s3Events[payloadId] = eventString
 	}
 
 	dataStrs, err := w.Resolver.Redis.GetSessionData(ctx, s.ID, payloadType, s3Events)

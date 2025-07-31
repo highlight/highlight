@@ -44,6 +44,10 @@ autobind:
 # modelgen, the others will be allowed when binding to fields. Configure them to
 # your liking
 models:
+    Int64ID:
+        model:
+            - github.com/highlight-run/highlight/backend/model.Int64ID
+            - github.com/99designs/gqlgen/graphql.ID
     ID:
         model:
             - github.com/99designs/gqlgen/graphql.IntID

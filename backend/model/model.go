@@ -725,6 +725,8 @@ type Session struct {
 	Model
 	// The ID used publicly for the URL on the client; used for sharing
 	SecureID string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
+	// The key used to generate the secureID by the client
+	SessionKey *string `json:"session_key"`
 	// For associating unidentified sessions with a user after identification
 	ClientID string `json:"client_id" gorm:"not null;default:''"`
 	// Whether a session has been identified.
@@ -2311,8 +2313,8 @@ func (obj *SessionAlert) GetExcludeRules() ([]*string, error) {
 // The EventIndex must always be specified, with the EventObjectIndex optionally
 // specified for optimization purposes.
 type EventsCursor struct {
-	EventIndex       int
-	EventObjectIndex *int
+	EventIndex       int64
+	EventObjectIndex *int64
 }
 
 type SendWelcomeSlackMessageInput struct {
