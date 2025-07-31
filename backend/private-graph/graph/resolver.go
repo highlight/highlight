@@ -3488,7 +3488,7 @@ func (r *Resolver) isBrotliAccepted(ctx context.Context) bool {
 
 func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor) ([]interface{}, error, *model.EventsCursor) {
 	isLive := cursor.EventObjectIndex != nil
-	s3Events := map[int]string{}
+	s3Events := map[int64]string{}
 	if !isLive {
 		var err error
 		s3Events, err = r.StorageClient.GetRawData(ctx, s.ID, s.ProjectID, model.PayloadTypeEvents)

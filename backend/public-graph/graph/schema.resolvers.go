@@ -19,7 +19,6 @@ import (
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
-	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
@@ -28,7 +27,7 @@ import (
 )
 
 // InitializeSession is the resolver for the initializeSession field.
-func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool, privacySetting *string) (*customModels.InitializeSessionResponse, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, sessionKey *string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool, privacySetting *string) (*customModels.InitializeSessionResponse, error) {
 	s, ctx := util.StartSpanFromContext(ctx, "gql.initializeSession", util.ResourceName("gql.initializeSession"), util.Tag("secure_id", sessionSecureID), util.Tag("client_version", clientVersion), util.Tag("firstload_version", firstloadVersion))
 	defer s.Finish()
 	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
@@ -45,6 +44,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 			Type: kafkaqueue.InitializeSession,
 			InitializeSession: &kafkaqueue.InitializeSessionArgs{
 				SessionSecureID:                sessionSecureID,
+				SessionKey:                     sessionKey,
 				CreatedAt:                      time.Now(),
 				ProjectVerboseID:               organizationVerboseID,
 				EnableStrictPrivacy:            enableStrictPrivacy,
@@ -132,10 +132,18 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionSecu
 
 // PushPayload is the resolver for the pushPayload field.
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID string, payloadID *int, events customModels.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
-	if payloadID == nil {
-		payloadID = pointy.Int(0)
+	var payloadIDInt64 int64
+	if payloadID != nil {
+		payloadIDInt64 = int64(*payloadID)
+	} else {
+		payloadIDInt64 = 0
 	}
 
+	return r.PushPayload2(ctx, sessionSecureID, payloadIDInt64, events, messages, resources, webSocketEvents, errors, isBeacon, hasSessionUnloaded, highlightLogs)
+}
+
+// PushPayload2 is the resolver for the pushPayload2 field.
+func (r *mutationResolver) PushPayload2(ctx context.Context, sessionSecureID string, payloadID int64, events customModels.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
 	const smallChunkSize = 1024
 	const largeChunkSize = 1
 
@@ -241,6 +249,12 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 
 // PushPayloadCompressed is the resolver for the pushPayloadCompressed field.
 func (r *mutationResolver) PushPayloadCompressed(ctx context.Context, sessionSecureID string, payloadID int, data string) (interface{}, error) {
+	payloadIDInt64 := int64(payloadID)
+	return r.PushPayloadCompressed2(ctx, sessionSecureID, payloadIDInt64, data)
+}
+
+// PushPayloadCompressed2 is the resolver for the pushPayloadCompressed2 field.
+func (r *mutationResolver) PushPayloadCompressed2(ctx context.Context, sessionSecureID string, payloadID int64, data string) (interface{}, error) {
 	return nil, r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 		Type: kafkaqueue.PushCompressedPayload,
 		PushCompressedPayload: &kafkaqueue.PushCompressedPayloadArgs{

@@ -45,13 +45,13 @@ const (
 
 type PushCompressedPayloadArgs struct {
 	SessionSecureID string
-	PayloadID       int
+	PayloadID       int64
 	Data            string `json:"data"`
 }
 
 type PushPayloadArgs struct {
 	SessionSecureID    string
-	PayloadID          *int
+	PayloadID          int64
 	Events             customModels.ReplayEventsInput   `json:"events"`
 	Messages           string                           `json:"messages"`
 	Resources          string                           `json:"resources"`
@@ -64,6 +64,7 @@ type PushPayloadArgs struct {
 
 type InitializeSessionArgs struct {
 	SessionSecureID                string
+	SessionKey                     *string
 	CreatedAt                      time.Time
 	ProjectVerboseID               string
 	EnableStrictPrivacy            bool

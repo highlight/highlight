@@ -66,6 +66,7 @@ func TestEventsFromString(t *testing.T) {
 					"data": {"test": 5},
 					"timestamp": 0,
 					"type": 4,
+					"payloadId": 5678,
 					"_sid": 1234
 				}]
 			}
@@ -75,6 +76,7 @@ func TestEventsFromString(t *testing.T) {
 					Timestamp: time.Date(1970, time.Month(1), 1, 0, 0, 0, 0, time.UTC),
 					Type:      Meta,
 					Data:      map[string]interface{}{"test": 5.0},
+					PayloadId: ptr.Int64(5678),
 					SID:       1234,
 				},
 			}},
@@ -86,6 +88,7 @@ func TestEventsFromString(t *testing.T) {
 						},
 						"timestamp": 0,
 						"type":      4,
+						"payloadId": 5678,
 						"_sid":      1234,
 					},
 				},
@@ -114,6 +117,7 @@ func TestEventsFromString(t *testing.T) {
 						"timestamp": 0,
 						"type":      2,
 						"data":      nil,
+						"payloadId": nil,
 						"_sid":      5678,
 					},
 				},

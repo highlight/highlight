@@ -158,10 +158,10 @@ func (r *Client) RemoveValues(ctx context.Context, sessionId int, payloadType mo
 	return nil
 }
 
-func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId *int, payloadType model.RawPayloadType) ([]redis.Z, error) {
+func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId *int64, payloadType model.RawPayloadType) ([]redis.Z, error) {
 	maxScore := "+inf"
 	if nextPayloadId != nil {
-		maxScore = "(" + strconv.FormatInt(int64(*nextPayloadId), 10)
+		maxScore = "(" + strconv.FormatInt(*nextPayloadId, 10)
 	}
 
 	vals, err := r.Client.ZRangeByScoreWithScores(ctx, GetKey(sessionId, payloadType), &redis.ZRangeBy{
@@ -192,7 +192,7 @@ func GetSubscriptionDetailsKey(workspaceID int) string {
 	return fmt.Sprintf(`workspace-subscription-details-%d`, workspaceID)
 }
 
-func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType model.RawPayloadType, objects map[int]string) ([]string, error) {
+func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType model.RawPayloadType, objects map[int64]string) ([]string, error) {
 	key := GetKey(sessionId, payloadType)
 
 	vals, err := r.Client.ZRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
@@ -204,7 +204,7 @@ func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType 
 	}
 
 	for idx, z := range vals {
-		intScore := int(z.Score)
+		intScore := int64(z.Score)
 		// Beacon payloads have decimals, skip unless it's the last payload
 		if z.Score != float64(intScore) && idx != len(vals)-1 {
 			continue
@@ -213,11 +213,13 @@ func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType 
 		objects[intScore] = z.Member.(string)
 	}
 
-	keys := make([]int, 0, len(objects))
+	keys := make([]int64, 0, len(objects))
 	for k := range objects {
 		keys = append(keys, k)
 	}
-	sort.Ints(keys)
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] < keys[j]
+	})
 
 	results := []string{}
 	if len(keys) == 0 {
@@ -231,7 +233,7 @@ func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType 
 	return results, nil
 }
 
-func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int]string) ([]model.EventsObject, error, *model.EventsCursor) {
+func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int64]string) ([]model.EventsObject, error, *model.EventsCursor) {
 	// Session is live if the cursor is not the default
 	isLive := cursor.EventObjectIndex != nil
 
@@ -249,7 +251,7 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 	}
 
 	for idx, z := range vals {
-		intScore := int(z.Score)
+		intScore := int64(z.Score)
 		// Beacon events have decimals, skip them if it's live mode or not the last event
 		if z.Score != float64(intScore) && (isLive || idx != len(vals)-1) {
 			continue
@@ -258,11 +260,13 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 		events[intScore] = z.Member.(string)
 	}
 
-	keys := make([]int, 0, len(events))
+	keys := make([]int64, 0, len(events))
 	for k := range events {
 		keys = append(keys, k)
 	}
-	sort.Ints(keys)
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] < keys[j]
+	})
 
 	eventsObjects := []model.EventsObject{}
 	if len(keys) == 0 {
@@ -286,11 +290,11 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 		})
 	}
 
-	nextCursor := model.EventsCursor{EventIndex: 0, EventObjectIndex: pointy.Int(maxScore)}
+	nextCursor := model.EventsCursor{EventIndex: 0, EventObjectIndex: pointy.Int64(maxScore)}
 	return eventsObjects, nil, &nextCursor
 }
 
-func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int]string) ([]interface{}, error, *model.EventsCursor) {
+func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.EventsCursor, events map[int64]string) ([]interface{}, error, *model.EventsCursor) {
 	allEvents := make([]interface{}, 0)
 
 	eventsObjects, err, newCursor := r.GetEventObjects(ctx, s, cursor, events)
@@ -310,14 +314,14 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 		allEvents = append(allEvents, subEvents["events"]...)
 	}
 
-	if cursor.EventIndex != 0 && cursor.EventIndex <= len(allEvents) {
+	if cursor.EventIndex != 0 && cursor.EventIndex <= int64(len(allEvents)) {
 		allEvents = allEvents[cursor.EventIndex:]
 	}
 
 	return allEvents, nil, newCursor
 }
 
-func (r *Client) GetResources(ctx context.Context, s *model.Session, resources map[int]string) ([]interface{}, error) {
+func (r *Client) GetResources(ctx context.Context, s *model.Session, resources map[int64]string) ([]interface{}, error) {
 	allResources := make([]interface{}, 0)
 	results, err := r.GetSessionData(ctx, s.ID, model.PayloadTypeResources, resources)
 	if err != nil {

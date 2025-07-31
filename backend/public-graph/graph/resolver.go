@@ -1088,7 +1088,8 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	deviceDetails := GetDeviceDetails(input.UserAgent)
 	excludedReason := privateModel.SessionExcludedReasonInitializing
 	session := &model.Session{
-		SecureID: input.SessionSecureID,
+		SecureID:   input.SessionSecureID,
+		SessionKey: input.SessionKey,
 		Model: model.Model{
 			CreatedAt: input.CreatedAt,
 		},
@@ -2466,7 +2467,7 @@ func (r *Resolver) AddSessionEvents(ctx context.Context, sessionSecureID string,
 	return nil
 }
 
-func (r *Resolver) MoveSessionDataToStorage(ctx context.Context, sessionId int, payloadId *int, projectId int, payloadType model.RawPayloadType) error {
+func (r *Resolver) MoveSessionDataToStorage(ctx context.Context, sessionId int, payloadId *int64, projectId int, payloadType model.RawPayloadType) error {
 	zRangeSpan, spanCtx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
 		util.ResourceName("go.parseEvents.processWithRedis.getRawZRange"), util.Tag("project_id", projectId))
 	zRange, err := r.Redis.GetRawZRange(spanCtx, sessionId, payloadId, payloadType)
@@ -2508,7 +2509,7 @@ func getSessionProcessingDelaySeconds(timeElapsed time.Duration) int {
 	return SessionProcessDelaySeconds
 }
 
-func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, payloadId int, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
+func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId int, payloadId int64, isBeacon bool, payloadType model.RawPayloadType, data []byte) error {
 	redisSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.SaveSessionData",
 		util.ResourceName("go.parseEvents.processWithRedis"), util.Tag("project_id", projectId), util.Tag("payload_type", payloadType))
 	score := float64(payloadId)
@@ -2550,7 +2551,7 @@ type PushPayloadChunk struct {
 	websocketEvents []*any
 }
 
-func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID string, payloadID int, data string) error {
+func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID string, payloadID int64, data string) error {
 	querySessionSpan, sCtx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.decompress")
 
 	reader, err := gzip.NewReader(base64.NewDecoder(base64.StdEncoding, strings.NewReader(data)))
@@ -2573,10 +2574,10 @@ func (r *Resolver) ProcessCompressedPayload(ctx context.Context, sessionSecureID
 
 	querySessionSpan.Finish()
 
-	return r.ProcessPayload(sCtx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, pointy.Int(payloadID))
+	return r.ProcessPayload(sCtx, sessionSecureID, payload.Events, payload.Messages, payload.Resources, payload.WebSocketEvents, payload.Errors, ptr.ToBool(payload.IsBeacon), ptr.ToBool(payload.HasSessionUnloaded), payload.HighlightLogs, payloadID)
 }
 
-func TransformEvents(evs []*publicModel.ReplayEventInput) (*parse.ReplayEvents, error) {
+func TransformEvents(evs []*publicModel.ReplayEventInput, payloadId *int64) (*parse.ReplayEvents, error) {
 	events := &parse.ReplayEvents{
 		Events: []*parse.ReplayEvent{},
 	}
@@ -2588,6 +2589,7 @@ func TransformEvents(evs []*publicModel.ReplayEventInput) (*parse.ReplayEvents, 
 			Data:         ev.Data.(map[string]interface{}),
 			TimestampRaw: ev.Timestamp,
 			SID:          ev.Sid,
+			PayloadId:    payloadId,
 		})
 	}
 
@@ -2600,7 +2602,7 @@ type inputPair struct {
 	BackendErrorInput *publicModel.BackendErrorObjectInput
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId int64) error {
 	// old clients do not send web socket events, so the value can be nil.
 	// use this str as a simpler way to reference
 	webSocketEventsStr := ""
@@ -2660,11 +2662,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	var g errgroup.Group
 
-	payloadIdDeref := 0
-	if payloadId != nil {
-		payloadIdDeref = *payloadId
-	}
-
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
 
@@ -2700,7 +2697,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 		if evs := events.Events; len(evs) > 0 {
 			transformEventsSpan, _ := util.StartSpanFromContext(ctx, "public-graph.pushPayload.transformEvents", util.Tag("project_id", projectID))
-			parsedEvents, err := TransformEvents(evs)
+			parsedEvents, err := TransformEvents(evs, pointy.Int64(payloadId))
 			transformEventsSpan.Finish(err)
 			if err != nil {
 				return e.Wrap(err, "error parsing events from schema interfaces")
@@ -2785,12 +2782,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			remarshalSpan.Finish()
 
 			if hasFullSnapshot {
-				if err := r.MoveSessionDataToStorage(ctx, sessionID, pointy.Int(payloadIdDeref), projectID, model.PayloadTypeEvents); err != nil {
+				if err := r.MoveSessionDataToStorage(ctx, sessionID, pointy.Int64(payloadId), projectID, model.PayloadTypeEvents); err != nil {
 					return err
 				}
 			}
 
-			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeEvents, b); err != nil {
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadId, isBeacon, model.PayloadTypeEvents, b); err != nil {
 				return e.Wrap(err, "error saving events data")
 			}
 
@@ -2824,7 +2821,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		unmarshalResourcesSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.unmarshal.resources", util.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
 
-		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
+		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadId, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
 			return e.Wrap(err, "error saving resources data")
 		}
 
@@ -2849,7 +2846,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			unmarshalWebSocketEventsSpan, ctx := util.StartSpanFromContext(ctx, "public-graph.pushPayload.unmarshal.web_socket_events", util.Tag("project_id", projectID))
 			defer unmarshalWebSocketEventsSpan.Finish()
 
-			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadId, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
 				return e.Wrap(err, "error saving web socket events data")
 			}
 

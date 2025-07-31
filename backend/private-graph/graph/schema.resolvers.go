@@ -10119,7 +10119,7 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 			initialEventsCount,
 			r.SubscriptionWorkerPool.WaitingQueueSize())
 
-		cursor := model.EventsCursor{EventIndex: initialEventsCount, EventObjectIndex: nil}
+		cursor := model.EventsCursor{EventIndex: int64(initialEventsCount), EventObjectIndex: nil}
 		for {
 			select {
 			case <-ctx.Done():
