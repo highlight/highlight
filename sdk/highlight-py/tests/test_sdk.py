@@ -6,6 +6,15 @@ from opentelemetry.sdk._logs._internal.export import BatchLogRecordProcessor
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 import highlight_io
+from highlight_io.sdk import OTLPTransport
+from highlight_io.sdk import (
+    HttpOTLPLogExporter,
+    HttpOTLPSpanExporter,
+    HttpOTLPMetricExporter,
+    GrpcOTLPLogExporter,
+    GrpcOTLPSpanExporter,
+    GrpcOTLPMetricExporter,
+)
 
 
 @pytest.fixture(params=[None, [], ["Flask"]])
@@ -21,8 +30,8 @@ def integrations(mocker, request):
 
 @pytest.fixture(params=[None, False, True])
 def mock_otlp(mocker, request, integrations):
-    span = mocker.patch("highlight_io.sdk.OTLPSpanExporter")
-    log = mocker.patch("highlight_io.sdk.OTLPLogExporter")
+    span = mocker.patch("highlight_io.sdk.GrpcOTLPLogExporter")
+    log = mocker.patch("highlight_io.sdk.GrpcOTLPLogExporter")
     mocker.patch(
         "highlight_io.sdk.BatchSpanProcessor", return_value=BatchSpanProcessor(span)
     )
@@ -35,8 +44,8 @@ def mock_otlp(mocker, request, integrations):
 
 @pytest.fixture()
 def mock_trace(mocker):
-    span = mocker.patch("highlight_io.sdk.OTLPSpanExporter")
-    log = mocker.patch("highlight_io.sdk.OTLPLogExporter")
+    span = mocker.patch("highlight_io.sdk.GrpcOTLPLogExporter")
+    log = mocker.patch("highlight_io.sdk.GrpcOTLPLogExporter")
     sp = mocker.patch(
         "highlight_io.sdk.BatchSpanProcessor", return_value=BatchSpanProcessor(span)
     )
@@ -151,3 +160,86 @@ def test_no_errors(mock_trace, debug, disable_export_error_logging):
     h.flush()
 
     assert mock_trace.call_args_list[0].args[1:] == ("highlight.log",)
+
+
+@pytest.mark.parametrize(
+    "endpoint, expected_transport",
+    [
+        (None, OTLPTransport.GRPC),
+        (highlight_io.H.DEFAULT_OTLP_ENDPOINT, highlight_io.H.DEFAULT_OTLP_TRANSPORT),
+        ("http://foo:4317", OTLPTransport.GRPC),  # GRPC based on port
+        ("https://example.org:4318", OTLPTransport.HTTP),  # HTTP based on port
+        ("https://localhost:1234", OTLPTransport.GRPC),  # default
+    ],
+)
+def test_otlp_transport_detection(endpoint, expected_transport):
+    kwargs = {"project_id": "proj", "instrument_logging": False}
+    if endpoint is not None:
+        kwargs["otlp_endpoint"] = endpoint
+    h = highlight_io.H(**kwargs)
+    assert h._otlp_transport is expected_transport
+
+
+def test_otlp_transport_override():
+    # Override the transport explicitly
+    h1 = highlight_io.H(
+        "proj", instrument_logging=False, otlp_transport=OTLPTransport.HTTP
+    )
+    assert h1._otlp_transport is OTLPTransport.HTTP
+
+    # Set a transport that doesn't match the endpoint port
+    h2 = highlight_io.H(
+        "proj",
+        instrument_logging=False,
+        otlp_endpoint="http://foo:4318",
+        otlp_transport=OTLPTransport.GRPC,
+    )
+    assert h2._otlp_transport is OTLPTransport.GRPC
+
+
+def test_http_and_grpc_exporter_selection(mocker):
+    mock_http_log = mocker.patch(
+        "highlight_io.sdk.HttpOTLPLogExporter", wraps=HttpOTLPLogExporter
+    )
+    mock_http_span = mocker.patch(
+        "highlight_io.sdk.HttpOTLPSpanExporter", wraps=HttpOTLPSpanExporter
+    )
+    mock_http_metric = mocker.patch(
+        "highlight_io.sdk.HttpOTLPMetricExporter", wraps=HttpOTLPMetricExporter
+    )
+    mock_grpc_log = mocker.patch(
+        "highlight_io.sdk.GrpcOTLPLogExporter", wraps=GrpcOTLPLogExporter
+    )
+    mock_grpc_span = mocker.patch(
+        "highlight_io.sdk.GrpcOTLPSpanExporter", wraps=GrpcOTLPSpanExporter
+    )
+    mock_grpc_metric = mocker.patch(
+        "highlight_io.sdk.GrpcOTLPMetricExporter", wraps=GrpcOTLPMetricExporter
+    )
+
+    highlight_io.H("proj", instrument_logging=False, otlp_transport=OTLPTransport.HTTP)
+    assert mock_http_log.called
+    assert mock_http_span.called
+    assert mock_http_metric.called
+    assert not mock_grpc_log.called
+    assert not mock_grpc_span.called
+    assert not mock_grpc_metric.called
+    _, http_kwargs = mock_http_metric.call_args
+    assert "max_export_batch_size" not in http_kwargs
+
+    mock_http_log.reset_mock()
+    mock_http_span.reset_mock()
+    mock_http_metric.reset_mock()
+    mock_grpc_log.reset_mock()
+    mock_grpc_span.reset_mock()
+    mock_grpc_metric.reset_mock()
+
+    highlight_io.H("proj", instrument_logging=False, otlp_transport=OTLPTransport.GRPC)
+    assert mock_grpc_log.called
+    assert mock_grpc_span.called
+    assert mock_grpc_metric.called
+    assert not mock_http_log.called
+    assert not mock_http_span.called
+    assert not mock_http_metric.called
+    _, grpc_kwargs = mock_grpc_metric.call_args
+    assert "max_export_batch_size" in grpc_kwargs
