@@ -150,6 +150,16 @@ export const usePlayerCommands = (
 		},
 	] as const
 
+	const [, , routeName, sessionId] = location.pathname.split('/')
+	// We don't have access to the session URL parameter on all routes so we manually parse/check for the session.
+	const isOnPlayerPageWithSession =
+		routeName === 'sessions' && sessionId !== '' && sessionId != undefined
+
+	// Don't show Player-specific commands when not on the player page.
+	if (!isOnPlayerPageWithSession) {
+		return []
+	}
+
 	let commands
 
 	if (isHighlightUser) {
