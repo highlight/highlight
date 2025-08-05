@@ -9,6 +9,15 @@ import { useReplayerContext } from '@/pages/Player/ReplayerContext'
 
 export type CommandWithoutId = Omit<Command, 'id'>
 
+// Safe hook to use replayer context - returns null if context is not available
+const useSafeReplayerContext = () => {
+	try {
+		return useReplayerContext()
+	} catch {
+		return null
+	}
+}
+
 const NAVIGATION_COMMANDS = [
 	{ route: 'sessions', name: 'Go to Sessions' },
 	{ route: 'errors', name: 'Go to Errors' },
@@ -46,7 +55,10 @@ export const usePlayerCommands = (
 		showDevTools,
 		showRightPanel,
 	} = usePlayerConfiguration()
-	const { time } = useReplayerContext()
+
+	// Always call the hook, but safely handle when context is not available
+	const replayerContext = useSafeReplayerContext()
+	const time = replayerContext?.time ?? 0
 
 	const PLAYER_COMMANDS = [
 		{
@@ -137,16 +149,6 @@ export const usePlayerCommands = (
 			name: `Download events`,
 		},
 	] as const
-
-	const [, , routeName, sessionId] = location.pathname.split('/')
-	// We don't have access to the session URL parameter on all routes so we manually parse/check for the session.
-	const isOnPlayerPageWithSession =
-		routeName === 'sessions' && sessionId !== '' && sessionId != undefined
-
-	// Don't show Player-specific commands when not on the player page.
-	if (!isOnPlayerPageWithSession) {
-		return []
-	}
 
 	let commands
 
