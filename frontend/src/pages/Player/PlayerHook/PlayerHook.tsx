@@ -65,7 +65,6 @@ export const usePlayer = (
 	const [download] = useQueryParam('download', BooleanParam)
 
 	const {
-		setPlayerTime: setPlayerTimeToPersistance,
 		autoPlaySessions,
 		autoPlayVideo,
 		showPlayerMouseTail,
@@ -922,10 +921,6 @@ export const usePlayer = (
 		state.replayer,
 		state.replayerState,
 	])
-
-	useEffect(() => {
-		setPlayerTimeToPersistance(state.time)
-	}, [setPlayerTimeToPersistance, state.time])
 
 	// Finds the next session in the session feed to play if autoplay is enabled.
 	useEffect(() => {

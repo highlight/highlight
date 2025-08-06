@@ -74,8 +74,6 @@ const usePlayerConfiguration = () => {
 		...EventsForTimeline,
 	])
 
-	const [playerTime, setPlayerTime] = useLocalStorage('playerTime', 0)
-
 	const [enableInspectElement, setEnableInspectElement] = useLocalStorage(
 		'highlightMenuEnableDOMInteractions',
 		false,
@@ -142,8 +140,6 @@ const usePlayerConfiguration = () => {
 		setSelectedTimelineAnnotationTypes,
 		selectedTimelineAnnotationTypesUserPersisted,
 		setSelectedTimelineAnnotationTypesUserPersisted,
-		playerTime,
-		setPlayerTime,
 		enableInspectElement,
 		setEnableInspectElement,
 		setPlayerSpeedIdx,

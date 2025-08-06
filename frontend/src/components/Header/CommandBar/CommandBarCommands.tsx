@@ -5,8 +5,18 @@ import { useNavigate } from 'react-router-dom'
 
 import usePlayerConfiguration from '../../../pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { onGetLinkWithTimestamp } from '../../../pages/Player/SessionShareButton/utils/utils'
+import { useReplayerContext } from '@/pages/Player/ReplayerContext'
 
 export type CommandWithoutId = Omit<Command, 'id'>
+
+// Safe hook to use replayer context - returns null if context is not available
+const useSafeReplayerContext = () => {
+	try {
+		return useReplayerContext()
+	} catch {
+		return null
+	}
+}
 
 const NAVIGATION_COMMANDS = [
 	{ route: 'sessions', name: 'Go to Sessions' },
@@ -35,7 +45,6 @@ export const usePlayerCommands = (
 ): CommandWithoutId[] => {
 	const {
 		autoPlayVideo,
-		playerTime,
 		selectedTimelineAnnotationTypes,
 		selectedTimelineAnnotationTypesUserPersisted,
 		setAutoPlayVideo,
@@ -46,6 +55,10 @@ export const usePlayerCommands = (
 		showDevTools,
 		showRightPanel,
 	} = usePlayerConfiguration()
+
+	// Always call the hook, but safely handle when context is not available
+	const replayerContext = useSafeReplayerContext()
+	const time = replayerContext?.time ?? 0
 
 	const PLAYER_COMMANDS = [
 		{
@@ -112,7 +125,7 @@ export const usePlayerCommands = (
 		},
 		{
 			command: () => {
-				const url = onGetLinkWithTimestamp(playerTime)
+				const url = onGetLinkWithTimestamp(time)
 				toast.success('Copied link!')
 				navigator.clipboard.writeText(url.href)
 			},
