@@ -205,6 +205,11 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 		return err
 	}
 
+	s3Events, err := w.Resolver.StorageClient.GetRawData(ctx, s.ID, s.ProjectID, payloadType)
+	if err != nil {
+		return errors.Wrap(err, "error retrieving objects from S3")
+	}
+
 	var storagePayloadType storage.PayloadType
 	switch payloadType {
 	case model.PayloadTypeEvents:
@@ -215,9 +220,10 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 		storagePayloadType = storage.WebSocketEventsCompressed
 	}
 
-	eventStringMap := map[int64]string{}
 	// only rebuild processed events if the session has a sessionKey (i.e. can reopen sessions)
 	if s.SessionKey != nil {
+		payloadIdEventStrings := map[int64]string{}
+
 		// fetch all processed events from s3
 		processedEvents, err := w.Resolver.StorageClient.ReadCompressedEvents(ctx, s.ID, s.ProjectID, storagePayloadType)
 		if err != nil {
@@ -250,19 +256,13 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 			if err != nil {
 				return err
 			}
-			eventStringMap[payloadId] = string(marshalledEvents)
+			payloadIdEventStrings[payloadId] = string(marshalledEvents)
 		}
-	}
 
-	// fetch all raw events from s3
-	s3Events, err := w.Resolver.StorageClient.GetRawData(ctx, s.ID, s.ProjectID, payloadType)
-	if err != nil {
-		return errors.Wrap(err, "error retrieving objects from S3")
-	}
-
-	// overwrite any raw events with processed events with same payloadIds
-	for payloadId, eventString := range eventStringMap {
-		s3Events[payloadId] = eventString
+		// overwrite any raw events with processed events with same payloadIds
+		for payloadId, eventString := range payloadIdEventStrings {
+			s3Events[payloadId] = eventString
+		}
 	}
 
 	dataStrs, err := w.Resolver.Redis.GetSessionData(ctx, s.ID, payloadType, s3Events)

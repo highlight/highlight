@@ -139,11 +139,6 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		payloadIDInt64 = 0
 	}
 
-	return r.PushPayload2(ctx, sessionSecureID, payloadIDInt64, events, messages, resources, webSocketEvents, errors, isBeacon, hasSessionUnloaded, highlightLogs)
-}
-
-// PushPayload2 is the resolver for the pushPayload2 field.
-func (r *mutationResolver) PushPayload2(ctx context.Context, sessionSecureID string, payloadID int64, events customModels.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error) {
 	const smallChunkSize = 1024
 	const largeChunkSize = 1
 
@@ -239,7 +234,7 @@ func (r *mutationResolver) PushPayload2(ctx context.Context, sessionSecureID str
 				IsBeacon:           isBeacon,
 				HasSessionUnloaded: hasSessionUnloaded,
 				HighlightLogs:      highlightLogs,
-				PayloadID:          payloadID,
+				PayloadID:          payloadIDInt64,
 			},
 		})
 	}
@@ -250,11 +245,11 @@ func (r *mutationResolver) PushPayload2(ctx context.Context, sessionSecureID str
 // PushPayloadCompressed is the resolver for the pushPayloadCompressed field.
 func (r *mutationResolver) PushPayloadCompressed(ctx context.Context, sessionSecureID string, payloadID int, data string) (interface{}, error) {
 	payloadIDInt64 := int64(payloadID)
-	return r.PushPayloadCompressed2(ctx, sessionSecureID, payloadIDInt64, data)
+	return r.PushSessionEvents(ctx, sessionSecureID, payloadIDInt64, data)
 }
 
-// PushPayloadCompressed2 is the resolver for the pushPayloadCompressed2 field.
-func (r *mutationResolver) PushPayloadCompressed2(ctx context.Context, sessionSecureID string, payloadID int64, data string) (interface{}, error) {
+// PushSessionEvents is the resolver for the pushSessionEvents field.
+func (r *mutationResolver) PushSessionEvents(ctx context.Context, sessionSecureID string, payloadID int64, data string) (interface{}, error) {
 	return nil, r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 		Type: kafkaqueue.PushCompressedPayload,
 		PushCompressedPayload: &kafkaqueue.PushCompressedPayloadArgs{

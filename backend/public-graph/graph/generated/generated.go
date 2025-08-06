@@ -73,17 +73,16 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddSessionFeedback     func(childComplexity int, sessionSecureID string, userName *string, userEmail *string, verbatim string, timestamp time.Time) int
-		AddSessionProperties   func(childComplexity int, sessionSecureID string, propertiesObject interface{}) int
-		IdentifySession        func(childComplexity int, sessionSecureID string, userIdentifier string, userObject interface{}) int
-		InitializeSession      func(childComplexity int, sessionSecureID string, sessionKey *string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool, privacySetting *string) int
-		MarkBackendSetup       func(childComplexity int, projectID *string, sessionSecureID *string, typeArg *string) int
-		PushBackendPayload     func(childComplexity int, projectID *string, errors []*model.BackendErrorObjectInput) int
-		PushMetrics            func(childComplexity int, metrics []*model.MetricInput) int
-		PushPayload            func(childComplexity int, sessionSecureID string, payloadID *int, events model.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) int
-		PushPayload2           func(childComplexity int, sessionSecureID string, payloadID int64, events model.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) int
-		PushPayloadCompressed  func(childComplexity int, sessionSecureID string, payloadID int, data string) int
-		PushPayloadCompressed2 func(childComplexity int, sessionSecureID string, payloadID int64, data string) int
+		AddSessionFeedback    func(childComplexity int, sessionSecureID string, userName *string, userEmail *string, verbatim string, timestamp time.Time) int
+		AddSessionProperties  func(childComplexity int, sessionSecureID string, propertiesObject interface{}) int
+		IdentifySession       func(childComplexity int, sessionSecureID string, userIdentifier string, userObject interface{}) int
+		InitializeSession     func(childComplexity int, sessionSecureID string, sessionKey *string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool, privacySetting *string) int
+		MarkBackendSetup      func(childComplexity int, projectID *string, sessionSecureID *string, typeArg *string) int
+		PushBackendPayload    func(childComplexity int, projectID *string, errors []*model.BackendErrorObjectInput) int
+		PushMetrics           func(childComplexity int, metrics []*model.MetricInput) int
+		PushPayload           func(childComplexity int, sessionSecureID string, payloadID *int, events model.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) int
+		PushPayloadCompressed func(childComplexity int, sessionSecureID string, payloadID int, data string) int
+		PushSessionEvents     func(childComplexity int, sessionSecureID string, payloadID int64, data string) int
 	}
 
 	Query struct {
@@ -121,9 +120,8 @@ type MutationResolver interface {
 	IdentifySession(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}) (string, error)
 	AddSessionProperties(ctx context.Context, sessionSecureID string, propertiesObject interface{}) (string, error)
 	PushPayload(ctx context.Context, sessionSecureID string, payloadID *int, events model.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error)
-	PushPayload2(ctx context.Context, sessionSecureID string, payloadID int64, events model.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error)
 	PushPayloadCompressed(ctx context.Context, sessionSecureID string, payloadID int, data string) (interface{}, error)
-	PushPayloadCompressed2(ctx context.Context, sessionSecureID string, payloadID int64, data string) (interface{}, error)
+	PushSessionEvents(ctx context.Context, sessionSecureID string, payloadID int64, data string) (interface{}, error)
 	PushBackendPayload(ctx context.Context, projectID *string, errors []*model.BackendErrorObjectInput) (interface{}, error)
 	PushMetrics(ctx context.Context, metrics []*model.MetricInput) (int, error)
 	MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg *string) (interface{}, error)
@@ -329,18 +327,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.PushPayload(childComplexity, args["session_secure_id"].(string), args["payload_id"].(*int), args["events"].(model.ReplayEventsInput), args["messages"].(string), args["resources"].(string), args["web_socket_events"].(*string), args["errors"].([]*model.ErrorObjectInput), args["is_beacon"].(*bool), args["has_session_unloaded"].(*bool), args["highlight_logs"].(*string)), true
 
-	case "Mutation.pushPayload2":
-		if e.complexity.Mutation.PushPayload2 == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_pushPayload2_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.PushPayload2(childComplexity, args["session_secure_id"].(string), args["payload_id"].(int64), args["events"].(model.ReplayEventsInput), args["messages"].(string), args["resources"].(string), args["web_socket_events"].(*string), args["errors"].([]*model.ErrorObjectInput), args["is_beacon"].(*bool), args["has_session_unloaded"].(*bool), args["highlight_logs"].(*string)), true
-
 	case "Mutation.pushPayloadCompressed":
 		if e.complexity.Mutation.PushPayloadCompressed == nil {
 			break
@@ -353,17 +339,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.PushPayloadCompressed(childComplexity, args["session_secure_id"].(string), args["payload_id"].(int), args["data"].(string)), true
 
-	case "Mutation.pushPayloadCompressed2":
-		if e.complexity.Mutation.PushPayloadCompressed2 == nil {
+	case "Mutation.pushSessionEvents":
+		if e.complexity.Mutation.PushSessionEvents == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_pushPayloadCompressed2_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_pushSessionEvents_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.PushPayloadCompressed2(childComplexity, args["session_secure_id"].(string), args["payload_id"].(int64), args["data"].(string)), true
+		return e.complexity.Mutation.PushSessionEvents(childComplexity, args["session_secure_id"].(string), args["payload_id"].(int64), args["data"].(string)), true
 
 	case "Query.ignore":
 		if e.complexity.Query.Ignore == nil {
@@ -804,6 +790,7 @@ type Mutation {
 		session_secure_id: String!
 		properties_object: Any
 	): String!
+	# deprecated for new sdks - use pushSessionEvents instead
 	pushPayload(
 		session_secure_id: String!
 		payload_id: ID # Optional for backwards compatibility with older clients
@@ -816,24 +803,13 @@ type Mutation {
 		has_session_unloaded: Boolean
 		highlight_logs: String
 	): Int!
-	pushPayload2(
-		session_secure_id: String!
-		payload_id: Int64ID!
-		events: ReplayEventsInput!
-		messages: String!
-		resources: String!
-		web_socket_events: String
-		errors: [ErrorObjectInput]!
-		is_beacon: Boolean
-		has_session_unloaded: Boolean
-		highlight_logs: String
-	): Int!
+	# deprecated for new sdks - use pushSessionEvents instead
 	pushPayloadCompressed(
 		session_secure_id: String!
 		payload_id: ID!
 		data: String!
 	): Any
-	pushPayloadCompressed2(
+	pushSessionEvents(
 		session_secure_id: String!
 		payload_id: Int64ID!
 		data: String!
@@ -1203,135 +1179,6 @@ func (ec *executionContext) field_Mutation_pushMetrics_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_pushPayload2_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["session_secure_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_secure_id"] = arg0
-	var arg1 int64
-	if tmp, ok := rawArgs["payload_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payload_id"))
-		arg1, err = ec.unmarshalNInt64ID2int64(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["payload_id"] = arg1
-	var arg2 model.ReplayEventsInput
-	if tmp, ok := rawArgs["events"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("events"))
-		arg2, err = ec.unmarshalNReplayEventsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐReplayEventsInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["events"] = arg2
-	var arg3 string
-	if tmp, ok := rawArgs["messages"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("messages"))
-		arg3, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["messages"] = arg3
-	var arg4 string
-	if tmp, ok := rawArgs["resources"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resources"))
-		arg4, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["resources"] = arg4
-	var arg5 *string
-	if tmp, ok := rawArgs["web_socket_events"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("web_socket_events"))
-		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["web_socket_events"] = arg5
-	var arg6 []*model.ErrorObjectInput
-	if tmp, ok := rawArgs["errors"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errors"))
-		arg6, err = ec.unmarshalNErrorObjectInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["errors"] = arg6
-	var arg7 *bool
-	if tmp, ok := rawArgs["is_beacon"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_beacon"))
-		arg7, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["is_beacon"] = arg7
-	var arg8 *bool
-	if tmp, ok := rawArgs["has_session_unloaded"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_session_unloaded"))
-		arg8, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["has_session_unloaded"] = arg8
-	var arg9 *string
-	if tmp, ok := rawArgs["highlight_logs"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("highlight_logs"))
-		arg9, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["highlight_logs"] = arg9
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_pushPayloadCompressed2_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["session_secure_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_secure_id"] = arg0
-	var arg1 int64
-	if tmp, ok := rawArgs["payload_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payload_id"))
-		arg1, err = ec.unmarshalNInt64ID2int64(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["payload_id"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["data"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["data"] = arg2
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_pushPayloadCompressed_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1458,6 +1305,39 @@ func (ec *executionContext) field_Mutation_pushPayload_args(ctx context.Context,
 		}
 	}
 	args["highlight_logs"] = arg9
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_pushSessionEvents_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_secure_id"] = arg0
+	var arg1 int64
+	if tmp, ok := rawArgs["payload_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payload_id"))
+		arg1, err = ec.unmarshalNInt64ID2int64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["payload_id"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["data"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["data"] = arg2
 	return args, nil
 }
 
@@ -2286,61 +2166,6 @@ func (ec *executionContext) fieldContext_Mutation_pushPayload(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_pushPayload2(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_pushPayload2(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().PushPayload2(rctx, fc.Args["session_secure_id"].(string), fc.Args["payload_id"].(int64), fc.Args["events"].(model.ReplayEventsInput), fc.Args["messages"].(string), fc.Args["resources"].(string), fc.Args["web_socket_events"].(*string), fc.Args["errors"].([]*model.ErrorObjectInput), fc.Args["is_beacon"].(*bool), fc.Args["has_session_unloaded"].(*bool), fc.Args["highlight_logs"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_pushPayload2(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_pushPayload2_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_pushPayloadCompressed(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_pushPayloadCompressed(ctx, field)
 	if err != nil {
@@ -2393,8 +2218,8 @@ func (ec *executionContext) fieldContext_Mutation_pushPayloadCompressed(ctx cont
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_pushPayloadCompressed2(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_pushPayloadCompressed2(ctx, field)
+func (ec *executionContext) _Mutation_pushSessionEvents(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_pushSessionEvents(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2407,7 +2232,7 @@ func (ec *executionContext) _Mutation_pushPayloadCompressed2(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().PushPayloadCompressed2(rctx, fc.Args["session_secure_id"].(string), fc.Args["payload_id"].(int64), fc.Args["data"].(string))
+		return ec.resolvers.Mutation().PushSessionEvents(rctx, fc.Args["session_secure_id"].(string), fc.Args["payload_id"].(int64), fc.Args["data"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2421,7 +2246,7 @@ func (ec *executionContext) _Mutation_pushPayloadCompressed2(ctx context.Context
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_pushPayloadCompressed2(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_pushSessionEvents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -2438,7 +2263,7 @@ func (ec *executionContext) fieldContext_Mutation_pushPayloadCompressed2(ctx con
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_pushPayloadCompressed2_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_pushSessionEvents_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5966,20 +5791,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "pushPayload2":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_pushPayload2(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "pushPayloadCompressed":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_pushPayloadCompressed(ctx, field)
 			})
-		case "pushPayloadCompressed2":
+		case "pushSessionEvents":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_pushPayloadCompressed2(ctx, field)
+				return ec._Mutation_pushSessionEvents(ctx, field)
 			})
 		case "pushBackendPayload":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {

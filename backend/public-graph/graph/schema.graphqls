@@ -216,6 +216,7 @@ type Mutation {
 		session_secure_id: String!
 		properties_object: Any
 	): String!
+	# deprecated for new sdks - use pushSessionEvents instead
 	pushPayload(
 		session_secure_id: String!
 		payload_id: ID # Optional for backwards compatibility with older clients
@@ -228,24 +229,13 @@ type Mutation {
 		has_session_unloaded: Boolean
 		highlight_logs: String
 	): Int!
-	pushPayload2(
-		session_secure_id: String!
-		payload_id: Int64ID!
-		events: ReplayEventsInput!
-		messages: String!
-		resources: String!
-		web_socket_events: String
-		errors: [ErrorObjectInput]!
-		is_beacon: Boolean
-		has_session_unloaded: Boolean
-		highlight_logs: String
-	): Int!
+	# deprecated for new sdks - use pushSessionEvents instead
 	pushPayloadCompressed(
 		session_secure_id: String!
 		payload_id: ID!
 		data: String!
 	): Any
-	pushPayloadCompressed2(
+	pushSessionEvents(
 		session_secure_id: String!
 		payload_id: Int64ID!
 		data: String!
