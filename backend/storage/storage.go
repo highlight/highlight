@@ -84,7 +84,7 @@ func GetChunkedPayloadType(offset int) PayloadType {
 type Client interface {
 	GetAssetURL(ctx context.Context, projectId string, hashVal string) (string, error)
 	GetDirectDownloadURL(ctx context.Context, projectId int, sessionId int, payloadType PayloadType, chunkId *int) (*string, error)
-	GetRawData(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType) (map[int]string, error)
+	GetRawData(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType) (map[int64]string, error)
 	GetSourceMapUploadUrl(ctx context.Context, key string) (string, error)
 	GetSourcemapFiles(ctx context.Context, projectId int, version *string) ([]s3Types.Object, error)
 	GetSourcemapVersions(ctx context.Context, projectId int) ([]string, error)
@@ -94,6 +94,8 @@ type Client interface {
 	PushSourceMapFile(ctx context.Context, projectId int, version *string, fileName string, fileBytes []byte) (*int64, error)
 	ReadResources(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
 	ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
+	ReadSessionEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
+	ReadCompressedEvents(ctx context.Context, sessionId int, projectId int, payloadType PayloadType) ([]interface{}, error)
 	readSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
 	ReadSourceMapFileCached(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
 	ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error)
@@ -119,11 +121,11 @@ func (f *FilesystemClient) GetDirectDownloadURL(_ context.Context, projectId int
 	return &key, nil
 }
 
-func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType) (map[int]string, error) {
+func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType) (map[int64]string, error) {
 	prefix := fmt.Sprintf("%s/raw-events/%d/%d", f.fsRoot, projectId, sessionId)
 	dir, err := os.ReadDir(prefix)
 	if err != nil {
-		return make(map[int]string), nil
+		return make(map[int64]string), nil
 	}
 	objects := lo.Filter(lo.Map(dir, func(t os.DirEntry, i int) string {
 		return t.Name()
@@ -162,10 +164,10 @@ func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId 
 	default:
 	}
 
-	eventRows := map[int]string{}
+	eventRows := map[int64]string{}
 	for _, zRange := range results {
 		for _, z := range zRange {
-			intScore := int(z.Score)
+			intScore := int64(z.Score)
 			// Beacon events have decimals, skip them
 			if z.Score != float64(intScore) {
 				continue
@@ -295,6 +297,24 @@ func (f *FilesystemClient) ReadWebSocketEvents(ctx context.Context, sessionId in
 		return nil, err
 	}
 	return webSocketEvents, nil
+}
+
+func (f *FilesystemClient) ReadSessionEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
+	var sessionEvents []interface{}
+	err := f.readCompressed(ctx, sessionId, projectId, SessionContentsCompressed, &sessionEvents)
+	if err != nil {
+		return nil, err
+	}
+	return sessionEvents, nil
+}
+
+func (f *FilesystemClient) ReadCompressedEvents(ctx context.Context, sessionId int, projectId int, payloadType PayloadType) ([]interface{}, error) {
+	var events []interface{}
+	err := f.readCompressed(ctx, sessionId, projectId, payloadType, &events)
+	if err != nil {
+		return nil, err
+	}
+	return events, nil
 }
 
 func (f *FilesystemClient) getSourceMapKey(projectId int, version *string, fileName string) string {
@@ -684,7 +704,7 @@ func (s *S3Client) PushRawEvents(ctx context.Context, sessionId, projectId int, 
 	return nil
 }
 
-func (s *S3Client) GetRawData(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType) (map[int]string, error) {
+func (s *S3Client) GetRawData(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType) (map[int64]string, error) {
 	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
 	prefix := "raw-events/" + *bucketKey(sessionId, projectId, payloadType)
 
@@ -733,10 +753,10 @@ func (s *S3Client) GetRawData(ctx context.Context, sessionId, projectId int, pay
 		return nil, errors.Wrap(err, "error in task retrieving object from S3")
 	}
 
-	eventRows := map[int]string{}
+	eventRows := map[int64]string{}
 	for _, zRange := range results {
 		for _, z := range zRange {
-			intScore := int(z.Score)
+			intScore := int64(z.Score)
 			// Beacon events have decimals, skip them
 			if z.Score != float64(intScore) {
 				continue
@@ -778,16 +798,30 @@ func decompress(data *bytes.Buffer) (*bytes.Buffer, error) {
 }
 
 func (s *S3Client) ReadResources(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
+	return s.ReadCompressedEvents(ctx, sessionId, projectId, NetworkResourcesCompressed)
+}
+
+func (s *S3Client) ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
+	return s.ReadCompressedEvents(ctx, sessionId, projectId, WebSocketEventsCompressed)
+}
+
+func (s *S3Client) ReadSessionEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
+	return s.ReadCompressedEvents(ctx, sessionId, projectId, SessionContentsCompressed)
+}
+
+func (s *S3Client) ReadCompressedEvents(ctx context.Context, sessionId int, projectId int, payloadType PayloadType) ([]interface{}, error) {
 	client, bucket := s.getSessionClientAndBucket(sessionId)
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket:                  bucket,
-		Key:                     bucketKey(sessionId, projectId, NetworkResourcesCompressed),
+		Key:                     bucketKey(sessionId, projectId, payloadType),
 		ResponseContentType:     ptr.String(MIME_TYPE_JSON),
 		ResponseContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
 	})
 	if err != nil {
-		// compressed file doesn't exist, fall back to reading uncompressed
-		return s.ReadUncompressedResourcesFromS3(ctx, sessionId, projectId)
+		if strings.Contains(err.Error(), "NoSuchKey") {
+			return []interface{}{}, nil
+		}
+		return nil, err
 	}
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(output.Body)
@@ -804,66 +838,6 @@ func (s *S3Client) ReadResources(ctx context.Context, sessionId int, projectId i
 		return nil, errors.Wrap(err, "error decoding resource data")
 	}
 	return resources, nil
-}
-
-func (s *S3Client) ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	client, bucket := s.getSessionClientAndBucket(sessionId)
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{
-		Bucket:                  bucket,
-		Key:                     bucketKey(sessionId, projectId, WebSocketEventsCompressed),
-		ResponseContentType:     ptr.String(MIME_TYPE_JSON),
-		ResponseContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
-	})
-	if err != nil {
-		// compressed file doesn't exist, fall back to reading uncompressed
-		return s.ReadUncompressedResourcesFromS3(ctx, sessionId, projectId)
-	}
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(output.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
-	}
-	buf, err = decompress(buf)
-	if err != nil {
-		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
-	}
-
-	var webSocketEvents []interface{}
-	if err := json.Unmarshal(buf.Bytes(), &webSocketEvents); err != nil {
-		return nil, errors.Wrap(err, "error decoding web socket event data")
-	}
-	return webSocketEvents, nil
-}
-
-// ReadUncompressedResourcesFromS3 is deprecated. Serves legacy uncompressed network data from S3.
-func (s *S3Client) ReadUncompressedResourcesFromS3(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	client, bucket := s.getSessionClientAndBucket(sessionId)
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: bucket,
-		Key: bucketKey(sessionId, projectId, NetworkResources)})
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting object from s3")
-	}
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(output.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
-	}
-	type resources struct {
-		Resources []interface{}
-	}
-	resourcesSlice := strings.Split(buf.String(), "\n\n\n")
-	var retResources []interface{}
-	for _, e := range resourcesSlice {
-		if e == "" {
-			continue
-		}
-		var tempResources resources
-		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
-			return nil, errors.Wrap(err, "error decoding resource data")
-		}
-		retResources = append(retResources, tempResources.Resources...)
-	}
-	return retResources, nil
 }
 
 func (s *S3Client) ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {
