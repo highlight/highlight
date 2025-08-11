@@ -3,9 +3,8 @@ title: Next.js App Router Guide
 slug: environment
 heading: Next.js App Router Guide
 createdAt: 2023-10-03T00:00:00.000Z
-updatedAt: 2023-10-03T00:00:00.000Z
+updatedAt: 2025-01-21T00:00:00.000Z
 ---
-
 
 <EmbeddedVideo 
   src="https://www.youtube.com/embed/g6mhBMMVdU0"
@@ -15,8 +14,20 @@ updatedAt: 2023-10-03T00:00:00.000Z
 
 ## Installation
 
+
 ```shell
+# with npm
 npm install @highlight-run/next
+```
+
+```shell
+# with yarn
+yarn add @highlight-run/next
+```
+
+```shell
+# with pnpm
+pnpm add @highlight-run/next
 ```
 
 ## Client instrumentation
@@ -141,7 +152,11 @@ function ThrowerOfErrors({
 
 ## Enable server-side tracing
 
-We use `experimental.instrumentationHook` to capture [Next.js's automatic instrumentation](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry). This method captures detailed API route tracing as well as server-side errors.
+We use [`instrumentation.ts`](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation) to configure [Next.js's automatic instrumentation](https://nextjs.org/docs/app/building-your-application/optimizing/open-telemetry). This approach captures detailed API route tracing as well as server-side errors.
+
+```hint
+ If you are using Next.js <15, you need to manually activate the instrumentation.ts file by activating instrumentationHook (an experimental feature). **On Next.js 15+ this is already on by default and you can skip this step.**
+```
 
 1. Enable `experimental.instrumentationHook` in `next.config.js`.
 2. Setup the `withHighlightConfig` wrapper for auto-upload of your [sourcemaps](../../../general/6_product-features/2_error-monitoring/sourcemaps.md). 
