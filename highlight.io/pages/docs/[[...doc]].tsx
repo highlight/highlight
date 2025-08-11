@@ -510,6 +510,7 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 			toc,
 			redirect,
 		},
+		revalidate: 30 * 24 * 60 * 60, // Cache response for 30 days
 	}
 }
 

@@ -275,6 +275,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			competitor: COMPETITORS[slug],
 			sources: sources,
 		},
+		revalidate: 30 * 24 * 60 * 60, // Cache response for 30 days
 	}
 }
 

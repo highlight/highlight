@@ -12,7 +12,10 @@ export async function getStaticProps() {
 	const fileContents = fs.readFileSync(
 		path.join(process.cwd(), 'content', 'privacy.md'),
 	)
-	return { props: { content: fileContents.toString() } }
+	return {
+		props: { content: fileContents.toString() },
+		revalidate: 30 * 24 * 60 * 60, // Cache response for 30 days
+	}
 }
 
 const Privacy = ({ content }: { content: string }) => {

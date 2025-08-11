@@ -165,6 +165,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			previousCase: pageData.previousCase.shift() ?? null,
 			nextCase: pageData.nextCase.shift() ?? null,
 		},
+		revalidate: 30 * 24 * 60 * 60, // Cache response for 30 days
 	}
 }
 
