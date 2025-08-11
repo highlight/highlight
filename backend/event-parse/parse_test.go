@@ -219,6 +219,62 @@ func TestInjectStyleSheets(t *testing.T) {
 	}
 }
 
+func TestInjectStyleSheets_Advanced(t *testing.T) {
+	// Get sample input of events and serialize.
+	fetch = networkFetcher{}
+	inputBytesEvents, err := os.ReadFile("./sample-events/css-inline-events.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
+	}
+	parsedEvents, err := EventsFromString(string(inputBytesEvents))
+	if err != nil {
+		t.Fatalf("error parsing: %v", err)
+	}
+	hostUrl := GetHostUrlFromEvents(parsedEvents.Events)
+
+	inputBytes, err := os.ReadFile("./sample-events/css-inline.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
+	}
+	snapshot, err := NewSnapshot(inputBytes, hostUrl)
+	if err != nil {
+		t.Fatalf("error creating snapshot: %v", err)
+	}
+
+	// Pass sample set to `injectStylesheets` and convert to interface.
+	err = snapshot.InjectStylesheets(context.TODO())
+	if err != nil {
+		t.Fatalf("error injecting: %v", err)
+	}
+
+	gotMsg, err := snapshot.Encode()
+	if err != nil {
+		t.Fatalf("error marshalling: %v", err)
+	}
+
+	var gotInterface interface{}
+	err = json.Unmarshal(gotMsg, &gotInterface)
+	if err != nil {
+		t.Fatalf("error getting interface: %v", err)
+	}
+
+	// Get wanted output of events and serialize.
+	wantBytes, err := os.ReadFile("./sample-events/css-inline-output.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
+	}
+	var wantInterface interface{}
+	err = json.Unmarshal(wantBytes, &wantInterface)
+	if err != nil {
+		t.Fatalf("error getting interface: %v", err)
+	}
+
+	// Compare.
+	if diff := pretty.Compare(gotInterface, wantInterface); diff != "" {
+		t.Errorf("(-got +want)\n%s", diff)
+	}
+}
+
 func TestEscapeJavascript(t *testing.T) {
 	inputBytes, err := os.ReadFile("./sample-events/dom-with-scripts.json")
 	if err != nil {
