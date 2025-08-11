@@ -44,7 +44,7 @@ export const TracesPage = ({
 		skipPolling: true,
 		sortColumn: 'timestamp',
 		sortDirection: SortDirection.Asc,
-		limit: 1_000,
+		limit: 10,
 	})
 
 	const fetchMoreWhenScrolled = useCallback(
