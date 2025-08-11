@@ -269,6 +269,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		props: {
 			feature: FEATURES[slug],
 		},
+		revalidate: 30 * 24 * 60 * 60, // Cache response for 30 days
 	}
 }
 

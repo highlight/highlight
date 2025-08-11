@@ -25,6 +25,7 @@ export const getStaticProps: GetStaticProps = async () => {
 			tags: VALID_TAGS,
 			currentTagSlug: '',
 		},
+		revalidate: 30 * 24 * 60 * 60, // Cache response for 30 days
 	}
 }
 

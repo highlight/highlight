@@ -67,6 +67,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		props: {
 			customers: data.customers,
 		},
+		revalidate: 30 * 24 * 60 * 60, // Cache response for 30 days
 	}
 }
 
