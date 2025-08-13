@@ -192,6 +192,7 @@ export const useResources = (
 		skip: !session?.secure_id,
 		skipPolling: true,
 		limit: 1_000,
+		omitBody: true,
 	})
 
 	const [resources, setResources] = useState<NetworkResourceWithID[]>([])

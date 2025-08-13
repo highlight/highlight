@@ -45,6 +45,7 @@ export const TracesPage = ({
 		sortColumn: 'timestamp',
 		sortDirection: SortDirection.Asc,
 		limit: 1_000,
+		omitBody: true,
 	})
 
 	const fetchMoreWhenScrolled = useCallback(

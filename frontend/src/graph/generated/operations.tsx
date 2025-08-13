@@ -4977,6 +4977,7 @@ export type GetTracesQueryVariables = Types.Exact<{
 	at?: Types.Maybe<Types.Scalars['String']>
 	direction: Types.SortDirection
 	limit?: Types.Maybe<Types.Scalars['Int']>
+	omitBody?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetTracesQuery = { __typename?: 'Query' } & {

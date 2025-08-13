@@ -1192,7 +1192,7 @@ type ComplexityRoot struct {
 		TimelineIndicatorEvents          func(childComplexity int, sessionSecureID string) int
 		TopUsers                         func(childComplexity int, projectID int, lookbackDays float64) int
 		Trace                            func(childComplexity int, projectID int, traceID string, timestamp time.Time, sessionSecureID *string) int
-		Traces                           func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection, limit *int) int
+		Traces                           func(childComplexity int, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection, limit *int, omitBody *bool) int
 		TracesIntegration                func(childComplexity int, projectID int) int
 		TracesKeyValues                  func(childComplexity int, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int) int
 		TracesKeys                       func(childComplexity int, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) int
@@ -2088,7 +2088,7 @@ type QueryResolver interface {
 	ErrorTags(ctx context.Context) ([]*model1.ErrorTag, error)
 	MatchErrorTag(ctx context.Context, query string) ([]*model.MatchedErrorTag, error)
 	Trace(ctx context.Context, projectID int, traceID string, timestamp time.Time, sessionSecureID *string) (*model.TracePayload, error)
-	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection, limit *int) (*model.TraceConnection, error)
+	Traces(ctx context.Context, projectID int, params model.QueryInput, after *string, before *string, at *string, direction model.SortDirection, limit *int, omitBody *bool) (*model.TraceConnection, error)
 	TracesMetrics(ctx context.Context, projectID int, params model.QueryInput, sql *string, column *string, metricTypes []model.MetricAggregator, groupBy []string, bucketBy *string, bucketCount *int, bucketWindow *int, limit *int, limitAggregator *model.MetricAggregator, limitColumn *string, expressions []*model.MetricExpressionInput) (*model.MetricsBuckets, error)
 	TracesKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput, query *string, typeArg *model.KeyType) ([]*model.QueryKey, error)
 	TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput, query *string, count *int) ([]string, error)
@@ -9067,7 +9067,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Traces(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["after"].(*string), args["before"].(*string), args["at"].(*string), args["direction"].(model.SortDirection), args["limit"].(*int)), true
+		return e.complexity.Query.Traces(childComplexity, args["project_id"].(int), args["params"].(model.QueryInput), args["after"].(*string), args["before"].(*string), args["at"].(*string), args["direction"].(model.SortDirection), args["limit"].(*int), args["omitBody"].(*bool)), true
 
 	case "Query.tracesIntegration":
 		if e.complexity.Query.TracesIntegration == nil {
@@ -14707,6 +14707,7 @@ type Query {
 		at: String
 		direction: SortDirection!
 		limit: Int
+		omitBody: Boolean
 	): TraceConnection!
 	# deprecated - use ` + "`" + `metrics` + "`" + ` instead
 	traces_metrics(
@@ -23141,6 +23142,15 @@ func (ec *executionContext) field_Query_traces_args(ctx context.Context, rawArgs
 		}
 	}
 	args["limit"] = arg6
+	var arg7 *bool
+	if tmp, ok := rawArgs["omitBody"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("omitBody"))
+		arg7, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["omitBody"] = arg7
 	return args, nil
 }
 
@@ -66684,7 +66694,7 @@ func (ec *executionContext) _Query_traces(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Traces(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["at"].(*string), fc.Args["direction"].(model.SortDirection), fc.Args["limit"].(*int))
+		return ec.resolvers.Query().Traces(rctx, fc.Args["project_id"].(int), fc.Args["params"].(model.QueryInput), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["at"].(*string), fc.Args["direction"].(model.SortDirection), fc.Args["limit"].(*int), fc.Args["omitBody"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

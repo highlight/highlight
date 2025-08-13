@@ -118,6 +118,7 @@ export const TracesPage: React.FC = () => {
 		skipPolling,
 		sortColumn: sortColumn || undefined,
 		sortDirection: sortDirection as SortDirection,
+		omitBody: true,
 	})
 
 	const [

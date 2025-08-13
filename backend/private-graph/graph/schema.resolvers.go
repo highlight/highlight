@@ -9389,7 +9389,7 @@ func (r *queryResolver) Trace(ctx context.Context, projectID int, traceID string
 }
 
 // Traces is the resolver for the traces field.
-func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection, limit *int) (*modelInputs.TraceConnection, error) {
+func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection, limit *int, omitBody *bool) (*modelInputs.TraceConnection, error) {
 	project, err := r.isUserInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -9401,7 +9401,7 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 		At:        at,
 		Direction: direction,
 		Limit:     limit,
-	})
+	}, omitBody)
 }
 
 // TracesMetrics is the resolver for the traces_metrics field.
