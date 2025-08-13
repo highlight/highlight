@@ -174,7 +174,7 @@ func TestReadTracesWithEnvironmentFilter(t *testing.T) {
 	payload, err := client.ReadTraces(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "environment:production",
-	}, Pagination{})
+	}, Pagination{}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 10)
 	if len(payload.Edges) > 0 {
@@ -184,7 +184,7 @@ func TestReadTracesWithEnvironmentFilter(t *testing.T) {
 	payload, err = client.ReadTraces(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "environment:*dev*",
-	}, Pagination{})
+	}, Pagination{}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 10)
 	if len(payload.Edges) > 0 {
@@ -194,7 +194,7 @@ func TestReadTracesWithEnvironmentFilter(t *testing.T) {
 	payload, err = client.ReadTraces(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 		Query:     "environment:(production OR development)",
-	}, Pagination{})
+	}, Pagination{}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 20)
 }
@@ -220,7 +220,7 @@ func TestReadTracesWithSorting(t *testing.T) {
 			Column:    "duration",
 			Direction: "DESC",
 		},
-	}, Pagination{})
+	}, Pagination{}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 3)
 
@@ -235,7 +235,7 @@ func TestReadTracesWithSorting(t *testing.T) {
 			Column:    "host.name",
 			Direction: "DESC",
 		},
-	}, Pagination{})
+	}, Pagination{}, nil)
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 3)
 

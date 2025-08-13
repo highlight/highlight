@@ -377,7 +377,7 @@ func mergeAttributes(result ClickhouseTraceRow) map[string]string {
 	return allAttributes
 }
 
-func (client *Client) ReadTraces(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.TraceConnection, error) {
+func (client *Client) ReadTraces(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination, omitBody *bool) (*modelInputs.TraceConnection, error) {
 	scanTrace := func(rows driver.Rows) (*Edge[modelInputs.Trace], error) {
 		var result ClickhouseTraceRow
 		if err := rows.ScanStruct(&result); err != nil {
@@ -385,6 +385,12 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 		}
 
 		allAttributes := mergeAttributes(result)
+
+		// Remove http.response.body and http.request.body if omitBody is true
+		if omitBody != nil && *omitBody {
+			delete(allAttributes, HttpRequestBodyKey)
+			delete(allAttributes, HttpResponseBodyKey)
+		}
 
 		return &Edge[modelInputs.Trace]{
 			Cursor: encodeCursor(result.Timestamp, result.UUID),

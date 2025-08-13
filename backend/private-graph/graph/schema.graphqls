@@ -2558,6 +2558,7 @@ type Query {
 		at: String
 		direction: SortDirection!
 		limit: Int
+		omitBody: Boolean
 	): TraceConnection!
 	# deprecated - use `metrics` instead
 	traces_metrics(
