@@ -1,13 +1,6 @@
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
-import {
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-	Fragment,
-	useMemo,
-} from 'react'
+import { useCallback, useEffect, useRef, useState, Fragment } from 'react'
 import { BiChevronLeft, BiChevronRight } from 'react-icons/bi'
 import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa'
 import {
@@ -54,10 +47,6 @@ import ChevronDown from '../../public/images/ChevronDownIcon'
 import Minus from '../../public/images/MinusIcon'
 import { readMarkdown, removeOrderingPrefix } from '../../shared/doc'
 import Image from 'next/image'
-import {
-	useDocOptions,
-	DocLink as DocLinkType,
-} from '../../hooks/useDocOptions'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 const DOCS_GITHUB_LINK = `github.com/highlight/highlight/blob/main/docs-content`
@@ -80,7 +69,12 @@ export interface DocPath {
 	content: string
 }
 
-type DocLink = DocLinkType
+type DocLink = {
+	metadata: any
+	simple_path: string
+	array_path: string[]
+	hasContent: boolean
+}
 
 type DocData = {
 	markdownText: MDXRemoteSerializeResult | null
@@ -535,19 +529,16 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 			slug: currentDoc.simple_path,
 			relPath: currentDoc.rel_path,
 			docIndex: currentDocIndex,
-			// Only include minimal doc options for the current page in SSR
-			// Full list will be fetched client-side to reduce ISR payload size
-			docOptions:
-				currentDocIndex >= 0
-					? [
-							{
-								metadata: currentDoc.metadata,
-								simple_path: currentDoc.simple_path,
-								array_path: currentDoc.array_path,
-								hasContent: currentDoc.content != '',
-							},
-						]
-					: [],
+			// Include all doc options for now to fix build error
+			// TODO: Optimize this later with proper fallback handling
+			docOptions: docPaths.map((d) => {
+				return {
+					metadata: d.metadata,
+					simple_path: d.simple_path,
+					array_path: d.array_path,
+					hasContent: d.content != '',
+				}
+			}),
 			isSdkDoc: currentDoc.isSdkDoc,
 			toc,
 			redirect,
@@ -890,14 +881,9 @@ export default function DocPage({
 	const [open, setOpen] = useState(false)
 	const closeMenu = useCallback(() => setOpen(false), [])
 
-	// Fetch full doc options client-side to reduce ISR payload
-	const { docOptions, loading: docOptionsLoading } =
-		useDocOptions(initialDocOptions)
-
-	// Use memoized doc options for navigation
-	const navigationDocOptions = useMemo(() => {
-		return docOptions.length > 0 ? docOptions : initialDocOptions
-	}, [docOptions, initialDocOptions])
+	// For now, just use the initial doc options directly
+	// The optimization of reducing payload size can be added later
+	const navigationDocOptions = initialDocOptions
 
 	const isQuickstart = metadata && 'quickstart' in metadata
 

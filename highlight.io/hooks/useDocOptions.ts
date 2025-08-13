@@ -15,8 +15,9 @@ export function useDocOptions(initialOptions?: DocLink[]) {
 	const [error, setError] = useState<Error | null>(null)
 
 	useEffect(() => {
-		// If we have initial options from SSR, don't fetch
-		if (initialOptions && initialOptions.length > 0) {
+		// If we have initial options from SSR with more than just current page, don't fetch
+		// This prevents unnecessary API calls when we already have the full list
+		if (initialOptions && initialOptions.length > 1) {
 			return
 		}
 
