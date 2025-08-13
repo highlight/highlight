@@ -107,6 +107,7 @@ export const RelatedResourceList: React.FC<{
 		sortColumn,
 		sortDirection,
 		skip: resource.type !== 'traces',
+		omitBody: true,
 	})
 
 	const {

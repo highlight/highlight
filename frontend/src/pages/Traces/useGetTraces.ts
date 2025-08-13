@@ -22,6 +22,7 @@ export const useGetTraces = ({
 	sortDirection = Types.SortDirection.Desc,
 	skip,
 	limit,
+	omitBody,
 }: {
 	query: string
 	projectId: string | undefined
@@ -33,6 +34,7 @@ export const useGetTraces = ({
 	sortDirection?: Types.SortDirection
 	skip?: boolean
 	limit?: number
+	omitBody?: boolean
 }) => {
 	const [loadingAfter, setLoadingAfter] = useState(false)
 
@@ -53,6 +55,7 @@ export const useGetTraces = ({
 					direction: sortDirection,
 				},
 			},
+			omitBody,
 		},
 		fetchPolicy: 'cache-and-network',
 		skip,
@@ -105,6 +108,7 @@ export const useGetTraces = ({
 				project_id: projectId!,
 				at: traceCursor,
 				direction: sortDirection,
+				omitBody,
 				params: {
 					query,
 					date_range: {
@@ -126,6 +130,7 @@ export const useGetTraces = ({
 				traceResultMetadata.endDate,
 				sortColumn,
 				sortDirection,
+				omitBody,
 			],
 		),
 		moreDataQuery,
@@ -141,7 +146,7 @@ export const useGetTraces = ({
 		debounce(
 			async (cursor: string) => {
 				await fetchMore({
-					variables: { after: cursor },
+					variables: { after: cursor, omitBody },
 					updateQuery: (prevResult, { fetchMoreResult }) => {
 						return {
 							traces: {
@@ -167,7 +172,7 @@ export const useGetTraces = ({
 			300,
 			{ leading: true, trailing: false },
 		),
-		[fetchMore],
+		[fetchMore, omitBody],
 	)
 
 	const fetchMoreForward = useCallback(async () => {

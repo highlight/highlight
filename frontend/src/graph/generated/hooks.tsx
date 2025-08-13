@@ -14364,6 +14364,7 @@ export const GetTracesDocument = gql`
 		$at: String
 		$direction: SortDirection!
 		$limit: Int
+		$omitBody: Boolean
 	) {
 		traces(
 			project_id: $project_id
@@ -14373,6 +14374,7 @@ export const GetTracesDocument = gql`
 			at: $at
 			direction: $direction
 			limit: $limit
+			omitBody: $omitBody
 		) {
 			edges {
 				cursor
@@ -14431,6 +14433,7 @@ export const GetTracesDocument = gql`
  *      at: // value for 'at'
  *      direction: // value for 'direction'
  *      limit: // value for 'limit'
+ *      omitBody: // value for 'omitBody'
  *   },
  * });
  */
