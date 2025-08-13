@@ -243,7 +243,7 @@ export const getDocsPaths = async (
 	return paths
 }
 
-function sortBySlashLength(docPaths: DocPath[]): DocPath[] {
+export function sortBySlashLength(docPaths: DocPath[]): DocPath[] {
 	let trees: any[] = []
 	let dataIndice: any = {}
 	for (let key in docPaths) {
@@ -310,13 +310,44 @@ function sortBySlashLength(docPaths: DocPath[]): DocPath[] {
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	const docPaths = sortBySlashLength(await getDocsPaths(fsp, undefined))
-	const staticPaths = [...docPaths].map((p) => {
-		const joined = path.join('/docs', p.simple_path)
-		return joined
-	})
+
+	// Define hot paths that should be pre-rendered at build time
+	// These are the most commonly visited documentation pages
+	const hotPaths = [
+		'', // docs index
+		'general/welcome',
+		'general/getting-started',
+		'getting-started/overview',
+		'getting-started/frontend-backend-mapping',
+		'sdk/client',
+		'sdk/nextjs',
+		'sdk/nodejs',
+		'sdk/python',
+		'sdk/go',
+		'sdk/java',
+		'sdk/ruby',
+		'sdk/cloudflare',
+		'sdk/hono',
+		'sdk/rust',
+	]
+
+	// Filter to only pre-render hot paths at build time
+	const staticPaths = docPaths
+		.filter(
+			(p) =>
+				hotPaths.includes(p.simple_path) ||
+				p.simple_path.startsWith('general/'),
+		)
+		.map((p) => {
+			const joined = path.join('/docs', p.simple_path)
+			return joined
+		})
+
 	return {
 		paths: staticPaths,
-		fallback: false,
+		// Use 'blocking' fallback for non-pre-rendered pages
+		// This allows on-demand ISR for the long tail of docs
+		fallback: 'blocking',
 	}
 }
 
@@ -498,6 +529,8 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 			slug: currentDoc.simple_path,
 			relPath: currentDoc.rel_path,
 			docIndex: currentDocIndex,
+			// Include all doc options for now to fix build error
+			// TODO: Optimize this later with proper fallback handling
 			docOptions: docPaths.map((d) => {
 				return {
 					metadata: d.metadata,
@@ -510,7 +543,8 @@ export const getStaticProps: GetStaticProps<DocData> = async (context) => {
 			toc,
 			redirect,
 		},
-		revalidate: 30 * 24 * 60 * 60, // Cache response for 30 days
+		// Remove time-based revalidation - docs only change when source changes
+		// Use on-demand revalidation via webhook or manual trigger instead
 	}
 }
 
@@ -839,13 +873,17 @@ export default function DocPage({
 	isSdkDoc,
 	docIndex,
 	redirect,
-	docOptions,
+	docOptions: initialDocOptions,
 	metadata,
 }: DocData) {
 	const blogBody = useRef<HTMLDivElement>(null)
 	const router = useRouter()
 	const [open, setOpen] = useState(false)
 	const closeMenu = useCallback(() => setOpen(false), [])
+
+	// For now, just use the initial doc options directly
+	// The optimization of reducing payload size can be added later
+	const navigationDocOptions = initialDocOptions
 
 	const isQuickstart = metadata && 'quickstart' in metadata
 
@@ -911,7 +949,7 @@ export default function DocPage({
 										key={t.docPathId}
 										toc={t}
 										openParent={true}
-										docPaths={docOptions}
+										docPaths={navigationDocOptions}
 									/>
 								)
 							})
@@ -952,7 +990,7 @@ export default function DocPage({
 									<TableOfContents
 										key={t.docPathId}
 										toc={t}
-										docPaths={docOptions}
+										docPaths={navigationDocOptions}
 										openParent={false}
 										openTopLevel={false}
 										onNavigate={closeMenu}
@@ -977,7 +1015,7 @@ export default function DocPage({
 							{!isSdkDoc &&
 								getBreadcrumbs(
 									metadata,
-									docOptions,
+									navigationDocOptions,
 									docIndex,
 								).map((breadcrumb, i) =>
 									i === 0 ? (
@@ -1188,11 +1226,11 @@ export default function DocPage({
 							</>
 						)}
 						<div className={styles.pageNavigateRow}>
-							{docIndex > 0 ? (
+							{docIndex > 0 && navigationDocOptions.length > 0 ? (
 								<Link
 									href={
-										docOptions[docIndex - 1]?.simple_path ??
-										''
+										navigationDocOptions[docIndex - 1]
+											?.simple_path ?? ''
 									}
 									passHref
 									className={styles.pageNavigate}
@@ -1200,27 +1238,28 @@ export default function DocPage({
 									<BiChevronLeft />
 									<Typography type="copy2">
 										{
-											docOptions[docIndex - 1]?.metadata
-												.title
+											navigationDocOptions[docIndex - 1]
+												?.metadata.title
 										}
 									</Typography>
 								</Link>
 							) : (
 								<div></div>
 							)}
-							{docIndex < docOptions?.length - 1 ? (
+							{docIndex < navigationDocOptions?.length - 1 &&
+							navigationDocOptions.length > 0 ? (
 								<Link
 									href={
-										docOptions[docIndex + 1]?.simple_path ??
-										''
+										navigationDocOptions[docIndex + 1]
+											?.simple_path ?? ''
 									}
 									passHref
 									className={styles.pageNavigate}
 								>
 									<Typography type="copy2">
 										{
-											docOptions[docIndex + 1].metadata
-												.title
+											navigationDocOptions[docIndex + 1]
+												.metadata.title
 										}
 									</Typography>
 									<BiChevronRight />
