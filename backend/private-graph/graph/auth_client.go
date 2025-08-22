@@ -45,6 +45,7 @@ type PasswordAuthClient struct{}
 
 type FirebaseAuthClient struct {
 	authClient *auth.Client
+	store      *store.Store
 }
 type OAuthClient struct {
 	domains      []string
@@ -96,7 +97,7 @@ func NewCloudAuthClient(ctx context.Context, store *store.Store) (*CloudAuthClie
 		return nil, err
 	}
 	return &CloudAuthClient{
-		firebaseClient: NewFirebaseClient(ctx),
+		firebaseClient: NewFirebaseClient(ctx, store),
 		oauthClient:    oauthClient,
 	}, nil
 }
@@ -255,6 +256,14 @@ func (c *FirebaseAuthClient) updateContextWithAuthenticatedUser(ctx context.Cont
 	}
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, uid)
 	ctx = context.WithValue(ctx, model.ContextKeys.Email, email)
+	
+	// Update admin last activity
+	if uid != "" {
+		if err := UpdateAdminLastActivityDB(ctx, c.store.DB, uid); err != nil {
+			log.WithContext(ctx).WithError(err).Warn("failed to update admin last activity")
+		}
+	}
+	
 	return ctx, nil
 }
 
@@ -547,6 +556,12 @@ func (c *OAuthAuthClient) updateContextWithAuthenticatedUser(ctx context.Context
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, claims.Subject)
 	ctx = context.WithValue(ctx, model.ContextKeys.Email, claims.Email)
 	ctx = context.WithValue(ctx, model.ContextKeys.SSOClientID, clientID)
+	
+	// Update admin last activity
+	if err := UpdateAdminLastActivityDB(ctx, c.store.DB, claims.Subject); err != nil {
+		log.WithContext(ctx).WithError(err).Warn("failed to update admin last activity")
+	}
+	
 	return ctx, nil
 }
 
@@ -614,7 +629,7 @@ func (c *OAuthAuthClient) getUser(ctx context.Context, uid string) (*auth.UserRe
 	return &userInfo, nil
 }
 
-func NewFirebaseClient(ctx context.Context) *FirebaseAuthClient {
+func NewFirebaseClient(ctx context.Context, store *store.Store) *FirebaseAuthClient {
 	secret := env.Config.AuthFirebaseSecret
 	creds, err := google.CredentialsFromJSON(ctx, []byte(secret),
 		"https://www.googleapis.com/auth/firebase",
@@ -635,7 +650,7 @@ func NewFirebaseClient(ctx context.Context) *FirebaseAuthClient {
 		log.WithContext(ctx).Errorf("error creating firebase client: %v", err)
 		return nil
 	}
-	return &FirebaseAuthClient{authClient: client}
+	return &FirebaseAuthClient{authClient: client, store: store}
 }
 
 func NewOAuthClient(ctx context.Context, store *store.Store) (*OAuthAuthClient, error) {

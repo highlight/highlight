@@ -253,6 +253,7 @@ query GetWorkspaceAdminsByProjectId($project_id: ID!) {
 			name
 			email
 			photo_url
+			updated_at
 		}
 		role
 		projectIds
@@ -267,6 +268,7 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
 			name
 			email
 			photo_url
+			updated_at
 		}
 		role
 		projectIds

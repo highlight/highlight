@@ -185,7 +185,7 @@ export const RoleOptions: Option[] = [
 	},
 ]
 
-const GRID_COLUMNS = ['3fr', '3fr', 'auto', '1fr', '30px']
+const GRID_COLUMNS = ['3fr', '3fr', 'auto', '1fr', '2fr', '30px']
 
 const DISABLED_REASON_NOT_ADMIN =
 	'You must have Admin role to update user access.'
@@ -267,6 +267,7 @@ const AllMembers = ({
 					<Table.Header>Email</Table.Header>
 					<Table.Header>Project Access</Table.Header>
 					<Table.Header>Role</Table.Header>
+					<Table.Header>Last Active</Table.Header>
 					<Table.Header></Table.Header>
 				</Table.Row>
 			</Table.Head>
@@ -401,6 +402,19 @@ const AllMembers = ({
 											)
 									}}
 								/>
+							</Table.Cell>
+							<Table.Cell>
+								<Text color="moderate" size="xSmall" lines="1">
+									{admin.updated_at
+										? new Date(admin.updated_at).toLocaleDateString('en-US', {
+												year: 'numeric',
+												month: 'short',
+												day: 'numeric',
+												hour: '2-digit',
+												minute: '2-digit',
+											})
+										: 'Never'}
+								</Text>
 							</Table.Cell>
 							<Table.Cell padding="0">
 								<Menu>
