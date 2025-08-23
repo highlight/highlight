@@ -12,6 +12,8 @@ import {
 	ComboboxSelect,
 	IconSolidCheveronDown,
 	IconSolidDotsHorizontal,
+	IconSolidSortAscending,
+	IconSolidSortDescending,
 	IconSolidXCircle,
 	Menu,
 	Stack,
@@ -21,7 +23,7 @@ import {
 } from '@highlight-run/ui/components'
 import { getDisplayNameFromEmail } from '@util/string'
 import clsx from 'clsx'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
 import { toast } from '@/components/Toaster'
@@ -215,6 +217,65 @@ const AllMembers = ({
 		skip: !workspaceId,
 	})
 
+	// Sorting state
+	const [sortColumn, setSortColumn] = useState<string | null>(null)
+	const [sortAsc, setSortAsc] = useState(true)
+
+	// Sort handler
+	const handleSort = (column: string) => {
+		if (sortColumn === column) {
+			setSortAsc(!sortAsc)
+		} else {
+			setSortColumn(column)
+			setSortAsc(true)
+		}
+	}
+
+	// Sorted admins
+	const sortedAdmins = useMemo(() => {
+		if (!admins || !sortColumn) {
+			return admins
+		}
+
+		const sorted = [...admins].sort((a, b) => {
+			let aValue: any = null
+			let bValue: any = null
+
+			switch (sortColumn) {
+				case 'name':
+					aValue =
+						a.admin.name || getDisplayNameFromEmail(a.admin.email)
+					bValue =
+						b.admin.name || getDisplayNameFromEmail(b.admin.email)
+					break
+				case 'email':
+					aValue = a.admin.email
+					bValue = b.admin.email
+					break
+				case 'role':
+					aValue = a.role
+					bValue = b.role
+					break
+				case 'lastActive':
+					aValue = a.admin.updated_at
+						? new Date(a.admin.updated_at).getTime()
+						: 0
+					bValue = b.admin.updated_at
+						? new Date(b.admin.updated_at).getTime()
+						: 0
+					break
+				default:
+					return 0
+			}
+
+			if (aValue < bValue) return sortAsc ? -1 : 1
+			if (aValue > bValue) return sortAsc ? 1 : -1
+			return 0
+		})
+
+		return sorted
+	}, [admins, sortColumn, sortAsc])
+
 	const canUpdateProjects =
 		workspaceSettings?.workspaceSettings?.enable_project_level_access ??
 		false
@@ -259,20 +320,69 @@ const AllMembers = ({
 		return <LoadingBox />
 	}
 
+	const getSortIcon = (column: string) => {
+		if (sortColumn !== column) return null
+		return sortAsc ? (
+			<IconSolidSortAscending size={14} />
+		) : (
+			<IconSolidSortDescending size={14} />
+		)
+	}
+
 	return (
 		<Table noBorder>
 			<Table.Head>
 				<Table.Row gridColumns={GRID_COLUMNS}>
-					<Table.Header>User</Table.Header>
-					<Table.Header>Email</Table.Header>
+					<Table.Header onClick={() => handleSort('name')}>
+						<Stack
+							direction="row"
+							width="full"
+							justifyContent="space-between"
+							alignItems="center"
+						>
+							<Text>User</Text>
+							{getSortIcon('name')}
+						</Stack>
+					</Table.Header>
+					<Table.Header onClick={() => handleSort('email')}>
+						<Stack
+							direction="row"
+							width="full"
+							justifyContent="space-between"
+							alignItems="center"
+						>
+							<Text>Email</Text>
+							{getSortIcon('email')}
+						</Stack>
+					</Table.Header>
 					<Table.Header>Project Access</Table.Header>
-					<Table.Header>Role</Table.Header>
-					<Table.Header>Last Active</Table.Header>
+					<Table.Header onClick={() => handleSort('role')}>
+						<Stack
+							direction="row"
+							width="full"
+							justifyContent="space-between"
+							alignItems="center"
+						>
+							<Text>Role</Text>
+							{getSortIcon('role')}
+						</Stack>
+					</Table.Header>
+					<Table.Header onClick={() => handleSort('lastActive')}>
+						<Stack
+							direction="row"
+							width="full"
+							justifyContent="space-between"
+							alignItems="center"
+						>
+							<Text>Last Active</Text>
+							{getSortIcon('lastActive')}
+						</Stack>
+					</Table.Header>
 					<Table.Header></Table.Header>
 				</Table.Row>
 			</Table.Head>
 			<Table.Body>
-				{admins?.map((wa) => {
+				{sortedAdmins?.map((wa) => {
 					const admin = wa.admin
 					const role = wa.role
 					const projectIds = wa.projectIds
@@ -406,7 +516,9 @@ const AllMembers = ({
 							<Table.Cell>
 								<Text color="moderate" size="xSmall" lines="1">
 									{admin.updated_at
-										? new Date(admin.updated_at).toLocaleDateString('en-US', {
+										? new Date(
+												admin.updated_at,
+											).toLocaleDateString('en-US', {
 												year: 'numeric',
 												month: 'short',
 												day: 'numeric',
