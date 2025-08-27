@@ -302,7 +302,6 @@ export const NetworkPage = ({
 										}
 										searchTerm={filter}
 										onClickHandler={() => {
-											console.log('Resource', resource)
 											set({
 												type: 'trace',
 												id: resource.traceId,
