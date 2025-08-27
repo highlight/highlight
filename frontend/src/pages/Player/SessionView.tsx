@@ -31,7 +31,6 @@ import React, { RefObject, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { useNumericProjectId } from '@/hooks/useProjectId'
-import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
 import { NewCommentModal } from '@/pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { useResizePlayer } from '@/pages/Player/utils/utils'
@@ -205,7 +204,6 @@ export const SessionView: React.FC<SessionViewProps> = ({
 							<DevToolsWindowV2 width={controllerWidth} />
 						</div>
 						{!isPlayerFullscreen && <RightPlayerPanel />}
-						<NetworkResourcePanel />
 					</Box>
 				</Box>
 			</div>

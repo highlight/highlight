@@ -31,6 +31,10 @@ interface NetworkResource extends PerformanceResourceTiming {
 	// websocket specific
 	socketId?: string
 	type?: 'open' | 'close'
+	// trace attributes
+	traceId: string
+	spanId: string
+	traceTimestamp: string
 }
 
 export type NetworkResourceWithID = { id: number } & NetworkResource
@@ -77,7 +81,7 @@ const buildResources = (traces: TraceEdge[]) => {
 			decodedBodySize: Number(
 				trace.node.traceAttributes.http?.response_content_length,
 			),
-			name: trace.node.traceAttributes.http?.url,
+			name: trace.node.spanName,
 			initiatorType:
 				trace.node.traceAttributes.initiator_type ||
 				(requestBody || responseBody ? 'fetch' : 'other'),
@@ -106,6 +110,9 @@ const buildResources = (traces: TraceEdge[]) => {
 			type:
 				trace.node.traceAttributes.ws?.type ||
 				trace.node.traceAttributes.http?.type,
+			traceId: trace.node.traceID,
+			spanId: trace.node.spanID,
+			traceTimestamp: new Date(trace.node.timestamp).toISOString(),
 		} as unknown as NetworkResource
 		if (
 			resource.initiatorType === RequestType.WebSocket &&

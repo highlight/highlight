@@ -20,7 +20,6 @@ import {
 	ResourcesContextProvider,
 	useResources,
 } from '@/pages/Player/ResourcesContext/ResourcesContext'
-import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import {
 	SessionCurrentUrl,
 	SessionViewportMetadata,
@@ -179,7 +178,6 @@ const SessionPanelBase: React.FC<{
 							</Box>
 							<DevToolsWindowV2 width={controllerWidth} />
 						</div>
-						<NetworkResourcePanel />
 					</Box>
 				) : (
 					<SessionFiller
