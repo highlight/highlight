@@ -38,9 +38,9 @@ import {
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { ErrorObject } from '@/graph/generated/schemas'
-import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 import { styledVerticalScrollbar } from '@/style/common.css'
 import analytics from '@/util/analytics'
+import { useRelatedResource } from '@/components/RelatedResources/hooks'
 
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter'
 import Tooltip from '../../../../../components/Tooltip/Tooltip'
@@ -65,7 +65,7 @@ export const NetworkPage = ({
 		useReplayerContext()
 	const startTime = sessionMetadata.startTime
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
-	const { setActiveNetworkResourceId } = useActiveNetworkResourceId()
+	const { set } = useRelatedResource()
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
 
@@ -302,13 +302,14 @@ export const NetworkPage = ({
 										}
 										searchTerm={filter}
 										onClickHandler={() => {
-											setActiveNetworkResourceId(
-												resource.id,
-											)
+											set({
+												type: 'trace',
+												id: resource.traceId,
+												timestamp:
+													resource.traceTimestamp,
+												spanID: resource.spanId,
+											})
 										}}
-										setActiveNetworkResourceId={
-											setActiveNetworkResourceId
-										}
 										setTime={setTime}
 										playerStartTime={startTime}
 										errors={requestErrors}
@@ -348,7 +349,6 @@ interface ResourceRowProps {
 	startedInThePast: boolean
 	searchTerm: string
 	onClickHandler: () => void
-	setActiveNetworkResourceId: (resource: number | undefined) => void
 	setTime: (time: number) => void
 	networkRequestAndResponseRecordingEnabled: boolean
 	playerStartTime: number
@@ -363,7 +363,6 @@ const ResourceRow = ({
 	startedInThePast,
 	searchTerm,
 	onClickHandler,
-	setActiveNetworkResourceId,
 	networkRequestAndResponseRecordingEnabled,
 	setTime,
 	errors,
@@ -376,8 +375,6 @@ const ResourceRow = ({
 	)
 	const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent
 
-	const { activeNetworkResourceId } = useActiveNetworkResourceId()
-	const showingDetails = activeNetworkResourceId === resource.id
 	const responseStatus = resource.requestResponsePairs?.response.status
 	const bodyErrors = hasErrorsInBody(resource)
 
@@ -402,14 +399,9 @@ const ResourceRow = ({
 				cssClass={styles.networkRowVariants({
 					current: isCurrentResource,
 					failedResource: hasError,
-					showingDetails,
 				})}
 			>
-				<Text
-					size="small"
-					weight={showingDetails ? 'bold' : 'medium'}
-					lines="1"
-				>
+				<Text size="small" weight="medium" lines="1">
 					{reponseStatuscode === 'Unknown' ? (
 						<UnknownRequestStatusCode
 							networkRequestAndResponseRecordingEnabled={
@@ -420,11 +412,7 @@ const ResourceRow = ({
 						reponseStatuscode
 					)}
 				</Text>
-				<Text
-					size="small"
-					weight={showingDetails ? 'bold' : 'medium'}
-					lines="1"
-				>
+				<Text size="small" weight="medium" lines="1">
 					{getNetworkResourcesDisplayName(resource.initiatorType)}
 				</Text>
 				<Tooltip title={resource.displayName || resource.name}>
@@ -435,16 +423,12 @@ const ResourceRow = ({
 						textToHighlight={resource.displayName || resource.name}
 					/>
 				</Tooltip>
-				<Text
-					size="small"
-					weight={showingDetails ? 'bold' : 'medium'}
-					lines="1"
-				>
+				<Text size="small" weight="medium" lines="1">
 					{showPlayerAbsoluteTime
 						? moment(resource.timestamp).format('h:mm:ss A')
 						: MillisToMinutesAndSeconds(resource.relativeStartTime)}
 				</Text>
-				<Text size="small" weight={showingDetails ? 'bold' : 'medium'}>
+				<Text size="small" weight="medium">
 					{!!resource.duration
 						? formatTime(resource.duration)
 						: 'N/A'}
@@ -477,7 +461,6 @@ const ResourceRow = ({
 					onClick={(event) => {
 						event.stopPropagation() // prevent panel from closing when clicking a resource
 						setTime(resource.relativeStartTime)
-						setActiveNetworkResourceId(resource.id)
 					}}
 				>
 					<IconSolidArrowCircleRight />

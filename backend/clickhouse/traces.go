@@ -386,10 +386,14 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 
 		allAttributes := mergeAttributes(result)
 
-		// Remove http.response.body and http.request.body if omitBody is true
+		// Remove bodies with placeholder to improve performance but still signify that it exists
 		if omitBody != nil && *omitBody {
-			delete(allAttributes, HttpRequestBodyKey)
-			delete(allAttributes, HttpResponseBodyKey)
+			if allAttributes[HttpRequestBodyKey] != "" {
+				allAttributes[HttpResponseBodyKey] = "placeholder"
+			}
+			if allAttributes[HttpResponseBodyKey] != "" {
+				allAttributes[HttpRequestBodyKey] = "placeholder"
+			}
 		}
 
 		return &Edge[modelInputs.Trace]{
