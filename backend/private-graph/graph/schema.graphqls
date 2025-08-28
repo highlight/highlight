@@ -1529,6 +1529,7 @@ type Admin {
 	heard_about: String
 	about_you_details_filled: Boolean
 	user_defined_persona: String
+	updated_at: Timestamp
 }
 
 type WorkspaceAdminRole {

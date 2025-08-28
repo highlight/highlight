@@ -65,6 +65,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/v78/client"
 	_ "github.com/urfave/cli/v2"
+	"github.com/vektah/gqlparser/v2/ast"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
@@ -494,9 +495,9 @@ func main() {
 			privateServer.AddTransport(transport.GET{})
 			privateServer.AddTransport(transport.POST{})
 			privateServer.AddTransport(transport.MultipartForm{})
-			privateServer.SetQueryCache(lru.New(1000))
+			privateServer.SetQueryCache(lru.New[*ast.QueryDocument](1000))
 			privateServer.Use(extension.AutomaticPersistedQuery{
-				Cache: lru.New(10000),
+				Cache: lru.New[string](10000),
 			})
 			privateServer.Use(private.NewGraphqlOAuthValidator(privateResolver.Store))
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
@@ -555,9 +556,9 @@ func main() {
 			publicServer.AddTransport(transport.GET{})
 			publicServer.AddTransport(transport.POST{})
 			publicServer.AddTransport(transport.MultipartForm{})
-			publicServer.SetQueryCache(lru.New(1000))
+			publicServer.SetQueryCache(lru.New[*ast.QueryDocument](1000))
 			publicServer.Use(extension.AutomaticPersistedQuery{
-				Cache: lru.New(100),
+				Cache: lru.New[string](100),
 			})
 
 			publicServer.Use(htrace.NewGraphqlTracer(string(util.PublicGraph)))
