@@ -104,7 +104,7 @@ const RETENTION_MULTIPLIER = {
 
 const BASE_UNIT_COST_CENTS = {
 	Sessions: 2000,
-	Errors: 20,
+	Errors: 200,
 	Logs: 250,
 	Traces: 250,
 	Metrics: 250,
