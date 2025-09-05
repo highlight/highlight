@@ -4535,3 +4535,25 @@ func (r *Resolver) GetSessionFields(ctx context.Context, session *model.Session)
 	// Fields may not have been synced to ClickHouse yet (e.g. for live sessions) - can try Redis instead
 	return r.Redis.GetSessionFields(ctx, session.SecureID)
 }
+
+// UpdateAdminLastActivity updates the Admin's updated_at field to track last activity
+func (r *Resolver) UpdateAdminLastActivity(ctx context.Context, uid string) error {
+	return UpdateAdminLastActivityDB(ctx, r.DB, uid)
+}
+
+// UpdateAdminLastActivityDB updates the Admin's updated_at field using the provided DB instance
+func UpdateAdminLastActivityDB(ctx context.Context, db *gorm.DB, uid string) error {
+	if uid == "" {
+		return nil // No UID available, skip update
+	}
+	
+	// Update the Admin's updated_at field
+	err := db.WithContext(ctx).Model(&model.Admin{}).Where("uid = ?", uid).Update("updated_at", time.Now()).Error
+	if err != nil {
+		log.WithContext(ctx).WithError(err).WithField("uid", uid).Error("failed to update admin last activity")
+		return err
+	}
+	
+	log.WithContext(ctx).WithField("uid", uid).Debug("updated admin last activity")
+	return nil
+}

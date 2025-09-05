@@ -93,6 +93,7 @@ export type Admin = {
 	referral?: Maybe<Scalars['String']>
 	slack_im_channel_id?: Maybe<Scalars['String']>
 	uid: Scalars['String']
+	updated_at?: Maybe<Scalars['Timestamp']>
 	user_defined_persona?: Maybe<Scalars['String']>
 	user_defined_role?: Maybe<Scalars['String']>
 	user_defined_team_size?: Maybe<Scalars['String']>

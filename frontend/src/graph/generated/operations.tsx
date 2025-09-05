@@ -2014,7 +2014,7 @@ export type GetWorkspaceAdminsByProjectIdQuery = { __typename?: 'Query' } & {
 		> & {
 				admin: { __typename?: 'Admin' } & Pick<
 					Types.Admin,
-					'id' | 'name' | 'email' | 'photo_url'
+					'id' | 'name' | 'email' | 'photo_url' | 'updated_at'
 				>
 			}
 	>
@@ -2032,7 +2032,7 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
 		> & {
 				admin: { __typename?: 'Admin' } & Pick<
 					Types.Admin,
-					'id' | 'name' | 'email' | 'photo_url'
+					'id' | 'name' | 'email' | 'photo_url' | 'updated_at'
 				>
 			}
 	>

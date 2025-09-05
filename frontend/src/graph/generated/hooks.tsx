@@ -6394,6 +6394,7 @@ export const GetWorkspaceAdminsByProjectIdDocument = gql`
 				name
 				email
 				photo_url
+				updated_at
 			}
 			role
 			projectIds
@@ -6458,6 +6459,7 @@ export const GetWorkspaceAdminsDocument = gql`
 				name
 				email
 				photo_url
+				updated_at
 			}
 			role
 			projectIds
