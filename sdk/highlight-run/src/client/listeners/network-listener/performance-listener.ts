@@ -35,7 +35,7 @@ export const NetworkPerformanceListener = (
 		callback({
 			relativeTimestamp,
 			downlink: conn.downlink,
-			downlinkMax: conn.downlinkMax,
+			downlinkMax: conn.downlinkMax === Infinity ? 0 : conn.downlinkMax,
 			effectiveType: conn.effectiveType,
 			rtt: conn.rtt,
 			saveData: conn.saveData,
