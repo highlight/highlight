@@ -27,13 +27,13 @@ require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/andybalholm/brotli v1.1.1
 	github.com/antlr4-go/antlr/v4 v4.13.0
-	github.com/aws/aws-sdk-go-v2 v1.29.0
+	github.com/aws/aws-sdk-go-v2 v1.39.2
 	github.com/aws/aws-sdk-go-v2/config v1.27.11
 	github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign v1.7.9
-	github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice v1.20.2
+	github.com/aws/aws-sdk-go-v2/service/marketplaceentitlementservice v1.33.7
 	github.com/aws/aws-sdk-go-v2/service/marketplacemetering v1.21.2
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.1
-	github.com/aws/smithy-go v1.20.2
+	github.com/aws/smithy-go v1.23.0
 	github.com/bradleyfalzon/ghinstallation/v2 v2.10.0
 	github.com/clearbit/clearbit-go v1.1.0
 	github.com/cloudflare/cloudflare-go v0.97.0
@@ -110,8 +110,8 @@ require (
 	github.com/PaesslerAG/gval v1.2.2 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.2 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.5 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.9 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.9 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.7 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.4 // indirect
