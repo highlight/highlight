@@ -6,10 +6,10 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightEcho "github.com/highlight/highlight/sdk/highlight-go/middleware/echo"
-	e "github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	e "github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 

@@ -23,7 +23,7 @@ type Edge interface {
 
 type AWSMarketplaceSubscription struct {
 	CustomerIdentifier   string `json:"customer_identifier"`
-	CustomerAwsAccountID string `json:"customer_aws_account_id"`
+	CustomerAWSAccountID string `json:"customer_aws_account_id"`
 	ProductCode          string `json:"product_code"`
 }
 
@@ -539,18 +539,18 @@ type LinearTeam struct {
 }
 
 type Log struct {
-	ProjectID       int                    `json:"projectID"`
-	Timestamp       time.Time              `json:"timestamp"`
-	Level           LogLevel               `json:"level"`
-	Message         string                 `json:"message"`
-	LogAttributes   map[string]interface{} `json:"logAttributes"`
-	TraceID         *string                `json:"traceID,omitempty"`
-	SpanID          *string                `json:"spanID,omitempty"`
-	SecureSessionID *string                `json:"secureSessionID,omitempty"`
-	Source          *string                `json:"source,omitempty"`
-	ServiceName     *string                `json:"serviceName,omitempty"`
-	ServiceVersion  *string                `json:"serviceVersion,omitempty"`
-	Environment     *string                `json:"environment,omitempty"`
+	ProjectID       int            `json:"projectID"`
+	Timestamp       time.Time      `json:"timestamp"`
+	Level           LogLevel       `json:"level"`
+	Message         string         `json:"message"`
+	LogAttributes   map[string]any `json:"logAttributes"`
+	TraceID         *string        `json:"traceID,omitempty"`
+	SpanID          *string        `json:"spanID,omitempty"`
+	SecureSessionID *string        `json:"secureSessionID,omitempty"`
+	Source          *string        `json:"source,omitempty"`
+	ServiceName     *string        `json:"serviceName,omitempty"`
+	ServiceVersion  *string        `json:"serviceVersion,omitempty"`
+	Environment     *string        `json:"environment,omitempty"`
 }
 
 type LogAlertInput struct {
@@ -661,29 +661,29 @@ type MetricPreview struct {
 }
 
 type MetricRow struct {
-	ProjectID              int                    `json:"projectID"`
-	Timestamp              time.Time              `json:"timestamp"`
-	ServiceName            string                 `json:"serviceName"`
-	MetricName             string                 `json:"metricName"`
-	MetricDescription      string                 `json:"metricDescription"`
-	MetricUnit             string                 `json:"metricUnit"`
-	Attributes             map[string]interface{} `json:"attributes"`
-	StartTimestamp         time.Time              `json:"startTimestamp"`
-	Type                   MetricRowType          `json:"type"`
-	Flags                  uint64                 `json:"flags"`
-	Value                  float64                `json:"value"`
-	Exemplars              []*MetricRowExemplar   `json:"exemplars"`
-	AggregationTemporality int                    `json:"aggregationTemporality"`
-	IsMonotonic            bool                   `json:"isMonotonic"`
+	ProjectID              int                  `json:"projectID"`
+	Timestamp              time.Time            `json:"timestamp"`
+	ServiceName            string               `json:"serviceName"`
+	MetricName             string               `json:"metricName"`
+	MetricDescription      string               `json:"metricDescription"`
+	MetricUnit             string               `json:"metricUnit"`
+	Attributes             map[string]any       `json:"attributes"`
+	StartTimestamp         time.Time            `json:"startTimestamp"`
+	Type                   MetricRowType        `json:"type"`
+	Flags                  uint64               `json:"flags"`
+	Value                  float64              `json:"value"`
+	Exemplars              []*MetricRowExemplar `json:"exemplars"`
+	AggregationTemporality int                  `json:"aggregationTemporality"`
+	IsMonotonic            bool                 `json:"isMonotonic"`
 }
 
 type MetricRowExemplar struct {
-	Timestamp       time.Time              `json:"timestamp"`
-	TraceID         string                 `json:"traceID"`
-	SpanID          string                 `json:"spanID"`
-	Attributes      map[string]interface{} `json:"attributes"`
-	SecureSessionID string                 `json:"secureSessionID"`
-	Value           float64                `json:"value"`
+	Timestamp       time.Time      `json:"timestamp"`
+	TraceID         string         `json:"traceID"`
+	SpanID          string         `json:"spanID"`
+	Attributes      map[string]any `json:"attributes"`
+	SecureSessionID string         `json:"secureSessionID"`
+	Value           float64        `json:"value"`
 }
 
 type MetricTagFilter struct {
@@ -744,7 +744,7 @@ type Plan struct {
 	Interval            SubscriptionInterval        `json:"interval"`
 	MembersLimit        *int64                      `json:"membersLimit,omitempty"`
 	EnableBillingLimits bool                        `json:"enableBillingLimits"`
-	AwsMpSubscription   *AWSMarketplaceSubscription `json:"aws_mp_subscription,omitempty"`
+	AWSMpSubscription   *AWSMarketplaceSubscription `json:"aws_mp_subscription,omitempty"`
 	SessionsLimit       int64                       `json:"sessionsLimit"`
 	ErrorsLimit         int64                       `json:"errorsLimit"`
 	LogsLimit           int64                       `json:"logsLimit"`
@@ -1007,26 +1007,26 @@ type TopUsersPayload struct {
 }
 
 type Trace struct {
-	Timestamp       time.Time              `json:"timestamp"`
-	TraceID         string                 `json:"traceID"`
-	SpanID          string                 `json:"spanID"`
-	ParentSpanID    string                 `json:"parentSpanID"`
-	ProjectID       int                    `json:"projectID"`
-	SecureSessionID string                 `json:"secureSessionID"`
-	TraceState      string                 `json:"traceState"`
-	SpanName        string                 `json:"spanName"`
-	SpanKind        string                 `json:"spanKind"`
-	Duration        int                    `json:"duration"`
-	StartTime       int                    `json:"startTime"`
-	ServiceName     string                 `json:"serviceName"`
-	ServiceVersion  string                 `json:"serviceVersion"`
-	Environment     string                 `json:"environment"`
-	HasErrors       bool                   `json:"hasErrors"`
-	TraceAttributes map[string]interface{} `json:"traceAttributes"`
-	StatusCode      string                 `json:"statusCode"`
-	StatusMessage   string                 `json:"statusMessage"`
-	Events          []*TraceEvent          `json:"events,omitempty"`
-	Links           []*TraceLink           `json:"links,omitempty"`
+	Timestamp       time.Time      `json:"timestamp"`
+	TraceID         string         `json:"traceID"`
+	SpanID          string         `json:"spanID"`
+	ParentSpanID    string         `json:"parentSpanID"`
+	ProjectID       int            `json:"projectID"`
+	SecureSessionID string         `json:"secureSessionID"`
+	TraceState      string         `json:"traceState"`
+	SpanName        string         `json:"spanName"`
+	SpanKind        string         `json:"spanKind"`
+	Duration        int            `json:"duration"`
+	StartTime       int            `json:"startTime"`
+	ServiceName     string         `json:"serviceName"`
+	ServiceVersion  string         `json:"serviceVersion"`
+	Environment     string         `json:"environment"`
+	HasErrors       bool           `json:"hasErrors"`
+	TraceAttributes map[string]any `json:"traceAttributes"`
+	StatusCode      string         `json:"statusCode"`
+	StatusMessage   string         `json:"statusMessage"`
+	Events          []*TraceEvent  `json:"events,omitempty"`
+	Links           []*TraceLink   `json:"links,omitempty"`
 }
 
 type TraceConnection struct {
@@ -1060,16 +1060,16 @@ type TraceError struct {
 }
 
 type TraceEvent struct {
-	Timestamp  time.Time              `json:"timestamp"`
-	Name       string                 `json:"name"`
-	Attributes map[string]interface{} `json:"attributes"`
+	Timestamp  time.Time      `json:"timestamp"`
+	Name       string         `json:"name"`
+	Attributes map[string]any `json:"attributes"`
 }
 
 type TraceLink struct {
-	TraceID    string                 `json:"traceID"`
-	SpanID     string                 `json:"spanID"`
-	TraceState string                 `json:"traceState"`
-	Attributes map[string]interface{} `json:"attributes"`
+	TraceID    string         `json:"traceID"`
+	SpanID     string         `json:"spanID"`
+	TraceState string         `json:"traceState"`
+	Attributes map[string]any `json:"attributes"`
 }
 
 type TracePayload struct {
@@ -1208,7 +1208,7 @@ func (e AlertDestinationType) String() string {
 	return string(e)
 }
 
-func (e *AlertDestinationType) UnmarshalGQL(v interface{}) error {
+func (e *AlertDestinationType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1257,7 +1257,7 @@ func (e AlertState) String() string {
 	return string(e)
 }
 
-func (e *AlertState) UnmarshalGQL(v interface{}) error {
+func (e *AlertState) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1300,7 +1300,7 @@ func (e DashboardChartType) String() string {
 	return string(e)
 }
 
-func (e *DashboardChartType) UnmarshalGQL(v interface{}) error {
+func (e *DashboardChartType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1343,7 +1343,7 @@ func (e DashboardTemplateType) String() string {
 	return string(e)
 }
 
-func (e *DashboardTemplateType) UnmarshalGQL(v interface{}) error {
+func (e *DashboardTemplateType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1388,7 +1388,7 @@ func (e EmailOptOutCategory) String() string {
 	return string(e)
 }
 
-func (e *EmailOptOutCategory) UnmarshalGQL(v interface{}) error {
+func (e *EmailOptOutCategory) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1429,7 +1429,7 @@ func (e EnhancementSource) String() string {
 	return string(e)
 }
 
-func (e *EnhancementSource) UnmarshalGQL(v interface{}) error {
+func (e *EnhancementSource) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1472,7 +1472,7 @@ func (e ErrorState) String() string {
 	return string(e)
 }
 
-func (e *ErrorState) UnmarshalGQL(v interface{}) error {
+func (e *ErrorState) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1515,7 +1515,7 @@ func (e IngestReason) String() string {
 	return string(e)
 }
 
-func (e *IngestReason) UnmarshalGQL(v interface{}) error {
+func (e *IngestReason) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1578,7 +1578,7 @@ func (e IntegrationType) String() string {
 	return string(e)
 }
 
-func (e *IntegrationType) UnmarshalGQL(v interface{}) error {
+func (e *IntegrationType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1623,7 +1623,7 @@ func (e KeyType) String() string {
 	return string(e)
 }
 
-func (e *KeyType) UnmarshalGQL(v interface{}) error {
+func (e *KeyType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1674,7 +1674,7 @@ func (e LogLevel) String() string {
 	return string(e)
 }
 
-func (e *LogLevel) UnmarshalGQL(v interface{}) error {
+func (e *LogLevel) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1715,7 +1715,7 @@ func (e LogSource) String() string {
 	return string(e)
 }
 
-func (e *LogSource) UnmarshalGQL(v interface{}) error {
+func (e *LogSource) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1776,7 +1776,7 @@ func (e MetricAggregator) String() string {
 	return string(e)
 }
 
-func (e *MetricAggregator) UnmarshalGQL(v interface{}) error {
+func (e *MetricAggregator) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1819,7 +1819,7 @@ func (e MetricBucketBy) String() string {
 	return string(e)
 }
 
-func (e *MetricBucketBy) UnmarshalGQL(v interface{}) error {
+func (e *MetricBucketBy) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1868,7 +1868,7 @@ func (e MetricRowType) String() string {
 	return string(e)
 }
 
-func (e *MetricRowType) UnmarshalGQL(v interface{}) error {
+func (e *MetricRowType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1909,7 +1909,7 @@ func (e MetricTagFilterOp) String() string {
 	return string(e)
 }
 
-func (e *MetricTagFilterOp) UnmarshalGQL(v interface{}) error {
+func (e *MetricTagFilterOp) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -1960,7 +1960,7 @@ func (e MetricViewComponentType) String() string {
 	return string(e)
 }
 
-func (e *MetricViewComponentType) UnmarshalGQL(v interface{}) error {
+func (e *MetricViewComponentType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2021,7 +2021,7 @@ func (e NetworkRequestAttribute) String() string {
 	return string(e)
 }
 
-func (e *NetworkRequestAttribute) UnmarshalGQL(v interface{}) error {
+func (e *NetworkRequestAttribute) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2072,7 +2072,7 @@ func (e OpenSearchCalendarInterval) String() string {
 	return string(e)
 }
 
-func (e *OpenSearchCalendarInterval) UnmarshalGQL(v interface{}) error {
+func (e *OpenSearchCalendarInterval) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2125,7 +2125,7 @@ func (e PlanType) String() string {
 	return string(e)
 }
 
-func (e *PlanType) UnmarshalGQL(v interface{}) error {
+func (e *PlanType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2174,7 +2174,7 @@ func (e ProductType) String() string {
 	return string(e)
 }
 
-func (e *ProductType) UnmarshalGQL(v interface{}) error {
+func (e *ProductType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2223,7 +2223,7 @@ func (e ReservedErrorGroupKey) String() string {
 	return string(e)
 }
 
-func (e *ReservedErrorGroupKey) UnmarshalGQL(v interface{}) error {
+func (e *ReservedErrorGroupKey) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2282,7 +2282,7 @@ func (e ReservedErrorObjectKey) String() string {
 	return string(e)
 }
 
-func (e *ReservedErrorObjectKey) UnmarshalGQL(v interface{}) error {
+func (e *ReservedErrorObjectKey) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2357,7 +2357,7 @@ func (e ReservedErrorsJoinedKey) String() string {
 	return string(e)
 }
 
-func (e *ReservedErrorsJoinedKey) UnmarshalGQL(v interface{}) error {
+func (e *ReservedErrorsJoinedKey) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2432,7 +2432,7 @@ func (e ReservedEventKey) String() string {
 	return string(e)
 }
 
-func (e *ReservedEventKey) UnmarshalGQL(v interface{}) error {
+func (e *ReservedEventKey) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2490,7 +2490,7 @@ func (e ReservedLogKey) String() string {
 	return string(e)
 }
 
-func (e *ReservedLogKey) UnmarshalGQL(v interface{}) error {
+func (e *ReservedLogKey) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2561,7 +2561,7 @@ func (e ReservedMetricKey) String() string {
 	return string(e)
 }
 
-func (e *ReservedMetricKey) UnmarshalGQL(v interface{}) error {
+func (e *ReservedMetricKey) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2662,7 +2662,7 @@ func (e ReservedSessionKey) String() string {
 	return string(e)
 }
 
-func (e *ReservedSessionKey) UnmarshalGQL(v interface{}) error {
+func (e *ReservedSessionKey) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2735,7 +2735,7 @@ func (e ReservedTraceKey) String() string {
 	return string(e)
 }
 
-func (e *ReservedTraceKey) UnmarshalGQL(v interface{}) error {
+func (e *ReservedTraceKey) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2786,7 +2786,7 @@ func (e RetentionPeriod) String() string {
 	return string(e)
 }
 
-func (e *RetentionPeriod) UnmarshalGQL(v interface{}) error {
+func (e *RetentionPeriod) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2831,7 +2831,7 @@ func (e SavedSegmentEntityType) String() string {
 	return string(e)
 }
 
-func (e *SavedSegmentEntityType) UnmarshalGQL(v interface{}) error {
+func (e *SavedSegmentEntityType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2874,7 +2874,7 @@ func (e ServiceStatus) String() string {
 	return string(e)
 }
 
-func (e *ServiceStatus) UnmarshalGQL(v interface{}) error {
+func (e *ServiceStatus) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2923,7 +2923,7 @@ func (e SessionAlertType) String() string {
 	return string(e)
 }
 
-func (e *SessionAlertType) UnmarshalGQL(v interface{}) error {
+func (e *SessionAlertType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -2964,7 +2964,7 @@ func (e SessionCommentType) String() string {
 	return string(e)
 }
 
-func (e *SessionCommentType) UnmarshalGQL(v interface{}) error {
+func (e *SessionCommentType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -3025,7 +3025,7 @@ func (e SessionExcludedReason) String() string {
 	return string(e)
 }
 
-func (e *SessionExcludedReason) UnmarshalGQL(v interface{}) error {
+func (e *SessionExcludedReason) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -3068,7 +3068,7 @@ func (e SessionLifecycle) String() string {
 	return string(e)
 }
 
-func (e *SessionLifecycle) UnmarshalGQL(v interface{}) error {
+func (e *SessionLifecycle) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -3115,7 +3115,7 @@ func (e SocialType) String() string {
 	return string(e)
 }
 
-func (e *SocialType) UnmarshalGQL(v interface{}) error {
+func (e *SocialType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -3156,7 +3156,7 @@ func (e SortDirection) String() string {
 	return string(e)
 }
 
-func (e *SortDirection) UnmarshalGQL(v interface{}) error {
+func (e *SortDirection) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -3215,7 +3215,7 @@ func (e SourceMappingErrorCode) String() string {
 	return string(e)
 }
 
-func (e *SourceMappingErrorCode) UnmarshalGQL(v interface{}) error {
+func (e *SourceMappingErrorCode) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -3256,7 +3256,7 @@ func (e SubscriptionInterval) String() string {
 	return string(e)
 }
 
-func (e *SubscriptionInterval) UnmarshalGQL(v interface{}) error {
+func (e *SubscriptionInterval) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -3299,7 +3299,7 @@ func (e SuggestionType) String() string {
 	return string(e)
 }
 
-func (e *SuggestionType) UnmarshalGQL(v interface{}) error {
+func (e *SuggestionType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -3342,7 +3342,7 @@ func (e ThresholdCondition) String() string {
 	return string(e)
 }
 
-func (e *ThresholdCondition) UnmarshalGQL(v interface{}) error {
+func (e *ThresholdCondition) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
@@ -3383,7 +3383,7 @@ func (e ThresholdType) String() string {
 	return string(e)
 }
 
-func (e *ThresholdType) UnmarshalGQL(v interface{}) error {
+func (e *ThresholdType) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")

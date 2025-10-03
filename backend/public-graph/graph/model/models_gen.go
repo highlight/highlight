@@ -76,7 +76,7 @@ type MatchConfig struct {
 	// Can only match string attributes.
 	RegexValue *string `json:"regexValue,omitempty"`
 	// A match configuration which does an exact match against any value.
-	MatchValue interface{} `json:"matchValue,omitempty"`
+	MatchValue any `json:"matchValue,omitempty"`
 }
 
 type MetricInput struct {
@@ -101,10 +101,10 @@ type Mutation struct {
 }
 
 type ReplayEventInput struct {
-	Type      int         `json:"type"`
-	Timestamp float64     `json:"timestamp"`
-	Sid       float64     `json:"_sid"`
-	Data      interface{} `json:"data"`
+	Type      int     `json:"type"`
+	Timestamp float64 `json:"timestamp"`
+	Sid       float64 `json:"_sid"`
+	Data      any     `json:"data"`
 }
 
 type ReplayEventsInput struct {
@@ -144,14 +144,14 @@ type SpanSamplingConfig struct {
 }
 
 type StackFrameInput struct {
-	FunctionName *string       `json:"functionName,omitempty"`
-	Args         []interface{} `json:"args,omitempty"`
-	FileName     *string       `json:"fileName,omitempty"`
-	LineNumber   *int          `json:"lineNumber,omitempty"`
-	ColumnNumber *int          `json:"columnNumber,omitempty"`
-	IsEval       *bool         `json:"isEval,omitempty"`
-	IsNative     *bool         `json:"isNative,omitempty"`
-	Source       *string       `json:"source,omitempty"`
+	FunctionName *string `json:"functionName,omitempty"`
+	Args         []any   `json:"args,omitempty"`
+	FileName     *string `json:"fileName,omitempty"`
+	LineNumber   *int    `json:"lineNumber,omitempty"`
+	ColumnNumber *int    `json:"columnNumber,omitempty"`
+	IsEval       *bool   `json:"isEval,omitempty"`
+	IsNative     *bool   `json:"isNative,omitempty"`
+	Source       *string `json:"source,omitempty"`
 }
 
 type PublicGraphError string
@@ -176,7 +176,7 @@ func (e PublicGraphError) String() string {
 	return string(e)
 }
 
-func (e *PublicGraphError) UnmarshalGQL(v interface{}) error {
+func (e *PublicGraphError) UnmarshalGQL(v any) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
