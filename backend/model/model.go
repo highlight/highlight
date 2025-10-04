@@ -2018,18 +2018,23 @@ func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *send
 		WithFields(fields).
 		Info("sending billing notification")
 
+	// Check if an active billing email history already exists
+	var existingHistory BillingEmailHistory
+	result := db.Where("active = ? AND workspace_id = ? AND type = ?", true, workspace.ID, emailType).First(&existingHistory)
+	if result.Error == nil {
+		// An active billing email history already exists, don't send another email
+		return nil
+	} else if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return e.Wrap(result.Error, "error checking existing BillingEmailHistory")
+	}
+
+	// No active history exists, create a new one
 	history := BillingEmailHistory{
 		WorkspaceID: workspace.ID,
 		Type:        emailType,
 		Active:      true,
 	}
 	if err := db.Create(&history).Error; err != nil {
-		var pgErr *pgconn.PgError
-		// An active BillingEmailHistory may already exist -
-		// in this case, don't send users another email.
-		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return nil
-		}
 		return e.Wrap(err, "error creating BillingEmailHistory")
 	}
 
