@@ -852,8 +852,9 @@ export const useGraphData = (
 					) {
 						mapData[b.bucket_id][xAxisMetric] = b.bucket_value
 					} else {
-						mapData[b.bucket_id][xAxisMetric] =
-							((b.bucket_min ?? 0) + (b.bucket_max ?? 0)) / 2
+						const midpoint = ((b.bucket_min ?? 0) + (b.bucket_max ?? 0)) / 2
+						// Ensure midpoint is a valid number (not NaN or Infinity)
+						mapData[b.bucket_id][xAxisMetric] = isFinite(midpoint) ? midpoint : 0
 					}
 
 					mapData[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
@@ -950,9 +951,11 @@ export const useFunnelData = (
 						? (b?.metric_value ?? 0)
 						: 0
 					const value = (buckets[idx]?.value ?? 0) + stepValue
+					const percent = prev > 0 ? value / prev : 1
+					// Ensure percent is a valid number (not NaN or Infinity)
 					buckets[idx] = {
 						value,
-						percent: prev > 0 ? value / prev : 1,
+						percent: isFinite(percent) ? percent : 1,
 					}
 				})
 				groups = groups.intersection(resultGroups)
@@ -1195,49 +1198,57 @@ const Graph = ({
 
 	const loading = queryStartTime !== undefined
 
-	// Use a smaller bucketByWindow if the selected one is greater than the time range
-	if (
-		bucketByWindow !== undefined &&
-		moment(startDate).add(bucketByWindow, 'second').isSameOrAfter(endDate)
-	) {
-		let lastPreset = DEFAULT_TIME_PRESETS[0]
-		for (const preset of DEFAULT_TIME_PRESETS) {
-			if (
-				moment(startDate)
-					.add(preset.quantity, preset.unit)
-					.isBefore(endDate)
-			) {
-				lastPreset = preset
-			} else {
-				break
+	// Use useMemo to compute the adjusted bucketByWindow to avoid modifying props during render
+	const adjustedBucketByWindow = useMemo(() => {
+		let adjustedWindow = bucketByWindow;
+		
+		// Use a smaller bucketByWindow if the selected one is greater than the time range
+		if (
+			adjustedWindow !== undefined &&
+			moment(startDate).add(adjustedWindow, 'second').isSameOrAfter(endDate)
+		) {
+			let lastPreset = DEFAULT_TIME_PRESETS[0]
+			for (const preset of DEFAULT_TIME_PRESETS) {
+				if (
+					moment(startDate)
+						.add(preset.quantity, preset.unit)
+						.isBefore(endDate)
+				) {
+					lastPreset = preset
+				} else {
+					break
+				}
 			}
+
+			adjustedWindow = moment
+				.duration(lastPreset.quantity, lastPreset.unit)
+				.asSeconds()
 		}
 
-		bucketByWindow = moment
-			.duration(lastPreset.quantity, lastPreset.unit)
-			.asSeconds()
-	}
-
-	// Use a larger bucketByWindow if there are too many buckets
-	if (
-		bucketByWindow !== undefined &&
-		moment(startDate)
-			.add(MAX_BUCKETS * bucketByWindow, 'second')
-			.isBefore(endDate)
-	) {
-		for (const preset of BUCKET_FREQUENCIES) {
-			if (
-				moment(startDate)
-					.add(MAX_BUCKETS * Number(preset.value), 'second')
-					.isSameOrAfter(endDate)
-			) {
-				bucketByWindow = moment
-					.duration(preset.value, 'second')
-					.asSeconds()
-				break
+		// Use a larger bucketByWindow if there are too many buckets
+		if (
+			adjustedWindow !== undefined &&
+			moment(startDate)
+				.add(MAX_BUCKETS * adjustedWindow, 'second')
+				.isBefore(endDate)
+		) {
+			for (const preset of BUCKET_FREQUENCIES) {
+				if (
+					moment(startDate)
+						.add(MAX_BUCKETS * Number(preset.value), 'second')
+						.isSameOrAfter(endDate)
+				) {
+					adjustedWindow = moment
+						.duration(preset.value, 'second')
+						.asSeconds()
+					break
+				}
 			}
 		}
-	}
+		
+		return adjustedWindow;
+	}, [bucketByWindow, startDate, endDate])
+
 
 	const loadExemplars = useCallback(
 		(
@@ -1382,7 +1393,7 @@ const Graph = ({
 				bucketByKey !== undefined
 					? (matchParamVariables(bucketByKey, variables).at(0) ?? '')
 					: TIMESTAMP_KEY,
-			bucket_window: bucketByWindow,
+			bucket_window: adjustedBucketByWindow,
 			bucket_count: queriedBucketCount,
 			limit: limit,
 			limit_aggregator: limitFunctionType,
@@ -1393,7 +1404,11 @@ const Graph = ({
 			expressions: expressions.map((e) => ({ ...e })), // This is a hack but Apollo isn't noticing a change otherwise
 		}
 
-		setQueryStartTime(new Date())
+		// Defer state update to avoid "Cannot update a component while rendering" error
+		Promise.resolve().then(() => {
+			setQueryStartTime(new Date())
+		})
+
 		let getMetricsPromises: Promise<GetMetricsQueryResult>[] = []
 		if (funnelSteps?.length) {
 			for (const step of funnelSteps) {
@@ -1432,7 +1447,7 @@ const Graph = ({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		bucketByKey,
-		bucketByWindow,
+		adjustedBucketByWindow,
 		getMetrics,
 		sql,
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1454,6 +1469,7 @@ const Graph = ({
 		startDate,
 		endDate,
 		setErrors,
+		setQueryStartTime,
 	])
 
 	const graphData = useGraphData(
