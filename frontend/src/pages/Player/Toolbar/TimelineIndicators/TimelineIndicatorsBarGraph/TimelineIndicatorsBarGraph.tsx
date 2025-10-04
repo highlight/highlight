@@ -89,7 +89,7 @@ const TimelineIndicatorsBarGraph = ({
 		isPlayerReady,
 		rageClicks,
 	} = useReplayerContext()
-	const showHistogram = shouldShowHistogram && !isPlayerFullscreen
+	const showHistogram = shouldShowHistogram
 
 	const [{ zoomStart, zoomEnd }] = useQueryParams({
 		zoomStart: NumberParam,
@@ -1083,8 +1083,7 @@ const TimelineIndicatorsBarGraph = ({
 					className={clsx([
 						style.eventHistogram,
 						{
-							[style.hidden]:
-								!showHistogram || isPlayerFullscreen,
+							[style.hidden]: !showHistogram,
 							[style.noPointerEvents]: isLiveMode,
 						},
 					])}
