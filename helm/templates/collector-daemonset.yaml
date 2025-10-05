@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "highlight.fullname" . }}-collector
+  labels:
+    app.kubernetes.io/component: collector
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: collector
+      app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+      {{- include "highlight.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: collector
+        app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+        {{- include "highlight.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: collector
+          image: "{{ .Values.collector.image.repository }}:{{ .Values.collector.image.tag }}"
+          imagePullPolicy: {{ .Values.collector.image.pullPolicy }}
+          args:
+            - --config=/etc/otel-collector-config.yaml
+          volumeMounts:
+            - name: collector-config
+              mountPath: /etc/otel-collector-config.yaml
+              subPath: otel-collector-config.yaml
+            - name: pod-logs
+              mountPath: /var/log/pods
+              readOnly: true
+          ports:
+            - containerPort: 4317
+              protocol: TCP
+            - containerPort: 4318
+              protocol: TCP
+            - containerPort: 4319
+              protocol: TCP
+            - containerPort: 24224
+              protocol: TCP
+            - containerPort: 34302
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health/status
+              port: 4319
+      volumes:
+        - name: collector-config
+          configMap:
+            name: {{ include "highlight.fullname" . }}-collector
+        - name: pod-logs
+          hostPath:
+            path: /var/log/pods
