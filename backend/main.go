@@ -168,22 +168,22 @@ var PUBLIC_GRAPH_CORS_OPTIONS = cors.Options{
 }
 
 var PRIVATE_GRAPH_CORS_OPTIONS = cors.Options{
-	AllowOriginVaryRequestFunc: validateOrigin,
-	AllowCredentials:           true,
-	AllowedHeaders:             []string{"*"},
+	AllowOriginFunc:  validateOrigin,
+	AllowCredentials: true,
+	AllowedHeaders:   []string{"*"},
 }
 
-func validateOrigin(_ *http.Request, origin string) (bool, []string) {
+func validateOrigin(origin string) bool {
 	if env.Config.DisableCors == "true" {
-		return true, []string{"*"}
+		return true
 	}
 
 	isHighlightSubdomain := strings.HasSuffix(origin, ".highlight.io")
 	if origin == env.Config.FrontendUri || origin == env.Config.LandingStagingURL || isHighlightSubdomain {
-		return true, []string{"*"}
+		return true
 	}
 
-	return false, []string{"*"}
+	return false
 }
 
 var defaultPort = "8082"
@@ -485,7 +485,7 @@ func main() {
 							log.WithContext(ctx).Error("Couldn't validate websocket: no origin")
 							return false
 						}
-						validate, _ := validateOrigin(r, r.Header["Origin"][0])
+						validate := validateOrigin(r.Header["Origin"][0])
 						return validate
 					},
 				},
