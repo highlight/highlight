@@ -36,6 +36,7 @@ import { NewCommentModal } from '@/pages/Player/Toolbar/NewCommentModal/NewComme
 import { useResizePlayer } from '@/pages/Player/utils/utils'
 import { useSessionParams } from '@/pages/Sessions/utils'
 import { useIntegratedLocalStorage } from '@/util/integrated'
+import EventStreamV2 from '@/pages/Player/components/EventStreamV2/EventStreamV2'
 
 import WaitingAnimation from '../../lottie/waiting.json'
 import * as style from './styles.css'
@@ -148,7 +149,8 @@ export const SessionView: React.FC<SessionViewProps> = ({
 						cssClass={[
 							style.playerBody,
 							{
-								[style.withRightPanel]: showRightPanel,
+								[style.withRightPanel]:
+									showRightPanel || isPlayerFullscreen,
 							},
 						]}
 					>
@@ -204,6 +206,19 @@ export const SessionView: React.FC<SessionViewProps> = ({
 							<DevToolsWindowV2 width={controllerWidth} />
 						</div>
 						{!isPlayerFullscreen && <RightPlayerPanel />}
+						{isPlayerFullscreen && (
+							<Box
+								backgroundColor="white"
+								flexShrink={0}
+								bt="dividerWeak"
+								bl="dividerWeak"
+								overflowY="scroll"
+								hiddenScroll
+								height="full"
+							>
+								<EventStreamV2 />
+							</Box>
+						)}
 					</Box>
 				</Box>
 			</div>

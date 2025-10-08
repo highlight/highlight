@@ -2,7 +2,6 @@ import LoadingBox from '@components/LoadingBox'
 import { Box, Text } from '@highlight-run/ui/components'
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useWindowEvent } from '@hooks/useWindowEvent'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import {
 	getCommentsForTimelineIndicator,
@@ -74,7 +73,6 @@ const TimelineIndicatorsBarGraph = ({
 
 	const { showPlayerAbsoluteTime, showHistogram: shouldShowHistogram } =
 		usePlayerConfiguration()
-	const { isPlayerFullscreen } = usePlayerUIContext()
 	const {
 		time,
 		sessionMetadata: { startTime: start, totalTime: duration },
@@ -89,7 +87,7 @@ const TimelineIndicatorsBarGraph = ({
 		isPlayerReady,
 		rageClicks,
 	} = useReplayerContext()
-	const showHistogram = shouldShowHistogram && !isPlayerFullscreen
+	const showHistogram = shouldShowHistogram
 
 	const [{ zoomStart, zoomEnd }] = useQueryParams({
 		zoomStart: NumberParam,
@@ -1083,8 +1081,7 @@ const TimelineIndicatorsBarGraph = ({
 					className={clsx([
 						style.eventHistogram,
 						{
-							[style.hidden]:
-								!showHistogram || isPlayerFullscreen,
+							[style.hidden]: !showHistogram,
 							[style.noPointerEvents]: isLiveMode,
 						},
 					])}
