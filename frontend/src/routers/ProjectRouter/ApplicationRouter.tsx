@@ -6,6 +6,7 @@ import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import LogsPage from '@pages/LogsPage/LogsPage'
 import { PlayerPage } from '@pages/Player/PlayerPage'
 import { ConnectRouter } from '@/pages/Connect/ConnectRouter'
+import { UsersAnalyticsPage } from '@pages/Sessions/UsersAnalyticsView'
 import React from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
@@ -26,6 +27,10 @@ const ApplicationRouter: React.FC = () => {
 				<Route
 					path="sessions/:session_secure_id?"
 					element={<PlayerPage />}
+				/>
+				<Route
+					path="users"
+					element={<UsersAnalyticsPage />}
 				/>
 
 				<Route
