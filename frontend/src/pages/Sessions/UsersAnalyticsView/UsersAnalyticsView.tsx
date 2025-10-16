@@ -60,7 +60,7 @@ export const UsersAnalyticsView: React.FC = () => {
 		endDate,
 		query: initialQuery,
 		groupByKeys: ['identifier'],
-		bucketByKey: 'identifier', // Group by identifier
+		bucketByKey: undefined, // No bucketing - just group by identifier
 		viewConfig,
 		expressions,
 		limit: 100, // Show top 100 users
