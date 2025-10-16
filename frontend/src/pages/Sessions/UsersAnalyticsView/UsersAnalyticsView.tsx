@@ -5,6 +5,8 @@ import React, { useMemo } from 'react'
 
 import { useSearchContext } from '@/components/Search/SearchContext'
 import { MetricAggregator, ProductType } from '@/graph/generated/schemas'
+import { GraphContextProvider } from '@/pages/Graphing/context/GraphContext'
+import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 
 export const UsersAnalyticsView: React.FC = () => {
 	const { project_id } = useParams<{
@@ -12,6 +14,7 @@ export const UsersAnalyticsView: React.FC = () => {
 	}>()
 
 	const { startDate, endDate, initialQuery } = useSearchContext()
+	const graphContext = useGraphData()
 
 	// Configure the table view
 	const viewConfig: ViewConfig = useMemo(
@@ -66,29 +69,31 @@ export const UsersAnalyticsView: React.FC = () => {
 	}
 
 	return (
-		<Box
-			display="flex"
-			flexDirection="column"
-			height="full"
-			width="full"
-			padding="12"
-			gap="12"
-		>
-			<Box>
-				<Text size="large" weight="bold">
-					User Analytics
-				</Text>
-				<Text size="small" color="weak">
-					Aggregated session stats by user identifier
-				</Text>
-			</Box>
+		<GraphContextProvider value={graphContext}>
 			<Box
-				style={{ height: 'calc(100vh - 200px)' }}
+				display="flex"
+				flexDirection="column"
+				height="full"
 				width="full"
-				overflow="auto"
+				padding="12"
+				gap="12"
 			>
-				<Graph {...graphProps} />
+				<Box>
+					<Text size="large" weight="bold">
+						User Analytics
+					</Text>
+					<Text size="small" color="weak">
+						Aggregated session stats by user identifier
+					</Text>
+				</Box>
+				<Box
+					style={{ height: 'calc(100vh - 200px)' }}
+					width="full"
+					overflow="auto"
+				>
+					<Graph {...graphProps} />
+				</Box>
 			</Box>
-		</Box>
+		</GraphContextProvider>
 	)
 }
