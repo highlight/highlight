@@ -40,7 +40,7 @@ export const variants = recipe({
 			high: {},
 			none: {
 				color: colors.n11,
-				backgroundColor: 'inherit',
+				backgroundColor: 'transparent',
 				selectors: {
 					'&:hover:enabled': {
 						backgroundColor: vars.color.n4,
