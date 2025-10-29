@@ -33,6 +33,7 @@ import {
 	IconSolidSwitchHorizontal,
 	IconSolidTraces,
 	IconSolidUserCircle,
+	IconSolidUsers,
 	IconSolidViewGridAdd,
 	Menu,
 	Stack,
@@ -1037,6 +1038,7 @@ const Navbar: React.FC = () => {
 	const [topbarPages, setTopbarPages] = useState<Page[]>(PAGES)
 	const [menuPages, setMenuPages] = useState<Page[]>([])
 	const newConnectName = useFeatureFlag('rename-setup')
+	const enableUsersAnalytics = useFeatureFlag('enable-users-analytics-view')
 
 	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
@@ -1045,6 +1047,20 @@ const Navbar: React.FC = () => {
 	const enableGrafanaDashboard =
 		workspaceSettingsData?.workspaceSettings?.enable_grafana_dashboard
 
+	// Build pages array with conditional users tab
+	const allPages = useMemo(() => {
+		const basePages = [...PAGES]
+		if (enableUsersAnalytics) {
+			// Insert users tab after sessions (at index 1)
+			basePages.splice(1, 0, {
+				key: 'users',
+				icon: IconSolidUsers,
+				isBeta: true,
+			})
+		}
+		return basePages
+	}, [enableUsersAnalytics])
+
 	useEffect(() => {
 		const observer = new ResizeObserver(() => {
 			if (!containerRef.current) return
@@ -1052,7 +1068,7 @@ const Navbar: React.FC = () => {
 				containerRef.current.offsetWidth / 100,
 			)
 
-			const newTopbarPages = PAGES.slice(0, topbarItemCount).map((p) => {
+			const newTopbarPages = allPages.slice(0, topbarItemCount).map((p) => {
 				if (p.key === 'connect') {
 					return {
 						...p,
@@ -1061,7 +1077,7 @@ const Navbar: React.FC = () => {
 				}
 				return p
 			})
-			const newMenuPages = PAGES.slice(topbarItemCount)
+			const newMenuPages = allPages.slice(topbarItemCount)
 
 			setTopbarPages(newTopbarPages)
 			setMenuPages(newMenuPages)
@@ -1069,7 +1085,7 @@ const Navbar: React.FC = () => {
 
 		observer.observe(containerRef.current!)
 		return () => observer.disconnect()
-	}, [newConnectName])
+	}, [newConnectName, allPages])
 
 	let grafanaItem = (
 		<Menu.Item disabled={!enableGrafanaDashboard}>
