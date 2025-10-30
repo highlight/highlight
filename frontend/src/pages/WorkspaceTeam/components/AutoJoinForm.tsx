@@ -1,21 +1,70 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { toast } from '@components/Toaster'
-import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	useGetWorkspaceAdminsQuery,
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Box, Select, Text } from '@highlight-run/ui/components'
+import {
+	Box,
+	IconSolidCheck,
+	Select,
+	SwitchButton,
+	Text,
+	Tooltip,
+} from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
-import React, { useState } from 'react'
+import clsx from 'clsx'
+import React, { ComponentProps, ReactNode, useCallback, useState } from 'react'
 
 import { getEmailDomain } from '@/util/email'
 
 import styles from './AutoJoinForm.module.css'
 
-export const AutoJoinForm: React.FC = () => {
+export type AutoJoinTooltipProps = {
+	title: ReactNode
+	children: ReactNode
+}
+
+export type AutoJoinCheckboxProps = Omit<
+	ComponentProps<'input'>,
+	'onChange'
+> & {
+	checked?: boolean
+	onChange: (isChecked: boolean) => void
+}
+
+// Refactored to generalize Antd components: https://github.com/highlight/highlight/issues/8635
+export const AutoJoinForm = () => {
+	const FormTooltip: React.FC<AutoJoinTooltipProps> = useCallback(
+		({ title, children, ...props }) => (
+			<Tooltip trigger={children} {...props}>
+				{title}
+			</Tooltip>
+		),
+		[],
+	)
+
+	const Checkbox: React.FC<AutoJoinCheckboxProps> = useCallback(
+		({ className, onChange, checked }) => {
+			return (
+				<SwitchButton
+					className={clsx(
+						className,
+						styles.checkbox,
+						checked && styles.isChecked,
+					)}
+					onClick={() => {
+						onChange(!checked)
+					}}
+					iconLeft={<IconSolidCheck className={styles.checkMark} />}
+					checked={checked}
+				/>
+			)
+		},
+		[],
+	)
+
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const { admin } = useAuthContext()
 	const adminsEmailDomain = getEmailDomain(admin?.email)
@@ -61,8 +110,7 @@ export const AutoJoinForm: React.FC = () => {
 		}
 	}
 
-	const handleCheckboxChange = (event: CheckboxChangeEvent) => {
-		const checked = event.target.checked
+	const handleCheckboxChange = (checked: boolean) => {
 		if (checked) {
 			onChangeMsg([adminsEmailDomain], 'Successfully enabled auto-join!')
 		} else {
@@ -78,11 +126,7 @@ export const AutoJoinForm: React.FC = () => {
 	}
 
 	return (
-		<Tooltip
-			title="Automatically share the workspace with all users on this domain."
-			align={{ offset: [0, 6] }}
-			mouseEnterDelay={0}
-		>
+		<FormTooltip title="Automatically share the workspace with all users on this domain.">
 			<div className={styles.container}>
 				<Box display="flex" alignItems="center" gap="8" p="0" m="0">
 					<Checkbox
@@ -102,6 +146,6 @@ export const AutoJoinForm: React.FC = () => {
 					options={adminDomains}
 				/>
 			</div>
-		</Tooltip>
+		</FormTooltip>
 	)
 }

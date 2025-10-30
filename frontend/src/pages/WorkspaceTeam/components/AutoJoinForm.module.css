@@ -1,4 +1,5 @@
 .container {
+	width: 100%;
 	align-items: flex-start;
 	row-gap: var(--size-xxSmall);
 	display: flex;
@@ -6,6 +7,41 @@
 	justify-content: space-between;
 	max-height: fit-content;
 	min-height: var(--size-xxLarge);
+}
+
+.checkbox {
+	padding: 1px;
+	margin: 3px 0px;
+	border-radius: 4px;
+	transition: all 0.3s;
+
+	width: 16px;
+	height: 16px;
+
+	display: flex;
+	align-items: flex-end;
+	justify-content: flex-start;
+
+	&:hover {
+		border-color: #5629c6;
+	}
+
+	&.isChecked {
+		background-color: #5629c6;
+
+		.checkMark {
+			width: 12px;
+			height: 12px;
+			opacity: 1;
+		}
+	}
+}
+
+.checkMark {
+	transition: all 0.3s;
+	opacity: 0;
+	width: 0px;
+	height: 0px;
 }
 
 .select {

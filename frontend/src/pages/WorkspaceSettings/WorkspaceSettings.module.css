@@ -10,3 +10,8 @@
 	margin-bottom: var(--size-xxLarge);
 	margin-top: var(--size-xxLarge);
 }
+
+.submitButton {
+	background-color: #5629c6;
+	transition: all 0.3s;
+}
