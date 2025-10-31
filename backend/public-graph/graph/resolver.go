@@ -399,6 +399,10 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 }
 
 func (r *Resolver) tagErrorGroup(ctx context.Context, errorObj *model.ErrorObject) *int {
+	if errorObj.ID == 0 {
+		return nil
+	}
+
 	eMatchCtx, cancel := context.WithTimeout(ctx, embeddings.InferenceTimeout)
 	defer cancel()
 
