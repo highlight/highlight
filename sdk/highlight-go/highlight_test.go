@@ -142,3 +142,42 @@ func TestInterceptHighlightHeaderRequestPropagation(t *testing.T) {
 	assert.Equal(t, newCtx.Value(ContextKeys.SessionSecureID), "123")
 	assert.Equal(t, newCtx.Value(ContextKeys.RequestID), "456")
 }
+
+// TestRecordSpanErrorWithNil tests that RecordSpanError handles nil errors correctly
+func TestRecordSpanErrorWithNil(t *testing.T) {
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, "0")
+	ctx = context.WithValue(ctx, ContextKeys.RequestID, "0")
+
+	Start()
+	defer Stop()
+
+	// Create a span
+	span, ctx := StartTrace(ctx, "test-span")
+	defer EndTrace(span)
+
+	// Test that RecordSpanError with nil error doesn't panic or cause issues
+	RecordSpanError(span, nil)
+	
+	// Test that RecordSpanError with an actual error works
+	err := fmt.Errorf("test error")
+	RecordSpanError(span, err)
+}
+
+// TestRecordSpanErrorWithActualError tests that RecordSpanError records actual errors
+func TestRecordSpanErrorWithActualError(t *testing.T) {
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, "0")
+	ctx = context.WithValue(ctx, ContextKeys.RequestID, "0")
+
+	Start()
+	defer Stop()
+
+	// Create a span
+	span, ctx := StartTrace(ctx, "test-span-with-error")
+	defer EndTrace(span)
+
+	// Test that RecordSpanError with an actual error works
+	err := fmt.Errorf("HTTP request failed with status 404: 404 Not Found")
+	RecordSpanError(span, err, attribute.String("test", "value"))
+}

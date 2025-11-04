@@ -38,6 +38,25 @@ func TestTracer(t *testing.T) {
 			t.Errorf("got invalid response from intercept field")
 		}
 	})
+	t.Run("test intercept with nil error", func(t *testing.T) {
+		highlight.Start()
+		// Test that nil errors are not recorded
+		field, err := tr.InterceptField(ctx, func(ctx context.Context) (res interface{}, err error) {
+			return &graphql.Response{}, nil
+		})
+		assert.NotNil(t, field, "field should not be nil")
+		assert.Nil(t, err, "error should be nil")
+	})
+	t.Run("test intercept with actual error", func(t *testing.T) {
+		highlight.Start()
+		// Test that actual errors are properly recorded
+		expectedErr := assert.AnError
+		field, err := tr.InterceptField(ctx, func(ctx context.Context) (res interface{}, err error) {
+			return nil, expectedErr
+		})
+		assert.Nil(t, field, "field should be nil when error occurs")
+		assert.Equal(t, expectedErr, err, "error should match expected error")
+	})
 	highlight.Stop()
 }
 
