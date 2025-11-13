@@ -41,7 +41,7 @@ export const ProjectRedirectionRouter = () => {
 	} else if (data?.projects?.length) {
 		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
 	} else {
-		redirectTo = '/new'
+		redirectTo = '/join_workspace'
 	}
 
 	// Redirects the user to their default project when the URL does not have an

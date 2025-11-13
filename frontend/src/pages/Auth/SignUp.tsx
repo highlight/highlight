@@ -150,6 +150,14 @@ export const SignUp: React.FC = () => {
 			</AuthHeader>
 			<AuthBody>
 				<Stack gap="12">
+					<Callout>
+						<Text>
+							Creating new workspaces is disabled.{' '}
+							<a href="https://highlight.io/blog/launchdarkly-migration">
+								Learn more on our blog.
+							</a>
+						</Text>
+					</Callout>
 					<Form.Input
 						name={formStore.names.email}
 						label="Email"

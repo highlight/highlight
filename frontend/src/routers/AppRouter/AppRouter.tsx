@@ -98,7 +98,6 @@ export const AppRouter = () => {
 		| Location
 		| undefined
 	const workspaceMatch = useMatch('/w/:workspace_id/*')
-	const newProjectMatch = useMatch('/new')
 	const newWorkspaceMatch = useMatch('/w/:workspace_id/new')
 	const workspaceId = workspaceMatch?.params.workspace_id
 	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
@@ -109,7 +108,6 @@ export const AppRouter = () => {
 	const isFirebasePage = !!firebaseMatch
 	const isInvitePage = !!inviteMatch
 	const isNewProjectPage = !!newWorkspaceMatch
-	const isNewWorkspacePage = !!newProjectMatch
 	const isJoinWorkspacePage = !!joinWorkspaceMatch
 	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
 	const { projectId } = useNumericProjectId(previousLocation)
@@ -272,12 +270,8 @@ export const AppRouter = () => {
 					joinableWorkspaces: data?.joinable_workspaces ?? [],
 				}}
 			>
-				{(isNewWorkspacePage || isNewProjectPage) && isLoggedIn ? (
-					<NewProjectPage
-						workspace_id={
-							isNewProjectPage ? workspaceId : undefined
-						}
-					/>
+				{isNewProjectPage && isLoggedIn ? (
+					<NewProjectPage workspace_id={workspaceId!} />
 				) : null}
 				<DebugRoutes>
 					<Routes location={previousLocation ?? location}>
@@ -431,7 +425,6 @@ export const AppRouter = () => {
 								projectId && isValidProjectId ? (
 									<ProjectRouter />
 								) : isLoggedIn ? (
-									isNewWorkspacePage ||
 									isNewProjectPage ? undefined : (
 										<ProjectRedirectionRouter />
 									)
