@@ -8,11 +8,9 @@ import {
 import {
 	useGetWorkspacesQuery,
 	useUpdateAdminAboutYouDetailsMutation,
-	useUpdateAdminAndCreateWorkspaceMutation,
 } from '@graph/hooks'
 import {
 	Box,
-	ButtonLink,
 	Callout,
 	Form,
 	IconSolidCheckCircle,
@@ -27,7 +25,7 @@ import { INVITE_TEAM_ROUTE } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
 import { getAttributionData } from '@util/attribution'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { namedOperations } from '@/graph/generated/operations'
@@ -86,14 +84,11 @@ const HEARD_ABOUT_OPTIONS = Object.entries(HeardAbout).map(([k, v]) => ({
 }))
 
 export const AdminForm: React.FC = () => {
-	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const { setLoadingState } = useAppLoadingContext()
 	const { admin, fetchAdmin } = useAuthContext()
 	const navigate = useNavigate()
 	const { data: workspacesData, loading: workspacesLoading } =
 		useGetWorkspacesQuery({ fetchPolicy: 'network-only' })
-	const [updateAdminAndCreateWorkspace, { loading }] =
-		useUpdateAdminAndCreateWorkspaceMutation()
 	const [updateAdminAboutYouDetails] = useUpdateAdminAboutYouDetailsMutation()
 	const [dismissedJoinWorkspace] = useLocalStorage(
 		DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY,
@@ -132,7 +127,7 @@ export const AdminForm: React.FC = () => {
 	const phoneHomeContactAllowed = formStore.useValue(
 		formStore.names.phoneHomeContactAllowed,
 	)
-	const disableForm = loading || submitSucceeded > 0
+	const disableForm = submitSucceeded > 0
 
 	formStore.useSubmit(async (formState) => {
 		if (disableForm) {
@@ -153,57 +148,32 @@ export const AdminForm: React.FC = () => {
 		try {
 			const attributionData = getAttributionData()
 
-			if (inWorkspace) {
-				await updateAdminAboutYouDetails({
-					awaitRefetchQueries: true,
-					refetchQueries: [
-						namedOperations.Query.GetProjectsAndWorkspaces,
-					],
-					variables: {
-						adminDetails: {
-							first_name: formState.values.firstName,
-							last_name: formState.values.lastName,
-							user_defined_role: formState.values.role,
-							user_defined_persona: '',
-							user_defined_team_size: formState.values.teamSize,
-							heard_about: formState.values.heardAbout,
-							phone_home_contact_allowed:
-								formState.values.phoneHomeContactAllowed,
-							referral: attributionData.referral,
-						},
+			await updateAdminAboutYouDetails({
+				awaitRefetchQueries: true,
+				refetchQueries: [
+					namedOperations.Query.GetProjectsAndWorkspaces,
+				],
+				variables: {
+					adminDetails: {
+						first_name: formState.values.firstName,
+						last_name: formState.values.lastName,
+						user_defined_role: formState.values.role,
+						user_defined_persona: '',
+						user_defined_team_size: formState.values.teamSize,
+						heard_about: formState.values.heardAbout,
+						phone_home_contact_allowed:
+							formState.values.phoneHomeContactAllowed,
+						referral: attributionData.referral,
 					},
-				})
-			} else {
-				await updateAdminAndCreateWorkspace({
-					awaitRefetchQueries: true,
-					refetchQueries: [
-						namedOperations.Query.GetProjectsAndWorkspaces,
-					],
-					variables: {
-						admin_and_workspace_details: {
-							first_name: formState.values.firstName,
-							last_name: formState.values.lastName,
-							user_defined_role: formState.values.role,
-							user_defined_team_size: formState.values.teamSize,
-							workspace_name: formState.values.companyName,
-							promo_code: formState.values.promoCode || undefined,
-							heard_about: formState.values.heardAbout,
-							phone_home_contact_allowed:
-								formState.values.phoneHomeContactAllowed,
-							referral: attributionData.referral,
-						},
-					},
-				})
-			}
+				},
+			})
 
 			toast.success(
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
 
 			await fetchAdmin() // updates admin in auth context
-			navigate(
-				`${INVITE_TEAM_ROUTE}${inWorkspace ? '' : '?new_workspace=1'}`,
-			)
+			navigate(INVITE_TEAM_ROUTE)
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)
@@ -301,23 +271,6 @@ export const AdminForm: React.FC = () => {
 							options={HEARD_ABOUT_OPTIONS}
 							placeholder="Select how you heard about us"
 						/>
-						{!inWorkspace &&
-							(showPromoCodeField ? (
-								<Form.Input
-									name={formStore.names.promoCode}
-									label="Promo Code"
-								/>
-							) : (
-								<Box mt="4">
-									<ButtonLink
-										onClick={() =>
-											setShowPromoCodeField(true)
-										}
-									>
-										+ Add promo code
-									</ButtonLink>
-								</Box>
-							))}
 						{formError && (
 							<Callout kind="error">{formError}</Callout>
 						)}
@@ -375,7 +328,7 @@ export const AdminForm: React.FC = () => {
 							loading={disableForm}
 							type="submit"
 						>
-							{inWorkspace ? 'Submit' : 'Create Workspace'}
+							Submit
 						</Button>
 					</Stack>
 				</AuthFooter>

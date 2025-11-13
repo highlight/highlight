@@ -78,11 +78,13 @@ export const JoinWorkspace = () => {
 		}
 	}, [loading, setLoadingState])
 
-	useEffect(() => {
-		if (data && !data?.joinable_workspaces?.length) {
-			navigate(ABOUT_YOU_ROUTE, { replace: true })
-		}
-	}, [data, navigate])
+	// useEffect(() => {
+	// 	if (data && !data?.joinable_workspaces?.length) {
+	// 		navigate(ABOUT_YOU_ROUTE, { replace: true })
+	// 	}
+	// }, [data, navigate])
+
+	const noJoinableWorkspaces = data && !data?.joinable_workspaces?.length
 
 	if (loading) {
 		return null
@@ -98,39 +100,70 @@ export const JoinWorkspace = () => {
 				</AuthHeader>
 				<AuthBody>
 					<Stack gap="16" direction="column">
-						<Text>
-							Based on your <b>@{emailDomain}</b> email address
-							you are able to join the following workspaces.
-						</Text>
+						{noJoinableWorkspaces ? (
+							<Stack>
+								<Text>
+									The creation of new workspaces is disabled.{' '}
+									<a href="https://highlight.io/blog">
+										Learn more on our blog.
+									</a>
+								</Text>
+								<Text>
+									If you are trying to join an existing
+									workspace, please ask your admin for an
+									invite link.
+								</Text>
+							</Stack>
+						) : (
+							<>
+								<Stack>
+									<Text>
+										The creation of new workspaces is
+										disabled.{' '}
+										<a href="https://highlight.io/blog">
+											Learn more on our blog.
+										</a>
+									</Text>
+									<Text>
+										Based on your <b>@{emailDomain}</b>{' '}
+										email address you are able to join the
+										following workspaces.
+									</Text>
+								</Stack>
 
-						<select
-							className={styles.select}
-							onChange={(e) => {
-								const selectedWorkspace =
-									data?.joinable_workspaces?.find(
-										(workspace) =>
-											workspace?.id === e.target.value,
-									)
+								<select
+									className={styles.select}
+									onChange={(e) => {
+										const selectedWorkspace =
+											data?.joinable_workspaces?.find(
+												(workspace) =>
+													workspace?.id ===
+													e.target.value,
+											)
 
-								formStore.setValue(
-									formStore.names.workspaceId,
-									selectedWorkspace?.id,
-								)
-							}}
-						>
-							<option value="" disabled>
-								Select a workspace
-							</option>
-
-							{data?.joinable_workspaces?.map((workspace) => (
-								<option
-									key={workspace?.id}
-									value={workspace?.id}
+										formStore.setValue(
+											formStore.names.workspaceId,
+											selectedWorkspace?.id,
+										)
+									}}
 								>
-									{workspace?.name}
-								</option>
-							))}
-						</select>
+									<option value="" disabled>
+										Select a workspace
+									</option>
+
+									{data?.joinable_workspaces?.map(
+										(workspace) => (
+											<option
+												key={workspace?.id}
+												value={workspace?.id}
+											>
+												{workspace?.name}
+											</option>
+										),
+									)}
+								</select>
+							</>
+						)}
 					</Stack>
 				</AuthBody>
 				<AuthFooter>
@@ -143,16 +176,6 @@ export const JoinWorkspace = () => {
 						loading={joinLoading}
 					>
 						Join Workspace
-					</Button>
-					<Button
-						kind="secondary"
-						trackingId="join-workspace_skip"
-						onClick={() => {
-							setDismissedJoinWorkspace(true)
-							navigate(ABOUT_YOU_ROUTE, { replace: true })
-						}}
-					>
-						<Text color="moderate">Create My Own Workspace</Text>
 					</Button>
 				</AuthFooter>
 			</Form>
