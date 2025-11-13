@@ -1052,7 +1052,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	projectID, err := model.FromVerboseID(input.ProjectVerboseID)
 	if err != nil {
-		return nil, e.Wrapf(err, "An unsupported verboseID was used: %s, %s", input.ProjectVerboseID, input.ClientConfig)
+		return nil, e.Wrapf(err, "failed to decode project verboseID '%s' from client config '%s'", input.ProjectVerboseID, input.ClientConfig)
 	}
 	initSpan.SetAttribute("project_id", projectID)
 
@@ -1944,7 +1944,8 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, projectVerboseID *string
 		var err error
 		projectID, err = model.FromVerboseID(*projectVerboseID)
 		if err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(err, "An unsupported verboseID was used: %s", *projectVerboseID))
+			log.WithContext(ctx).WithField("project_verbose_id", *projectVerboseID).
+				Warnf("Failed to decode project verboseID: %v", err)
 			return nil
 		}
 	}
@@ -2089,7 +2090,8 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		var err error
 		projectID, err = model.FromVerboseID(*projectVerboseID)
 		if err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(err, "An unsupported verboseID was used: %s", *projectVerboseID))
+			log.WithContext(ctx).WithField("project_verbose_id", *projectVerboseID).
+				Warnf("Failed to decode project verboseID: %v", err)
 			return
 		}
 	}
