@@ -955,10 +955,10 @@ const AcquisitionBanner = () => {
 
 	const bannerMessage = (
 		<span>
-			Highlight is now part of LaunchDarkly 🎉{' '}
+			Migrate your Highlight account to LaunchDarkly by February 28, 2026.{' '}
 			<a
 				target="_blank"
-				href="https://www.highlight.io/blog/joining-launchdarkly?utm_source=highlight-app-banner"
+				href="https://www.highlight.io/blog/launchdarkly-migration?utm_source=highlight-app-banner"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>
