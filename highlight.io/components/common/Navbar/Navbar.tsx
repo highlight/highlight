@@ -40,11 +40,12 @@ const LaunchWeekBanner = () => {
 const PromotionBanner = () => {
 	return (
 		<Link
-			href="/blog/joining-launchdarkly?utm_source=highlight-banner"
+			href="/blog/launchdarkly-migration?utm_source=highlight-banner"
 			className="hidden md:flex text-center justify-center items-center w-full py-2.5 px-3 bg-color-primary-200 text-white hover:bg-opacity-90"
 		>
 			<Typography type="copy3">
-				Highlight is now part of LaunchDarkly 🎉{' '}
+				Migrate your Highlight account to LaunchDarkly by February 28,
+				2026.{' '}
 				<span className="font-semibold underline">
 					Learn more on our blog.
 				</span>
