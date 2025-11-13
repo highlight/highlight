@@ -198,18 +198,9 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						{AUTH_MODE === 'firebase' ? (
 							<Text>
 								New here?{' '}
-								{workspaceInvite ? (
-									<Link to={SIGN_UP_ROUTE} state={{ email }}>
-										Create an account
-									</Link>
-								) : (
-									<a
-										href="https://highlight.io/blog/launchdarkly-migration"
-										rel="noreferrer"
-									>
-										Create an account
-									</a>
-								)}
+								<Link to={SIGN_UP_ROUTE} state={{ email }}>
+									Create an account
+								</Link>
 								.
 							</Text>
 						) : null}

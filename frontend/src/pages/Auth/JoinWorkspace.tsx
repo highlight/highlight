@@ -97,7 +97,7 @@ export const JoinWorkspace = () => {
 						{noJoinableWorkspaces ? (
 							<Stack>
 								<Text>
-									The creation of new workspaces is disabled.{' '}
+									Creating new workspaces is disabled.{' '}
 									<a href="https://highlight.io/blog/launchdarkly-migration">
 										Learn more on our blog.
 									</a>
@@ -112,8 +112,7 @@ export const JoinWorkspace = () => {
 							<>
 								<Stack>
 									<Text>
-										The creation of new workspaces is
-										disabled.{' '}
+										Creating new workspaces is disabled.{' '}
 										<a href="https://highlight.io/blog/launchdarkly-migration">
 											Learn more on our blog.
 										</a>
