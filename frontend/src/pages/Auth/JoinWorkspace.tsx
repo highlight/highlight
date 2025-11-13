@@ -78,12 +78,6 @@ export const JoinWorkspace = () => {
 		}
 	}, [loading, setLoadingState])
 
-	// useEffect(() => {
-	// 	if (data && !data?.joinable_workspaces?.length) {
-	// 		navigate(ABOUT_YOU_ROUTE, { replace: true })
-	// 	}
-	// }, [data, navigate])
-
 	const noJoinableWorkspaces = data && !data?.joinable_workspaces?.length
 
 	if (loading) {
@@ -104,7 +98,7 @@ export const JoinWorkspace = () => {
 							<Stack>
 								<Text>
 									The creation of new workspaces is disabled.{' '}
-									<a href="https://highlight.io/blog">
+									<a href="https://highlight.io/blog/launchdarkly-migration">
 										Learn more on our blog.
 									</a>
 								</Text>
@@ -120,7 +114,7 @@ export const JoinWorkspace = () => {
 									<Text>
 										The creation of new workspaces is
 										disabled.{' '}
-										<a href="https://highlight.io/blog">
+										<a href="https://highlight.io/blog/launchdarkly-migration">
 											Learn more on our blog.
 										</a>
 									</Text>
