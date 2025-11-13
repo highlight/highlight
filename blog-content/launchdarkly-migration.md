@@ -18,7 +18,7 @@ metaTitle: Migrating from Highlight.io to LaunchDarkly Observability
 
 ## TLDR
 
-All of the Highlight.io features you know and love are now available in the LaunchDarkly Observability product. Highlight.io will be deprecating services on **February 28th, 2026** and moving 100% of our infrastructure and services to LaunchDarkly.
+All of the Highlight.io features you know and love are now available in the LaunchDarkly Observability product. Highlight.io will be deprecating services on **February 28, 2026** and moving 100% of our infrastructure and services to LaunchDarkly.
 
 Instead of logging into https://app.highlight.io, we recommend creating a new account and migrating your SDK snippets to use LaunchDarkly Observability (at https://app.launchdarkly.com). Customers will need to update their Highlight SDK Snippet to use LaunchDarkly before **March 1, 2026** to avoid any disruption of service.
 
@@ -30,7 +30,7 @@ If you have any questions about the process please reference the FAQ below! If y
 
 ```javascript
 H.init('YOUR_PROJECT_ID', {
-    privacySetting: 'none',
+    privacySetting: 'strict',
     networkRecording: {
         enabled: true,
         recordHeadersAndBody: true,
@@ -52,6 +52,7 @@ H.init('YOUR_PROJECT_ID', {
 
 ```javascript
 const client = initialize('LD_CLIENT_SIDE_ID', {user: {key: 'abc123', email: 'bob@example.com'}}, {
+	// copy settings values based on what you had previously configured
     plugins: [
         new Observability({
             tracingOrigins: ['pri.highlight.io'],
@@ -64,7 +65,7 @@ const client = initialize('LD_CLIENT_SIDE_ID', {user: {key: 'abc123', email: 'bo
             version: 'version',
         }),
         new SessionReplay({
-            privacySetting: 'none',
+            privacySetting: 'strict',
             enableCanvasRecording: true,
             samplingStrategy: {
                 canvas: 1,
@@ -84,7 +85,7 @@ const client = initialize('LD_CLIENT_SIDE_ID', {user: {key: 'abc123', email: 'bo
 
 **Q: Will my pricing change?**
 
-LaunchDarkly's self-serve pricing tiers are the Developer and Foundation plans.
+If you are a Highlight self-service customer, you are expected to choose a LaunchDarkly self-service tier: Developer or Foundation.
 
 The **Developer plan** is $0 per month, and includes the following (monthly recurring) allotments:
 - 3 service connections (for feature flagging)
@@ -94,14 +95,9 @@ The **Developer plan** is $0 per month, and includes the following (monthly recu
 - 10,000,000 traces
 - No "overages"
 
-The **Foundation plan** is $36 per month, and includes:
-- 3 service connections (for feature flagging)
-- 5,000 sessions
-- 5,000 errors
-- 10,000,000 logs
-- 10,000,000 traces
+The **Foundation self-serve plan** is billed per service connection and per observability unit. Please refer to the pricing page [here](https://launchdarkly.com/pricing/).
 
-For any "overages" above the limits described above, the Observability pricing within LaunchDarkly will follow the self-serve pricing described [here](https://launchdarkly.com/pricing/).
+If you are a Highlight customer who is on an invoiced plan or MSA, we will reach out personally. If you don't hear from us, please reach out to observability@launchdarkly.com.
 
 **Q: When will services officially end on Highlight.io?**
 
@@ -113,7 +109,7 @@ Not necessarily. But if you would like to migrate your existing data / configura
 
 **Q: Do I need to purchase a new LaunchDarkly self-serve license?**
 
-On LaunchDarkly self-serve plans, if you exceed the free tier limits for any of the LaunchDarkly products, you will be expected to accept LaunchDarkly's licensing terms and (like in Highlight) pay for any monthly overages.
+When you sign up for a LaunchDarkly self-serve plan, you will be expected to accept the LaunchDarkly licensing terms. If you exceed the free tier limits for any of the LaunchDarkly products, and (like in Highlight), you'll pay for any monthly overages.
 
 **Q: Can I connect my observability data to LaunchDarkly feature flags?**
 
