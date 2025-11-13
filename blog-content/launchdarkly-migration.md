@@ -1,7 +1,7 @@
 ---
 title: Migrating from Highlight.io to LaunchDarkly Observability
-createdAt: 2025-04-23T12:00:00.000Z
-readingTime: 7
+createdAt: 2025-11-13T12:00:00.000Z
+readingTime: 11
 authorFirstName: Jay
 authorLastName: Khatri
 authorTitle: 'Co-founder & CEO'
