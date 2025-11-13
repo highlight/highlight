@@ -955,7 +955,7 @@ const AcquisitionBanner = () => {
 
 	const bannerMessage = (
 		<span>
-			Migrate Your Highlight Account to LaunchDarkly 🎉{' '}
+			Migrate your Highlight account to LaunchDarkly 🎉{' '}
 			<a
 				target="_blank"
 				href="https://www.highlight.io/blog/launchdarkly-migration?utm_source=highlight-app-banner"
