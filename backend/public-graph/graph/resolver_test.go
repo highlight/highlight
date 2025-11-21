@@ -748,3 +748,43 @@ func TestGetErrorAppVersion(t *testing.T) {
 		assert.Equal(t, *version, "bar")
 	})
 }
+
+func TestTagErrorGroup_WithZeroID(t *testing.T) {
+	ctx := context.TODO()
+
+	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
+		// Test that tagErrorGroup returns nil when errorObj.ID is 0
+		errorObject := &model.ErrorObject{
+			ID:    0,
+			Event: "test error",
+		}
+
+		result := resolver.tagErrorGroup(ctx, errorObject)
+		assert.Nil(t, result, "tagErrorGroup should return nil when errorObj.ID is 0")
+	})
+}
+
+func TestTagErrorGroup_WithValidID(t *testing.T) {
+	ctx := context.TODO()
+
+	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
+		// Create an error tag for matching
+		errorTag := &model.ErrorTag{
+			Title:       "Test Tag",
+			Description: "Test Description",
+			Embedding:   vector,
+		}
+		resolver.DB.Create(errorTag)
+
+		// Test that tagErrorGroup processes normally when errorObj.ID is non-zero
+		errorObject := &model.ErrorObject{
+			ID:    1,
+			Event: "test error",
+		}
+
+		// The important thing is that it doesn't fail with "INVALID" error
+		assert.NotPanics(t, func() {
+			resolver.tagErrorGroup(ctx, errorObject)
+		}, "tagErrorGroup should not panic when errorObj.ID is valid")
+	})
+}
