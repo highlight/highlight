@@ -50,7 +50,7 @@ import {
 	DEFAULT_COOLDOWN,
 	DEFAULT_WINDOW,
 } from '@/pages/Alerts/AlertForm'
-import { exportGraph } from '@/pages/Graphing/hooks/exportGraph'
+import { useExportGraphCSV } from '@/pages/Graphing/hooks/exportGraph'
 import { btoaSafe } from '@/util/string'
 
 import {
@@ -287,6 +287,35 @@ const GraphingEditorImpl: React.FC<Props> = ({
 	)
 	const { values } = useGraphingVariables(currentDashboardId)
 
+	const { exportCSV: handleDownload } = useExportGraphCSV({
+		graphId,
+		graphTitle: settings.metricViewTitle || tempMetricViewTitle,
+		productType: settings.productType,
+		projectId,
+		startDate,
+		endDate,
+		query: debouncedQuery,
+		sql: settings.editor === Editor.SqlEditor ? settings.sql : undefined,
+		groupByKeys: settings.groupByEnabled ? settings.groupByKeys : undefined,
+		bucketByKey: settings.bucketByEnabled
+			? getBucketByKey(settings.bucketBySetting, settings.bucketByKey)
+			: undefined,
+		bucketByWindow:
+			settings.bucketBySetting === 'Interval'
+				? Number(settings.bucketInterval)
+				: undefined,
+		bucketCount:
+			settings.bucketBySetting === 'Count'
+				? Number(settings.bucketCount)
+				: undefined,
+		limitFunctionType: settings.groupByEnabled
+			? settings.limitFunctionType
+			: undefined,
+		limitMetric: settings.groupByEnabled ? limitMetric : undefined,
+		expressions: settings.expressions,
+		variables: values,
+	})
+
 	useGetVisualizationQuery({
 		variables: {
 			id: currentDashboardId,
@@ -520,16 +549,6 @@ const GraphingEditorImpl: React.FC<Props> = ({
 			})
 			.catch(() => toast.error('Failed to delete graph'))
 	}, [currentDashboardId, deleteGraph, graph_id, isEdit, redirectToDashboard])
-
-	const handleDownload = useCallback(() => {
-		return exportGraph(
-			graphId,
-			settings.metricViewTitle,
-			graphContext.graphData.current
-				? graphContext.graphData.current[graphId]
-				: [],
-		)
-	}, [graphContext.graphData, graphId, settings.metricViewTitle])
 
 	const handleClone = useCallback(() => {
 		const updatedSettings = {

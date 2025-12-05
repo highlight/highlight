@@ -59,9 +59,9 @@ import { VariablesBar } from '@/pages/Graphing/components/VariablesBar'
 import { useGraphingVariables } from '@/pages/Graphing/hooks/useGraphingVariables'
 import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { loadFunnelStep } from '@pages/Graphing/util'
-import { GraphContextProvider, useGraphContext } from './context/GraphContext'
+import { GraphContextProvider } from './context/GraphContext'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
-import { exportGraph } from '@pages/Graphing/hooks/exportGraph'
+import { useExportGraphCSV } from '@pages/Graphing/hooks/exportGraph'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
 import {
 	AlertSettings,
@@ -96,8 +96,6 @@ const DashboardCell = ({
 		dashboard_id: string
 	}>()
 
-	const graphContext = useGraphContext()
-
 	const isTemp = g.id.startsWith('temp-')
 	const [deleteGraph] = useDeleteGraphMutation()
 
@@ -105,24 +103,30 @@ const DashboardCell = ({
 
 	const navigate = useNavigate()
 
-	const onDownload = useCallback(
-		(g: TGraph) => {
-			return exportGraph(
-				g.id,
-				g.title,
-				graphContext.graphData.current
-					? graphContext.graphData.current[g.id]
-					: [],
-			)
-		},
-		[graphContext.graphData],
-	)
-
 	const viewConfig = useGetViewConfig(
 		g.type,
 		g.display ?? undefined,
 		g.nullHandling ?? undefined,
 	)
+
+	const { exportCSV: onDownload } = useExportGraphCSV({
+		graphId: g.id,
+		graphTitle: g.title,
+		productType: g.productType,
+		projectId,
+		startDate,
+		endDate,
+		query: g.query,
+		sql: g.sql ?? undefined,
+		groupByKeys: g.groupByKeys ?? undefined,
+		bucketByKey: g.bucketByKey ?? undefined,
+		bucketByWindow: g.bucketInterval ?? undefined,
+		bucketCount: g.bucketCount ?? undefined,
+		limitFunctionType: g.limitFunctionType ?? undefined,
+		limitMetric: g.limitMetric ?? undefined,
+		expressions: g.expressions,
+		variables: values,
+	})
 
 	const funnelSteps = useMemo(
 		() => (g.funnelSteps ?? []).map(loadFunnelStep),
@@ -254,7 +258,7 @@ const DashboardCell = ({
 			onCreateAlert={handleCreateAlert}
 			onExpand={isTemp ? undefined : handleExpand}
 			onEdit={isTemp ? undefined : handleEdit}
-			onDownload={() => onDownload(g)}
+			onDownload={onDownload}
 		>
 			<Graph
 				id={g.id}
