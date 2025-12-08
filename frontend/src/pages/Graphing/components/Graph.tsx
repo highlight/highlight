@@ -830,7 +830,8 @@ export const transformMetricsToGraphData = (
 
 		if (xAxisMetric !== GROUPS_KEY) {
 			const hasGroups =
-				metrics.metrics.buckets.find((b) => b.group.length) !== undefined
+				metrics.metrics.buckets.find((b) => b.group.length) !==
+				undefined
 
 			for (const b of metrics.metrics.buckets) {
 				if (mapData[b.bucket_id] === undefined) {
@@ -880,7 +881,8 @@ export const transformMetricsToGraphData = (
 						...mapData[b.bucket_id][YHAT_LOWER_KEY],
 					}
 					if (!hasGroups) {
-						mapData[b.bucket_id][YHAT_LOWER_REGION_KEY] = bucketLower
+						mapData[b.bucket_id][YHAT_LOWER_REGION_KEY] =
+							bucketLower
 					}
 				}
 			}
@@ -923,7 +925,12 @@ export const useGraphData = (
 	thresholdSettings?: ThresholdSettings,
 ) =>
 	useMemo(
-		() => transformMetricsToGraphData(metrics, xAxisMetric, thresholdSettings),
+		() =>
+			transformMetricsToGraphData(
+				metrics,
+				xAxisMetric,
+				thresholdSettings,
+			),
 		[metrics, xAxisMetric, thresholdSettings],
 	)
 
