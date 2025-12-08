@@ -29,11 +29,12 @@ import { useRetentionPresets } from '@/components/Search/SearchForm/hooks'
 import { GraphContextProvider } from '@pages/Graphing/context/GraphContext'
 import { useGraphData } from '@pages/Graphing/hooks/useGraphData'
 import { useGraphTime } from '@/pages/Graphing/hooks/useGraphTime'
-import { exportGraph } from '@/pages/Graphing/hooks/exportGraph'
+import { useExportGraphCSV } from '@/pages/Graphing/hooks/exportGraph'
 import { loadFunnelStep } from '@/pages/Graphing/util'
 import { Editor, GraphSettings } from '@/pages/Graphing/constants'
 import {
 	MetricAggregator,
+	ProductType,
 	ThresholdCondition,
 	ThresholdType,
 } from '@/graph/generated/schemas'
@@ -86,19 +87,24 @@ export const ExpandedGraph = () => {
 		g?.nullHandling,
 	)
 
-	const handleDownload = useCallback(() => {
-		if (!g) {
-			return
-		}
-
-		return exportGraph(
-			g.id,
-			g.title,
-			graphContext.graphData.current
-				? graphContext.graphData.current[g.id]
-				: [],
-		)
-	}, [g, graphContext.graphData])
+	const { exportCSV: handleDownload } = useExportGraphCSV({
+		graphId: g?.id ?? '',
+		graphTitle: g?.title ?? '',
+		productType: g?.productType ?? ProductType.Logs,
+		projectId,
+		startDate,
+		endDate,
+		query: g?.query ?? '',
+		sql: g?.sql ?? undefined,
+		groupByKeys: g?.groupByKeys ?? undefined,
+		bucketByKey: g?.bucketByKey ?? undefined,
+		bucketByWindow: g?.bucketInterval ?? undefined,
+		bucketCount: g?.bucketCount ?? undefined,
+		limitFunctionType: g?.limitFunctionType ?? undefined,
+		limitMetric: g?.limitMetric ?? undefined,
+		expressions: g?.expressions ?? [],
+		variables: values,
+	})
 
 	const handleClone = useCallback(() => {
 		if (!g) {

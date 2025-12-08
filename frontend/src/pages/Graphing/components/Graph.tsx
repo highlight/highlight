@@ -803,128 +803,136 @@ export const getSeriesName = (
 	}
 }
 
+/**
+ * Transforms metrics API response to the graph data format used for rendering and CSV export.
+ * This is a standalone function that can be used outside of React hooks.
+ */
+export const transformMetricsToGraphData = (
+	metrics: GetMetricsQuery | undefined,
+	xAxisMetric: string,
+	thresholdSettings?: ThresholdSettings,
+): any[] | undefined => {
+	let upperThreshold: number | undefined
+	let lowerThreshold: number | undefined
+	if (thresholdSettings?.thresholdType === ThresholdType.Constant) {
+		if (thresholdSettings.thresholdCondition === ThresholdCondition.Above) {
+			upperThreshold = thresholdSettings.thresholdValue
+		}
+		if (thresholdSettings.thresholdCondition === ThresholdCondition.Below) {
+			lowerThreshold = thresholdSettings.thresholdValue
+		}
+	}
+
+	let data: any[] | undefined
+	if (metrics?.metrics?.buckets) {
+		data = []
+		const mapData: any = {}
+
+		if (xAxisMetric !== GROUPS_KEY) {
+			const hasGroups =
+				metrics.metrics.buckets.find((b) => b.group.length) !==
+				undefined
+
+			for (const b of metrics.metrics.buckets) {
+				if (mapData[b.bucket_id] === undefined) {
+					mapData[b.bucket_id] = {}
+				}
+				const seriesKey = getSeriesKey({
+					aggregator: b.metric_type,
+					column: b.column,
+					groups: b.group,
+				})
+
+				if (b.bucket_value !== null && b.bucket_value !== undefined) {
+					mapData[b.bucket_id][xAxisMetric] = b.bucket_value
+				} else {
+					mapData[b.bucket_id][xAxisMetric] =
+						((b.bucket_min ?? 0) + (b.bucket_max ?? 0)) / 2
+				}
+
+				mapData[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
+				mapData[b.bucket_id][BUCKET_MAX_KEY] = b.bucket_max
+				mapData[b.bucket_id][seriesKey] = {
+					[VALUE_KEY]: b.metric_value,
+					[SERIES_KEY]: {
+						[AGGREGATOR_KEY]: b.metric_type,
+						[COLUMN_KEY]: b.column,
+						[GROUPS_KEY]: b.group,
+					},
+				}
+
+				const bucketUpper = b.yhat_upper || upperThreshold
+				const bucketLower = b.yhat_lower || lowerThreshold
+
+				if (bucketUpper) {
+					mapData[b.bucket_id][YHAT_UPPER_KEY] = {
+						[seriesKey]: bucketUpper,
+						...mapData[b.bucket_id][YHAT_UPPER_KEY],
+					}
+					if (!hasGroups) {
+						mapData[b.bucket_id][YHAT_UPPER_REGION_KEY] =
+							bucketUpper - (b.yhat_lower ?? 0)
+					}
+				}
+
+				if (bucketLower) {
+					mapData[b.bucket_id][YHAT_LOWER_KEY] = {
+						[seriesKey]: bucketLower,
+						...mapData[b.bucket_id][YHAT_LOWER_KEY],
+					}
+					if (!hasGroups) {
+						mapData[b.bucket_id][YHAT_LOWER_REGION_KEY] =
+							bucketLower
+					}
+				}
+			}
+			for (const d of Object.values(mapData)) {
+				data.push(d)
+			}
+		} else {
+			const mpData: any = {}
+			for (const b of metrics.metrics.buckets) {
+				const groupKey = getGroupKey(b.group)
+				const seriesKey = getSeriesKey({
+					aggregator: b.metric_type,
+					column: b.column,
+					groups: [],
+				})
+				mpData[groupKey] = {
+					...mpData[groupKey],
+					[seriesKey]: {
+						[SERIES_KEY]: {
+							[AGGREGATOR_KEY]: b.metric_type,
+							[COLUMN_KEY]: b.column,
+							[GROUPS_KEY]: [],
+						},
+						[VALUE_KEY]: b.metric_value,
+					},
+					[GROUPS_KEY]: b.group,
+				}
+			}
+			for (const d of Object.values(mpData)) {
+				data.push(d)
+			}
+		}
+	}
+	return data
+}
+
 export const useGraphData = (
 	metrics: GetMetricsQuery | undefined,
 	xAxisMetric: string,
 	thresholdSettings?: ThresholdSettings,
-) => {
-	return useMemo(() => {
-		let upperThreshold: number | undefined
-		let lowerThreshold: number | undefined
-		if (thresholdSettings?.thresholdType === ThresholdType.Constant) {
-			if (
-				thresholdSettings.thresholdCondition ===
-				ThresholdCondition.Above
-			) {
-				upperThreshold = thresholdSettings.thresholdValue
-			}
-			if (
-				thresholdSettings.thresholdCondition ===
-				ThresholdCondition.Below
-			) {
-				lowerThreshold = thresholdSettings.thresholdValue
-			}
-		}
-
-		let data: any[] | undefined
-		if (metrics?.metrics?.buckets) {
-			data = []
-			const mapData: any = {}
-
-			if (xAxisMetric !== GROUPS_KEY) {
-				const hasGroups =
-					metrics.metrics.buckets.find((b) => b.group.length) !==
-					undefined
-
-				for (const b of metrics.metrics.buckets) {
-					if (mapData[b.bucket_id] === undefined) {
-						mapData[b.bucket_id] = {}
-					}
-					const seriesKey = getSeriesKey({
-						aggregator: b.metric_type,
-						column: b.column,
-						groups: b.group,
-					})
-
-					if (
-						b.bucket_value !== null &&
-						b.bucket_value !== undefined
-					) {
-						mapData[b.bucket_id][xAxisMetric] = b.bucket_value
-					} else {
-						mapData[b.bucket_id][xAxisMetric] =
-							((b.bucket_min ?? 0) + (b.bucket_max ?? 0)) / 2
-					}
-
-					mapData[b.bucket_id][BUCKET_MIN_KEY] = b.bucket_min
-					mapData[b.bucket_id][BUCKET_MAX_KEY] = b.bucket_max
-					mapData[b.bucket_id][seriesKey] = {
-						[VALUE_KEY]: b.metric_value,
-						[SERIES_KEY]: {
-							[AGGREGATOR_KEY]: b.metric_type,
-							[COLUMN_KEY]: b.column,
-							[GROUPS_KEY]: b.group,
-						},
-					}
-
-					const bucketUpper = b.yhat_upper || upperThreshold
-					const bucketLower = b.yhat_lower || lowerThreshold
-
-					if (bucketUpper) {
-						mapData[b.bucket_id][YHAT_UPPER_KEY] = {
-							[seriesKey]: bucketUpper,
-							...mapData[b.bucket_id][YHAT_UPPER_KEY],
-						}
-						if (!hasGroups) {
-							mapData[b.bucket_id][YHAT_UPPER_REGION_KEY] =
-								bucketUpper - (b.yhat_lower ?? 0)
-						}
-					}
-
-					if (bucketLower) {
-						mapData[b.bucket_id][YHAT_LOWER_KEY] = {
-							[seriesKey]: bucketLower,
-							...mapData[b.bucket_id][YHAT_LOWER_KEY],
-						}
-						if (!hasGroups) {
-							mapData[b.bucket_id][YHAT_LOWER_REGION_KEY] =
-								bucketLower
-						}
-					}
-				}
-				for (const d of Object.values(mapData)) {
-					data.push(d)
-				}
-			} else {
-				const mapData: any = {}
-				for (const b of metrics.metrics.buckets) {
-					const groupKey = getGroupKey(b.group)
-					const seriesKey = getSeriesKey({
-						aggregator: b.metric_type,
-						column: b.column,
-						groups: [],
-					})
-					mapData[groupKey] = {
-						...mapData[groupKey],
-						[seriesKey]: {
-							[SERIES_KEY]: {
-								[AGGREGATOR_KEY]: b.metric_type,
-								[COLUMN_KEY]: b.column,
-								[GROUPS_KEY]: [],
-							},
-							[VALUE_KEY]: b.metric_value,
-						},
-						[GROUPS_KEY]: b.group,
-					}
-				}
-				for (const d of Object.values(mapData)) {
-					data.push(d)
-				}
-			}
-		}
-		return data
-	}, [metrics, xAxisMetric, thresholdSettings])
-}
+) =>
+	useMemo(
+		() =>
+			transformMetricsToGraphData(
+				metrics,
+				xAxisMetric,
+				thresholdSettings,
+			),
+		[metrics, xAxisMetric, thresholdSettings],
+	)
 
 export const useFunnelData = (
 	results: GetMetricsQuery[] | undefined,
@@ -1021,7 +1029,7 @@ export const useGraphSeries = (
 	}, [data, xAxisMetric])
 }
 
-const replaceQueryVariables = (
+export const replaceQueryVariables = (
 	text: string,
 	vars: Map<string, string[]> | undefined,
 ) => {
@@ -1037,14 +1045,14 @@ const replaceQueryVariables = (
 	return text
 }
 
-const matchParamVariables = (
+export const matchParamVariables = (
 	text: string | string[],
-	vars: Map<string, string[]> | undefined,
+	variables: Map<string, string[]> | undefined,
 ): string[] => {
 	if (Array.isArray(text)) {
 		const results: string[] = []
 		text.forEach((t) => {
-			const values = vars?.get(t)
+			const values = variables?.get(t)
 			if (values !== undefined) {
 				results.push(...values)
 			} else {
@@ -1053,7 +1061,7 @@ const matchParamVariables = (
 		})
 		return results
 	} else {
-		const values = vars?.get(text)
+		const values = variables?.get(text)
 		if (values !== undefined) {
 			return values
 		} else {
