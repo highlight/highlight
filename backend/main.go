@@ -535,6 +535,14 @@ func main() {
 			LambdaClient:         lambdaClient,
 			SessionCache:         sessionCache,
 		}
+
+		// Set up optional fire-and-forget request forwarder
+		if env.Config.ForwarderTargetURL != "" {
+			log.WithContext(ctx).WithField("targetURL", env.Config.ForwarderTargetURL).Info("enabling public graph request forwarder")
+			forwarder := public.NewForwarder(env.Config.ForwarderTargetURL, 30*time.Second)
+			r.Use(public.ForwarderMiddleware(forwarder))
+		}
+
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
 			publicEndpoint = "/"
