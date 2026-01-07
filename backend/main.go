@@ -344,7 +344,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("error creating clickhouse client: %v", err)
 	}
 
-	clickhouse.RunMigrations(ctx, clickhouse.PrimaryDatabase)
+    clickhouse.RunMigrations(ctx, clickhouse.PrimaryDatabase)
 
 	oauthSrv, err := oauth.CreateServer(ctx, db, redisClient)
 	if err != nil {
@@ -537,10 +537,10 @@ func main() {
 		}
 
 		// Set up optional fire-and-forget request forwarder
+		var forwarder *public.Forwarder
 		if env.Config.ForwarderTargetURL != "" {
 			log.WithContext(ctx).WithField("targetURL", env.Config.ForwarderTargetURL).Info("enabling public graph request forwarder")
-			forwarder := public.NewForwarder(env.Config.ForwarderTargetURL, 30*time.Second)
-			r.Use(public.ForwarderMiddleware(forwarder))
+			forwarder = public.NewForwarder(env.Config.ForwarderTargetURL, 30*time.Second)
 		}
 
 		publicEndpoint := "/public"
@@ -551,6 +551,9 @@ func main() {
 			r.Use(cors.New(PUBLIC_GRAPH_CORS_OPTIONS).Handler)
 			r.Use(highlightChi.Middleware)
 			r.Use(public.PublicMiddleware)
+			if forwarder != nil {
+				r.Use(public.ForwarderMiddleware(forwarder))
+			}
 
 			publicServer := ghandler.New(publicgen.NewExecutableSchema(
 				publicgen.Config{
