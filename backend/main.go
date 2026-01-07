@@ -344,7 +344,7 @@ func main() {
 		log.WithContext(ctx).Fatalf("error creating clickhouse client: %v", err)
 	}
 
-    clickhouse.RunMigrations(ctx, clickhouse.PrimaryDatabase)
+	clickhouse.RunMigrations(ctx, clickhouse.PrimaryDatabase)
 
 	oauthSrv, err := oauth.CreateServer(ctx, db, redisClient)
 	if err != nil {
