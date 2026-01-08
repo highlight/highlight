@@ -60,6 +60,7 @@ type Configuration struct {
 	EnterpriseEnvExpiration     time.Time
 	EnterpriseEnvPublicKey      string `mapstructure:"ENTERPRISE_ENV_PUBLIC_KEY"`
 	Environment                 string `mapstructure:"ENVIRONMENT"`
+	ForwarderTargetURL          string `mapstructure:"PUBLIC_GRAPH_FORWARDER_URL"`
 	FrontClientId               string `mapstructure:"FRONT_CLIENT_ID"`
 	FrontClientSecret           string `mapstructure:"FRONT_CLIENT_SECRET"`
 	FrontendUri                 string `mapstructure:"REACT_APP_FRONTEND_URI"`
