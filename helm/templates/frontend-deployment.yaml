@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "highlight.fullname" . }}-frontend
+  labels:
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: frontend
+      app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+      {{- include "highlight.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+        {{- include "highlight.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          env:
+            - name: REACT_APP_PRIVATE_GRAPH_URI
+              value: {{ .Values.frontend.config.privateGraphUri }}
+            - name: REACT_APP_PUBLIC_GRAPH_URI
+              value: {{ .Values.frontend.config.publicGraphUri }}
+            - name: REACT_APP_FRONTEND_URI
+              value: {{ .Values.frontend.config.frontendUri }}
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+            - containerPort: 6006
+              protocol: TCP
+            - containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "highlight.fullname" . }}-clickhouse-pvc
+spec:
+  resources:
+    requests:
+      storage: {{ .Values.clickhouse.config.clickhouseStorageSize }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "highlight.fullname" . }}-clickhouse-logs-pvc
+spec:
+  resources:
+    requests:
+      storage: {{ .Values.clickhouse.config.clickhouseLogsStorageSize }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
