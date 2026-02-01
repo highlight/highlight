@@ -10376,7 +10376,7 @@ __metadata:
     sass: "npm:1.63.2"
     sass-loader: "npm:14.2.1"
     style-loader: "npm:3.3.3"
-    swc-loader: "npm:^0.2.3"
+    swc-loader: "npm:^0.2.6"
     ts-node: "npm:^10.9.1"
     tsconfig-paths: "npm:^4.2.0"
     tslib: "npm:2.5.3"
@@ -60443,13 +60443,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swc-loader@npm:^0.2.3":
-  version: 0.2.3
-  resolution: "swc-loader@npm:0.2.3"
+"swc-loader@npm:^0.2.6":
+  version: 0.2.6
+  resolution: "swc-loader@npm:0.2.6"
+  dependencies:
+    "@swc/counter": "npm:^0.1.3"
   peerDependencies:
     "@swc/core": ^1.2.147
     webpack: ">=2"
-  checksum: 10/010d84d399525c0185d36d62c86c55ae017e7a90046bc8a39be4b7e07526924037868049f6037bc966da98151cb2600934b96a66279b742d3c413a718b427251
+  checksum: 10/fe90948c02a51bb8ffcff1ce3590e01dc12860b0bb7c9e22052b14fa846ed437781ae265614a5e14344bea22001108780f00a6e350e28c0b3499bc4cd11335fb
   languageName: node
   linkType: hard
 
