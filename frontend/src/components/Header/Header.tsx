@@ -815,7 +815,11 @@ const BillingBanner: React.FC = () => {
 		)}.`
 	}
 
-	if (moment().isAfter('2025-04-23T12:00:00Z')) {
+	const HIDDEN_WORKSPACE_IDS = ['5422', '15127']
+	if (
+		moment().isAfter('2025-04-23T12:00:00Z') &&
+		!HIDDEN_WORKSPACE_IDS.includes(String(currentWorkspace?.id))
+	) {
 		return <AcquisitionBanner />
 	}
 
