@@ -56,6 +56,7 @@ import { isProjectWithinTrial } from '@util/billing/billing'
 import { titleCaseString } from '@util/string'
 import { Divider } from 'antd'
 import clsx from 'clsx'
+import { AnimatePresence, motion } from 'framer-motion'
 import moment from 'moment'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { FaDiscord, FaGithub } from 'react-icons/fa'
@@ -949,27 +950,104 @@ const LaunchWeekBanner = () => {
 	)
 }
 
+const MIGRATION_DEADLINE = new Date('2026-03-01T08:00:00Z') // EOD 2/28 PST
+
+const useCountdown = (deadline: Date) => {
+	const [timeLeft, setTimeLeft] = React.useState(() => {
+		const diff = deadline.getTime() - Date.now()
+		return diff > 0 ? diff : 0
+	})
+
+	useEffect(() => {
+		if (timeLeft <= 0) return
+		const timer = setInterval(() => {
+			const diff = deadline.getTime() - Date.now()
+			if (diff <= 0) {
+				setTimeLeft(0)
+				clearInterval(timer)
+			} else {
+				setTimeLeft(diff)
+			}
+		}, 1000)
+		return () => clearInterval(timer)
+	}, [deadline, timeLeft <= 0])
+
+	const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24))
+	const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24)
+	const minutes = Math.floor((timeLeft / (1000 * 60)) % 60)
+	const seconds = Math.floor((timeLeft / 1000) % 60)
+	const isExpired = timeLeft <= 0
+
+	// Show only the largest non-zero unit
+	let countdownText = ''
+	if (days > 0) {
+		countdownText = `${days} day${days !== 1 ? 's' : ''}`
+	} else if (hours > 0) {
+		countdownText = `${hours} hour${hours !== 1 ? 's' : ''}`
+	} else if (minutes > 0) {
+		countdownText = `${minutes} minute${minutes !== 1 ? 's' : ''}`
+	} else if (seconds > 0) {
+		countdownText = `${seconds} second${seconds !== 1 ? 's' : ''}`
+	}
+
+	return { countdownText, isExpired }
+}
+
 const AcquisitionBanner = () => {
 	const { toggleShowBanner } = useGlobalContext()
 	toggleShowBanner(true)
 
-	const bannerMessage = (
-		<span>
-			Migrate your Highlight account to LaunchDarkly by February 28, 2026.{' '}
-			<a
-				target="_blank"
-				href="https://www.highlight.io/blog/launchdarkly-migration?utm_source=highlight-app-banner"
-				className={styles.trialLink}
-				rel="noreferrer"
-			>
-				Learn more on our blog.
-			</a>
-		</span>
-	)
+	const { countdownText, isExpired } = useCountdown(MIGRATION_DEADLINE)
 
 	return (
-		<div className={clsx(styles.trialWrapper, styles.launchWeek)}>
-			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
+		<div className={clsx(styles.trialWrapper, styles.acquisition)}>
+			<div className={clsx(styles.trialTimeText)}>
+				<span>
+					Migrate your Highlight account to LaunchDarkly
+					{!isExpired && countdownText ? ' — ' : '. '}
+					{!isExpired && countdownText && (
+						<>
+							<AnimatePresence exitBeforeEnter>
+								<motion.span
+									key={countdownText}
+									initial={{
+										y: -8,
+										opacity: 0,
+										scale: 0.8,
+									}}
+									animate={{
+										y: 0,
+										opacity: 1,
+										scale: 1,
+									}}
+									exit={{
+										y: 8,
+										opacity: 0,
+										scale: 0.8,
+									}}
+									transition={{
+										type: 'spring',
+										stiffness: 300,
+										damping: 20,
+									}}
+									className={styles.countdownDigit}
+								>
+									{countdownText}
+								</motion.span>
+							</AnimatePresence>
+							{' remaining. '}
+						</>
+					)}
+					<a
+						target="_blank"
+						href="https://www.highlight.io/blog/launchdarkly-migration?utm_source=highlight-app-banner"
+						className={styles.trialLink}
+						rel="noreferrer"
+					>
+						Learn more on our blog.
+					</a>
+				</span>
+			</div>
 		</div>
 	)
 }
