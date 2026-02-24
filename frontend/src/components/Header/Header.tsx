@@ -962,8 +962,10 @@ const useCountdown = (deadline: Date) => {
 		return diff > 0 ? diff : 0
 	})
 
+	const isExpired = timeLeft <= 0
+
 	useEffect(() => {
-		if (timeLeft <= 0) return
+		if (isExpired) return
 		const timer = setInterval(() => {
 			const diff = deadline.getTime() - Date.now()
 			if (diff <= 0) {
@@ -974,13 +976,12 @@ const useCountdown = (deadline: Date) => {
 			}
 		}, 1000)
 		return () => clearInterval(timer)
-	}, [deadline, timeLeft <= 0])
+	}, [deadline, isExpired])
 
 	const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24))
 	const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24)
 	const minutes = Math.floor((timeLeft / (1000 * 60)) % 60)
 	const seconds = Math.floor((timeLeft / 1000) % 60)
-	const isExpired = timeLeft <= 0
 
 	// Show only the largest non-zero unit
 	let countdownText = ''
