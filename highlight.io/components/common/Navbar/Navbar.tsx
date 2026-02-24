@@ -1,6 +1,7 @@
 import classNames from 'classnames'
+import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { AiFillGithub, AiOutlineClose, AiOutlineMenu } from 'react-icons/ai'
 import { FaDiscord } from 'react-icons/fa'
 import { GithubPopup } from '../../GithubPopup/GithubPopup'
@@ -37,15 +38,97 @@ const LaunchWeekBanner = () => {
 	return <Banner>{bannerMessage}</Banner>
 }
 
+const MIGRATION_DEADLINE = new Date('2026-03-01T08:00:00Z') // EOD 2/28 PST
+
+const useCountdown = (deadline: Date) => {
+	// Start with null to avoid SSR/client hydration mismatch
+	const [timeLeft, setTimeLeft] = useState<number | null>(null)
+
+	useEffect(() => {
+		const computeDiff = () => {
+			const diff = deadline.getTime() - Date.now()
+			return diff > 0 ? diff : 0
+		}
+		setTimeLeft(computeDiff())
+		const timer = setInterval(() => {
+			const diff = computeDiff()
+			setTimeLeft(diff)
+			if (diff <= 0) clearInterval(timer)
+		}, 1000)
+		return () => clearInterval(timer)
+	}, [deadline])
+
+	const t = timeLeft ?? 0
+	const days = Math.floor(t / (1000 * 60 * 60 * 24))
+	const hours = Math.floor((t / (1000 * 60 * 60)) % 24)
+	const minutes = Math.floor((t / (1000 * 60)) % 60)
+	const seconds = Math.floor((t / 1000) % 60)
+	const isExpired = timeLeft !== null && timeLeft <= 0
+	const isMounted = timeLeft !== null
+
+	// Show only the largest non-zero unit
+	let countdownText = ''
+	if (days > 0) {
+		countdownText = `${days} day${days !== 1 ? 's' : ''}`
+	} else if (hours > 0) {
+		countdownText = `${hours} hour${hours !== 1 ? 's' : ''}`
+	} else if (minutes > 0) {
+		countdownText = `${minutes} minute${minutes !== 1 ? 's' : ''}`
+	} else if (seconds > 0) {
+		countdownText = `${seconds} second${seconds !== 1 ? 's' : ''}`
+	}
+
+	return { countdownText, isExpired, isMounted }
+}
+
 const PromotionBanner = () => {
+	const { countdownText, isExpired, isMounted } =
+		useCountdown(MIGRATION_DEADLINE)
+
+	const showCountdown = isMounted && !isExpired && countdownText
+
 	return (
 		<Link
 			href="/blog/launchdarkly-migration?utm_source=highlight-banner"
-			className="hidden md:flex text-center justify-center items-center w-full py-2.5 px-3 bg-color-primary-200 text-white hover:bg-opacity-90"
+			className="hidden md:flex text-center justify-center items-center w-full py-2.5 px-3 text-white hover:brightness-110 transition-all"
+			style={{
+				backgroundColor: '#cd2b31',
+			}}
 		>
 			<Typography type="copy3">
-				Migrate your Highlight account to LaunchDarkly by February 28,
-				2026.{' '}
+				Migrate your Highlight account to LaunchDarkly
+				{showCountdown ? ' — ' : '. '}
+				{showCountdown && (
+					<AnimatePresence mode="popLayout">
+						<motion.span
+							key={countdownText}
+							initial={{
+								y: -6,
+								opacity: 0,
+								scale: 0.85,
+							}}
+							animate={{
+								y: 0,
+								opacity: 1,
+								scale: 1,
+							}}
+							exit={{
+								y: 6,
+								opacity: 0,
+								scale: 0.85,
+							}}
+							transition={{
+								type: 'spring',
+								stiffness: 300,
+								damping: 20,
+							}}
+							className="font-bold"
+						>
+							{countdownText}
+						</motion.span>
+					</AnimatePresence>
+				)}
+				{showCountdown && ' remaining. '}
 				<span className="font-semibold underline">
 					Learn more on our blog.
 				</span>

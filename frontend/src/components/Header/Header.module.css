@@ -29,6 +29,10 @@
 		}
 	}
 
+	&.acquisition {
+		background-color: #cd2b31;
+	}
+
 	& button {
 		--button-size: var(--size-medium);
 		--icon-size: var(--size-xSmall);
@@ -108,4 +112,10 @@
 		border-bottom-left-radius: 0;
 		border-left: 1px solid #dcdbdd;
 	}
+}
+
+
+.countdownDigit {
+	display: inline;
+	font-weight: 700;
 }
