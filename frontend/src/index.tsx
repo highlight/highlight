@@ -7,9 +7,16 @@ import './style/tailwind.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
 import { AuthContextProvider, AuthRole } from '@authentication/AuthContext'
+import { Button } from '@components/Button'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { LoadingPage } from '@components/Loading/Loading'
 import { Toaster } from '@components/Toaster'
+import {
+	Box,
+	Heading,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
 import {
 	AppLoadingContext,
 	AppLoadingState,
@@ -23,6 +30,7 @@ import {
 } from '@graph/hooks'
 import { Admin, WorkspaceAdminRole } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
+import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
@@ -193,6 +201,78 @@ const App = () => {
 				</SkeletonTheme>
 			</ApolloProvider>
 		</ErrorBoundary>
+	)
+}
+
+/**
+ * Detect if an Apollo error is a migration-blocked 403 from the backend.
+ * The backend returns a GraphQL-formatted JSON body with extensions.code = "MIGRATION_BLOCKED".
+ * Apollo surfaces this as a networkError with statusCode 403.
+ */
+function isMigrationBlockedError(error: ApolloError | undefined): boolean {
+	if (!error) return false
+	const networkError = error.networkError as any
+	if (networkError?.statusCode === 403) return true
+	// Also check if the error message contains the migration blocked text
+	if (error.message?.includes('MIGRATION_BLOCKED')) return true
+	return false
+}
+
+const MigrationBlockedPage = ({ onSignOut }: { onSignOut: () => void }) => {
+	return (
+		<Box
+			display="flex"
+			alignItems="center"
+			justifyContent="center"
+			style={{ minHeight: '100vh' }}
+		>
+			<Box style={{ maxWidth: 480, textAlign: 'center' }} p="32">
+				<Stack direction="column" gap="24" align="center">
+					<SvgHighlightLogoOnLight height={48} width={48} />
+					<Heading level="h3">
+						Highlight has migrated to LaunchDarkly
+					</Heading>
+					<Text size="medium" color="moderate">
+						Highlight is no longer accepting logins. Your data
+						and workflows are moving to LaunchDarkly.
+					</Text>
+					<Text size="medium" color="moderate">
+						Visit{' '}
+						<a
+							href="https://launchdarkly.com"
+							target="_blank"
+							rel="noreferrer"
+							style={{
+								color: 'var(--color-purple-500)',
+								textDecoration: 'underline',
+							}}
+						>
+							launchdarkly.com
+						</a>{' '}
+						to get started, or{' '}
+						<a
+							href="https://www.highlight.io/blog/launchdarkly-migration"
+							target="_blank"
+							rel="noreferrer"
+							style={{
+								color: 'var(--color-purple-500)',
+								textDecoration: 'underline',
+							}}
+						>
+							read the migration blog post
+						</a>{' '}
+						for more details.
+					</Text>
+					<Button
+						trackingId="migration-blocked-sign-out"
+						kind="secondary"
+						onClick={onSignOut}
+					>
+						Sign out
+					</Button>
+				</Stack>
+			</Box>
+		</Box>
 	)
 }
 
@@ -418,7 +498,18 @@ const AuthenticationRoleRouter = () => {
 				<title>highlight.io</title>
 			</Helmet>
 			<div id="portal"></div>
-			{adminError && user ? (
+			{adminError && user && isMigrationBlockedError(adminError) ? (
+				<MigrationBlockedPage
+					onSignOut={async () => {
+						await auth.signOut()
+						await client.clearStore()
+						setUser(null)
+						setAuthRole(AuthRole.UNAUTHENTICATED)
+						authRedirect.clear()
+						navigate(SIGN_IN_ROUTE)
+					}}
+				/>
+			) : adminError && user ? (
 				<ErrorState
 					message={
 						`Seems like we had an issue with your login 😢. ` +

@@ -74,6 +74,39 @@ export default defineConfig(({ mode }) => {
 								'../backend/localhostssl/server.crt',
 							),
 						},
+			proxy: {
+				'/private': {
+					target: 'https://pri.highlight.io',
+					changeOrigin: true,
+					secure: true,
+					rewrite: (path) => path.replace(/^\/private/, ''),
+					configure: (proxy) => {
+						proxy.on('proxyReq', (proxyReq) => {
+							proxyReq.setHeader(
+								'Origin',
+								'https://pri.highlight.io',
+							)
+							proxyReq.setHeader(
+								'Referer',
+								'https://pri.highlight.io/',
+							)
+							proxyReq.removeHeader('cookie')
+							proxyReq.removeHeader('Sec-Fetch-Site')
+							proxyReq.removeHeader('Sec-Fetch-Mode')
+							proxyReq.removeHeader('Sec-Fetch-Dest')
+						})
+						proxy.on('proxyRes', (proxyRes, req) => {
+							const origin =
+								req.headers.origin || 'http://localhost:3002'
+							proxyRes.headers['access-control-allow-origin'] =
+								origin
+							proxyRes.headers[
+								'access-control-allow-credentials'
+							] = 'true'
+						})
+					},
+				},
+			},
 			// ensure hmr works when proxying frontend
 			strictPort: true,
 			hmr: {
