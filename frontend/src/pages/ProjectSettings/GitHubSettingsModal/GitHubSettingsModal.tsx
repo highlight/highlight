@@ -103,6 +103,7 @@ export const GitHubSettingsModal = ({
 	)
 }
 
+type GitHubSelectOption = { name: string; value: string }
 type GithubSettingsFormProps = {
 	service: Service
 	githubRepos: GitHubRepo[]
@@ -116,10 +117,10 @@ const GithubSettingsForm = ({
 	handleSubmit,
 	handleCancel,
 }: GithubSettingsFormProps) => {
-	const githubOptions = useMemo(
+	const githubOptions = useMemo<GitHubSelectOption[]>(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				name: repo.name.split('/').pop(),
+				name: repo.name.split('/').pop() ?? repo.name,
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
