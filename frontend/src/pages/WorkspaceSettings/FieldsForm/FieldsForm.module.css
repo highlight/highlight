@@ -13,3 +13,40 @@
 	display: flex;
 	height: 100%;
 }
+
+.input {
+	background: var(--color-white);
+	border: 1px solid var(--color-divider-weak);
+	border-radius: 6px;
+	color: var(--text-primary);
+	font-size: 13px;
+	height: 28px;
+	outline: none;
+	padding: 0 8px;
+	width: 100%;
+}
+
+.input:focus {
+	border-color: var(--color-purple-500);
+}
+
+.input:disabled {
+	cursor: not-allowed;
+	opacity: 0.6;
+}
+
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.loadingIcon {
+	animation: spin 1s linear infinite;
+	color: var(--text-primary-inverted);
+	height: 18px;
+	width: 18px;
+}
