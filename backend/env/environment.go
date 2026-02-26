@@ -102,6 +102,7 @@ type Configuration struct {
 	ObjectStorageFS             string `mapstructure:"OBJECT_STORAGE_FS"`
 	OnPrem                      string `mapstructure:"ON_PREM"`
 	OpenAIApiKey                string `mapstructure:"OPENAI_API_KEY"`
+	PathPilotAPIKey             string `mapstructure:"PATH_PILOT_API_KEY"`
 	PredictionsEndpoint         string `mapstructure:"PREDICTIONS_ENDPOINT"`
 	PricingBasicPriceID         string `mapstructure:"BASIC_PLAN_PRICE_ID"`
 	PricingEnterprisePriceID    string `mapstructure:"ENTERPRISE_PLAN_PRICE_ID"`

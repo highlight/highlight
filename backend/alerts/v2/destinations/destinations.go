@@ -46,6 +46,7 @@ type SessionInput struct {
 	Identifier       string
 	SessionLink      string
 	MoreSessionsLink string
+	Summary          string
 }
 
 type ErrorInput struct {

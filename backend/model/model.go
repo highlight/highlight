@@ -503,7 +503,8 @@ type AllWorkspaceSettings struct {
 	EnableJiraIntegration  bool `gorm:"default:false"`
 	EnableTeamsIntegration bool `gorm:"default:false"`
 
-	EnableLogTraceIngestion bool `gorm:"default:false"`
+	EnableLogTraceIngestion     bool `gorm:"default:false"`
+	EnableSessionAlertNarration bool `gorm:"default:false"`
 }
 
 type HasSecret interface {

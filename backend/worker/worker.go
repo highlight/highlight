@@ -1290,7 +1290,7 @@ func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
 }
 
 func (w *Worker) StartMetricAlertWatcher(ctx context.Context) {
-	metric_alerts.WatchMetricAlerts(ctx, w.Resolver.DB, w.Resolver.MailClient, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
+	metric_alerts.WatchMetricAlerts(ctx, w.Resolver.Store, w.Resolver.MailClient, w.Resolver.ClickhouseClient, w.Resolver.LambdaClient)
 }
 
 func (w *Worker) StartSessionDeleteJob(ctx context.Context) {
