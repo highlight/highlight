@@ -17,7 +17,7 @@ JavaScript
 import { H } from '@highlight-run/node';
 
 H.init({
-    projectID: 'YOUR_PROJECT_ID', 
+    projectID: 'YOUR_PROJECT_ID', // Replace with your project ID from https://app.highlight.io/setup 
     serviceName: 'sveltekit-backend',
 });
 
