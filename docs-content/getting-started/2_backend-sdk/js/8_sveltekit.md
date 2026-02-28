@@ -29,4 +29,5 @@ export async function handleError({ error, event }) {
         url: event.url.toString(),
         method: event.request.method,
     });
+}
 ```
