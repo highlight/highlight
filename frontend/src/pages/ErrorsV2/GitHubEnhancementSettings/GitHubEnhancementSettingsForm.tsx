@@ -12,9 +12,9 @@ import {
 	Stack,
 	Text,
 	Tooltip,
+	ComboboxSelect,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -64,8 +64,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				id: repo.key,
-				label: repo.name.split('/').pop(),
+				name: repo.name.split('/').pop() ?? '',
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -217,25 +216,27 @@ export const GitHubEnhancementSettingsForm: React.FC<
 						name="githubRepo"
 					>
 						<Box display="flex" alignItems="center" gap="8">
-							<Select
-								aria-label="GitHub repository"
-								className={styles.repoSelect}
-								placeholder="Search repos..."
-								onSelect={(repo: string) =>
-									formStore.setValue(
-										formStore.names.githubRepo,
-										repo,
-									)
-								}
+							<ComboboxSelect
+								label="GitHub repository"
 								value={formState.values.githubRepo
 									?.split('/')
-									.pop()}
+									.pop() ?? ''}
+								valueRender={
+									<Text>
+										{formState.values.githubRepo
+											?.split('/')
+											.pop() || 'Search repos...'}
+									</Text>
+								}
 								options={githubOptions}
+								onChange={(val: string) =>
+									formStore.setValue(
+										formStore.names.githubRepo,
+										val,
+									)
+								}
 								disabled={disabled || testLoading}
-								notFoundContent={<span>No repos found</span>}
-								optionFilterProp="label"
-								filterOption
-								showSearch
+								cssClass={styles.repoSelect}
 							/>
 							<ButtonIcon
 								kind="secondary"
