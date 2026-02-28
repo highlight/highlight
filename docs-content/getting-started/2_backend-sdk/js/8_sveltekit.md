@@ -12,7 +12,6 @@ To monitor your SvelteKit backend, initialize the Highlight Node.js SDK in your 
 ```bash
 npm install @highlight-run/node
 ```
-
 ```javascript
 import { H } from '@highlight-run/node';
 
@@ -30,4 +29,5 @@ export async function handleError({ error, event }) {
         method: event.request.method,
     });
 }
+
 ```
