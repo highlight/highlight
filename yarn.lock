@@ -5346,31 +5346,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dinero.js/calculator-number@npm:2.0.0-alpha.14":
-  version: 2.0.0-alpha.14
-  resolution: "@dinero.js/calculator-number@npm:2.0.0-alpha.14"
-  dependencies:
-    "@dinero.js/core": "npm:2.0.0-alpha.14"
-  checksum: 10/5ed9cfa0728a6f4794d51bd8d2ba171d62990a591fe0da7e811bce555fc884ea33e6171e5776e524ab84cf3e70aab6040ca23d36e5af26f218734fb861ddbc7d
-  languageName: node
-  linkType: hard
-
-"@dinero.js/core@npm:2.0.0-alpha.14":
-  version: 2.0.0-alpha.14
-  resolution: "@dinero.js/core@npm:2.0.0-alpha.14"
-  dependencies:
-    "@dinero.js/currencies": "npm:2.0.0-alpha.14"
-  checksum: 10/0cb74e26d5e701543e45e0d1941574c8392ec67c7834bcbaf86cd5fa338d0577e79eeed952a7565429d5c63e68dc07f6ce98b9c897336aa4e857b23160012fe6
-  languageName: node
-  linkType: hard
-
-"@dinero.js/currencies@npm:2.0.0-alpha.14":
-  version: 2.0.0-alpha.14
-  resolution: "@dinero.js/currencies@npm:2.0.0-alpha.14"
-  checksum: 10/593c2a16dd1dad4664a5ed418363024a01dd5fcf33fde71e88600fe5dd82d6cf600d3224183d27681aebcea2c3e090c93395c9ff02c8840107bad81450a8ece4
-  languageName: node
-  linkType: hard
-
 "@discoveryjs/json-ext@npm:0.6.3":
   version: 0.6.3
   resolution: "@discoveryjs/json-ext@npm:0.6.3"
@@ -10190,7 +10165,6 @@ __metadata:
     "@codemirror/lint": "npm:^6.8.4"
     "@codemirror/view": "npm:^6.36.2"
     "@ctrl/tinycolor": "npm:^3.4.1"
-    "@dinero.js/currencies": "npm:2.0.0-alpha.14"
     "@dnd-kit/core": "npm:^6.1.0"
     "@dnd-kit/sortable": "npm:^8.0.0"
     "@dnd-kit/utilities": "npm:^3.2.2"
@@ -10259,7 +10233,7 @@ __metadata:
     clsx: "npm:^1.2.1"
     color-hash: "npm:^2.0.1"
     dexie: "npm:3.2.4"
-    dinero.js: "npm:2.0.0-alpha.14"
+    dinero.js: "npm:2.0.0"
     esbuild: "npm:^0.24.0"
     eslint: "npm:^8.57.1"
     eslint-config-prettier: "npm:^8.10.0"
@@ -33243,14 +33217,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dinero.js@npm:2.0.0-alpha.14":
-  version: 2.0.0-alpha.14
-  resolution: "dinero.js@npm:2.0.0-alpha.14"
-  dependencies:
-    "@dinero.js/calculator-number": "npm:2.0.0-alpha.14"
-    "@dinero.js/core": "npm:2.0.0-alpha.14"
-    "@dinero.js/currencies": "npm:2.0.0-alpha.14"
-  checksum: 10/fa93bd1b79c3ef30ea3a263dee4ae909614c9807196ee38a2a57b8bd09921b06c8eab44af42f9bb1a1f13089f5981f0a4c563bdec9b00de12b7a6508af8e2a01
+"dinero.js@npm:2.0.0":
+  version: 2.0.0
+  resolution: "dinero.js@npm:2.0.0"
+  checksum: 10/5136c53524c0fbb3c1150aee6f0d34e3f986c47f063cb2fb6b834aa1924621277d3f07bd610b31270fa03b991845e7f412230b3a9b44e831f598c05ebfb7908d
   languageName: node
   linkType: hard
 
