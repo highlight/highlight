@@ -1,0 +1,24 @@
+{
+  "root": true,
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "antd",
+                "message": "Please use our custom UI components instead of Ant Design."
+              }
+            ],
+            "patterns": [
+              "antd/*"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
