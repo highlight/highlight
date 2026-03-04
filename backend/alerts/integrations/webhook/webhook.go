@@ -73,7 +73,7 @@ func SendNewSessionAlert(destination *model.WebhookDestination, payload *integra
 		Event string
 		*integrations.NewSessionAlertPayload
 	}{
-		Event:                  model.AlertType.NEW_USER,
+		Event:                  model.AlertType.RAGE_CLICKS,
 		NewSessionAlertPayload: payload,
 	})
 	if err != nil {
@@ -87,7 +87,7 @@ func SendTrackPropertiesAlert(destination *model.WebhookDestination, payload *in
 		Event string
 		*integrations.TrackPropertiesAlertPayload
 	}{
-		Event:                       model.AlertType.NEW_USER,
+		Event:                       model.AlertType.TRACK_PROPERTIES,
 		TrackPropertiesAlertPayload: payload,
 	})
 	if err != nil {
@@ -101,7 +101,7 @@ func SendUserPropertiesAlert(destination *model.WebhookDestination, payload *int
 		Event string
 		*integrations.UserPropertiesAlertPayload
 	}{
-		Event:                      model.AlertType.NEW_USER,
+		Event:                      model.AlertType.USER_PROPERTIES,
 		UserPropertiesAlertPayload: payload,
 	})
 	if err != nil {
@@ -129,7 +129,7 @@ func SendRageClicksAlert(destination *model.WebhookDestination, payload *integra
 		Event string
 		*integrations.RageClicksAlertPayload
 	}{
-		Event:                  model.AlertType.NEW_USER,
+		Event:                  model.AlertType.RAGE_CLICKS,
 		RageClicksAlertPayload: payload,
 	})
 	if err != nil {
@@ -143,7 +143,7 @@ func SendMetricMonitorAlert(destination *model.WebhookDestination, payload *inte
 		Event string
 		*integrations.MetricMonitorAlertPayload
 	}{
-		Event:                     model.AlertType.NEW_USER,
+		Event:                     model.AlertType.METRIC_MONITOR,
 		MetricMonitorAlertPayload: payload,
 	})
 	if err != nil {
