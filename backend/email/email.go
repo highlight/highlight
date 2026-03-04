@@ -24,7 +24,7 @@ var (
 	DigestEmailTemplateID                = "d-5bb29dabe298425ab9422b74636516bd"
 	BillingNotificationTemplateID        = "d-9fa375187c114dc1a5b561e81fbee794"
 	SessionExportTemplateID              = "d-b359ae6783bd4e3e95d168ffcee4728d"
-	SendGridOutboundEmail                = "notifications@notify.highlight.io"
+	SendGridOutboundEmail                = "notifications@highlight.run"
 	SessionCommentMentionsAsmId          = 20950
 	ErrorCommentMentionsAsmId            = 20994
 	frontendUri                          = env.Config.FrontendUri
