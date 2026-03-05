@@ -207,8 +207,14 @@ const App = () => {
 function isMigrationBlockedError(error: ApolloError | undefined): boolean {
 	if (!error) return false
 	const networkError = error.networkError as any
-	if (networkError?.statusCode === 403) return true
-	// Also check if the error message contains the migration blocked text
+	// Check for MIGRATION_BLOCKED in the parsed result body (ServerParseError)
+	if (
+		networkError?.result?.errors?.some(
+			(e: any) => e.extensions?.code === 'MIGRATION_BLOCKED',
+		)
+	)
+		return true
+	// Fallback: check the error message text
 	if (error.message?.includes('MIGRATION_BLOCKED')) return true
 	return false
 }
