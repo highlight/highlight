@@ -815,10 +815,11 @@ const BillingBanner: React.FC = () => {
 		)}.`
 	}
 
-	const HIDDEN_WORKSPACE_IDS = ['5422', '15127']
+	const migrationAllowlist =
+		systemData?.system_configuration?.migration_allowlist ?? []
 	if (
 		moment().isAfter('2025-04-23T12:00:00Z') &&
-		!HIDDEN_WORKSPACE_IDS.includes(String(currentWorkspace?.id))
+		!migrationAllowlist.includes(Number(currentWorkspace?.id))
 	) {
 		return <AcquisitionBanner />
 	}

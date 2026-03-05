@@ -3859,6 +3859,7 @@ export type SystemConfiguration = {
 	__typename?: 'SystemConfiguration'
 	maintenance_end?: Maybe<Scalars['Timestamp']>
 	maintenance_start?: Maybe<Scalars['Timestamp']>
+	migration_allowlist: Array<Scalars['Int64']>
 }
 
 export enum ThresholdCondition {

@@ -60,6 +60,7 @@ type ResolverRoot interface {
 	SessionAlert() SessionAlertResolver
 	SessionComment() SessionCommentResolver
 	Subscription() SubscriptionResolver
+	SystemConfiguration() SystemConfigurationResolver
 	TimelineIndicatorEvent() TimelineIndicatorEventResolver
 	Visualization() VisualizationResolver
 }
@@ -1561,8 +1562,9 @@ type ComplexityRoot struct {
 	}
 
 	SystemConfiguration struct {
-		MaintenanceEnd   func(childComplexity int) int
-		MaintenanceStart func(childComplexity int) int
+		MaintenanceEnd     func(childComplexity int) int
+		MaintenanceStart   func(childComplexity int) int
+		MigrationAllowlist func(childComplexity int) int
 	}
 
 	TimelineIndicatorEvent struct {
@@ -2153,6 +2155,9 @@ type SessionCommentResolver interface {
 }
 type SubscriptionResolver interface {
 	SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model1.SessionPayload, error)
+}
+type SystemConfigurationResolver interface {
+	MigrationAllowlist(ctx context.Context, obj *model1.SystemConfiguration) ([]int64, error)
 }
 type TimelineIndicatorEventResolver interface {
 	Data(ctx context.Context, obj *model1.TimelineIndicatorEvent) (any, error)
@@ -11024,6 +11029,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SystemConfiguration.MaintenanceStart(childComplexity), true
 
+	case "SystemConfiguration.migration_allowlist":
+		if e.complexity.SystemConfiguration.MigrationAllowlist == nil {
+			break
+		}
+
+		return e.complexity.SystemConfiguration.MigrationAllowlist(childComplexity), true
+
 	case "TimelineIndicatorEvent.data":
 		if e.complexity.TimelineIndicatorEvent.Data == nil {
 			break
@@ -14263,6 +14275,7 @@ type SSOLogin {
 type SystemConfiguration {
 	maintenance_start: Timestamp
 	maintenance_end: Timestamp
+	migration_allowlist: [Int64!]!
 }
 
 type SessionExportWithSession {
@@ -76957,6 +76970,8 @@ func (ec *executionContext) fieldContext_Query_system_configuration(_ context.Co
 				return ec.fieldContext_SystemConfiguration_maintenance_start(ctx, field)
 			case "maintenance_end":
 				return ec.fieldContext_SystemConfiguration_maintenance_end(ctx, field)
+			case "migration_allowlist":
+				return ec.fieldContext_SystemConfiguration_migration_allowlist(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SystemConfiguration", field.Name)
 		},
@@ -89403,6 +89418,50 @@ func (ec *executionContext) fieldContext_SystemConfiguration_maintenance_end(_ c
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemConfiguration_migration_allowlist(ctx context.Context, field graphql.CollectedField, obj *model1.SystemConfiguration) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemConfiguration_migration_allowlist(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.SystemConfiguration().MigrationAllowlist(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]int64)
+	fc.Result = res
+	return ec.marshalNInt642ᚕint64ᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemConfiguration_migration_allowlist(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemConfiguration",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int64 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -113522,6 +113581,42 @@ func (ec *executionContext) _SystemConfiguration(ctx context.Context, sel ast.Se
 			out.Values[i] = ec._SystemConfiguration_maintenance_start(ctx, field, obj)
 		case "maintenance_end":
 			out.Values[i] = ec._SystemConfiguration_maintenance_end(ctx, field, obj)
+		case "migration_allowlist":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._SystemConfiguration_migration_allowlist(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

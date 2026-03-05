@@ -5855,6 +5855,20 @@ body {
 .hqr513:active {
   color: #6f6e77;
 }
+@keyframes _1wdh3sj0 {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+._1wdh3sj1 {
+  animation-name: _1wdh3sj0;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
 @keyframes hhlnpm1 {
   0% {
     opacity: 0;
@@ -5875,20 +5889,6 @@ body {
   animation-duration: 0.3s;
   width: 280px;
   z-index: 999999;
-}
-@keyframes _1wdh3sj0 {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-._1wdh3sj1 {
-  animation-name: _1wdh3sj0;
-  animation-duration: 1s;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
 }
 ._17v45he0 {
   border-radius: 6px;

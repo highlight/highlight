@@ -11,12 +11,7 @@ import { Button } from '@components/Button'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { LoadingPage } from '@components/Loading/Loading'
 import { Toaster } from '@components/Toaster'
-import {
-	Box,
-	Heading,
-	Stack,
-	Text,
-} from '@highlight-run/ui/components'
+import { Box, Heading, Stack, Text } from '@highlight-run/ui/components'
 import {
 	AppLoadingContext,
 	AppLoadingState,
@@ -233,8 +228,7 @@ const MigrationBlockedPage = ({ onSignOut }: { onSignOut: () => void }) => {
 						Highlight has migrated to LaunchDarkly
 					</Heading>
 					<Text size="medium" color="moderate">
-						Highlight is no longer accepting logins. Your data
-						and workflows are moving to LaunchDarkly.
+						Highlight is no longer accepting logins.
 					</Text>
 					<Text size="medium" color="moderate">
 						Visit{' '}

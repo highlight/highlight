@@ -20,7 +20,6 @@ import (
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 type APITokenHandler func(ctx context.Context, apiKey string) (*int, error)
@@ -29,33 +28,40 @@ var (
 	AuthClient            Client
 	OAuthServer           *oauth.Server
 	workspaceTokenHandler APITokenHandler
-	migrationDB           *gorm.DB
+	migrationStore        *store.Store
 )
 
-// Workspaces that are allowed to continue using Highlight after migration.
-var allowedWorkspaceIDs = []int{5422, 15127}
-
 // migrationBlockedResponse is a GraphQL-formatted JSON error for blocked users.
-var migrationBlockedResponse = []byte(`{"errors":[{"message":"Highlight has migrated to LaunchDarkly. Visit launchdarkly.com to continue.","extensions":{"code":"MIGRATION_BLOCKED"}}]}`)
+var migrationBlockedResponse = []byte(`{"errors":[{"message":"Highlight has migrated to LaunchDarkly. Visit https://www.highlight.io/blog/launchdarkly-migration for migration details.","extensions":{"code":"MIGRATION_BLOCKED"}}]}`)
 
 // isUserInAllowedWorkspace checks if the authenticated user (by UID) belongs
-// to at least one of the allowed workspaces.
+// to at least one of the allowed workspaces defined in SystemConfiguration.
+// Uses a single query that joins system_configurations to avoid two round trips.
+// Fails open (returns true) when: no store, no UID, no config row, or empty allowlist.
 func isUserInAllowedWorkspace(ctx context.Context, uid string) bool {
-	if migrationDB == nil || uid == "" {
-		// If no DB or no UID, allow through (fail open for non-user auth paths)
+	if migrationStore == nil || uid == "" {
 		return true
 	}
-	var count int64
-	if err := migrationDB.WithContext(ctx).Raw(`
-		SELECT COUNT(*) FROM workspace_admins wa
-		INNER JOIN admins a ON wa.admin_id = a.id
-		WHERE a.uid = ? AND wa.workspace_id IN ?
-	`, uid, allowedWorkspaceIDs).Scan(&count).Error; err != nil {
+	var allowed bool
+	if err := migrationStore.DB.WithContext(ctx).Raw(`
+		SELECT COALESCE(
+			(SELECT CASE
+				WHEN sc.migration_allowlist IS NULL
+				  OR array_length(sc.migration_allowlist, 1) IS NULL THEN true
+				ELSE EXISTS (
+					SELECT 1 FROM workspace_admins wa
+					INNER JOIN admins a ON a.id = wa.admin_id
+					WHERE a.uid = ? AND wa.workspace_id = ANY(sc.migration_allowlist)
+				)
+			END
+			FROM system_configurations sc WHERE sc.active = true LIMIT 1),
+			true
+		)
+	`, uid).Scan(&allowed).Error; err != nil {
 		log.WithContext(ctx).WithError(err).Warn("failed to check workspace membership for migration block")
-		// Fail open on DB errors to avoid locking everyone out
 		return true
 	}
-	return count > 0
+	return allowed
 }
 
 // writeMigrationBlockedError writes a 403 response with a GraphQL-formatted error body.
@@ -94,7 +100,7 @@ func SetupAuthClient(ctx context.Context, store *store.Store, authMode AuthMode,
 	OAuthServer = oauthServer
 	workspaceTokenHandler = wsTokenHandler
 	if store != nil {
-		migrationDB = store.DB
+		migrationStore = store
 	}
 
 	log.WithContext(ctx).WithField("mode", authMode).Info("configuring private graph auth client")
