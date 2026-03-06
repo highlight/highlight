@@ -170,11 +170,11 @@ const getHighlightConfig = async (
 				return {
 					beforeFiles: defaultOpts.uploadSourceMaps
 						? (re.beforeFiles ?? []).concat(sourcemapRewrite)
-						: (re.beforeFiles ?? []),
+						: re.beforeFiles,
 					afterFiles: defaultOpts.configureHighlightProxy
 						? (re.afterFiles ?? []).concat(...highlightRewrites)
-						: (re.afterFiles ?? []),
-					fallback: re.fallback ?? [],
+						: re.afterFiles,
+					fallback: re.fallback,
 				}
 			}
 		}
