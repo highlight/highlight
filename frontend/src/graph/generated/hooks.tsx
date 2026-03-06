@@ -13771,6 +13771,7 @@ export const GetSystemConfigurationDocument = gql`
 		system_configuration {
 			maintenance_start
 			maintenance_end
+			migration_allowlist
 		}
 	}
 `

@@ -4739,7 +4739,7 @@ export type GetSystemConfigurationQueryVariables = Types.Exact<{
 export type GetSystemConfigurationQuery = { __typename?: 'Query' } & {
 	system_configuration: { __typename?: 'SystemConfiguration' } & Pick<
 		Types.SystemConfiguration,
-		'maintenance_start' | 'maintenance_end'
+		'maintenance_start' | 'maintenance_end' | 'migration_allowlist'
 	>
 }
 

@@ -28,7 +28,48 @@ var (
 	AuthClient            Client
 	OAuthServer           *oauth.Server
 	workspaceTokenHandler APITokenHandler
+	migrationStore        *store.Store
 )
+
+// migrationBlockedResponse is a GraphQL-formatted JSON error for blocked users.
+var migrationBlockedResponse = []byte(`{"errors":[{"message":"Highlight has migrated to LaunchDarkly. Visit https://www.highlight.io/blog/launchdarkly-migration for migration details.","extensions":{"code":"MIGRATION_BLOCKED"}}]}`)
+
+// isUserInAllowedWorkspace checks if the authenticated user (by UID) belongs
+// to at least one of the allowed workspaces defined in SystemConfiguration.
+// Uses a single query that joins system_configurations to avoid two round trips.
+// Fails open (returns true) when: no store, no UID, no config row, or empty allowlist.
+func isUserInAllowedWorkspace(ctx context.Context, uid string) bool {
+	if migrationStore == nil || uid == "" {
+		return true
+	}
+	var allowed bool
+	if err := migrationStore.DB.WithContext(ctx).Raw(`
+		SELECT COALESCE(
+			(SELECT CASE
+				WHEN sc.migration_allowlist IS NULL
+				  OR array_length(sc.migration_allowlist, 1) IS NULL THEN true
+				ELSE EXISTS (
+					SELECT 1 FROM workspace_admins wa
+					INNER JOIN admins a ON a.id = wa.admin_id
+					WHERE a.uid = ? AND wa.workspace_id = ANY(sc.migration_allowlist)
+				)
+			END
+			FROM system_configurations sc WHERE sc.active = true LIMIT 1),
+			true
+		)
+	`, uid).Scan(&allowed).Error; err != nil {
+		log.WithContext(ctx).WithError(err).Warn("failed to check workspace membership for migration block")
+		return true
+	}
+	return allowed
+}
+
+// writeMigrationBlockedError writes a 403 response with a GraphQL-formatted error body.
+func writeMigrationBlockedError(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusForbidden)
+	_, _ = w.Write(migrationBlockedResponse)
+}
 
 var HighlightAdminEmailDomains = []string{"@highlight.run", "@highlight.io"}
 var EnterpriseAuthModes = []AuthMode{Firebase, OAuth}
@@ -58,6 +99,9 @@ func GetEnvAuthMode() AuthMode {
 func SetupAuthClient(ctx context.Context, store *store.Store, authMode AuthMode, oauthServer *oauth.Server, wsTokenHandler APITokenHandler) {
 	OAuthServer = oauthServer
 	workspaceTokenHandler = wsTokenHandler
+	if store != nil {
+		migrationStore = store
+	}
 
 	log.WithContext(ctx).WithField("mode", authMode).Info("configuring private graph auth client")
 	if lo.Contains(EnterpriseAuthModes, authMode) {
@@ -122,6 +166,13 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
+			// Check if the authenticated user belongs to an allowed workspace
+			if uid, ok := ctx.Value(model.ContextKeys.UID).(string); ok && uid != "" {
+				if !isUserInAllowedWorkspace(ctx, uid) {
+					writeMigrationBlockedError(w)
+					return
+				}
+			}
 		} else if apiKey := r.Header.Get("ApiKey"); apiKey != "" {
 			span.SetAttribute("type", "apiKeyHeader")
 			workspaceID, err := workspaceTokenHandler(ctx, apiKey)
@@ -164,7 +215,14 @@ func WebsocketInitializationFunction() transport.WebsocketInitFunc {
 		ctx, err := AuthClient.updateContextWithAuthenticatedUser(socketContext, nil, nil, token)
 		if err != nil {
 			log.WithContext(ctx).Errorf("Unable to authenticate/initialize websocket: %s", err.Error())
+			return ctx, &initPayload, err
 		}
-		return ctx, &initPayload, err
+		// Check if the authenticated user belongs to an allowed workspace
+		if uid, ok := ctx.Value(model.ContextKeys.UID).(string); ok && uid != "" {
+			if !isUserInAllowedWorkspace(ctx, uid) {
+				return ctx, &initPayload, fmt.Errorf("Highlight has migrated to LaunchDarkly")
+			}
+		}
+		return ctx, &initPayload, nil
 	})
 }

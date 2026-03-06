@@ -1380,6 +1380,7 @@ type SystemConfiguration struct {
 	MaintenanceEnd     time.Time
 	ErrorFilters       pq.StringArray `gorm:"type:text[]"`
 	IgnoredFiles       pq.StringArray `gorm:"type:text[]"`
+	MigrationAllowlist pq.Int64Array  `gorm:"type:bigint[]"`
 	MainWorkers        int            `gorm:"default:64"`
 	MainQueueSize      int            `gorm:"type:bigint;default:1000"`
 	LogsWorkers        int            `gorm:"default:1"`

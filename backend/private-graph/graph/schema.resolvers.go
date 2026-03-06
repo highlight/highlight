@@ -10157,6 +10157,11 @@ func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessi
 	return ch, nil
 }
 
+// MigrationAllowlist is the resolver for the migration_allowlist field.
+func (r *systemConfigurationResolver) MigrationAllowlist(ctx context.Context, obj *model.SystemConfiguration) ([]int64, error) {
+	panic(fmt.Errorf("not implemented: MigrationAllowlist - migration_allowlist"))
+}
+
 // Data is the resolver for the data field.
 func (r *timelineIndicatorEventResolver) Data(ctx context.Context, obj *model.TimelineIndicatorEvent) (any, error) {
 	return obj.Data, nil
@@ -10274,6 +10279,11 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
+// SystemConfiguration returns generated.SystemConfigurationResolver implementation.
+func (r *Resolver) SystemConfiguration() generated.SystemConfigurationResolver {
+	return &systemConfigurationResolver{r}
+}
+
 // TimelineIndicatorEvent returns generated.TimelineIndicatorEventResolver implementation.
 func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventResolver {
 	return &timelineIndicatorEventResolver{r}
@@ -10300,5 +10310,6 @@ type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
+type systemConfigurationResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
 type visualizationResolver struct{ *Resolver }

@@ -2106,6 +2106,7 @@ type SSOLogin {
 type SystemConfiguration {
 	maintenance_start: Timestamp
 	maintenance_end: Timestamp
+	migration_allowlist: [Int64!]!
 }
 
 type SessionExportWithSession {
