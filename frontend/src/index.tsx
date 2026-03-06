@@ -409,8 +409,9 @@ const AuthenticationRoleRouter = () => {
 			setAuthRole(AuthRole.AUTHENTICATED)
 		} else if (adminError) {
 			setAuthRole(AuthRole.UNAUTHENTICATED)
+			setLoadingState(AppLoadingState.LOADED)
 		}
-	}, [adminData, adminError, user])
+	}, [adminData, adminError, setLoadingState, user])
 
 	useEffect(() => {
 		const fetch = async () => {
