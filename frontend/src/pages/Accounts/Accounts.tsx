@@ -12,10 +12,10 @@ import {
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
 // Replaced antd Table with Highlight UI components
-import { 
-	Box, 
-	Table, 
-	Text, 
+import {
+	Box,
+	Table,
+	Text,
 	Button,
 	IconSolidDownload,
 	IconSolidRefresh,
@@ -102,7 +102,10 @@ export const Account = () => {
 								target="_blank"
 								rel="noreferrer"
 							>
-								{accountData?.account_details?.stripe_customer_id}
+								{
+									accountData?.account_details
+										?.stripe_customer_id
+								}
 							</a>
 						</Text>
 					</Box>
@@ -153,16 +156,20 @@ export const Account = () => {
 							</Table.Row>
 						</Table.Head>
 						<Table.Body>
-							{accountData?.account_details.members.map((member: any) => (
-								<Table.Row key={member.id}>
-									<Table.Cell>{member.id}</Table.Cell>
-									<Table.Cell>{member.name}</Table.Cell>
-									<Table.Cell>{member.email}</Table.Cell>
-									<Table.Cell>
-										{moment(member.last_active).format('MM/DD/YY')}
-									</Table.Cell>
-								</Table.Row>
-							))}
+							{accountData?.account_details.members.map(
+								(member: any) => (
+									<Table.Row key={member.id}>
+										<Table.Cell>{member.id}</Table.Cell>
+										<Table.Cell>{member.name}</Table.Cell>
+										<Table.Cell>{member.email}</Table.Cell>
+										<Table.Cell>
+											{moment(member.last_active).format(
+												'MM/DD/YY',
+											)}
+										</Table.Cell>
+									</Table.Row>
+								),
+							)}
 						</Table.Body>
 					</Table>
 				</>
@@ -200,12 +207,16 @@ export const Accounts = () => {
 					kind="secondary"
 					size="small"
 					onClick={() => {
-						let dataStr = COLUMNS.map(c => c.title).join(',') + '\n'
-						accountDataLocal.forEach(d => {
-							dataStr += COLUMNS.map(c => {
-								let v = (d[c.dataIndex] || '').toString()
-								return v.includes(',') ? `"${v.replaceAll('"', '\\"')}"` : v
-							}).join(',') + '\n'
+						let dataStr =
+							COLUMNS.map((c) => c.title).join(',') + '\n'
+						accountDataLocal.forEach((d) => {
+							dataStr +=
+								COLUMNS.map((c) => {
+									const v = (d[c.dataIndex] || '').toString()
+									return v.includes(',')
+										? `"${v.replaceAll('"', '\\"')}"`
+										: v
+								}).join(',') + '\n'
 						})
 						download({ data: dataStr, name: 'accounts.csv' })
 					}}
@@ -222,25 +233,30 @@ export const Accounts = () => {
 					<Table.Head>
 						<Table.Row>
 							{COLUMNS.map((col) => (
-								<Table.Header key={col.dataIndex}>{col.title}</Table.Header>
+								<Table.Header key={col.dataIndex}>
+									{col.title}
+								</Table.Header>
 							))}
 						</Table.Row>
 					</Table.Head>
 					<Table.Body>
 						{accountDataLocal.map((a: any) => (
-							<Table.Row 
-								key={a.id} 
+							<Table.Row
+								key={a.id}
 								onClick={() => navigate(`/accounts/${a.id}`)}
 							>
 								<Table.Cell>{a.id}</Table.Cell>
 								<Table.Cell>
-									<a href={`/w/${a.id}/team`} onClick={(e) => e.stopPropagation()}>
+									<a
+										href={`/w/${a.id}/team`}
+										onClick={(e) => e.stopPropagation()}
+									>
 										{a.name}
 									</a>
 								</Table.Cell>
 								<Table.Cell>{a.email}</Table.Cell>
 								<Table.Cell>
-									<a 
+									<a
 										href={`https://dashboard.stripe.com/customers/${a.stripe_customer_id}`}
 										target="_blank"
 										rel="noreferrer"
@@ -249,7 +265,11 @@ export const Accounts = () => {
 										{a.stripe_customer_id}
 									</a>
 								</Table.Cell>
-								<Table.Cell>{moment(a.subscription_start).format('MM/DD/YY')}</Table.Cell>
+								<Table.Cell>
+									{moment(a.subscription_start).format(
+										'MM/DD/YY',
+									)}
+								</Table.Cell>
 								<Table.Cell>{a.plan_tier}</Table.Cell>
 								<Table.Cell>{a.session_limit}</Table.Cell>
 								<Table.Cell>{a.session_count_cur}</Table.Cell>
@@ -257,11 +277,25 @@ export const Accounts = () => {
 								<Table.Cell>{a.session_count_prev}</Table.Cell>
 								<Table.Cell>{a.view_count_prev}</Table.Cell>
 								<Table.Cell>
-									{'$' + toDecimal(dinero({ amount: a.paid_prev || 0, currency: USD }))}
+									{'$' +
+										toDecimal(
+											dinero({
+												amount: a.paid_prev || 0,
+												currency: USD,
+											}),
+										)}
 								</Table.Cell>
-								<Table.Cell>{a.session_count_prev_prev}</Table.Cell>
 								<Table.Cell>
-									{'$' + toDecimal(dinero({ amount: a.paid_prev_prev || 0, currency: USD }))}
+									{a.session_count_prev_prev}
+								</Table.Cell>
+								<Table.Cell>
+									{'$' +
+										toDecimal(
+											dinero({
+												amount: a.paid_prev_prev || 0,
+												currency: USD,
+											}),
+										)}
 								</Table.Cell>
 								<Table.Cell>{a.member_count}</Table.Cell>
 								<Table.Cell>{a.member_limit}</Table.Cell>
