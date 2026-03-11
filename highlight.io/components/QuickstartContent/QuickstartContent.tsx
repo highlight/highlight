@@ -11,6 +11,7 @@ import { JSCloudflareContent } from './backend/js/cloudflare'
 import { JSExpressContent } from './backend/js/express'
 import { JSFirebaseContent } from './backend/js/firebase'
 import { JSNestContent } from './backend/js/nestjs'
+import { JSSvelteKitContent } from './backend/js/sveltekit'
 import { JSNodeContent } from './backend/js/nodejs'
 import { JStRPCContent } from './backend/js/trpc'
 import { OTLPErrorMonitoringContent } from './backend/otlp'
@@ -202,6 +203,7 @@ export enum QuickStartType {
 	JSCloudflare = 'cloudflare',
 	JSExpress = 'express',
 	JSFirebase = 'firebase',
+	JSSvelteKit = 'svelte-kit',
 	JSNodejs = 'nodejs',
 	JSNextjs = 'nextjs',
 	JSManual = 'manual',
@@ -273,6 +275,7 @@ export const quickStartContent = {
 			[QuickStartType.JSHono]: JSHonoContent,
 			[QuickStartType.JSNodejs]: JSNodeContent,
 			[QuickStartType.JSNestjs]: JSNestContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitContent,
 			[QuickStartType.JStRPC]: JStRPCContent,
 		},
 		ruby: {
