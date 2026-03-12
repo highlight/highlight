@@ -6,6 +6,7 @@ import { ErrorState, Maybe } from '@graph/schemas'
 import {
 	Badge,
 	Box,
+	DatePicker, // Use the Highlight UI DatePicker
 	IconSolidCheck,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
@@ -13,8 +14,15 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
-import { DatePicker } from 'antd'
-import moment from 'moment'
+import { 
+    addDays, 
+    addHours, 
+    addWeeks, 
+    format, 
+    isBefore, 
+    set, 
+    startOfIsoWeek 
+} from 'date-fns' // Migration from moment to date-fns
 import React, { useCallback, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -26,7 +34,7 @@ enum MenuState {
 	Snooze,
 }
 
-const DATE_FORMAT = 'ddd, h:mm A'
+const DATE_FORMAT = 'iii, h:mm a'
 const MESSAGE_KEY = 'update-message'
 
 type Props = {
@@ -37,7 +45,6 @@ type Props = {
 
 export const ErrorStateSelect: React.FC<Props> = (props) => (
 	<Menu placement="bottom-end">
-		{/* Rendering inside wrapper so we can work with menu state via useMenu. */}
 		<ErrorStateSelectImpl {...props} />
 	</Menu>
 )
@@ -47,7 +54,6 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	snoozedUntil,
 	state: initialErrorState,
 }) => {
-	const menuRef = React.useRef<HTMLDivElement | null>(null)
 	const menu = Menu.useContext()!
 	const mState = menu.getState()
 	const [menuState, setMenuState] = React.useState<MenuState>(
@@ -64,7 +70,8 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 
 	const { isLoggedIn } = useAuthContext()
 	const ErrorStatuses = Object.keys(ErrorState)
-	const snoozed = snoozedUntil && moment().isBefore(moment(snoozedUntil))
+	const now = new Date()
+	const snoozed = snoozedUntil && isBefore(now, new Date(snoozedUntil))
 
 	const handleChange = useCallback(
 		async (newState: ErrorState, newSnoozedUntil?: string) => {
@@ -111,20 +118,18 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	const snoozeMenuItems = () => [
 		{
 			title: '1 Hour',
-			time: moment().add(1, 'hour'),
+			time: addHours(now, 1),
 		},
 		{
 			title: 'Tomorrow',
-			time: moment().add(1, 'day').set({ hour: 8, minute: 0 }),
+			time: set(addDays(now, 1), { hours: 8, minutes: 0 }),
 		},
 		{
 			title: 'Next Week',
-			time: moment().add(1, 'week').startOf('isoWeek').add(8, 'hours'),
+			time: addHours(startOfIsoWeek(addWeeks(now, 1)), 8),
 		},
 	]
 
-	// Sets the state based on the query parameters. This is used for action
-	// buttons in our Slack and Discord integrations.
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search)
 		const action = urlParams.get('action')
@@ -153,11 +158,8 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				}
 			}
 		}
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [errorSecureId])
 
-	// Reset menu state on close.
 	useEffect(() => {
 		if (!mState.open) {
 			setMenuState(MenuState.Default)
@@ -182,47 +184,36 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				disabled={!isLoggedIn}
 				iconRight={<IconSolidCheveronDown />}
 			>
-				<Text case="capital">
-					{initialErrorState.toLowerCase()}{' '}
+				<Stack direction="row" align="center" gap="4">
+					<Text case="capital">{initialErrorState.toLowerCase()}</Text>
 					{snoozed && (
-						<span style={{ textTransform: 'none' }}>
-							(Snoozed until{' '}
-							{moment(snoozedUntil).format(DATE_FORMAT)})
-						</span>
+						<Text color="n9" size="xSmall" weight="regular">
+							(Until {format(new Date(snoozedUntil!), DATE_FORMAT)})
+						</Text>
 					)}
-				</Text>
+				</Stack>
 			</Menu.Button>
 			{isLoggedIn && (
 				<Menu.List cssClass={styles.menu}>
 					{menuState === MenuState.Default ? (
 						<>
 							<Menu.Heading>
-								<Text weight="bold" size="xSmall" color="n11">
-									Status
-								</Text>
-								<Badge variant="gray" size="small" label="e" />
+								<Stack direction="row" align="center" justify="space-between" width="full">
+									<Text weight="bold" size="xSmall" color="n11">Status</Text>
+									<Badge variant="gray" size="small" label="e" />
+								</Stack>
 							</Menu.Heading>
 							{ErrorStatuses.map((option) => (
 								<Menu.Item
-									onClick={() =>
-										handleChange(
-											option.toUpperCase() as ErrorState,
-										)
-									}
+									onClick={() => handleChange(option.toUpperCase() as ErrorState)}
 									key={option}
 								>
-									<Stack
-										direction="row"
-										gap="4"
-										align="center"
-									>
-										<div style={{ height: 16, width: 16 }}>
-											{!snoozed &&
-												initialErrorState.toLowerCase() ===
-													option.toLowerCase() && (
-													<IconSolidCheck size={16} />
-												)}
-										</div>
+									<Stack direction="row" gap="8" align="center">
+										<Box style={{ height: 16, width: 16 }}>
+											{!snoozed && initialErrorState.toLowerCase() === option.toLowerCase() && (
+												<IconSolidCheck size={16} />
+											)}
+										</Box>
 										<Text>{option}</Text>
 									</Stack>
 								</Menu.Item>
@@ -235,27 +226,11 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 									setMenuState(MenuState.Snooze)
 								}}
 							>
-								<Stack
-									direction="row"
-									justify="space-between"
-									align="center"
-									width="full"
-								>
-									<Stack
-										direction="row"
-										gap="4"
-										align="center"
-									>
-										<div
-											style={{
-												height: 16,
-												width: 16,
-											}}
-										>
-											{snoozed && (
-												<IconSolidCheck size={16} />
-											)}
-										</div>
+								<Stack direction="row" justify="space-between" align="center" width="full">
+									<Stack direction="row" gap="8" align="center">
+										<Box style={{ height: 16, width: 16 }}>
+											{snoozed && <IconSolidCheck size={16} />}
+										</Box>
 										<Text>Snooze</Text>
 									</Stack>
 									<IconSolidCheveronRight size={16} />
@@ -265,63 +240,32 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 					) : (
 						<>
 							<Menu.Heading>
-								<Text weight="bold" size="xSmall" color="n11">
-									Until
-								</Text>
+								<Text weight="bold" size="xSmall" color="n11">Until</Text>
 							</Menu.Heading>
 							{snoozeMenuItems().map((option, index) => (
 								<Menu.Item
 									key={index}
-									onClick={() =>
-										handleChange(
-											initialErrorState,
-											option.time.format(),
-										)
-									}
+									onClick={() => handleChange(initialErrorState, option.time.toISOString())}
 								>
-									<Stack
-										direction="row"
-										gap="0"
-										flex="stretch"
-									>
-										<Box color="n11" flex="stretch">
-											{option.title}
-										</Box>
-										<Box
-											color="n9"
-											flex="stretch"
-											whiteSpace="nowrap"
-										>
-											{option.time.format(DATE_FORMAT)}
-										</Box>
+									<Stack direction="row" justify="space-between" width="full">
+										<Text color="n11">{option.title}</Text>
+										<Text color="n9">{format(option.time, DATE_FORMAT)}</Text>
 									</Stack>
 								</Menu.Item>
 							))}
 							<Menu.Divider />
-							<Menu.Item onClick={(e) => e.preventDefault()}>
-								<div ref={menuRef} />
+							<Box padding="8">
 								<DatePicker
-									getPopupContainer={() =>
-										menuRef?.current || document.body
-									}
-									format="YYYY-MM-DD hh:mm"
-									showTime={{ format: 'hh:mm' }}
-									showNow={false}
-									placement="bottomRight"
 									placeholder="Select day and time"
-									className={styles.datepicker}
-									onChange={(datetime) => {
-										if (datetime) {
-											handleChange(
-												initialErrorState,
-												datetime.format(),
-											).then(() => {
+									onChange={(date) => {
+										if (date) {
+											handleChange(initialErrorState, date.toISOString()).then(() => {
 												menu.setOpen(false)
 											})
 										}
 									}}
 								/>
-							</Menu.Item>
+							</Box>
 						</>
 					)}
 				</Menu.List>
@@ -330,31 +274,22 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	)
 }
 
-const showStateUpdateMessage = (
-	newState: ErrorState,
-	snoozedUntil?: string,
-) => {
+const showStateUpdateMessage = (newState: ErrorState, snoozedUntil?: string) => {
 	let displayMessage = ''
-
-	if (snoozedUntil && moment().isBefore(moment(snoozedUntil))) {
-		displayMessage = `This error is snoozed until ${moment(
-			snoozedUntil,
-		).format(
-			DATE_FORMAT,
-		)}. You will not receive any alerts even if a new error gets thrown.`
+	if (snoozedUntil && isBefore(new Date(), new Date(snoozedUntil))) {
+		displayMessage = `This error is snoozed until ${format(new Date(snoozedUntil), DATE_FORMAT)}. You will not receive any alerts.`
 	} else {
 		switch (newState) {
 			case ErrorState.Open:
-				displayMessage = `This error is set to Open. You will receive alerts when a new error gets thrown.`
+				displayMessage = `This error is set to Open.`
 				break
 			case ErrorState.Ignored:
-				displayMessage = `This error is set to Ignored. You will not receive any alerts even if a new error gets thrown.`
+				displayMessage = `This error is set to Ignored.`
 				break
 			case ErrorState.Resolved:
-				displayMessage = `This error is set to Resolved. You will receive alerts when a new error gets thrown.`
+				displayMessage = `This error is set to Resolved.`
 				break
 		}
 	}
-
 	toast.success(displayMessage, { duration: 10000, id: MESSAGE_KEY })
 }
