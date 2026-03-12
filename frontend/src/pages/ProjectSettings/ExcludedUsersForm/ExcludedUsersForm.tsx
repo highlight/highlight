@@ -1,14 +1,13 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
-import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
-import { Form, Stack } from '@highlight-run/ui/components'
+import { Box, Form, Stack, Input, Text } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import { useState } from 'react'
+import React, { useState } from 'react'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
+import { Button } from '@/components/Button'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
 export const ExcludedUsersForm = () => {
@@ -43,22 +42,48 @@ export const ExcludedUsersForm = () => {
 
 	const identifierSuggestions = identifierSuggestionsLoading
 		? []
-		: (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
-				(suggestion) => ({
-					value: suggestion,
-					displayValue: (
-						<TextHighlighter
-							searchWords={[identifierQuery]}
-							textToHighlight={suggestion}
-						/>
-					),
-					id: suggestion,
-				}),
-			)
+		: identifierSuggestionsApiResponse?.identifier_suggestion || []
 
-	const handleIdentifierSearch = (query = '') => {
+	const excludedUsers = data?.projectSettings?.excluded_users || []
+
+	const handleIdentifierSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const query = e.target.value
 		setIdentifierQuery(query)
 		refetchIdentifierSuggestions({ query, project_id })
+	}
+
+	const handleAdd = () => {
+		if (!identifierQuery || excludedUsers.includes(identifierQuery)) return
+
+		try {
+			new RegExp(identifierQuery)
+			updateExcluded([...excludedUsers, identifierQuery])
+			setIdentifierQuery('')
+			setInvalidExcludedUsers([])
+		} catch (e) {
+			setInvalidExcludedUsers([identifierQuery])
+			toast.error(
+				`'${identifierQuery}' is not a valid regular expression`,
+				{ duration: 5000 },
+			)
+		}
+	}
+
+	const handleRemove = (userToRemove: string) => {
+		updateExcluded(excludedUsers.filter((u) => u !== userToRemove))
+	}
+
+	const updateExcluded = (newExcluded: string[]) => {
+		setAllProjectSettings((current) =>
+			current?.projectSettings
+				? {
+						projectSettings: {
+							...current.projectSettings,
+							excluded_users: newExcluded,
+						},
+					}
+				: current,
+		)
 	}
 
 	return (
@@ -67,66 +92,72 @@ export const ExcludedUsersForm = () => {
 				<Stack gap="8">
 					<BoxLabel
 						label="Excluded users"
-						info="
-					Enter user identifiers or emails to filter (regular
-					expressions are accepted). On completion, sessions from
-					these users will be excluded from your searches and quota."
+						info="Enter user identifiers or emails to filter (regular expressions are accepted). On completion, sessions from these users will be excluded from your searches and quota."
 					/>
 					<Form.NamedSection
 						label="Filtered users"
 						name="Filtered users"
 					>
-						<Select
-							mode="tags"
-							placeholder=".*@yourdomain.com"
-							value={
-								data?.projectSettings?.excluded_users ||
-								undefined
-							}
-							onSearch={handleIdentifierSearch}
-							options={identifierSuggestions}
-							onChange={(excluded: string[]) => {
-								const validRegexes: string[] = []
-								const invalidRegexes: string[] = []
-								excluded.forEach((expression) => {
-									try {
-										new RegExp(expression)
-										validRegexes.push(expression)
-									} catch (e) {
-										invalidRegexes.push(expression)
+						<Stack direction="row" gap="8" align="center">
+							<Input
+								name="excludedUser"
+								placeholder=".*@yourdomain.com"
+								value={identifierQuery}
+								onChange={handleIdentifierSearch}
+								onKeyDown={(
+									e: React.KeyboardEvent<HTMLInputElement>,
+								) => {
+									if (e.key === 'Enter') {
+										e.preventDefault()
+										handleAdd()
 									}
-								})
-								if (
-									excluded.length > 0 &&
-									invalidRegexes.length > 0 &&
-									excluded[excluded.length - 1] ===
-										invalidRegexes[
-											invalidRegexes.length - 1
-										]
-								) {
-									toast.error(
-										"'" +
-											excluded[excluded.length - 1] +
-											"' is not a valid regular expression",
-										{ duration: 5000 },
-									)
-								}
-								setInvalidExcludedUsers(invalidRegexes)
-								handleIdentifierSearch('')
-								setAllProjectSettings(
-									(currentProjectSettings) =>
-										currentProjectSettings?.projectSettings
-											? {
-													projectSettings: {
-														...currentProjectSettings.projectSettings,
-														excluded_users:
-															validRegexes,
-													},
-												}
-											: currentProjectSettings,
-								)
-							}}
-						/>
+								}}
+								list="identifier-suggestions"
+							/>
+							<datalist id="identifier-suggestions">
+								{identifierSuggestions.map((suggestion) => (
+									<option
+										key={suggestion}
+										value={suggestion}
+									/>
+								))}
+							</datalist>
+							<Button
+								onClick={handleAdd}
+								size="small"
+								kind="secondary"
+								trackingId="excluded-user-add"
+							>
+								Add
+							</Button>
+						</Stack>
+
+						{excludedUsers.length > 0 && (
+							<Stack direction="row" gap="4" wrap="wrap" mt="8">
+								{excludedUsers.map((user) => (
+									<Box
+										key={user}
+										display="flex"
+										alignItems="center"
+										gap="4"
+										p="4"
+										border="secondary"
+										borderRadius="4"
+									>
+										<Text>{user}</Text>
+										<div
+											style={{
+												cursor: 'pointer',
+												padding: '0 4px',
+											}}
+											onClick={() => handleRemove(user)}
+										>
+											✕
+										</div>
+									</Box>
+								))}
+							</Stack>
+						)}
 					</Form.NamedSection>
 					{invalidExcludedUsers.length > 0 && <div></div>}
 				</Stack>
