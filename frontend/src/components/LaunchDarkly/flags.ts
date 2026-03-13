@@ -21,6 +21,10 @@ export const flags: Record<
 		type: 'boolean',
 		defaultValue: false,
 	},
+	'enable-users-analytics-view': {
+		type: 'boolean',
+		defaultValue: false,
+	},
 } as const
 
 export type Flag = keyof typeof flags
