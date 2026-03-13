@@ -71,10 +71,7 @@ const (
 
 // StoredPayloadTypes configures what payloads are uploaded with this config.
 var StoredPayloadTypes = map[payload.FileType]PayloadType{
-	payload.EventsCompressed:          SessionContentsCompressed,
-	payload.ResourcesCompressed:       NetworkResourcesCompressed,
-	payload.TimelineIndicatorEvents:   TimelineIndicatorEvents,
-	payload.WebSocketEventsCompressed: WebSocketEventsCompressed,
+	payload.TimelineIndicatorEvents: TimelineIndicatorEvents,
 }
 
 func GetChunkedPayloadType(offset int) PayloadType {
