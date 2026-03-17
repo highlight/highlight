@@ -14,7 +14,7 @@ import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightI
 import {
 	IntegrationAction,
 	IntegrationConfigProps,
-} from '@pages/IntegrationsPage/components/Integration'
+} from '@pages/IntegrationsPage/components/IntegrationTypes'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
