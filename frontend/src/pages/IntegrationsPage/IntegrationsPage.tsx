@@ -100,22 +100,6 @@ const IntegrationsPage = () => {
 		},
 	} = useHeightIntegration()
 
-	const loading =
-		loadingLinear ||
-		loadingSlack ||
-		loadingZapier ||
-		loadingClearbit ||
-		loadingVercel ||
-		loadingDiscord ||
-		loadingClickUp ||
-		loadingHeight ||
-		loadingGitHub ||
-		loadingJira ||
-		loadingGitlab ||
-		loadingMicrosoftTeams ||
-		loadingHeroku ||
-		loadingCloudflare
-
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((integration) => {
 			if (
@@ -139,27 +123,56 @@ const IntegrationsPage = () => {
 			} else {
 				return true
 			}
-		}).map((inter) => ({
-			...inter,
-			defaultEnable:
-				(inter.key === 'slack' && isSlackConnectedToWorkspace) ||
-				(inter.key === 'linear' && isLinearIntegratedWithProject) ||
-				(inter.key === 'zapier' && isZapierIntegratedWithProject) ||
-				(inter.key === 'clearbit' &&
-					isClearbitIntegratedWithWorkspace) ||
-				(inter.key === 'vercel' && isVercelIntegratedWithProject) ||
-				(inter.key === 'discord' && isDiscordIntegratedWithProject) ||
-				(inter.key === 'github' && isGitHubIntegratedWithProject) ||
-				(inter.key === 'clickup' && isClickUpIntegratedWithProject) ||
-				(inter.key === 'height' && isHeightIntegratedWithProject) ||
-				(inter.key === 'jira' && isJiraIntegratedWithProject) ||
-				(inter.key === 'microsoft_teams' &&
-					isMicrosoftTeamsConnectedToWorkspace) ||
-				(inter.key === 'gitlab' && isGitlabIntegratedWithProject) ||
-				(inter.key === 'heroku' && isHerokuConnectedToWorkspace) ||
-				(inter.key === 'cloudflare' &&
-					isCloudflareConnectedToWorkspace),
-		}))
+		}).map((inter) => {
+			const isSlack = inter.key === 'slack'
+			const isLinear = inter.key === 'linear'
+			const isZapier = inter.key === 'zapier'
+			const isClearbit = inter.key === 'clearbit'
+			const isVercel = inter.key === 'vercel'
+			const isDiscord = inter.key === 'discord'
+			const isGitHub = inter.key === 'github'
+			const isClickUp = inter.key === 'clickup'
+			const isHeight = inter.key === 'height'
+			const isJira = inter.key === 'jira'
+			const isMicrosoftTeams = inter.key === 'microsoft_teams'
+			const isGitlab = inter.key === 'gitlab'
+			const isHeroku = inter.key === 'heroku'
+			const isCloudflare = inter.key === 'cloudflare'
+
+			return {
+				...inter,
+				defaultEnable:
+					(isSlack && isSlackConnectedToWorkspace) ||
+					(isLinear && isLinearIntegratedWithProject) ||
+					(isZapier && isZapierIntegratedWithProject) ||
+					(isClearbit && isClearbitIntegratedWithWorkspace) ||
+					(isVercel && isVercelIntegratedWithProject) ||
+					(isDiscord && isDiscordIntegratedWithProject) ||
+					(isGitHub && isGitHubIntegratedWithProject) ||
+					(isClickUp && isClickUpIntegratedWithProject) ||
+					(isHeight && isHeightIntegratedWithProject) ||
+					(isJira && isJiraIntegratedWithProject) ||
+					(isMicrosoftTeams && isMicrosoftTeamsConnectedToWorkspace) ||
+					(isGitlab && isGitlabIntegratedWithProject) ||
+					(isHeroku && isHerokuConnectedToWorkspace) ||
+					(isCloudflare && isCloudflareConnectedToWorkspace),
+				loading:
+					(isSlack && loadingSlack) ||
+					(isLinear && loadingLinear) ||
+					(isZapier && loadingZapier) ||
+					(isClearbit && loadingClearbit) ||
+					(isVercel && loadingVercel) ||
+					(isDiscord && loadingDiscord) ||
+					(isGitHub && loadingGitHub) ||
+					(isClickUp && loadingClickUp) ||
+					(isHeight && loadingHeight) ||
+					(isJira && loadingJira) ||
+					(isMicrosoftTeams && loadingMicrosoftTeams) ||
+					(isGitlab && loadingGitlab) ||
+					(isHeroku && loadingHeroku) ||
+					(isCloudflare && loadingCloudflare),
+			}
+		})
 	}, [
 		currentWorkspace?.id,
 		isHighlightAdmin,
@@ -177,6 +190,20 @@ const IntegrationsPage = () => {
 		isGitlabIntegratedWithProject,
 		isHerokuConnectedToWorkspace,
 		isCloudflareConnectedToWorkspace,
+		loadingSlack,
+		loadingLinear,
+		loadingZapier,
+		loadingClearbit,
+		loadingVercel,
+		loadingDiscord,
+		loadingGitHub,
+		loadingClickUp,
+		loadingHeight,
+		loadingJira,
+		loadingMicrosoftTeams,
+		loadingGitlab,
+		loadingHeroku,
+		loadingCloudflare,
 	])
 
 	useEffect(() => analytics.page('Integrations'), [])
@@ -201,7 +228,7 @@ const IntegrationsPage = () => {
 							showSettingsDefault={
 								configureIntegration === integration.key
 							}
-							loading={loading}
+							loading={(integration as any).loading}
 						/>
 					))}
 				</div>

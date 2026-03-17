@@ -1,6 +1,4 @@
 import Button from '@components/Button/Button/Button'
-import Card from '@components/Card/Card'
-import LoadingBox from '@components/LoadingBox'
 import Switch from '@components/Switch/Switch'
 import SettingsIcon from '@icons/SettingsIcon'
 import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
@@ -61,9 +59,52 @@ const Integration = ({
 	}, [defaultEnable, setIntegrationEnabled])
 	if (loading) {
 		return (
-			<Card>
-				<LoadingBox height={156} />
-			</Card>
+			<div className={styles.cardContainer}>
+				<div className={styles.header}>
+					<div
+						className="animate-pulse rounded-md"
+						style={{
+							backgroundColor: 'var(--color-gray-200)',
+							height: 36,
+							width: 36,
+						}}
+					/>
+					<div
+						className="animate-pulse rounded-full"
+						style={{
+							backgroundColor: 'var(--color-gray-200)',
+							height: 24,
+							width: 54,
+						}}
+					/>
+				</div>
+				<div className="mt-4 flex flex-col gap-2">
+					<div
+						className="animate-pulse rounded"
+						style={{
+							backgroundColor: 'var(--color-gray-200)',
+							height: 18,
+							width: '33%',
+						}}
+					/>
+					<div
+						className="animate-pulse rounded"
+						style={{
+							backgroundColor: 'var(--color-gray-200)',
+							height: 14,
+							width: '100%',
+						}}
+					/>
+					<div
+						className="animate-pulse rounded"
+						style={{
+							backgroundColor: 'var(--color-gray-200)',
+							height: 14,
+							width: '66%',
+						}}
+					/>
+				</div>
+			</div>
 		)
 	}
 
@@ -75,16 +116,17 @@ const Integration = ({
 
 	return (
 		<>
-			<Card className={styles.integration} interactable>
+			<div className={styles.cardContainer}>
 				<div className={styles.header}>
 					<img
 						src={icon}
-						alt=""
+						alt={name}
 						className={clsx(styles.logo, {
-							['rounded-none']: noRoundedIcon,
+							['border-gray-200 p-0.5 shadow-sm rounded-none border']:
+								noRoundedIcon,
 						})}
 					/>
-					<div className="flex flex-col gap-2">
+					<div className={styles.actions}>
 						{isGated ? (
 							<EnterpriseFeatureButton
 								setting={enterpriseSetting}
@@ -144,18 +186,15 @@ const Integration = ({
 							/>
 						)}
 						{hasSettings && (
-							<div className="flex h-[18px] w-full justify-end">
-								<Button
-									trackingId="IntegrationSettings"
-									iconButton
-									onClick={() => {
-										setShowUpdateSettings(true)
-									}}
-									disabled={!integrationEnabled}
-								>
-									<SettingsIcon />
-								</Button>
-							</div>
+							<Button
+								trackingId="IntegrationSettings"
+								iconButton
+								className={styles.settingsButton}
+								onClick={() => setShowUpdateSettings(true)}
+								disabled={!integrationEnabled}
+							>
+								<SettingsIcon />
+							</Button>
 						)}
 					</div>
 				</div>
@@ -164,16 +203,16 @@ const Integration = ({
 					<p className={styles.description}>{description}</p>
 					{docs && (
 						<a
-							className={styles.description}
+							className={styles.docsLink}
 							href={docs}
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							Learn more about the integration.
+							Learn more about the integration
 						</a>
 					)}
 				</div>
-			</Card>
+			</div>
 
 			<IntegrationModal
 				width={modalWidth}
