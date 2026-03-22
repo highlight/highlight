@@ -226,14 +226,14 @@ const MetadataPanel = () => {
 
 	if (session?.fingerprint) {
 		deviceData.push({
-			keyDisplayValue: 'Device ID',
+			keyDisplayValue: 'Fingerprint',
 			valueDisplayValue: (
 				<ButtonLink
 					onClick={(e) => {
 						e.stopPropagation()
 
 						toast.success(
-							`Showing sessions created by device #${session.fingerprint}`,
+							`Showing sessions with fingerprint #${session.fingerprint}`,
 						)
 						onSubmit(`device_id=${session.fingerprint}`)
 					}}
