@@ -1,4 +1,4 @@
-import { Badge, Form, Stack, Text } from '@highlight-run/ui/components'
+import { Badge, Form, Heading, Stack, Text } from '@highlight-run/ui/components'
 import React, { useState } from 'react'
 import { LinkButton } from '@/components/LinkButton'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -24,16 +24,14 @@ export const StreamsSettings: React.FC = () => {
 
 	return (
 		<Stack gap="32">
-			<Stack direction="row" gap="6" align="center">
-				<Text size="large" weight="bold">
-					Streams
-				</Text>
+			<Stack direction="row" gap="8" align="center">
+				<Heading level="h4">Streams</Heading>
 				<Badge label="Beta" variant="green" />
 			</Stack>
 
 			<Form>
 				<Stack gap="24">
-					<Text size="medium" weight="bold">
+					<Text weight="bold" size="small">
 						AWS Infrastructure Monitoring
 					</Text>
 

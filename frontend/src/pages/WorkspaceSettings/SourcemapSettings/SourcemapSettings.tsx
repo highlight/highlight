@@ -1,28 +1,31 @@
-import Card from '@components/Card/Card'
-import CopyText from '@components/CopyText/CopyText'
-import Input from '@components/Input/Input'
-import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable'
-import Select from '@components/Select/Select'
 import {
 	useGetProjectQuery,
 	useGetSourcemapFilesLazyQuery,
 	useGetSourcemapVersionsQuery,
 } from '@graph/hooks'
-import { Box, Stack } from '@highlight-run/ui/components'
+import {
+	Box,
+	Callout,
+	Form,
+	Heading,
+	Select,
+	Stack,
+	Table,
+	Text,
+} from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { debounce } from 'lodash'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
-import BoxLabel from '@/components/BoxLabel/BoxLabel'
+import CopyText from '@components/CopyText/CopyText'
+import { LoadingBar } from '@components/Loading/Loading'
 
-import styles from './SourcemapSettings.module.css'
-
-const SourcemapSettings = () => {
+export const SourcemapSettings = () => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const [query, setQuery] = React.useState<string>('')
-	const [versions, setVersions] = React.useState<string[]>([])
-	const [selectedVersion, setSelectedVersion] = React.useState<string>()
+	const [query, setQuery] = useState<string>('')
+	const [versions, setVersions] = useState<string[]>([])
+	const [selectedVersion, setSelectedVersion] = useState<string | undefined>()
 
 	const { data: projectData } = useGetProjectQuery({
 		variables: {
@@ -38,23 +41,21 @@ const SourcemapSettings = () => {
 			},
 		})
 
-	const { data: versionsData, loading: versionsLoading } =
-		useGetSourcemapVersionsQuery({
-			variables: {
-				project_id: project_id!,
-			},
-			skip: !project_id,
-			onCompleted: (data) => {
-				const trimmedVersions = data?.sourcemap_versions?.map((v) =>
-					v.replace(`${project_id}/`, '').replace('/', ''),
-				)
+	const { loading: versionsLoading } = useGetSourcemapVersionsQuery({
+		variables: {
+			project_id: project_id!,
+		},
+		skip: !project_id,
+		onCompleted: (data) => {
+			const trimmedVersions = data?.sourcemap_versions?.map((v) =>
+				v.replace(`${project_id}/`, '').replace('/', ''),
+			)
 
-				setVersions(trimmedVersions || [])
-			},
-		})
+			setVersions(trimmedVersions || [])
+		},
+	})
 
-	const needToSelectVersion =
-		(versionsData?.sourcemap_versions.length || 0) > 1 && !selectedVersion
+	const needToSelectVersion = versions.length > 1 && !selectedVersion
 
 	useEffect(() => {
 		if (versionsLoading || needToSelectVersion || !project_id) {
@@ -67,46 +68,40 @@ const SourcemapSettings = () => {
 				version: selectedVersion,
 			},
 		})
-		// Only needs to be triggered when loading is complete or the selected
-		// version changes. We don't update when needToSelectVersion changes
-		// because we can't reset data.sourcemap_files.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [versionsLoading, selectedVersion])
+	}, [versionsLoading, selectedVersion, project_id, needToSelectVersion, getSourcemapFilesQuery])
 
 	const fileKeys = data?.sourcemap_files?.map((file) => file.key) || []
 
-	const visibleFileKeys = query.length
-		? fileKeys.filter((key) => key && key.indexOf(query) > -1)
-		: fileKeys
+	const visibleFileKeys = useMemo(() => {
+		return query.length
+			? fileKeys.filter((key) => key && key.indexOf(query) > -1)
+			: fileKeys
+	}, [fileKeys, query])
 
 	const filterResults = debounce((query: string) => {
 		setQuery(query)
 	}, 300)
 
 	return (
-		<BorderBox>
-			<Stack gap="8">
+		<Box background="white" border="dividerWeak" borderRadius="8" p="24">
+			<Stack gap="24">
 				{projectData?.project?.secret && (
-					<Stack gap="8">
-						<BoxLabel
-							label="Sourcemaps"
-							info={
-								<>
-									Sourcemaps can be used to undo JavaScript
-									minification in your error traces. You can
-									learn more about them in{' '}
-									<a
-										href="https://docs.highlight.run/sourcemaps"
-										target="_blank"
-										rel="noreferrer"
-									>
-										our sourcemap docs
-									</a>
-									. Use the API key below to upload your
-									sourcemaps to Highlight.
-								</>
-							}
-						/>
+					<Stack gap="12">
+						<Heading level="h4">Sourcemaps</Heading>
+						<Text color="moderate">
+							Sourcemaps can be used to undo JavaScript
+							minification in your error traces. You can learn
+							more about them in{' '}
+							<a
+								href="https://docs.highlight.run/sourcemaps"
+								target="_blank"
+								rel="noreferrer"
+							>
+								our sourcemap docs
+							</a>
+							. Use the API key below to upload your sourcemaps to
+							Highlight.
+						</Text>
 						<CopyText
 							text={projectData.project.secret}
 							onCopyTooltipText="API key copied to your clipboard!"
@@ -114,90 +109,121 @@ const SourcemapSettings = () => {
 					</Stack>
 				)}
 
-				<Box borderTop="dividerWeak" />
+				<Stack gap="16">
+					<Box borderTop="dividerWeak" style={{ marginLeft: -24, marginRight: -24 }} />
 
-				<BoxLabel info="Below is a list of sourcemap files we have for your project." />
+					<Text color="moderate">
+						Below is a list of sourcemap files we have for your
+						project.
+					</Text>
 
-				<Card
-					className={styles.list}
-					title={
-						<div className={styles.listHeader}>
-							{versions.length > 1 && (
-								<div>
-									<Select
-										aria-label="Sourcemap app version"
-										className={styles.versionSelect}
-										placeholder="Select a version of your app"
-										options={versions.map((v) => ({
-											id: v,
-											value: v,
-											displayValue: v,
-										}))}
-										onChange={setSelectedVersion}
-										value={selectedVersion}
-										notFoundContent={
-											<p>No sourcemaps found</p>
-										}
-									/>
-								</div>
-							)}
-							<Input
-								allowClear
-								style={{ width: '100%' }}
-								placeholder="Search for a file"
-								onChange={(e) => filterResults(e.target.value)}
-								size="small"
-								disabled={versionsLoading || loading}
-							/>
-						</div>
-					}
-				>
-					<ProgressBarTable
-						loading={loading}
-						columns={[
-							{
-								title: 'Sourcemap',
-								dataIndex: 'key',
-								key: 'key',
-								width: '100%',
-								render: (key) => (
-									<div className={styles.listRow}>{key}</div>
-								),
-							},
-						]}
-						data={visibleFileKeys?.map((file) => ({
-							key: file,
-							file: file,
-						}))}
-						onClickHandler={() => {}}
-						noDataMessage={
-							query ? (
-								<p>No sourcemap files match your search.</p>
-							) : needToSelectVersion ? (
-								<p>
-									We have sourcemaps for multiple versions of
-									your app. Please select a version to see
-									your sourcemaps.
-								</p>
+					<Box
+						border="dividerWeak"
+						borderRadius="8"
+						background="white"
+						p="16"
+					>
+						<Stack gap="16">
+							<Box
+								display="flex"
+								justifyContent="space-between"
+								alignItems="center"
+								gap="16"
+							>
+								{versions.length > 1 && (
+									<Box style={{ width: 250 }}>
+										<Select
+											aria-label="Sourcemap app version"
+											placeholder="Select a version of your app"
+											options={versions.map((v) => ({
+												name: v,
+												value: v,
+											}))}
+											onValueChange={(v: any) => {
+												setSelectedVersion(v?.value)
+											}}
+											value={
+												selectedVersion
+													? {
+															name: selectedVersion,
+															value: selectedVersion,
+													  }
+													: undefined
+											}
+										/>
+									</Box>
+								)}
+								<Box flexGrow={1}>
+									<Form>
+										<Form.Input
+											name="search"
+											placeholder="Search for a file"
+											onChange={(
+												e: React.ChangeEvent<HTMLInputElement>,
+											) =>
+												filterResults(e.target.value)
+											}
+											disabled={
+												versionsLoading || loading
+											}
+										/>
+									</Form>
+								</Box>
+							</Box>
+
+							{loading ? (
+								<LoadingBar />
 							) : (
-								<p>
-									We don't have any sourcemap files for your
-									project. Once you upload some you will be
-									able to view them here.
-								</p>
-							)
-						}
-						noDataTitle={
-							query.length
-								? 'Nothing to see here'
-								: needToSelectVersion
-									? 'Select a version'
-									: 'No sourcemap data yet 😔'
-						}
-					/>
-				</Card>
+								<Table>
+									<Table.Head>
+										<Table.Row>
+											<Table.Header>
+												Sourcemap
+											</Table.Header>
+										</Table.Row>
+									</Table.Head>
+									<Table.Body>
+										{visibleFileKeys.length > 0 ? (
+											visibleFileKeys.map((key) => (
+												<Table.Row key={key}>
+													<Table.Cell>
+														<Text
+															family="monospace"
+															size="small"
+															break="all"
+														>
+															{key}
+														</Text>
+													</Table.Cell>
+												</Table.Row>
+											))
+										) : (
+											<Table.Row>
+												<Table.Cell>
+													<Box
+														py="24"
+														textAlign="center"
+													>
+														<Text color="moderate">
+															{query
+																? 'No sourcemap files match your search.'
+																: needToSelectVersion
+																? 'We have sourcemaps for multiple versions of your app. Please select a version to see your sourcemaps.'
+																: "We don't have any sourcemap files for your project. Once you upload some you will be able to view them here."}
+														</Text>
+													</Box>
+												</Table.Cell>
+											</Table.Row>
+										)}
+									</Table.Body>
+								</Table>
+							)}
+						</Stack>
+					</Box>
+				</Stack>
 			</Stack>
-		</BorderBox>
+		</Box>
+
 	)
 }
 

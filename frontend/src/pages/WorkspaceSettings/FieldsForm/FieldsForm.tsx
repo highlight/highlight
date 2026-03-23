@@ -1,15 +1,17 @@
-import Input from '@components/Input/Input'
-import { Tooltip } from '@highlight-run/ui/components'
+import {
+	Box,
+	Form,
+	Stack,
+	Text,
+	Tooltip,
+} from '@highlight-run/ui/components'
 import { toast } from '@components/Toaster'
 import { useEditProjectMutation, useEditWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { useParams } from '@util/react-router/useParams'
 import React, { useState } from 'react'
 
-import commonStyles from '../../../Common.module.css'
-import Button from '../../../components/Button/Button/Button'
-import { CircularSpinner } from '../../../components/Loading/Loading'
-import styles from './FieldsForm.module.css'
+import { Button } from '@/components/Button'
 
 type Props = {
 	defaultName?: string | null
@@ -65,25 +67,42 @@ export const FieldsForm: React.FC<Props> = ({
 		}
 	}
 
+	const onDiscard = () => {
+		setName(defaultName || '')
+		setEmail(defaultEmail || '')
+	}
+
+	const isDirty = name !== (defaultName || '') || email !== (defaultEmail || '')
+
 	return (
-		<form onSubmit={onSubmit} key={project_id}>
-			<div className={styles.fieldRow}>
-				<label className={styles.fieldKey}>Name</label>
-				<Input
-					name="name"
-					value={name}
-					onChange={(e) => {
-						setName(e.target.value)
-					}}
-					disabled={formDisabled}
-				/>
-			</div>
-			{isWorkspace ? null : (
-				<>
-					{' '}
-					<div className={styles.fieldRow}>
-						<label className={styles.fieldKey}>Billing Email</label>
-						<Input
+		<Form onSubmit={onSubmit}>
+			<Stack gap="16">
+				<Box display="flex" alignItems="center" gap="16">
+					<Box flexShrink={0} style={{ width: 100 }}>
+						<Text weight="bold" size="small">
+							Name
+						</Text>
+					</Box>
+					<Form.Input
+						id="name"
+						name="name"
+						value={name}
+						onChange={(e) => {
+							setName(e.target.value)
+						}}
+						style={{ flexGrow: 1 }}
+						disabled={formDisabled}
+					/>
+				</Box>
+				{isWorkspace ? null : (
+					<Box display="flex" alignItems="center" gap="16">
+						<Box flexShrink={0} style={{ width: 100 }}>
+							<Text weight="bold" size="small">
+								Billing Email
+							</Text>
+						</Box>
+						<Form.Input
+							id="email"
 							placeholder="Billing Email"
 							type="email"
 							name="email"
@@ -91,41 +110,47 @@ export const FieldsForm: React.FC<Props> = ({
 							onChange={(e) => {
 								setEmail(e.target.value)
 							}}
+							style={{ flexGrow: 1 }}
 							disabled={formDisabled}
 						/>
-					</div>
-				</>
-			)}
-			<div className={styles.fieldRow}>
-				<Tooltip
-					disabled={!formDisabled}
-					trigger={
+					</Box>
+				)}
+				<Box display="flex" justifyContent="flex-end" gap="8" pt="8">
+					{isDirty && (
 						<Button
-							trackingId={`${
-								isWorkspace ? 'Workspace' : 'Project'
-							}Update`}
-							htmlType="submit"
-							type="primary"
-							className={commonStyles.submitButton}
+							kind="secondary"
+							emphasis="medium"
+							trackingId="WorkspaceSettingsDiscard"
+							onClick={onDiscard}
 							disabled={formDisabled}
 						>
-							{editProjectLoading || editWorkspaceLoading ? (
-								<CircularSpinner
-									style={{
-										fontSize: 18,
-										color: 'var(--text-primary-inverted)',
-									}}
-								/>
-							) : (
-								'Save changes'
-							)}
+							Discard changes
 						</Button>
-					}
-				>
-					You do not have permission to edit these settings. Please
-					contact your workspace admin.
-				</Tooltip>
-			</div>
-		</form>
+					)}
+					<Tooltip
+						disabled={!formDisabled}
+						trigger={
+							<Button
+								trackingId={`${
+									isWorkspace ? 'Workspace' : 'Project'
+								}Update`}
+								type="submit"
+								kind="primary"
+								disabled={formDisabled}
+								loading={
+									editProjectLoading || editWorkspaceLoading
+								}
+							>
+								Save changes
+							</Button>
+						}
+					>
+						You do not have permission to edit these settings.
+						Please contact your workspace admin.
+					</Tooltip>
+				</Box>
+			</Stack>
+		</Form>
+
 	)
 }
