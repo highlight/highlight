@@ -65,8 +65,8 @@ export const AutoJoinForm: React.FC = () => {
 		}
 	}
 
-	const handleToggle = (checked: boolean) => {
-		if (checked) {
+	const handleToggle = () => {
+		if (autoJoinDomains.length === 0) {
 			onChangeMsg([adminsEmailDomain], 'Successfully enabled auto-join!')
 		} else {
 			onChangeMsg([], 'Successfully disabled auto-join!')
