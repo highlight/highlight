@@ -1,6 +1,5 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
-import { Stack } from '@highlight-run/ui/components'
+import { Select, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
@@ -28,16 +27,18 @@ export const ErrorSettingsForm = () => {
 					info="Enter JSON expressions to use for grouping your errors."
 				/>
 				<Select
-					mode="tags"
+					creatable
+					filterable
+					displayMode="tags"
 					placeholder="$.context.messages[0]"
 					value={data?.projectSettings?.error_json_paths || []}
-					onChange={(paths: string[]) => {
+					onValueChange={(items: { name: string; value: string }[]) => {
 						setAllProjectSettings((currentProjectSettings) =>
 							currentProjectSettings?.projectSettings
 								? {
 										projectSettings: {
 											...currentProjectSettings.projectSettings,
-											error_json_paths: paths,
+											error_json_paths: items.map((i) => i.value),
 										},
 									}
 								: currentProjectSettings,
