@@ -1,18 +1,15 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
-import Input from '@components/Input/Input'
 import LoadingBox from '@components/LoadingBox'
 import { useDeleteProjectMutation, useGetProjectQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { FieldsForm } from '@pages/WorkspaceSettings/FieldsForm/FieldsForm'
 import { useParams } from '@util/react-router/useParams'
-import clsx from 'clsx'
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuthContext } from '@/authentication/AuthContext'
 import { AdminRole } from '@/graph/generated/schemas'
 
-import commonStyles from '../../../Common.module.css'
-import Button from '../../../components/Button/Button/Button'
+import { Button } from '@components/Button'
 import styles from './DangerForm.module.css'
 
 export const DangerForm = () => {
@@ -63,7 +60,8 @@ export const DangerForm = () => {
 									{`${data?.project?.name}`}' to confirm.
 								</p>
 								<div className={styles.dangerRow}>
-									<Input
+									<input
+										className={styles.dangerInput}
 										placeholder={`${data?.project?.name}`}
 										name="text"
 										value={confirmationText}
@@ -73,17 +71,13 @@ export const DangerForm = () => {
 									/>
 									<Button
 										trackingId="DeleteProject"
-										danger
-										type="primary"
-										className={clsx(
-											commonStyles.submitButton,
-											styles.deleteButton,
-										)}
+										kind="danger"
+										type="submit"
+										size="small"
 										disabled={
 											confirmationText !==
 											data?.project?.name
 										}
-										htmlType="submit"
 										loading={deleteLoading}
 									>
 										Delete
