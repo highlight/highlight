@@ -64,10 +64,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				key: repo.repo_id.replace(
-					'https://api.github.com/repos/',
-					'',
-				),
+				key: repo.repo_id.replace('https://api.github.com/repos/', ''),
 				render: repo.name.split('/').pop() ?? repo.name,
 			})),
 		[githubRepos],
@@ -225,9 +222,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 										repo,
 									)
 								}
-								value={
-									formState.values.githubRepo ?? ''
-								}
+								value={formState.values.githubRepo ?? ''}
 								options={githubOptions}
 								disabled={disabled || testLoading}
 								cssClass={styles.repoSelect}

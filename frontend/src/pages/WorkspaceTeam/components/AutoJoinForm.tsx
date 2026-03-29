@@ -84,13 +84,7 @@ export const AutoJoinForm: React.FC = () => {
 		<Tooltip
 			trigger={
 				<div className={styles.container}>
-					<Box
-						display="flex"
-						alignItems="center"
-						gap="8"
-						p="0"
-						m="0"
-					>
+					<Box display="flex" alignItems="center" gap="8" p="0" m="0">
 						<SwitchButton
 							type="button"
 							size="xxSmall"
@@ -112,8 +106,7 @@ export const AutoJoinForm: React.FC = () => {
 				</div>
 			}
 		>
-			Automatically share the workspace with all users on this
-			domain.
+			Automatically share the workspace with all users on this domain.
 		</Tooltip>
 	)
 }

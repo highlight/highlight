@@ -47,11 +47,9 @@ const WorkspaceSettings = () => {
 									title="You don't have access to auto-access domains."
 								>
 									<Text size="xSmall" color="moderate">
-										You don't have permission to
-										configure auto-access
-										domains. Please contact a
-										workspace admin to make
-										changes.
+										You don't have permission to configure
+										auto-access domains. Please contact a
+										workspace admin to make changes.
 									</Text>
 								</Callout>
 							}

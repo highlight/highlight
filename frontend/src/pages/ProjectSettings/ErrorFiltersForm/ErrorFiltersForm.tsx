@@ -1,6 +1,6 @@
 import { LoadingBar } from '@components/Loading/Loading'
 import { toast } from '@components/Toaster'
-import { Select, Stack, Text } from '@highlight-run/ui/components'
+import { Select, Stack } from '@highlight-run/ui/components'
 
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
@@ -42,7 +42,9 @@ export const ErrorFiltersForm = () => {
 						displayMode="tags"
 						placeholder="TypeError: Failed to fetch"
 						value={data?.projectSettings?.error_filters || []}
-						onValueChange={(items: { name: string; value: string }[]) => {
+						onValueChange={(
+							items: { name: string; value: string }[],
+						) => {
 							const patterns = items.map((i) => i.value)
 							patterns.filter(isValidRegex)
 							setAllProjectSettings((currentProjectSettings) =>

@@ -1,4 +1,4 @@
-import { Box, Tooltip } from '@highlight-run/ui/components'
+import { Tooltip } from '@highlight-run/ui/components'
 import { toast } from '@components/Toaster'
 import { useEditProjectMutation, useEditWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
@@ -6,7 +6,6 @@ import { useParams } from '@util/react-router/useParams'
 import React, { useState } from 'react'
 
 import { Button } from '@components/Button'
-import commonStyles from '../../../Common.module.css'
 import { CircularSpinner } from '../../../components/Loading/Loading'
 import styles from './FieldsForm.module.css'
 

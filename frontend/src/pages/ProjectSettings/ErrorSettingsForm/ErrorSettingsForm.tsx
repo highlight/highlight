@@ -32,13 +32,17 @@ export const ErrorSettingsForm = () => {
 					displayMode="tags"
 					placeholder="$.context.messages[0]"
 					value={data?.projectSettings?.error_json_paths || []}
-					onValueChange={(items: { name: string; value: string }[]) => {
+					onValueChange={(
+						items: { name: string; value: string }[],
+					) => {
 						setAllProjectSettings((currentProjectSettings) =>
 							currentProjectSettings?.projectSettings
 								? {
 										projectSettings: {
 											...currentProjectSettings.projectSettings,
-											error_json_paths: items.map((i) => i.value),
+											error_json_paths: items.map(
+												(i) => i.value,
+											),
 										},
 									}
 								: currentProjectSettings,

@@ -120,10 +120,7 @@ const GithubSettingsForm = ({
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				key: repo.repo_id.replace(
-					'https://api.github.com/repos/',
-					'',
-				),
+				key: repo.repo_id.replace('https://api.github.com/repos/', ''),
 				render: repo.name.split('/').pop() ?? repo.name,
 			})),
 		[githubRepos],
@@ -159,9 +156,7 @@ const GithubSettingsForm = ({
 									repo,
 								)
 							}
-							value={
-								formState.values.githubRepo ?? ''
-							}
+							value={formState.values.githubRepo ?? ''}
 							options={githubOptions}
 							cssClass={styles.repoSelect}
 						/>
