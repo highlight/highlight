@@ -187,11 +187,13 @@ const IntegrationsPage = () => {
 				<title>Integrations</title>
 			</Helmet>
 			<LeadAlignLayout>
-				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
-					Supercharge your workflows and attach Highlight with the
-					tools you use everyday.
-				</p>
+				<div className={styles.pageHeader}>
+					<h2>Integrations</h2>
+					<p className={layoutStyles.subTitle}>
+						Supercharge your workflows and attach Highlight with the
+						tools you use everyday.
+					</p>
+				</div>
 				<div className={styles.integrationsContainer}>
 					{integrations.map((integration) => (
 						<Integration

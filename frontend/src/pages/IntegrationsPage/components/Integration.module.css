@@ -1,14 +1,21 @@
 .integration {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 220px;
+
 	& .logo {
 		border-radius: 50%;
 		height: var(--size-xxLarge);
 		width: var(--size-xxLarge);
+		flex-shrink: 0;
 	}
 
 	& .header {
 		align-items: flex-start;
 		display: flex;
 		justify-content: space-between;
+		gap: var(--size-medium);
 		padding-bottom: var(--size-small);
 	}
 
