@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import Card from '@components/Card/Card'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
@@ -84,26 +84,28 @@ const ClickUpIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				>
 					Cancel
 				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-ClickUp"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
+				<a
 					href={`https://app.clickup.com/api?client_id=${CLICKUP_CLIENT_ID}&redirect_uri=${redirectUri}&state=${btoaSafe(
 						JSON.stringify({
 							project_id: project_id,
 							workspace_id: currentWorkspace?.id,
 						}),
 					)}`}
+					target="_blank"
 					rel="noreferrer"
 				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span style={{ marginTop: 4 }}>
-							Connect Highlight with ClickUp
+					<Button
+						trackingId="IntegrationConfigurationSave-ClickUp"
+						className={styles.modalBtn}
+					>
+						<span className={styles.modalBtnText}>
+							<Sparkles2Icon className={styles.modalBtnIcon} />
+							<span style={{ marginTop: 4 }}>
+								Connect Highlight with ClickUp
+							</span>
 						</span>
-					</span>
-				</Button>
+					</Button>
+				</a>
 			</footer>
 		</>
 	)
@@ -135,8 +137,7 @@ const ClickUpIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 				<Button
 					trackingId="IntegrationDisconnectSave-ClickUp"
 					className={styles.modalBtn}
-					type="primary"
-					danger
+					kind="danger"
 					onClick={() => {
 						removeIntegration()
 							.then(() => {
@@ -327,8 +328,6 @@ export const ClickUpIntegrationSettings: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationSave-ClickUp"
 					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
 					onClick={onSave}
 				>
 					<span className={styles.modalBtnText}>

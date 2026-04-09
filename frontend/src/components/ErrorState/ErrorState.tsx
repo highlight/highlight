@@ -9,7 +9,7 @@ import { useState } from 'react'
 
 import { SIGN_IN_ROUTE, SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
 
-import Button from '../Button/Button/Button'
+import { Button } from '@components/Button'
 import styles from './ErrorState.module.css'
 import RequestAccess from './RequestAccess/RequestAccess'
 
@@ -69,10 +69,15 @@ export const ErrorState = ({
 							<a href="/">
 								<Button
 									small
-									type={
+									kind={
 										joinableWorkspace || showRequestAccess
-											? 'text'
+											? 'secondary'
 											: 'primary'
+									}
+									emphasis={
+										joinableWorkspace || showRequestAccess
+											? 'low'
+											: 'high'
 									}
 									trackingId="ErrorStateGoToMyAccount"
 								>
@@ -87,7 +92,6 @@ export const ErrorState = ({
 					) : (
 						<Space size="small">
 							<ButtonLink
-								type="primary"
 								trackingId="ErrorStateSignIn"
 								href={SIGN_IN_ROUTE}
 								anchor

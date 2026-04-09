@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import { PlanType } from '@graph/schemas'
 import PlugIcon from '@icons/PlugIcon'
@@ -63,8 +63,7 @@ const ClearbitIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectSave-Slack"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -112,8 +111,7 @@ const ClearbitIntegrationConfig: React.FC<
 						<Button
 							trackingId="IntegrationConfigurationViewUpgrade-Clearbit"
 							className={styles.modalBtn}
-							type="primary"
-							onClick={() => {
+								onClick={() => {
 								navigate(`/${projectID}/integrations`)
 								setRedirectToBilling(true)
 							}}
@@ -137,7 +135,6 @@ const ClearbitIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationConfigurationSave-Clearbit"
 						className={styles.modalBtn}
-						type="primary"
 						onClick={() => {
 							modifyClearbit({ enabled: true })
 						}}

@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -43,15 +43,15 @@ const JiraIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				>
 					Cancel
 				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-Jira"
-					className={styles.modalBtn}
-					type="primary"
-					href={authUrl}
-				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Jira
-				</Button>
+				<a href={authUrl}>
+					<Button
+						trackingId="IntegrationConfigurationSave-Jira"
+						className={styles.modalBtn}
+					>
+						<AppsIcon className={styles.modalBtnIcon} /> Connect
+						Highlight with Jira
+					</Button>
+				</a>
 			</footer>
 		</>
 	)
@@ -82,8 +82,7 @@ const JiraIntegrationDisconnect: React.FC<
 				<Button
 					trackingId="IntegrationDisconnectSave-Jira"
 					className={styles.modalBtn}
-					type="primary"
-					danger
+					kind="danger"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)

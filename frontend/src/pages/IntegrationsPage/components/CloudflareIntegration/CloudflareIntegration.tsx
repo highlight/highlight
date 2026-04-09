@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { Form, Stack } from '@highlight-run/ui/components'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
@@ -53,8 +53,7 @@ const CloudflareIntegration: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectSave-Cloudflare"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
 						onClick={async () => {
 							setModalOpen(false)
 							await removeCloudflareIntegrationFromProject()
@@ -115,7 +114,7 @@ const CloudflareIntegration: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationSave-Cloudflare"
 					className={styles.modalBtn}
-					type="primary"
+
 					disabled={token.length < 40 || proxySubdomain.length < 3}
 					onClick={async () => {
 						setModalOpen(false)

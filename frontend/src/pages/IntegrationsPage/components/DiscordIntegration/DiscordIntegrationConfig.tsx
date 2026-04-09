@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
@@ -91,8 +91,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					<Button
 						trackingId="IntegrationDisconnectSave-Discord"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -123,20 +122,19 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 				>
 					Cancel
 				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-Discord"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href={getDiscordOauthUrl(project_id!)}
-				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span className="mt-1">
-							Connect Highlight with Discord
+				<a href={getDiscordOauthUrl(project_id!)} target="_blank" rel="noreferrer">
+					<Button
+						trackingId="IntegrationConfigurationSave-Discord"
+						className={styles.modalBtn}
+					>
+						<span className={styles.modalBtnText}>
+							<Sparkles2Icon className={styles.modalBtnIcon} />
+							<span className="mt-1">
+								Connect Highlight with Discord
+							</span>
 						</span>
-					</span>
-				</Button>
+					</Button>
+				</a>
 			</footer>
 		</>
 	)
