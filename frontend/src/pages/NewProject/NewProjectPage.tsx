@@ -12,7 +12,6 @@ import { namedOperations } from '@graph/operations'
 import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import analytics from '@util/analytics'
 import { client } from '@util/graph'
-import { Divider } from 'antd'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -21,7 +20,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { authRedirect } from '@/pages/Auth/utils'
 import SvgCloseIcon from '@/static/CloseIcon'
 
-import Button from '../../components/Button/Button/Button'
+import { Button } from '@/components/Button'
 import styles from './NewProject.module.css'
 
 const NewProjectPage = ({ workspace_id }: { workspace_id: string }) => {
@@ -147,7 +146,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id: string }) => {
 								}}
 							/>
 						</Box>
-						<Divider className="m-0" />
+						<Box borderBottom="dividerWeak" />
 						<Box
 							py="8"
 							px="12"
@@ -226,7 +225,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id: string }) => {
 									</ButtonLink>
 								)}
 							<Button
-								type="primary"
+								kind="primary"
 								htmlType="submit"
 								disabled={name.length === 0}
 								className={clsx(
