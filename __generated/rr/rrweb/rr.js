@@ -13751,6 +13751,7 @@ var CanvasManager = class {
       this.mutationCb(mutation);
     };
     this.options = options;
+    this.useManualBitmapResize = CanvasManager.shouldUseManualBitmapResize(win);
     if (recordCanvas && sampling === "all") {
       this.debug(null, "initializing canvas mutation observer", { sampling });
       this.initCanvasMutationObserver(win, blockClass, blockSelector);
@@ -14154,6 +14155,7 @@ var CanvasManager = class {
         resizeHeight: height
       });
     }
+    context.imageSmoothingEnabled = true;
     context.drawImage(source, 0, 0, width, height);
     return createImageBitmap(resizedCanvas);
   }
