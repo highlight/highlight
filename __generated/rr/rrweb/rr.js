@@ -13679,6 +13679,7 @@ var CanvasManager = class {
     __publicField(this, "resetObservers");
     __publicField(this, "frozen", false);
     __publicField(this, "locked", false);
+    __publicField(this, "useManualBitmapResize");
     __publicField(this, "processMutation", (target, mutation) => {
       const newFrame = this.rafStamps.invokeId && this.rafStamps.latestId !== this.rafStamps.invokeId;
       if (newFrame || !this.rafStamps.invokeId)
@@ -13845,10 +13846,7 @@ var CanvasManager = class {
       }
       const width = canvas.width * scale;
       const height = canvas.height * scale;
-      const bitmap = await createImageBitmap(canvas, {
-        resizeWidth: width,
-        resizeHeight: height
-      });
+      const bitmap = await this.createResizedBitmap(canvas, width, height);
       this.debug(canvas, "created image bitmap", {
         width: bitmap.width,
         height: bitmap.height
@@ -13995,10 +13993,7 @@ var CanvasManager = class {
             }
             const width = actualWidth * scale;
             const height = actualHeight * scale;
-            const bitmap = await createImageBitmap(video, {
-              resizeWidth: width,
-              resizeHeight: height
-            });
+            const bitmap = await this.createResizedBitmap(video, width, height);
             const outputScale = Math.max(boxWidth, boxHeight) / maxDim;
             const outputWidth = actualWidth * outputScale;
             const outputHeight = actualHeight * outputScale;
@@ -14111,6 +14106,56 @@ var CanvasManager = class {
     const { type } = valuesWithType[0];
     this.mutationCb({ id, type, commands: values });
     this.pendingCanvasMutations.delete(canvas);
+  }
+  static shouldUseManualBitmapResize(win) {
+    var _a2, _b2;
+    const vendor = ((_a2 = win.navigator) == null ? void 0 : _a2.vendor) ?? "";
+    const userAgent = ((_b2 = win.navigator) == null ? void 0 : _b2.userAgent) ?? "";
+    return vendor === "Apple Computer, Inc." && userAgent.includes("Safari/") && !userAgent.includes("Chrome/") && !userAgent.includes("CriOS/") && !userAgent.includes("Chromium/") && !userAgent.includes("Edg/");
+  }
+  createResizeCanvas(width, height) {
+    var _a2;
+    if ("OffscreenCanvas" in globalThis) {
+      return new OffscreenCanvas(width, height);
+    }
+    if ((_a2 = this.options.win.document) == null ? void 0 : _a2.createElement) {
+      const resizeCanvas = this.options.win.document.createElement("canvas");
+      resizeCanvas.width = width;
+      resizeCanvas.height = height;
+      return resizeCanvas;
+    }
+    return null;
+  }
+  getBitmapSourceDimensions(source) {
+    if (source instanceof HTMLVideoElement) {
+      return {
+        width: source.videoWidth,
+        height: source.videoHeight
+      };
+    }
+    return {
+      width: source.width,
+      height: source.height
+    };
+  }
+  async createResizedBitmap(source, width, height) {
+    const sourceDimensions = this.getBitmapSourceDimensions(source);
+    if (!this.useManualBitmapResize || sourceDimensions.width === width && sourceDimensions.height === height) {
+      return createImageBitmap(source, {
+        resizeWidth: width,
+        resizeHeight: height
+      });
+    }
+    const resizedCanvas = this.createResizeCanvas(width, height);
+    const context = resizedCanvas == null ? void 0 : resizedCanvas.getContext("2d");
+    if (!resizedCanvas || !context) {
+      return createImageBitmap(source, {
+        resizeWidth: width,
+        resizeHeight: height
+      });
+    }
+    context.drawImage(source, 0, 0, width, height);
+    return createImageBitmap(resizedCanvas);
   }
 };
 var StylesheetManager = class {
