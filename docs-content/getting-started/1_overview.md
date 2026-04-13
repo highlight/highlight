@@ -30,7 +30,7 @@ Installing highlight.io in javascript will automatically instrument frontend err
     <DocsCard title="VueJS"  href="./browser/vuejs.md">
         {"Get started in your VueJS app"}
     </DocsCard>
-    <DocsCard title="SvelteKit"  href="./browser/6_sveltekit.md">
+    <DocsCard title="SvelteKit"  href="./fullstack-frameworks/sveltekit.md">
         {"Get started in your SvelteKit app"}
     </DocsCard>
     <DocsCard title="Electron"  href="./browser/7_electron.md">
