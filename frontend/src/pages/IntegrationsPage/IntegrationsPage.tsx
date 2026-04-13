@@ -1,6 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
-import LeadAlignLayout from '@components/layout/LeadAlignLayout'
+import { Box, Heading, Stack, Tabs, Text } from '@highlight-run/ui/components'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useCloudflareIntegration } from '@pages/IntegrationsPage/components/CloudflareIntegration/utils'
@@ -8,15 +8,16 @@ import { useDiscordIntegration } from '@pages/IntegrationsPage/components/Discor
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import { useHerokuIntegration } from '@pages/IntegrationsPage/components/HerokuIntegration/utils'
-import Integration from '@pages/IntegrationsPage/components/Integration'
+import Integration, { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
-import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import INTEGRATIONS, { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { useEffect, useMemo } from 'react'
+import clsx from 'clsx'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
@@ -24,7 +25,6 @@ import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/Gitlab
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import styles from './IntegrationsPage.module.css'
 
 const IntegrationsPage = () => {
@@ -179,33 +179,96 @@ const IntegrationsPage = () => {
 		isCloudflareConnectedToWorkspace,
 	])
 
+	const [selectedKey, setSelectedKey] = useState<string | null>(
+		configureIntegration || popUpModal || (integrations.length > 0 ? integrations[0].key : null)
+	)
+
+	const selectedIntegration = useMemo(() => {
+		return integrations.find((i) => i.key === selectedKey)
+	}, [integrations, selectedKey])
+
+	useEffect(() => {
+		if (configureIntegration) {
+			setSelectedKey(configureIntegration)
+		} else if (popUpModal) {
+			setSelectedKey(popUpModal)
+		}
+	}, [configureIntegration, popUpModal])
+
 	useEffect(() => analytics.page('Integrations'), [])
+
+	const issueTrackers = integrations.filter((i) =>
+		['linear', 'jira', 'github', 'gitlab', 'clickup', 'height'].includes(i.key)
+	)
+	const communication = integrations.filter((i) =>
+		['slack', 'microsoft_teams', 'discord'].includes(i.key)
+	)
+	const others = integrations.filter(
+		(i) =>
+			!['linear', 'jira', 'github', 'gitlab', 'clickup', 'height', 'slack', 'microsoft_teams', 'discord'].includes(
+				i.key
+			)
+	)
+
+	const renderSidebarItem = (i: IntegrationType & { defaultEnable?: boolean }) => (
+		<div
+			key={i.key}
+			className={clsx(styles.integrationItem, {
+				[styles.activeIntegrationItem]: selectedKey === i.key,
+			})}
+			onClick={() => setSelectedKey(i.key)}
+		>
+			<img src={i.icon} alt="" className={styles.integrationIcon} />
+			<Text size="small" weight={selectedKey === i.key ? 'bold' : 'medium'} color={selectedKey === i.key ? 'primary' : 'secondary'}>
+				{i.name}
+			</Text>
+			{i.defaultEnable && <div className={styles.connectedBadge} />}
+		</div>
+	)
 
 	return (
 		<>
 			<Helmet>
 				<title>Integrations</title>
 			</Helmet>
-			<LeadAlignLayout>
-				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
-					Supercharge your workflows and attach Highlight with the
-					tools you use everyday.
-				</p>
-				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) => (
-						<Integration
-							integration={integration}
-							key={integration.key}
-							showModalDefault={popUpModal === integration.key}
-							showSettingsDefault={
-								configureIntegration === integration.key
-							}
-							loading={loading}
-						/>
-					))}
+			<div className={styles.pageContainer}>
+				<div className={styles.sidebar}>
+					<div className={styles.sidebarHeader}>
+						<Heading level="h4">Integrations</Heading>
+					</div>
+					<div className={styles.sidebarContent}>
+						<div className={styles.sidebarSection}>
+							<div className={styles.sidebarSectionTitle}>Issue Trackers</div>
+							{issueTrackers.map(renderSidebarItem)}
+						</div>
+						<div className={styles.sidebarSection}>
+							<div className={styles.sidebarSectionTitle}>Communication</div>
+							{communication.map(renderSidebarItem)}
+						</div>
+						<div className={styles.sidebarSection}>
+							<div className={styles.sidebarSectionTitle}>Tools</div>
+							{others.map(renderSidebarItem)}
+						</div>
+					</div>
 				</div>
-			</LeadAlignLayout>
+
+				<div className={styles.detailPanel}>
+					{selectedIntegration ? (
+						<Integration
+							integration={selectedIntegration}
+							key={selectedIntegration.key}
+							showModalDefault={popUpModal === selectedIntegration.key}
+							showSettingsDefault={configureIntegration === selectedIntegration.key}
+							loading={loading}
+							isDetailView
+						/>
+					) : (
+						<div className={styles.emptyState}>
+							<Text color="secondary">Select an integration to see details</Text>
+						</div>
+					)}
+				</div>
+			</div>
 		</>
 	)
 }

@@ -5,11 +5,13 @@ import Switch from '@components/Switch/Switch'
 import SettingsIcon from '@icons/SettingsIcon'
 import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
 import clsx from 'clsx'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { IntegrationModal } from '@/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
+import { Box, Heading, Stack, Tabs, Text, Badge } from '@highlight-run/ui/components'
 
 import styles from './Integration.module.css'
+import pageStyles from '../IntegrationsPage.module.css'
 import EnterpriseFeatureButton from '@/components/Billing/EnterpriseFeatureButton'
 
 export enum IntegrationAction {
@@ -29,10 +31,17 @@ interface Props {
 	showModalDefault?: boolean
 	showSettingsDefault?: boolean
 	loading?: boolean
+	isDetailView?: boolean
 }
 
 const Integration = ({
-	integration: {
+	integration,
+	showModalDefault,
+	showSettingsDefault,
+	loading,
+	isDetailView,
+}: Props) => {
+	const {
 		icon,
 		noRoundedIcon,
 		name,
@@ -42,11 +51,8 @@ const Integration = ({
 		hasSettings,
 		modalWidth,
 		docs,
-	},
-	showModalDefault,
-	showSettingsDefault,
-	loading,
-}: Props) => {
+	} = integration
+
 	const [showConfiguration, setShowConfiguration] = useState(
 		showModalDefault && !defaultEnable,
 	)
@@ -59,11 +65,12 @@ const Integration = ({
 	useEffect(() => {
 		setIntegrationEnabled(defaultEnable)
 	}, [defaultEnable, setIntegrationEnabled])
+
 	if (loading) {
 		return (
-			<Card>
+			<Box p="32">
 				<LoadingBox height={156} />
-			</Card>
+			</Box>
 		)
 	}
 
@@ -72,6 +79,162 @@ const Integration = ({
 		name === 'Jira' ? 'enable_jira_integration' : 'enable_teams_integration'
 	const enterpriseName =
 		name === 'Jira' ? 'Jira Integration' : 'Teams Integration'
+
+	const renderAction = () => {
+		const label = !showConfiguration && integrationEnabled ? 'Connected' : 'Connect'
+		const isLoading = (showConfiguration && integrationEnabled) || (showDeleteConfirmation && !integrationEnabled)
+
+		if (isGated) {
+			return (
+				<EnterpriseFeatureButton
+					setting={enterpriseSetting}
+					name={enterpriseName}
+					fn={async () => {
+						const newValue = !integrationEnabled
+						if (newValue) {
+							setShowConfiguration(true)
+						} else {
+							setShowDeleteConfirmation(true)
+						}
+						setIntegrationEnabled(newValue)
+					}}
+					variant="basic"
+				>
+					<Switch
+						trackingId={`IntegrationConnect-${name}`}
+						label={label}
+						loading={isLoading}
+						size="default"
+						checked={integrationEnabled}
+					/>
+				</EnterpriseFeatureButton>
+			)
+		}
+
+		return (
+			<Switch
+				trackingId={`IntegrationConnect-${name}`}
+				label={label}
+				loading={isLoading}
+				onChange={() => {
+					const newValue = !integrationEnabled
+					if (newValue) {
+						setShowConfiguration(true)
+					} else {
+						setShowDeleteConfirmation(true)
+					}
+					setIntegrationEnabled(newValue)
+				}}
+				size="default"
+				checked={integrationEnabled}
+			/>
+		)
+	}
+
+	if (isDetailView) {
+		return (
+			<>
+				<div className={pageStyles.detailHeader}>
+					<div className={pageStyles.detailTitleSection}>
+						<img
+							src={icon}
+							alt=""
+							className={clsx(pageStyles.detailLogo, {
+								['rounded-none']: noRoundedIcon,
+							})}
+						/>
+						<Stack gap="4">
+							<Heading level="h2">{name}</Heading>
+							{integrationEnabled && (
+								<Box display="flex" alignItems="center">
+									<Badge label="Connected" variant="green" size="small" />
+								</Box>
+							)}
+						</Stack>
+					</div>
+					<Box display="flex" gap="12" alignItems="center">
+						{renderAction()}
+					</Box>
+				</div>
+
+				<div className={pageStyles.tabsContainer}>
+					<Tabs<string> id="integration-tabs" selectedId="overview">
+						<Tabs.List>
+							<Tabs.Tab id="overview">Overview</Tabs.Tab>
+							{hasSettings && integrationEnabled && (
+								<Tabs.Tab id="settings">Settings</Tabs.Tab>
+							)}
+						</Tabs.List>
+					</Tabs>
+				</div>
+
+				<div className={pageStyles.detailContent}>
+					<Stack gap="32">
+						<Stack gap="12">
+							<Text size="large" color="secondary">
+								{description}
+							</Text>
+							{docs && (
+								<a
+									className={styles.description}
+									href={docs}
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									Learn more about the {name} integration.
+								</a>
+							)}
+						</Stack>
+
+						<Box borderTop="dividerWeak" pt="32">
+							{configurationPage({
+								setModalOpen: setShowConfiguration,
+								setIntegrationEnabled,
+								action: IntegrationAction.Setup,
+							})}
+						</Box>
+					</Stack>
+				</div>
+
+				<IntegrationModal
+					width={modalWidth}
+					visible={
+						showDeleteConfirmation ||
+						showUpdateSettings
+					}
+					onCancel={() => {
+						if (showDeleteConfirmation) {
+							setShowDeleteConfirmation(false)
+							setIntegrationEnabled(true)
+						} else {
+							setShowUpdateSettings(false)
+						}
+					}}
+					title={
+						showDeleteConfirmation
+							? 'Are you sure?'
+							: `Configuring ${name} Integration`
+					}
+					configurationPage={() => {
+						if (showDeleteConfirmation) {
+							return configurationPage({
+								setModalOpen: setShowDeleteConfirmation,
+								setIntegrationEnabled,
+								action: IntegrationAction.Disconnect,
+							})
+						}
+						if (showUpdateSettings) {
+							return configurationPage({
+								setModalOpen: setShowUpdateSettings,
+								setIntegrationEnabled,
+								action: IntegrationAction.Settings,
+							})
+						}
+					}}
+				/>
+			</>
+		)
+	}
 
 	return (
 		<>
@@ -85,64 +248,7 @@ const Integration = ({
 						})}
 					/>
 					<div className="flex flex-col gap-2">
-						{isGated ? (
-							<EnterpriseFeatureButton
-								setting={enterpriseSetting}
-								name={enterpriseName}
-								fn={async () => {
-									const newValue = !integrationEnabled
-									if (newValue) {
-										setShowConfiguration(true)
-									} else {
-										setShowDeleteConfirmation(true)
-									}
-									setIntegrationEnabled(newValue)
-								}}
-								variant="basic"
-							>
-								<Switch
-									trackingId={`IntegrationConnect-${name}`}
-									label={
-										!showConfiguration && integrationEnabled
-											? 'Connected'
-											: 'Connect'
-									}
-									loading={
-										(showConfiguration &&
-											integrationEnabled) ||
-										(showDeleteConfirmation &&
-											!integrationEnabled)
-									}
-									size="default"
-									checked={integrationEnabled}
-								/>
-							</EnterpriseFeatureButton>
-						) : (
-							<Switch
-								trackingId={`IntegrationConnect-${name}`}
-								label={
-									!showConfiguration && integrationEnabled
-										? 'Connected'
-										: 'Connect'
-								}
-								loading={
-									(showConfiguration && integrationEnabled) ||
-									(showDeleteConfirmation &&
-										!integrationEnabled)
-								}
-								onChange={() => {
-									const newValue = !integrationEnabled
-									if (newValue) {
-										setShowConfiguration(true)
-									} else {
-										setShowDeleteConfirmation(true)
-									}
-									setIntegrationEnabled(newValue)
-								}}
-								size="default"
-								checked={integrationEnabled}
-							/>
-						)}
+						{renderAction()}
 						{hasSettings && (
 							<div className="flex h-[18px] w-full justify-end">
 								<Button
