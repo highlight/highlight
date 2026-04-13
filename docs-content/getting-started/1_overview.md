@@ -30,9 +30,6 @@ Installing highlight.io in javascript will automatically instrument frontend err
     <DocsCard title="VueJS"  href="./browser/vuejs.md">
         {"Get started in your VueJS app"}
     </DocsCard>
-    <DocsCard title="SvelteKit"  href="./fullstack-frameworks/sveltekit.md">
-        {"Get started in your SvelteKit app"}
-    </DocsCard>
     <DocsCard title="Electron"  href="./browser/7_electron.md">
         {"Get started in your Electron app"}
     </DocsCard>
@@ -41,6 +38,22 @@ Installing highlight.io in javascript will automatically instrument frontend err
     </DocsCard>
     <DocsCard title="React Native" href="./browser/9_react-native.md">
         {"Get started with React Native"}
+    </DocsCard>
+</DocsCardGroup>
+
+## For Fullstack Frameworks
+
+For frameworks that run both client and server in the same project, use our fullstack guides to get session replay, error monitoring, and backend-to-frontend trace linking set up together.
+
+<DocsCardGroup>
+    <DocsCard title="Next.js" href="./fullstack-frameworks/next-js/1_overview.md">
+        {"Get started with Highlight in Next.js"}
+    </DocsCard>
+    <DocsCard title="Remix" href="./fullstack-frameworks/remix.md">
+        {"Get started with Highlight in Remix"}
+    </DocsCard>
+    <DocsCard title="SvelteKit" href="./fullstack-frameworks/sveltekit.md">
+        {"Get started with Highlight in SvelteKit"}
     </DocsCard>
 </DocsCardGroup>
 
