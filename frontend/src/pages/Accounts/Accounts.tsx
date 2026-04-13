@@ -10,7 +10,6 @@ import {
 } from '@graph/hooks'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
-import { Table } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -282,44 +281,25 @@ export const Account = () => {
 						<Legend />
 						<Bar dataKey="amt" fill="#8884d8" />
 					</BarChart>
-					<Table
-						pagination={false}
-						sticky={true}
-						size="small"
-						columns={[
-							{
-								title: 'ID',
-								dataIndex: 'id',
-								sorter: (a: Row, b: Row) =>
-									(a.id ?? 0) - (b.id ?? 0),
-							},
-							{
-								title: 'Name',
-								dataIndex: 'name',
-								sorter: (a: Row, b: Row) =>
-									(a.name ?? '').localeCompare(b.name ?? ''),
-							},
-							{
-								title: 'Email',
-								dataIndex: 'email',
-								sorter: (a: Row, b: Row) =>
-									(a.email ?? '').localeCompare(
-										b.email ?? '',
-									),
-							},
-							{
-								title: 'Last Active',
-								dataIndex: 'last_active',
-								render: (value: moment.MomentInput) =>
-									moment(value).format('MM/DD/YY'),
-								sorter: (a: Row, b: Row) =>
-									(a.last_active ?? '').localeCompare(
-										b.last_active ?? '',
-									),
-							},
-						]}
-						dataSource={accountData?.account_details.members}
-					/>
+					<table style={{ borderCollapse: 'collapse', width: '100%' }}>
+						<thead>
+							<tr>
+								{['ID', 'Name', 'Email', 'Last Active'].map((h) => (
+									<th key={h} style={{ border: '1px solid #ccc', padding: '4px 8px', textAlign: 'left' }}>{h}</th>
+								))}
+							</tr>
+						</thead>
+						<tbody>
+							{accountData?.account_details.members?.map((m: Row, i: number) => (
+								<tr key={i}>
+									<td style={{ border: '1px solid #ccc', padding: '4px 8px' }}>{m.id}</td>
+									<td style={{ border: '1px solid #ccc', padding: '4px 8px' }}>{m.name}</td>
+									<td style={{ border: '1px solid #ccc', padding: '4px 8px' }}>{m.email}</td>
+									<td style={{ border: '1px solid #ccc', padding: '4px 8px' }}>{moment(m.last_active).format('MM/DD/YY')}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
 				</>
 			)}
 		</ResponsiveContainer>
@@ -390,43 +370,30 @@ export const Accounts = () => {
 			{loading ? (
 				'loading...'
 			) : (
-				<Table
-					pagination={false}
-					sticky={true}
-					onRow={(record) => {
-						return {
-							onClick: () => {
-								navigate(`/accounts/${record.id}`)
-							},
-						}
-					}}
-					size="small"
-					columns={COLUMNS}
-					dataSource={
-						accountDataLocal.map((a: any, i: any) => {
-							return {
-								key: i,
-								email: a?.email,
-								id: a?.id,
-								member_count: a?.member_count,
-								member_limit: a?.member_limit,
-								name: a?.name,
-								plan_tier: a?.plan_tier,
-								paid_prev: a?.paid_prev,
-								paid_prev_prev: a?.paid_prev_prev,
-								session_count_cur: a?.session_count_cur,
-								view_count_cur: a?.view_count_cur,
-								session_count_prev: a?.session_count_prev,
-								view_count_prev: a?.view_count_prev,
-								session_count_prev_prev:
-									a?.session_count_prev_prev,
-								session_limit: a?.session_limit,
-								stripe_customer_id: a?.stripe_customer_id,
-								subscription_start: a?.subscription_start,
-							}
-						}) ?? undefined
-					}
-				/>
+				<table style={{ borderCollapse: 'collapse', width: '100%' }}>
+					<thead>
+						<tr>
+							{COLUMNS.map((c) => (
+								<th key={c.title} style={{ border: '1px solid #ccc', padding: '4px 8px', textAlign: 'left' }}>{c.title}</th>
+							))}
+						</tr>
+					</thead>
+					<tbody>
+						{accountDataLocal.map((a: any, i: number) => (
+							<tr
+								key={i}
+								style={{ cursor: 'pointer' }}
+								onClick={() => navigate(`/accounts/${a.id}`)}
+							>
+								{COLUMNS.map((c) => (
+									<td key={c.title} style={{ border: '1px solid #ccc', padding: '4px 8px' }}>
+										{c.render ? c.render(a[c.dataIndex], a) : a[c.dataIndex]}
+									</td>
+								))}
+							</tr>
+						))}
+					</tbody>
+				</table>
 			)}
 		</div>
 	)
