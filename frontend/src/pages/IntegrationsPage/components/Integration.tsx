@@ -8,7 +8,15 @@ import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
 import { IntegrationModal } from '@/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
-import { Box, Heading, Stack, Tabs, Text, Badge } from '@highlight-run/ui/components'
+import {
+	Badge,
+	Box,
+	Heading,
+	IconSolidExternalLink,
+	Stack,
+	Tabs,
+	Text,
+} from '@highlight-run/ui/components'
 
 import styles from './Integration.module.css'
 import pageStyles from '../IntegrationsPage.module.css'
@@ -51,6 +59,7 @@ const Integration = ({
 		hasSettings,
 		modalWidth,
 		docs,
+		externalLink,
 	} = integration
 
 	const [showConfiguration, setShowConfiguration] = useState(
@@ -132,6 +141,11 @@ const Integration = ({
 	}
 
 	if (isDetailView) {
+		const detailTabs =
+			hasSettings && integrationEnabled
+				? ['overview', 'settings']
+				: ['overview']
+
 		return (
 			<>
 				<div className={pageStyles.detailHeader}>
@@ -144,10 +158,29 @@ const Integration = ({
 							})}
 						/>
 						<Stack gap="4">
-							<Heading level="h2">{name}</Heading>
+							<Box display="flex" alignItems="center" gap="8">
+								<Heading level="h2">{name}</Heading>
+								{externalLink && (
+									<a
+										href={externalLink}
+										target="_blank"
+										rel="noopener noreferrer"
+										aria-label={`Open ${name} website`}
+									>
+										<IconSolidExternalLink
+											size={14}
+											color="var(--color-n9)"
+										/>
+									</a>
+								)}
+							</Box>
 							{integrationEnabled && (
 								<Box display="flex" alignItems="center">
-									<Badge label="Connected" variant="green" size="small" />
+									<Badge
+										label="Connected"
+										variant="green"
+										size="small"
+									/>
 								</Box>
 							)}
 						</Stack>
@@ -157,53 +190,65 @@ const Integration = ({
 					</Box>
 				</div>
 
-				<div className={pageStyles.tabsContainer}>
-					<Tabs<string> id="integration-tabs" selectedId="overview">
+				<Tabs<string>
+					id="integration-detail-tabs"
+					defaultSelectedId="overview"
+				>
+					<div className={pageStyles.tabsContainer}>
 						<Tabs.List>
 							<Tabs.Tab id="overview">Overview</Tabs.Tab>
-							{hasSettings && integrationEnabled && (
+							{detailTabs.includes('settings') && (
 								<Tabs.Tab id="settings">Settings</Tabs.Tab>
 							)}
 						</Tabs.List>
-					</Tabs>
-				</div>
+					</div>
 
-				<div className={pageStyles.detailContent}>
-					<Stack gap="32">
-						<Stack gap="12">
-							<Text size="large" color="secondary">
-								{description}
-							</Text>
-							{docs && (
-								<a
-									className={styles.description}
-									href={docs}
-									target="_blank"
-									rel="noopener noreferrer"
-								>
-									Learn more about the {name} integration.
-								</a>
-							)}
-						</Stack>
+					<Tabs.Panel id="overview">
+						<div className={pageStyles.detailContent}>
+							<Stack gap="12">
+								<Text size="large" color="secondary">
+									{description}
+								</Text>
+								{docs && (
+									<a
+										className={styles.description}
+										href={docs}
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										Learn more about the {name}{' '}
+										integration.
+									</a>
+								)}
+							</Stack>
+						</div>
+					</Tabs.Panel>
 
-						<Box borderTop="dividerWeak" pt="32">
-							{configurationPage({
-								setModalOpen: setShowConfiguration,
-								setIntegrationEnabled,
-								action: IntegrationAction.Setup,
-							})}
-						</Box>
-					</Stack>
-				</div>
+					{detailTabs.includes('settings') && (
+						<Tabs.Panel id="settings">
+							<div className={pageStyles.detailContent}>
+								{configurationPage({
+									setModalOpen: setShowUpdateSettings,
+									setIntegrationEnabled,
+									action: IntegrationAction.Settings,
+								})}
+							</div>
+						</Tabs.Panel>
+					)}
+				</Tabs>
 
 				<IntegrationModal
 					width={modalWidth}
 					visible={
+						showConfiguration ||
 						showDeleteConfirmation ||
 						showUpdateSettings
 					}
 					onCancel={() => {
-						if (showDeleteConfirmation) {
+						if (showConfiguration) {
+							setShowConfiguration(false)
+							setIntegrationEnabled(false)
+						} else if (showDeleteConfirmation) {
 							setShowDeleteConfirmation(false)
 							setIntegrationEnabled(true)
 						} else {
@@ -216,6 +261,13 @@ const Integration = ({
 							: `Configuring ${name} Integration`
 					}
 					configurationPage={() => {
+						if (showConfiguration) {
+							return configurationPage({
+								setModalOpen: setShowConfiguration,
+								setIntegrationEnabled,
+								action: IntegrationAction.Setup,
+							})
+						}
 						if (showDeleteConfirmation) {
 							return configurationPage({
 								setModalOpen: setShowDeleteConfirmation,
