@@ -1,6 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
-import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useCloudflareIntegration } from '@pages/IntegrationsPage/components/CloudflareIntegration/utils'
@@ -15,84 +14,64 @@ import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierI
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
-import { useParams } from '@util/react-router/useParams'
+import clsx from 'clsx'
 import { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
-import { StringParam, useQueryParam } from 'use-query-params'
+import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
 
 import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
-import styles from './IntegrationsPage.module.css'
+import * as styles from './IntegrationsPage.css'
 
 const IntegrationsPage = () => {
 	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
-
-	const { integration_type: configureIntegration } = useParams<{
-		integration_type: string
-	}>()
-
-	const [popUpModal] = useQueryParam('enable', StringParam)
-
 	const { isHighlightAdmin } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
 
 	const { isLinearIntegratedWithProject, loading: loadingLinear } =
 		useLinearIntegration()
-
 	const { isZapierIntegratedWithProject, loading: loadingZapier } =
 		useZapierIntegration()
-
 	const { isClearbitIntegratedWithWorkspace, loading: loadingClearbit } =
 		useClearbitIntegration()
-
 	const { isVercelIntegratedWithProject, loading: loadingVercel } =
 		useVercelIntegration()
-
 	const { isDiscordIntegratedWithProject, loading: loadingDiscord } =
 		useDiscordIntegration()
-
 	const { isHerokuConnectedToWorkspace, loading: loadingHeroku } =
 		useHerokuIntegration()
-
 	const { isCloudflareConnectedToWorkspace, loading: loadingCloudflare } =
 		useCloudflareIntegration()
-
 	const {
 		isMicrosoftTeamsConnectedToWorkspace,
 		loading: loadingMicrosoftTeams,
 	} = useMicrosoftTeamsBot()
-
 	const {
 		settings: {
 			isIntegrated: isJiraIntegratedWithProject,
 			loading: loadingJira,
 		},
 	} = useJiraIntegration()
-
 	const {
 		settings: {
 			isIntegrated: isGitlabIntegratedWithProject,
 			loading: loadingGitlab,
 		},
 	} = useGitlabIntegration()
-
 	const {
 		settings: {
 			isIntegrated: isGitHubIntegratedWithProject,
 			loading: loadingGitHub,
 		},
 	} = useGitHubIntegration()
-
 	const {
 		settings: {
 			isIntegrated: isClickUpIntegratedWithProject,
 			loading: loadingClickUp,
 		},
 	} = useClickUpIntegration()
-
 	const {
 		settings: {
 			isIntegrated: isHeightIntegratedWithProject,
@@ -123,22 +102,18 @@ const IntegrationsPage = () => {
 				integration.onlyShowForHighlightAdmin
 			) {
 				let canSee = false
-
 				const workspaceID = currentWorkspace?.id
-
 				if (integration.allowlistWorkspaceIds && workspaceID) {
 					canSee =
 						canSee ||
 						integration.allowlistWorkspaceIds?.includes(workspaceID)
 				}
-
 				if (integration.onlyShowForHighlightAdmin) {
 					canSee = canSee || isHighlightAdmin
 				}
 				return canSee
-			} else {
-				return true
 			}
+			return true
 		}).map((inter) => ({
 			...inter,
 			defaultEnable:
@@ -179,6 +154,11 @@ const IntegrationsPage = () => {
 		isCloudflareConnectedToWorkspace,
 	])
 
+	const connectedIntegrations = integrations.filter((i) => i.defaultEnable)
+	const availableIntegrations = integrations.filter((i) => !i.defaultEnable)
+	const defaultIntegration =
+		connectedIntegrations[0] ?? availableIntegrations[0]
+
 	useEffect(() => analytics.page('Integrations'), [])
 
 	return (
@@ -186,26 +166,108 @@ const IntegrationsPage = () => {
 			<Helmet>
 				<title>Integrations</title>
 			</Helmet>
-			<LeadAlignLayout>
-				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
-					Supercharge your workflows and attach Highlight with the
-					tools you use everyday.
-				</p>
-				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) => (
-						<Integration
-							integration={integration}
-							key={integration.key}
-							showModalDefault={popUpModal === integration.key}
-							showSettingsDefault={
-								configureIntegration === integration.key
-							}
-							loading={loading}
-						/>
-					))}
+			<div className={styles.pageContainer}>
+				{/* Sidebar */}
+				<div className={clsx(styles.sidebar, styles.sidebarScroll)}>
+					{connectedIntegrations.length > 0 && (
+						<div className={styles.sidebarSection}>
+							<p className={styles.sidebarSectionTitle}>
+								Connected
+							</p>
+							{connectedIntegrations.map((integration) => (
+								<NavLink
+									key={integration.key}
+									to={integration.key}
+									className={({ isActive }) =>
+										clsx(styles.sidebarItem, {
+											[styles.sidebarItemActive]: isActive,
+										})
+									}
+								>
+									<img
+										src={integration.icon}
+										alt={integration.name}
+										className={styles.integrationIcon}
+									/>
+									<span className={styles.sidebarItemLabel}>
+										{integration.name}
+									</span>
+									<span
+										className={clsx(
+											styles.statusDot,
+											styles.statusDotEnabled,
+										)}
+									/>
+								</NavLink>
+							))}
+						</div>
+					)}
+					<div className={styles.sidebarSection}>
+						<p className={styles.sidebarSectionTitle}>Available</p>
+						{availableIntegrations.map((integration) => (
+							<NavLink
+								key={integration.key}
+								to={integration.key}
+								className={({ isActive }) =>
+									clsx(styles.sidebarItem, {
+										[styles.sidebarItemActive]: isActive,
+									})
+								}
+							>
+								<img
+									src={integration.icon}
+									alt={integration.name}
+									className={styles.integrationIcon}
+								/>
+								<span className={styles.sidebarItemLabel}>
+									{integration.name}
+								</span>
+							</NavLink>
+						))}
+					</div>
 				</div>
-			</LeadAlignLayout>
+
+				{/* Detail Panel */}
+				<div className={styles.detailPanel}>
+					<Routes>
+						{integrations.map((integration) => (
+							<Route
+								key={integration.key}
+								path={integration.key}
+								element={
+									<>
+										<div className={styles.detailHeader}>
+											<img
+												src={integration.icon}
+												alt={integration.name}
+												className={styles.detailIcon}
+											/>
+											<h2 className={styles.detailTitle}>
+												{integration.name}
+											</h2>
+										</div>
+										<Integration
+											integration={integration}
+											loading={loading}
+										/>
+									</>
+								}
+							/>
+						))}
+						{defaultIntegration && (
+							<Route
+								index
+								element={
+									<Navigate
+										to={defaultIntegration.key}
+										replace
+									/>
+								}
+							/>
+						)}
+					</Routes>
+				</div>
+			</div>
 		</>
 	)
 }
