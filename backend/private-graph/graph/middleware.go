@@ -75,10 +75,10 @@ func writeMigrationBlockedError(w http.ResponseWriter) {
 // when the caller is not yet a member of any allowlisted workspace. These
 // cover the signup → onboarding → workspace-join flow.
 var migrationBypassOperations = map[string]bool{
-	"CreateAdmin":              true,
+	"CreateAdmin":                true,
 	"UpdateAdminAboutYouDetails": true,
-	"AddAdminToWorkspace":      true,
-	"JoinWorkspace":            true,
+	"AddAdminToWorkspace":        true,
+	"JoinWorkspace":              true,
 }
 
 // getGraphQLOperationName reads the request body, extracts the GraphQL
