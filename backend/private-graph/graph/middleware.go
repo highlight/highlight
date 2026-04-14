@@ -71,6 +71,34 @@ func writeMigrationBlockedError(w http.ResponseWriter) {
 	_, _ = w.Write(migrationBlockedResponse)
 }
 
+// migrationBypassOperations are GraphQL operations that must be allowed even
+// when the caller is not yet a member of any allowlisted workspace. These
+// cover the signup → onboarding → workspace-join flow.
+var migrationBypassOperations = map[string]bool{
+	"CreateAdmin":              true,
+	"UpdateAdminAboutYouDetails": true,
+	"AddAdminToWorkspace":      true,
+	"JoinWorkspace":            true,
+}
+
+// getGraphQLOperationName reads the request body, extracts the GraphQL
+// operationName field, and restores the body so downstream handlers can
+// read it again.
+func getGraphQLOperationName(r *http.Request) string {
+	body, err := io.ReadAll(r.Body)
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
+	if err != nil {
+		return ""
+	}
+	var payload struct {
+		OperationName string `json:"operationName"`
+	}
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return ""
+	}
+	return payload.OperationName
+}
+
 var HighlightAdminEmailDomains = []string{"@highlight.run", "@highlight.io"}
 var EnterpriseAuthModes = []AuthMode{Firebase, OAuth}
 
@@ -166,9 +194,11 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}
-			// Check if the authenticated user belongs to an allowed workspace
+			// Check if the authenticated user belongs to an allowed workspace.
+			// Bypass for operations that run before the user has joined any workspace
+			// (signup/onboarding/invite acceptance).
 			if uid, ok := ctx.Value(model.ContextKeys.UID).(string); ok && uid != "" {
-				if !isUserInAllowedWorkspace(ctx, uid) {
+				if !migrationBypassOperations[getGraphQLOperationName(r)] && !isUserInAllowedWorkspace(ctx, uid) {
 					writeMigrationBlockedError(w)
 					return
 				}
