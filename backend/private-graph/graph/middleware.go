@@ -75,6 +75,16 @@ func writeMigrationBlockedError(w http.ResponseWriter) {
 // when the caller is not yet a member of any allowlisted workspace. These
 // cover the signup → onboarding → workspace-join flow.
 var migrationBypassOperations = map[string]bool{
+	// Queries needed by fetchAdmin() and onboarding pages
+	"GetAdmin":                  true,
+	"GetAdminRole":              true,
+	"GetAdminRoleByProject":     true,
+	"GetWorkspaces":             true,
+	"GetWorkspaceForInviteLink": true,
+	"GetDropdownOptions":        true,
+	"GetProjectOrWorkspace":     true,
+	"GetProjectsAndWorkspaces":  true,
+	// Mutations for signup → onboarding → workspace-join
 	"CreateAdmin":                true,
 	"UpdateAdminAboutYouDetails": true,
 	"AddAdminToWorkspace":        true,
