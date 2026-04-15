@@ -77,8 +77,6 @@ func writeMigrationBlockedError(w http.ResponseWriter) {
 var migrationBypassOperations = map[string]bool{
 	// Queries needed by fetchAdmin() and onboarding pages
 	"GetAdmin":                  true,
-	"GetAdminRole":              true,
-	"GetAdminRoleByProject":     true,
 	"GetWorkspaces":             true,
 	"GetWorkspaceForInviteLink": true,
 	"GetDropdownOptions":        true,
@@ -91,22 +89,90 @@ var migrationBypassOperations = map[string]bool{
 	"JoinWorkspace":              true,
 }
 
-// getGraphQLOperationName reads the request body, extracts the GraphQL
-// operationName field, and restores the body so downstream handlers can
-// read it again.
-func getGraphQLOperationName(r *http.Request) string {
+// graphQLRequest holds the parsed operation name and variables from a GraphQL request.
+type graphQLRequest struct {
+	OperationName string                 `json:"operationName"`
+	Variables     map[string]interface{} `json:"variables"`
+}
+
+// parseGraphQLRequest reads the request body, extracts the operation name and
+// variables, and restores the body so downstream handlers can read it again.
+func parseGraphQLRequest(r *http.Request) graphQLRequest {
 	body, err := io.ReadAll(r.Body)
 	r.Body = io.NopCloser(bytes.NewBuffer(body))
 	if err != nil {
+		return graphQLRequest{}
+	}
+	var req graphQLRequest
+	if err := json.Unmarshal(body, &req); err != nil {
+		return graphQLRequest{}
+	}
+	return req
+}
+
+// getStringVar extracts a string variable from parsed GraphQL variables,
+// handling both string and numeric JSON values.
+func getStringVar(vars map[string]interface{}, key string) string {
+	switch v := vars[key].(type) {
+	case string:
+		return v
+	case float64:
+		return fmt.Sprintf("%.0f", v)
+	default:
 		return ""
 	}
-	var payload struct {
-		OperationName string `json:"operationName"`
+}
+
+// isWorkspaceInAllowlist checks if a specific workspace ID is in the migration
+// allowlist, without requiring the user to be a member. This supports the invite
+// flow where a user hasn't joined the workspace yet.
+func isWorkspaceInAllowlist(ctx context.Context, workspaceID string) bool {
+	if migrationStore == nil || workspaceID == "" {
+		return true
 	}
-	if err := json.Unmarshal(body, &payload); err != nil {
-		return ""
+	var allowed bool
+	if err := migrationStore.DB.WithContext(ctx).Raw(`
+		SELECT COALESCE(
+			(SELECT CASE
+				WHEN sc.migration_allowlist IS NULL
+				  OR array_length(sc.migration_allowlist, 1) IS NULL THEN true
+				ELSE ?::int = ANY(sc.migration_allowlist)
+			END
+			FROM system_configurations sc WHERE sc.active = true LIMIT 1),
+			true
+		)
+	`, workspaceID).Scan(&allowed).Error; err != nil {
+		log.WithContext(ctx).WithError(err).Warn("failed to check workspace allowlist")
+		return true
 	}
-	return payload.OperationName
+	return allowed
+}
+
+// isProjectInAllowedWorkspace checks if a project belongs to a workspace that
+// is in the migration allowlist.
+func isProjectInAllowedWorkspace(ctx context.Context, projectID string) bool {
+	if migrationStore == nil || projectID == "" {
+		return true
+	}
+	var allowed bool
+	if err := migrationStore.DB.WithContext(ctx).Raw(`
+		SELECT COALESCE(
+			(SELECT CASE
+				WHEN sc.migration_allowlist IS NULL
+				  OR array_length(sc.migration_allowlist, 1) IS NULL THEN true
+				ELSE EXISTS (
+					SELECT 1 FROM projects p
+					WHERE p.id = ?::int AND p.workspace_id = ANY(sc.migration_allowlist)
+				)
+			END
+			FROM system_configurations sc WHERE sc.active = true LIMIT 1),
+			true
+		)
+	`, projectID).Scan(&allowed).Error; err != nil {
+		log.WithContext(ctx).WithError(err).Warn("failed to check project workspace allowlist")
+		return true
+	}
+	return allowed
 }
 
 var HighlightAdminEmailDomains = []string{"@highlight.run", "@highlight.io"}
@@ -208,9 +274,28 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 			// Bypass for operations that run before the user has joined any workspace
 			// (signup/onboarding/invite acceptance).
 			if uid, ok := ctx.Value(model.ContextKeys.UID).(string); ok && uid != "" {
-				if !migrationBypassOperations[getGraphQLOperationName(r)] && !isUserInAllowedWorkspace(ctx, uid) {
-					writeMigrationBlockedError(w)
-					return
+				gqlReq := parseGraphQLRequest(r)
+				opName := gqlReq.OperationName
+				if !migrationBypassOperations[opName] && !isUserInAllowedWorkspace(ctx, uid) {
+					// User isn't in any allowlisted workspace yet. For operations
+					// that target a specific workspace/project, also check if the
+					// requested resource itself is allowlisted. This supports the
+					// invite flow where the user hasn't joined the workspace yet.
+					resourceAllowed := false
+					switch opName {
+					case "GetAdminRole":
+						if wsID := getStringVar(gqlReq.Variables, "workspace_id"); wsID != "" {
+							resourceAllowed = isWorkspaceInAllowlist(ctx, wsID)
+						}
+					case "GetAdminRoleByProject":
+						if pID := getStringVar(gqlReq.Variables, "project_id"); pID != "" {
+							resourceAllowed = isProjectInAllowedWorkspace(ctx, pID)
+						}
+					}
+					if !resourceAllowed {
+						writeMigrationBlockedError(w)
+						return
+					}
 				}
 			}
 		} else if apiKey := r.Header.Get("ApiKey"); apiKey != "" {
