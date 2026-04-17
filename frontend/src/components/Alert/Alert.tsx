@@ -1,30 +1,39 @@
-import SvgXIcon from '@icons/XIcon'
+import { Callout } from '@highlight-run/ui/components'
 import analytics from '@util/analytics'
-import {
-	Alert as AntDesignAlert,
-	AlertProps as AntDesignAlertProps,
-} from 'antd'
 import clsx from 'clsx'
 import { useSessionStorage } from 'react-use'
 
-import SvgInformationIcon from '../../static/InformationIcon'
 import styles from './Alert.module.css'
+
+type AlertType = 'info' | 'success' | 'warning' | 'error'
 
 export type AlertProps = {
 	trackingId: string
 	closable?: boolean
 	shouldAlwaysShow?: boolean
-} & Pick<
-	AntDesignAlertProps,
-	'description' | 'type' | 'onClose' | 'message' | 'className'
->
+	description?: React.ReactNode
+	type?: AlertType
+	onClose?: () => void
+	message?: React.ReactNode
+	className?: string
+}
+
+const typeToKind = (
+	type: AlertType,
+): 'info' | 'warning' | 'error' => {
+	if (type === 'success') return 'info'
+	return type
+}
 
 const Alert = ({
 	trackingId,
 	closable,
 	shouldAlwaysShow = false,
 	type = 'info',
-	...props
+	message,
+	description,
+	onClose,
+	className,
 }: AlertProps) => {
 	const [temporarilyHideAlert, setTemporarilyHideAlert] = useSessionStorage(
 		`highlightHideAlert-${trackingId}`,
@@ -35,23 +44,26 @@ const Alert = ({
 		return null
 	}
 
+	const isClosable = closable != null ? closable : true
+
 	return (
-		<AntDesignAlert
-			{...props}
-			type={type}
-			className={clsx(props.className, styles.alert)}
-			closable={closable != null ? closable : true}
-			showIcon
-			closeText={(closable != null ? closable : true) && <SvgXIcon />}
-			icon={<SvgInformationIcon />}
-			onClose={(e) => {
-				if (props.onClose) {
-					props.onClose(e)
-				}
-				analytics.track(`AlertClose-${trackingId}`)
-				setTemporarilyHideAlert(true)
-			}}
-		></AntDesignAlert>
+		<Callout
+			kind={typeToKind(type)}
+			title={typeof message === 'string' ? message : undefined}
+			className={clsx(styles.alert, className)}
+			handleCloseClick={
+				isClosable
+					? () => {
+							onClose?.()
+							analytics.track(`AlertClose-${trackingId}`)
+							setTemporarilyHideAlert(true)
+						}
+					: undefined
+			}
+		>
+			{typeof message !== 'string' && message}
+			{description}
+		</Callout>
 	)
 }
 

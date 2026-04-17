@@ -1,11 +1,9 @@
-import { LoadingOutlined } from '@ant-design/icons'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { IconSolidLoading } from '@highlight-run/ui/components'
 import SvgHighlightLogoWithNoBackground from '@icons/HighlightLogoWithNoBackground'
-import { Spin } from 'antd'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import React from 'react'
@@ -15,18 +13,17 @@ import styles from './Loading.module.css'
 
 export const CircularSpinner = ({ style }: { style?: React.CSSProperties }) => {
 	return (
-		<Spin
-			indicator={
-				// @ts-ignore onPointerEnterCapture, onPointerLeaveCapture ignored by autoresize lib
-				<LoadingOutlined
-					style={{
-						fontSize: 24,
-						...style,
-					}}
-					spin
-				/>
-			}
-		/>
+		<motion.div
+			animate={{ rotate: 360 }}
+			transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+			style={{
+				display: 'inline-flex',
+				fontSize: 24,
+				...style,
+			}}
+		>
+			<IconSolidLoading size={24} />
+		</motion.div>
 	)
 }
 

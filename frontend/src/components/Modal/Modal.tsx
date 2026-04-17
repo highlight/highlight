@@ -1,39 +1,44 @@
-// eslint-disable-next-line no-restricted-imports
-import SvgCloseIcon from '@icons/CloseIcon'
-import { Modal as AntDesignModal, ModalProps } from 'antd'
+import { Modal as HLModal } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Modal.module.css'
 
-type Props = Pick<
-	ModalProps,
-	| 'width'
-	| 'onCancel'
-	| 'visible'
-	| 'style'
-	| 'forceRender'
-	| 'modalRender'
-	| 'destroyOnClose'
-	| 'centered'
-	| 'mask'
-	| 'maskStyle'
-	| 'getContainer'
-	| 'className'
-> & {
+type Props = {
+	visible?: boolean
+	onCancel?: () => void
+	width?: number | string
 	title?: React.ReactNode
 	minimal?: boolean
 	minimalPaddingSize?: string
+	className?: string
+	style?: React.CSSProperties
+	destroyOnClose?: boolean
+	children?: React.ReactNode
+	// Legacy props accepted but unused (kept for call-site compatibility)
+	centered?: boolean
+	mask?: boolean
+	maskStyle?: React.CSSProperties
+	getContainer?: string | HTMLElement | (() => HTMLElement) | false
+	forceRender?: boolean
+	modalRender?: (node: React.ReactNode) => React.ReactNode
 }
 
-const Modal: React.FC<React.PropsWithChildren<Props>> = ({
+const Modal: React.FC<Props> = ({
 	children,
 	className,
 	title,
 	minimal,
 	minimalPaddingSize = 'var(--size-xSmall)',
-	...props
+	visible,
+	onCancel,
+	width = 480,
+	destroyOnClose,
+	style,
 }) => {
+	const numericWidth =
+		typeof width === 'string' ? parseInt(width) || 480 : width
+
 	const bodyStyle: React.CSSProperties = minimal
 		? {
 				paddingTop: minimalPaddingSize,
@@ -44,24 +49,27 @@ const Modal: React.FC<React.PropsWithChildren<Props>> = ({
 		: {}
 
 	return (
-		<AntDesignModal
-			footer={null}
-			{...props}
-			closeIcon={
-				!minimal ? <SvgCloseIcon height="18px" width="18px" /> : null
-			}
-			className={clsx(styles.modal, className)}
-			wrapClassName={styles.modalWrap}
-			closable={!minimal}
-			bodyStyle={bodyStyle}
-			maskClosable
+		<HLModal
+			open={visible}
+			setOpen={(open) => {
+				if (!open) onCancel?.()
+			}}
+			width={numericWidth}
+			unmountOnHide={destroyOnClose}
 		>
-			{/* adding margin right to make room for the close button */}
-			{title && (
-				<h3 className={minimal ? 'm-0' : 'mb-4 mr-8'}>{title}</h3>
-			)}
-			<main className={styles.modalContent}>{children}</main>
-		</AntDesignModal>
+			{title &&
+				(minimal ? (
+					<div style={{ padding: minimalPaddingSize }}>{title}</div>
+				) : (
+					<HLModal.Header>{title}</HLModal.Header>
+				))}
+			<main
+				className={clsx(styles.modalContent, className)}
+				style={{ ...bodyStyle, ...style }}
+			>
+				{children}
+			</main>
+		</HLModal>
 	)
 }
 
