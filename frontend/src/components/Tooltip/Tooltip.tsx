@@ -1,40 +1,73 @@
 import {
-	Tooltip as AntDesignTooltip,
-	TooltipProps as AntDesignTooltipProps,
-} from 'antd'
+	Tooltip as HLTooltip,
+	TooltipProps as HLTooltipProps,
+} from '@highlight-run/ui/components'
 import React from 'react'
 
-import styles from './Tooltip.module.css'
+type AntdPlacement =
+	| 'top'
+	| 'left'
+	| 'right'
+	| 'bottom'
+	| 'topLeft'
+	| 'topRight'
+	| 'bottomLeft'
+	| 'bottomRight'
+	| 'leftTop'
+	| 'leftBottom'
+	| 'rightTop'
+	| 'rightBottom'
 
-type TooltipProps = Pick<
-	AntDesignTooltipProps,
-	| 'title'
-	| 'placement'
-	| 'align'
-	| 'arrowPointAtCenter'
-	| 'overlayStyle'
-	| 'mouseEnterDelay'
->
+const placementMap: Partial<
+	Record<AntdPlacement, HLTooltipProps['placement']>
+> = {
+	top: 'top',
+	bottom: 'bottom',
+	left: 'left',
+	right: 'right',
+	topLeft: 'top-start',
+	topRight: 'top-end',
+	bottomLeft: 'bottom-start',
+	bottomRight: 'bottom-end',
+	leftTop: 'left-start',
+	leftBottom: 'left-end',
+	rightTop: 'right-start',
+	rightBottom: 'right-end',
+}
+
+type TooltipProps = {
+	title?: React.ReactNode
+	placement?: AntdPlacement
+	mouseEnterDelay?: number
+	overlayStyle?: React.CSSProperties
+	align?: object
+	arrowPointAtCenter?: boolean
+}
 
 /**
- * Deprecated: use the UI package's tooltip instead of this tooltip
- * A proxy for Ant Design's tooltip. This component should be used instead of directly using Ant Design's.
+ * @deprecated Use Tooltip from @highlight-run/ui/components directly.
+ * Kept as a compatibility wrapper for legacy call sites.
  */
 const Tooltip: React.FC<React.PropsWithChildren<TooltipProps>> = ({
 	children,
+	title,
+	placement,
 	mouseEnterDelay = 0.5,
-	...props
 }) => {
+	if (!title) {
+		return <>{children}</>
+	}
+
 	return (
-		<AntDesignTooltip
-			{...props}
-			mouseEnterDelay={mouseEnterDelay}
-			overlayClassName={styles.tooltipOverlay}
-			title={props.title}
-			destroyTooltipOnHide
+		<HLTooltip
+			trigger={children}
+			placement={
+				placement ? (placementMap[placement] ?? 'top') : undefined
+			}
+			delayed={mouseEnterDelay > 0}
 		>
-			{children}
-		</AntDesignTooltip>
+			{title}
+		</HLTooltip>
 	)
 }
 
