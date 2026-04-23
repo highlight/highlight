@@ -1,16 +1,15 @@
-// eslint-disable-next-line no-restricted-imports
-import { Button, ButtonProps } from '@components/Button'
-import { Box } from '@highlight-run/ui/components'
-import type { BoxProps } from '@highlight-run/ui/src/components/Box/Box'
+import { Box, BoxProps, ButtonProps } from '@highlight-run/ui/components'
+import { Button } from '@components/Button'
 
 type LoadingBoxProps = Omit<BoxProps, 'height' | 'width' | 'size'> & {
 	height?: string | number
 	size?: ButtonProps['size']
 	width?: string | number
+	style?: React.CSSProperties
 }
 const LoadingBox: React.FC<LoadingBoxProps> = ({
 	height,
-	size,
+	size = 'small',
 	style = {},
 	width,
 	...props

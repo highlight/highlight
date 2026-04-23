@@ -1,14 +1,12 @@
 import Card from '@components/Card/Card'
 import CopyText from '@components/CopyText/CopyText'
-import Input from '@components/Input/Input'
 import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable'
-import Select from '@components/Select/Select'
 import {
 	useGetProjectQuery,
 	useGetSourcemapFilesLazyQuery,
 	useGetSourcemapVersionsQuery,
 } from '@graph/hooks'
-import { Box, Stack } from '@highlight-run/ui/components'
+import { Box, Form, Select, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { debounce } from 'lodash'
 import React, { useEffect } from 'react'
@@ -121,35 +119,38 @@ const SourcemapSettings = () => {
 				<Card
 					className={styles.list}
 					title={
-						<div className={styles.listHeader}>
+						<Box
+							display="flex"
+							flexDirection="column"
+							gap="8"
+							width="full"
+						>
 							{versions.length > 1 && (
-								<div>
+								<Box width="full">
 									<Select
 										aria-label="Sourcemap app version"
 										className={styles.versionSelect}
 										placeholder="Select a version of your app"
 										options={versions.map((v) => ({
-											id: v,
 											value: v,
-											displayValue: v,
+											name: v,
 										}))}
-										onChange={setSelectedVersion}
-										value={selectedVersion}
-										notFoundContent={
-											<p>No sourcemaps found</p>
+										onValueChange={(option) =>
+											setSelectedVersion(
+												String(option.value),
+											)
 										}
+										value={selectedVersion}
 									/>
-								</div>
+								</Box>
 							)}
-							<Input
-								allowClear
-								style={{ width: '100%' }}
+							<Form.Input
+								name="search"
 								placeholder="Search for a file"
 								onChange={(e) => filterResults(e.target.value)}
-								size="small"
 								disabled={versionsLoading || loading}
 							/>
-						</div>
+						</Box>
 					}
 				>
 					<ProgressBarTable
@@ -160,7 +161,7 @@ const SourcemapSettings = () => {
 								dataIndex: 'key',
 								key: 'key',
 								width: '100%',
-								render: (key) => (
+								render: (key: string) => (
 									<div className={styles.listRow}>{key}</div>
 								),
 							},

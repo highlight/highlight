@@ -1,8 +1,6 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
-import { Stack } from '@highlight-run/ui/components'
-import { Text } from 'recharts'
+import { Select, Stack, Text } from '@highlight-run/ui/components'
 
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
@@ -40,15 +38,14 @@ export const ErrorFiltersForm = () => {
 				<div className={styles.inputAndButtonRow}>
 					<Select
 						className={styles.input}
-						mode="tags"
+						displayMode="tags"
+						creatable
 						placeholder="TypeError: Failed to fetch"
 						value={data?.projectSettings?.error_filters || []}
-						notFoundContent={
-							<Text>
-								Provide a regex pattern to filter out errors.
-							</Text>
-						}
-						onChange={(patterns: string[]) => {
+						onValueChange={(options) => {
+							const patterns = options.map((o: any) =>
+								String(o.value),
+							)
 							patterns.filter(isValidRegex)
 							setAllProjectSettings((currentProjectSettings) =>
 								currentProjectSettings?.projectSettings

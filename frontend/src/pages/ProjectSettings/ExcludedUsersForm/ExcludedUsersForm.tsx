@@ -1,9 +1,7 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
-import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
-import { Form, Stack } from '@highlight-run/ui/components'
+import { Form, Select, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
 
@@ -46,13 +44,7 @@ export const ExcludedUsersForm = () => {
 		: (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
 				(suggestion) => ({
 					value: suggestion,
-					displayValue: (
-						<TextHighlighter
-							searchWords={[identifierQuery]}
-							textToHighlight={suggestion}
-						/>
-					),
-					id: suggestion,
+					name: suggestion,
 				}),
 			)
 
@@ -77,18 +69,20 @@ export const ExcludedUsersForm = () => {
 						name="Filtered users"
 					>
 						<Select
-							mode="tags"
+							displayMode="tags"
+							creatable
+							filterable
 							placeholder=".*@yourdomain.com"
-							value={
-								data?.projectSettings?.excluded_users ||
-								undefined
-							}
-							onSearch={handleIdentifierSearch}
+							value={data?.projectSettings?.excluded_users || []}
+							onSearchValueChange={handleIdentifierSearch}
 							options={identifierSuggestions}
-							onChange={(excluded: string[]) => {
+							onValueChange={(options) => {
+								const excluded = options.map((o: any) =>
+									String(o.value),
+								)
 								const validRegexes: string[] = []
 								const invalidRegexes: string[] = []
-								excluded.forEach((expression) => {
+								excluded.forEach((expression: string) => {
 									try {
 										new RegExp(expression)
 										validRegexes.push(expression)
