@@ -1,7 +1,5 @@
 import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
-import Modal from '@components/Modal/Modal'
-import ModalBody from '@components/ModalBody/ModalBody'
 import {
 	Box,
 	ButtonIcon,
@@ -10,12 +8,13 @@ import {
 	IconSolidQuestionMarkCircle,
 	IconSolidTrash,
 	IconSolidX,
+	Modal,
+	Select,
 	Text,
 	TextLink,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
@@ -56,50 +55,31 @@ export const GitHubSettingsModal = ({
 
 	return (
 		<Modal
-			onCancel={closeModal}
-			visible={!!service}
-			minimal
-			minimalPaddingSize="0"
-			width="360px"
-			title={
+			onClose={closeModal}
+			open={!!service}
+			width={360}
+		>
+			<Modal.Header>
 				<Box
 					display="flex"
 					alignItems="center"
 					userSelect="none"
-					px="8"
-					py="4"
-					bb="secondary"
+					width="full"
 					justifyContent="space-between"
 				>
 					<Text size="xxSmall" color="n11" weight="medium">
 						GitHub settings for {service.name} service
 					</Text>
-					<ButtonIcon
-						kind="secondary"
-						emphasis="none"
-						size="xSmall"
-						onClick={closeModal}
-						icon={
-							<IconSolidX
-								size={14}
-								color={
-									vars.theme.interactive.fill.secondary
-										.content.text
-								}
-							/>
-						}
-					/>
 				</Box>
-			}
-		>
-			<ModalBody>
+			</Modal.Header>
+			<Modal.Body>
 				<GithubSettingsForm
 					service={service}
 					githubRepos={githubRepos}
 					handleSubmit={handleSubmit}
 					handleCancel={closeModal}
 				/>
-			</ModalBody>
+			</Modal.Body>
 		</Modal>
 	)
 }
@@ -120,12 +100,11 @@ const GithubSettingsForm = ({
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				id: repo.key,
-				label: repo.name.split('/').pop(),
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
 				),
+				name: repo.name.split('/').pop() || '',
 			})),
 		[githubRepos],
 	)
@@ -139,13 +118,15 @@ const GithubSettingsForm = ({
 	})
 	const formState = formStore.useState()
 
-	const exampleLink = formState.values.githubPrefix
+	const exampleLink = formState.values.githubRepo && formState.values.githubPrefix
 		? `https://github.com/${formState.values.githubRepo}/blob/HEAD${formState.values.githubPrefix}/README.md`
-		: `https://github.com/${formState.values.githubRepo}/blob/HEAD/README.md`
+		: formState.values.githubRepo
+		? `https://github.com/${formState.values.githubRepo}/blob/HEAD/README.md`
+		: ''
 
 	return (
 		<Form store={formStore} onSubmit={() => handleSubmit(formState.values)}>
-			<Box px="12" py="8" gap="12" display="flex" flexDirection="column">
+			<Box gap="12" display="flex" flexDirection="column">
 				<Form.NamedSection
 					label="Select GitHub repository"
 					name="githubRepo"
@@ -155,20 +136,15 @@ const GithubSettingsForm = ({
 							aria-label="GitHub repository"
 							className={styles.repoSelect}
 							placeholder="Search repos..."
-							onSelect={(repo: string) =>
+							onValueChange={(option) =>
 								formStore.setValue(
 									formStore.names.githubRepo,
-									repo,
+									String(option.value),
 								)
 							}
-							value={formState.values.githubRepo
-								?.split('/')
-								.pop()}
+							value={formState.values.githubRepo || undefined}
 							options={githubOptions}
-							notFoundContent={<span>No repos found</span>}
-							optionFilterProp="label"
-							filterOption
-							showSearch
+							filterable
 						/>
 						<ButtonIcon
 							kind="secondary"
@@ -254,34 +230,36 @@ const GithubSettingsForm = ({
 							/>
 						</Box>
 
-						<Box
-							display="flex"
-							alignItems="flex-start"
-							gap="4"
-							cssClass={styles.example}
-						>
-							<Tooltip
-								trigger={
-									<IconSolidInformationCircle
-										color={vars.theme.static.content.weak}
-										size={14}
-									/>
-								}
-								renderInLine
+						{exampleLink && (
+							<Box
+								display="flex"
+								alignItems="flex-start"
+								gap="4"
+								cssClass={styles.example}
 							>
-								<Box cssClass={styles.tooltipContent}>
-									An example using the configuration provided.
-								</Box>
-							</Tooltip>
-							<Text break="all">
-								e.g.{' '}
-								<i>{formState.values.buildPrefix}/README.md</i>{' '}
-								→{' '}
-								<TextLink href={exampleLink} target="_blank">
-									{exampleLink}
-								</TextLink>
-							</Text>
-						</Box>
+								<Tooltip
+									trigger={
+										<IconSolidInformationCircle
+											color={vars.theme.static.content.weak}
+											size={14}
+										/>
+									}
+									renderInLine
+								>
+									<Box cssClass={styles.tooltipContent}>
+										An example using the configuration provided.
+									</Box>
+								</Tooltip>
+								<Text break="all">
+									e.g.{' '}
+									<i>{formState.values.buildPrefix}/README.md</i>{' '}
+									→{' '}
+									<TextLink href={exampleLink} target="_blank">
+										{exampleLink}
+									</TextLink>
+								</Text>
+							</Box>
+						)}
 					</>
 				)}
 				<Box

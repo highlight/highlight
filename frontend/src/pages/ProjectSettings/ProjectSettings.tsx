@@ -1,5 +1,12 @@
 import { toast } from '@components/Toaster'
-import { Box, Heading, Stack, Tabs, Text } from '@highlight-run/ui/components'
+import {
+	Box,
+	Heading,
+	Stack,
+	Tabs,
+	Text,
+} from '@highlight-run/ui/components'
+import { Button } from '@components/Button'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
 import { ErrorFiltersForm } from '@pages/ProjectSettings/ErrorFiltersForm/ErrorFiltersForm'
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm'
@@ -17,11 +24,7 @@ import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
-import { Button } from '@/components/Button'
-import {
-	CircularSpinner,
-	LoadingRightPanel,
-} from '@/components/Loading/Loading'
+import { LoadingRightPanel } from '@/components/Loading/Loading'
 import {
 	useEditProjectSettingsMutation,
 	useGetProjectQuery,
@@ -173,18 +176,12 @@ const ProjectSettings = () => {
 												onClick={onSubmit(
 													'session replay',
 												)}
-												trackingId="ProjectSettingsUpdate"
+												loading={
+													editProjectSettingsLoading
+												}
+												trackingId="ProjectSettingsSaveSessions"
 											>
-												{editProjectSettingsLoading ? (
-													<CircularSpinner
-														style={{
-															fontSize: 18,
-															color: 'var(--text-primary-inverted)',
-														}}
-													/>
-												) : (
-													'Save changes'
-												)}
+												Save changes
 											</Button>
 										</Box>
 										<ExcludedUsersForm />
@@ -212,18 +209,12 @@ const ProjectSettings = () => {
 												onClick={onSubmit(
 													'error monitoring',
 												)}
-												trackingId="ProjectSettingsUpdate"
+												loading={
+													editProjectSettingsLoading
+												}
+												trackingId="ProjectSettingsSaveErrors"
 											>
-												{editProjectSettingsLoading ? (
-													<CircularSpinner
-														style={{
-															fontSize: 18,
-															color: 'var(--text-primary-inverted)',
-														}}
-													/>
-												) : (
-													'Save changes'
-												)}
+												Save changes
 											</Button>
 										</Box>
 										<BorderBox>

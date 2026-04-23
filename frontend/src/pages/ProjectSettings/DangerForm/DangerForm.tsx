@@ -1,18 +1,20 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
-import Input from '@components/Input/Input'
 import LoadingBox from '@components/LoadingBox'
 import { useDeleteProjectMutation, useGetProjectQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
+import {
+	Box,
+	Form,
+	Stack,
+} from '@highlight-run/ui/components'
+import { Button } from '@components/Button'
 import { FieldsForm } from '@pages/WorkspaceSettings/FieldsForm/FieldsForm'
 import { useParams } from '@util/react-router/useParams'
-import clsx from 'clsx'
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuthContext } from '@/authentication/AuthContext'
 import { AdminRole } from '@/graph/generated/schemas'
 
-import commonStyles from '../../../Common.module.css'
-import Button from '../../../components/Button/Button/Button'
 import styles from './DangerForm.module.css'
 
 export const DangerForm = () => {
@@ -56,40 +58,42 @@ export const DangerForm = () => {
 						{loading ? (
 							<LoadingBox />
 						) : (
-							<>
+							<Stack gap="12">
 								<p className={styles.dangerSubTitle}>
 									This will immediately delete all session and
 									errors in this project. Please type '
 									{`${data?.project?.name}`}' to confirm.
 								</p>
-								<div className={styles.dangerRow}>
-									<Input
+								<Box
+									display="flex"
+									alignItems="center"
+									gap="8"
+									width="full"
+								>
+									<Form.Input
 										placeholder={`${data?.project?.name}`}
 										name="text"
 										value={confirmationText}
 										onChange={(e) => {
 											setConfirmationText(e.target.value)
 										}}
+										style={{ flexGrow: 1 }}
 									/>
 									<Button
-										trackingId="DeleteProject"
-										danger
-										type="primary"
-										className={clsx(
-											commonStyles.submitButton,
-											styles.deleteButton,
-										)}
+										kind="danger"
+										emphasis="high"
 										disabled={
 											confirmationText !==
 											data?.project?.name
 										}
-										htmlType="submit"
+										type="submit"
 										loading={deleteLoading}
+										trackingId="ProjectSettingsDeleteProject"
 									>
 										Delete
 									</Button>
-								</div>
-							</>
+								</Box>
+							</Stack>
 						)}
 					</form>
 				</FieldsBox>

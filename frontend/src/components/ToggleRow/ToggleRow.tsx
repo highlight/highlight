@@ -1,6 +1,10 @@
-import { Box, Stack, Text, Tooltip } from '@highlight-run/ui/components'
-
-import Switch from '@/components/Switch/Switch'
+import {
+	Box,
+	Stack,
+	SwitchButton,
+	Text,
+	Tooltip,
+} from '@highlight-run/ui/components'
 
 export const ToggleRow = (
 	label: string,
@@ -11,12 +15,10 @@ export const ToggleRow = (
 	tooltipContent?: string,
 ) => {
 	const ToggleSwitch = () => (
-		<Switch
-			trackingId={`switch-${label}`}
+		<SwitchButton
 			checked={checked}
-			onChange={setState}
+			onChange={(e: any) => setState(e.target.checked)}
 			disabled={disabled}
-			size="default"
 		/>
 	)
 
