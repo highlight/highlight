@@ -1,12 +1,12 @@
-import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import LoadingBox from '@components/LoadingBox'
 import Switch from '@components/Switch/Switch'
-import SettingsIcon from '@icons/SettingsIcon'
+import { IconSolidCog } from '@highlight-run/ui/components'
 import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
+import { Button } from '@/components/Button'
 import { IntegrationModal } from '@/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
 
 import styles from './Integration.module.css'
@@ -147,14 +147,15 @@ const Integration = ({
 							<div className="flex h-[18px] w-full justify-end">
 								<Button
 									trackingId="IntegrationSettings"
-									iconButton
+									kind="secondary"
+									size="small"
+									emphasis="low"
+									iconLeft={<IconSolidCog />}
 									onClick={() => {
 										setShowUpdateSettings(true)
 									}}
 									disabled={!integrationEnabled}
-								>
-									<SettingsIcon />
-								</Button>
+								/>
 							</div>
 						)}
 					</div>

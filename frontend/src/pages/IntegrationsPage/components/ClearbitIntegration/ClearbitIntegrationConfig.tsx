@@ -1,8 +1,12 @@
-import Button from '@components/Button/Button/Button'
 import { toast } from '@components/Toaster'
 import { PlanType } from '@graph/schemas'
-import PlugIcon from '@icons/PlugIcon'
-import Sparkles2Icon from '@icons/Sparkles2Icon'
+import {
+	Box,
+	IconSolidLogout,
+	IconSolidSparkles,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
 import {
 	IntegrationAction,
@@ -10,6 +14,8 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import React, { useEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+
+import { Button } from '@/components/Button'
 
 import styles from './ClearbitIntegrationConfig.module.css'
 
@@ -44,15 +50,22 @@ const ClearbitIntegrationConfig: React.FC<
 
 	if (action === IntegrationAction.Disconnect) {
 		return (
-			<>
-				<p className={styles.modalSubTitle}>
+			<Stack gap="16" cssClass={styles.container}>
+				<Text color="moderate" size="small">
 					Disabling Clearbit will mean new sessions will not have
 					enhanced metadata about identified users.
-				</p>
-				<footer>
+				</Text>
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="flex-end"
+					gap="8"
+				>
 					<Button
-						trackingId="IntegrationDisconnectCancel-Slack"
-						className={styles.modalBtn}
+						trackingId="IntegrationDisconnectCancel-Clearbit"
+						kind="secondary"
+						size="medium"
+						emphasis="medium"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(true)
@@ -61,47 +74,55 @@ const ClearbitIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-Slack"
-						className={styles.modalBtn}
-						type="primary"
-						danger
+						trackingId="IntegrationDisconnectSave-Clearbit"
+						kind="danger"
+						size="medium"
+						emphasis="high"
+						iconLeft={<IconSolidLogout />}
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							modifyClearbit({ enabled: false })
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disable Clearbit
 					</Button>
-				</footer>
-			</>
+				</Box>
+			</Stack>
 		)
 	}
+
 	if (redirectToBilling) {
 		return <Navigate replace to={`/w/${workspaceID}/current-plan`} />
 	}
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
+		<Stack gap="16" cssClass={styles.container}>
+			<Text color="moderate" size="small">
 				Enable Clearbit to scrape enhanced user details.
-			</p>
-			<p className={styles.modalSubTitle}>
+			</Text>
+			<Text color="moderate" size="small">
 				After a user is identified, we will collect information about
 				their online presence using Clearbit and display it in the
 				session metadata pane.
-			</p>
+			</Text>
 			{mustUpgradeToIntegrate ? (
 				<>
-					<p className={styles.modalSubTitle}>
+					<Text color="moderate" size="small">
 						To enable Clearbit integration, please upgrade your
 						workspace tier to <b>'{PlanType.Startup}'</b> or higher.
-					</p>
-					<footer>
+					</Text>
+					<Box
+						display="flex"
+						alignItems="center"
+						justifyContent="flex-end"
+						gap="8"
+					>
 						<Button
 							trackingId="IntegrationConfigurationCancelUpgrade-Clearbit"
-							className={styles.modalBtn}
+							kind="secondary"
+							size="medium"
+							emphasis="medium"
 							onClick={() => {
 								setModalOpen(false)
 								setIntegrationEnabled(false)
@@ -111,22 +132,30 @@ const ClearbitIntegrationConfig: React.FC<
 						</Button>
 						<Button
 							trackingId="IntegrationConfigurationViewUpgrade-Clearbit"
-							className={styles.modalBtn}
-							type="primary"
+							kind="primary"
+							size="medium"
+							emphasis="high"
 							onClick={() => {
 								navigate(`/${projectID}/integrations`)
 								setRedirectToBilling(true)
 							}}
 						>
-							View Upgrade Options
+							View upgrade options
 						</Button>
-					</footer>
+					</Box>
 				</>
 			) : (
-				<footer>
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="flex-end"
+					gap="8"
+				>
 					<Button
 						trackingId="IntegrationConfigurationCancel-Clearbit"
-						className={styles.modalBtn}
+						kind="secondary"
+						size="medium"
+						emphasis="medium"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -136,18 +165,19 @@ const ClearbitIntegrationConfig: React.FC<
 					</Button>
 					<Button
 						trackingId="IntegrationConfigurationSave-Clearbit"
-						className={styles.modalBtn}
-						type="primary"
+						kind="primary"
+						size="medium"
+						emphasis="high"
+						iconLeft={<IconSolidSparkles />}
 						onClick={() => {
 							modifyClearbit({ enabled: true })
 						}}
 					>
-						<Sparkles2Icon className={styles.modalBtnIcon} /> Enable
-						Clearbit
+						Enable Clearbit
 					</Button>
-				</footer>
+				</Box>
 			)}
-		</>
+		</Stack>
 	)
 }
 
