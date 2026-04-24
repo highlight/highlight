@@ -11,11 +11,11 @@ import {
 	IconSolidTrash,
 	IconSolidX,
 	Text,
+	Select,
 	TextLink,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
@@ -121,7 +121,7 @@ const GithubSettingsForm = ({
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
 				id: repo.key,
-				label: repo.name.split('/').pop(),
+				name: repo.name.split('/').pop() || '',
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -155,7 +155,7 @@ const GithubSettingsForm = ({
 							aria-label="GitHub repository"
 							className={styles.repoSelect}
 							placeholder="Search repos..."
-							onSelect={(repo: string) =>
+							onValueChange={(repo: string) =>
 								formStore.setValue(
 									formStore.names.githubRepo,
 									repo,
@@ -165,10 +165,7 @@ const GithubSettingsForm = ({
 								?.split('/')
 								.pop()}
 							options={githubOptions}
-							notFoundContent={<span>No repos found</span>}
-							optionFilterProp="label"
-							filterOption
-							showSearch
+							filterable
 						/>
 						<ButtonIcon
 							kind="secondary"
