@@ -1,5 +1,6 @@
+// File: .changeset/update-workspace-and-project-s-8635.md
 ---
-"highlight": minor
+"@fake-scope/fake-pkg": patch
 ---
 
-Update workspace and project settings to not use antd components
+feat: update workspace and project settings to not use antd components
