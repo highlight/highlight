@@ -1,3 +1,4 @@
+// File: frontend/src/pages/WorkspaceSettings/WorkspaceSettings.tsx
 import { Alert } from '@components/Alert/Alert'
 import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
@@ -32,7 +33,7 @@ export const WorkspaceSettings: React.FC<React.PropsWithChildren<unknown>> = ({
 			kind="workspace"
 			id={workspace.id}
 			forbiddenFallback={
-				<Box p="16" gap="16" direction="column">
+				<Box p="16" gap="16" direction="column" style={{ width: '100%' }}>
 					<Alert kind="error">
 						You don’t have permission to view this workspace.
 					</Alert>
