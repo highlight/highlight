@@ -8,7 +8,7 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import React, { useEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 
@@ -44,7 +44,7 @@ const ClearbitIntegrationConfig: React.FC<
 	if (action === IntegrationAction.Disconnect) {
 		return (
 			<Stack gap="12">
-				<Box paddingY="8">
+				<Box py="8">
 					<Text color="moderate">
 						Disabling Clearbit will mean new sessions will not have
 						enhanced metadata about identified users.
@@ -91,7 +91,7 @@ const ClearbitIntegrationConfig: React.FC<
 
 	return (
 		<Stack gap="12">
-			<Box paddingY="8">
+			<Box py="8">
 				<Stack gap="8">
 					<Text color="moderate">
 						Enable Clearbit to scrape enhanced user details.
@@ -105,7 +105,7 @@ const ClearbitIntegrationConfig: React.FC<
 			</Box>
 			{mustUpgradeToIntegrate ? (
 				<>
-					<Box paddingY="4">
+					<Box py="4">
 						<Text color="moderate">
 							To enable Clearbit integration, please upgrade your
 							workspace tier to <b>'{PlanType.Startup}'</b> or

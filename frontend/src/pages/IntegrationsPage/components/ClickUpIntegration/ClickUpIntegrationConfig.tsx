@@ -13,7 +13,7 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
 import { GetBaseURL } from '@util/window'
@@ -84,18 +84,18 @@ const ClickUpIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				<Button
 					kind="primary"
 					emphasis="high"
-					target="_blank"
-					href={`https://app.clickup.com/api?client_id=${CLICKUP_CLIENT_ID}&redirect_uri=${redirectUri}&state=${btoaSafe(
-						JSON.stringify({
-							project_id: project_id,
-							workspace_id: currentWorkspace?.id,
-						}),
-					)}`}
-					rel="noreferrer"
-					as="a"
 					iconLeft={<Sparkles2Icon />}
 					onClick={() => {
 						analytics.track('IntegrationConfigurationSave-ClickUp')
+						window.open(
+							`https://app.clickup.com/api?client_id=${CLICKUP_CLIENT_ID}&redirect_uri=${redirectUri}&state=${btoaSafe(
+								JSON.stringify({
+									project_id: project_id,
+									workspace_id: currentWorkspace?.id,
+								}),
+							)}`,
+							'_blank',
+						)
 					}}
 				>
 					Connect Highlight with ClickUp

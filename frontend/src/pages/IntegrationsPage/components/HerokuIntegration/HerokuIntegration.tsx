@@ -5,7 +5,7 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 
@@ -28,7 +28,7 @@ const HerokuIntegration: React.FC<
 	if (action === IntegrationAction.Disconnect) {
 		return (
 			<Stack gap="12">
-				<Box paddingY="8">
+				<Box py="8">
 					<Text color="moderate">
 						Disconnecting your Heroku workspace from Highlight will
 						break your Heroku log drains that may currently be
@@ -73,14 +73,12 @@ const HerokuIntegration: React.FC<
 
 	return (
 		<Stack gap="12">
-			<Box paddingY="8">
+			<Box py="8">
 				<Text color="moderate">
 					Connect a Heroku Syslog drain pointed to{' '}
 					<code>syslog+tls://syslog.highlight.io:34302</code> to
 					start shipping your logs to highlight.{' '}
 					<a
-						href="https://devcenter.heroku.com/articles/log-drains#syslog-drains"
-						target="_blank"
 						rel="noopener noreferrer"
 					>
 						Add the drain token to highlight.
@@ -119,6 +117,7 @@ const HerokuIntegration: React.FC<
 						)
 						setModalOpen(false)
 						setIntegrationEnabled(false)
+						window.open('https://devcenter.heroku.com/articles/log-drains#syslog-drains', '_blank')
 					}}
 				>
 					Cancel

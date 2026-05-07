@@ -6,7 +6,7 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 
@@ -80,13 +80,12 @@ const SlackIntegrationConfig: React.FC<
 				<Button
 					kind="primary"
 					emphasis="high"
-					as="a"
-					href={slackUrl}
 					iconLeft={<AppsIcon />}
 					onClick={() => {
 						analytics.track(
 							'IntegrationConfigurationSave-Slack',
 						)
+					window.open(slackUrl, '_blank')
 					}}
 				>
 					Connect Highlight with Slack

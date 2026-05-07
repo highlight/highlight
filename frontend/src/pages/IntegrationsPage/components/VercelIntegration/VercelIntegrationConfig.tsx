@@ -26,7 +26,7 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import useMap from '@util/useMap'
 import React, { useEffect, useState } from 'react'
 
@@ -71,7 +71,7 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 }) => {
 	return (
 		<Stack gap="12">
-			<Box paddingY="8">
+			<Box py="8">
 				<Text color="moderate">
 					Connect Highlight with Vercel to configure environment
 					variables for source map uploads.
@@ -98,13 +98,10 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				<Button
 					kind="primary"
 					emphasis="high"
-					target="_blank"
-					href="https://vercel.com/integrations/highlight/new"
-					rel="noreferrer"
-					as="a"
 					iconLeft={<Sparkles2Icon />}
 					onClick={() => {
 						analytics.track('IntegrationConfigurationSave-Vercel')
+						window.open('https://vercel.com/integrations/highlight/new', '_blank')
 					}}
 				>
 					Connect Highlight with Vercel
@@ -122,7 +119,7 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 
 	return (
 		<Stack gap="12">
-			<Box paddingY="8">
+			<Box py="8">
 				<Text color="moderate">
 					Disconnecting Vercel from Highlight will remove the
 					environment variables for source map uploads.
@@ -439,12 +436,12 @@ export const VercelIntegrationSettings: React.FC<
 
 	return (
 		<Stack gap="12">
-			<Box paddingY="8">
+			<Box py="8">
 				<Text color="moderate">
 					Select Vercel projects to link to your Highlight projects.
 				</Text>
 			</Box>
-			<Box marginY="24">
+			<Box my="24">
 				<Card noPadding>
 					<Table
 						dataSource={highlightProjects}

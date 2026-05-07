@@ -10,7 +10,7 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
 
@@ -27,7 +27,7 @@ const GitlabIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 
 	return (
 		<Stack gap="12">
-			<Box paddingY="8">
+			<Box py="8">
 				<Text color="moderate">
 					Connect GitLab to your Highlight workspace to create issues
 					from comments.
@@ -54,11 +54,10 @@ const GitlabIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				<Button
 					kind="primary"
 					emphasis="high"
-					href={authUrl}
-					as="a"
 					iconLeft={<AppsIcon />}
 					onClick={() => {
 						analytics.track('IntegrationConfigurationSave-GitLab')
+					window.open(authUrl, '_blank')
 					}}
 				>
 					Connect Highlight with GitLab
@@ -75,7 +74,7 @@ const GitlabIntegrationDisconnect: React.FC<
 
 	return (
 		<Stack gap="12">
-			<Box paddingY="8">
+			<Box py="8">
 				<Text color="moderate">
 					Disconnecting your GitLab from Highlight will prevent you
 					from linking issues to future comments

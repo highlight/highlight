@@ -156,7 +156,6 @@ const SwitchWorkspace = () => {
 					/>
 					<Button
 						kind="primary"
-						className={styles.button}
 						style={{ width: '100%' }}
 						type="submit"
 						disabled={selectedWorkspace.length === 0}
@@ -177,11 +176,9 @@ const SwitchWorkspace = () => {
 					</Button>
 					<LinkButton
 						trackingId="SwitchWorkspace-CreateWorkspace"
-						className={styles.button}
 						to={`/new${search}`}
 						kind="secondary"
 						emphasis="low"
-						style={{ width: '100%' }}
 					>
 						Create a New Workspace
 					</LinkButton>

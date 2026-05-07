@@ -10,7 +10,7 @@ import {
 	useJiraIntegration,
 } from '@pages/IntegrationsPage/components/JiraIntegration/utils'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
 
@@ -46,10 +46,10 @@ const JiraIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				<Button
 					kind="primary"
 					emphasis="high"
-					href={authUrl}
 					iconLeft={<AppsIcon />}
 					onClick={() => {
 						analytics.track('IntegrationConfigurationSave-Jira')
+					window.open(authUrl, '_blank')
 					}}
 				>
 					Connect Highlight with Jira

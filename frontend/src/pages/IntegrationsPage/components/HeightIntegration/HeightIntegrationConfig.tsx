@@ -19,7 +19,7 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
 import { GetBaseURL } from '@util/window'
@@ -88,17 +88,18 @@ const HeightIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				<Button
 					kind="primary"
 					emphasis="high"
-					target="_blank"
-					href={`https://height.app/oauth/authorization?client_id=${HEIGHT_CLIENT_ID}&redirect_uri=${redirectUri}&access_types=appWorkspace&scope=api&state=${btoaSafe(
-						JSON.stringify({
-							project_id: project_id,
-							workspace_id: currentWorkspace?.id,
-						}),
-					)}`}
-					rel="noreferrer"
 					iconLeft={<Sparkles2Icon />}
 					onClick={() => {
 						analytics.track('IntegrationConfigurationSave-Height')
+						window.open(
+							`https://height.app/oauth/authorization?client_id=${HEIGHT_CLIENT_ID}&redirect_uri=${redirectUri}&access_types=appWorkspace&scope=api&state=${btoaSafe(
+								JSON.stringify({
+									project_id: project_id,
+									workspace_id: currentWorkspace?.id,
+								}),
+							)}`,
+							'_blank',
+						)
 					}}
 				>
 					Connect Highlight with Height

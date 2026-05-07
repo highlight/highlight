@@ -7,7 +7,7 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import React, { useEffect } from 'react'
@@ -128,12 +128,10 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 				<Button
 					kind="primary"
 					emphasis="high"
-					target="_blank"
-					href={getDiscordOauthUrl(project_id!)}
-					as="a"
 					iconLeft={<Sparkles2Icon />}
 					onClick={() => {
 						analytics.track('IntegrationConfigurationSave-Discord')
+					window.open(getDiscordOauthUrl(project_id!), '_blank')
 					}}
 				>
 					Connect Highlight with Discord

@@ -9,7 +9,7 @@ import {
 	getLinearOAuthUrl,
 	useLinearIntegration,
 } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
 
@@ -22,7 +22,7 @@ const LinearIntegrationConfig: React.FC<
 	if (action === IntegrationAction.Disconnect) {
 		return (
 			<Stack gap="12">
-				<Box paddingY="8">
+				<Box py="8">
 					<Text color="moderate">
 						Disconnecting your Linear workspace from Highlight will
 						prevent you from linking issues to future comments
@@ -66,7 +66,7 @@ const LinearIntegrationConfig: React.FC<
 
 	return (
 		<Stack gap="12">
-			<Box paddingY="8">
+			<Box py="8">
 				<Text color="moderate">
 					Connect Linear to your Highlight workspace to create issues
 					from comments.
@@ -93,11 +93,10 @@ const LinearIntegrationConfig: React.FC<
 				<Button
 					kind="primary"
 					emphasis="high"
-					href={authUrl}
-					as="a"
 					iconLeft={<AppsIcon />}
 					onClick={() => {
 						analytics.track('IntegrationConfigurationSave-Linear')
+					window.open(authUrl, '_blank')
 					}}
 				>
 					Connect Highlight with Linear

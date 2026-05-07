@@ -5,7 +5,7 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 
@@ -23,7 +23,7 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 	if (action === IntegrationAction.Disconnect) {
 		return (
 			<Stack gap="12">
-				<Box paddingY="8">
+				<Box py="8">
 					<Text color="moderate">
 						Disconnecting your Microsoft Teams workspace from
 						Highlight will require you to reconfigure any alerts
@@ -74,7 +74,7 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 
 	return (
 		<Stack gap="12">
-			<Box paddingY="8">
+			<Box py="8">
 				<Text color="moderate">
 					Connect Microsoft Teams to your Highlight workspace to
 					setup alerts and tag teammates in comments
@@ -103,13 +103,12 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 				<Button
 					kind="primary"
 					emphasis="high"
-					href={microsoftTeamsAuthUrl}
-					as="a"
 					iconLeft={<AppsIcon />}
 					onClick={() => {
 						analytics.track(
 							'IntegrationConfigurationSave-MicrosoftTeams',
 						)
+					window.open(microsoftTeamsAuthUrl, '_blank')
 					}}
 				>
 					Connect Highlight with Microsoft Teams

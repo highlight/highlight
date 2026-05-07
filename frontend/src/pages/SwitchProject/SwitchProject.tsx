@@ -79,7 +79,6 @@ const SwitchProject = () => {
 					/>
 					<Button
 						kind="primary"
-						className={styles.button}
 						style={{ width: '100%' }}
 						type="submit"
 						disabled={selectedProject.length === 0 || loading}
@@ -91,11 +90,9 @@ const SwitchProject = () => {
 					</Button>
 					<LinkButton
 						trackingId="SwitchProject-CreateProject"
-						className={styles.button}
 						to={`/w/${workspace_id}/new`}
 						kind="secondary"
 						emphasis="low"
-						style={{ width: '100%' }}
 					>
 						Create a New Project
 					</LinkButton>

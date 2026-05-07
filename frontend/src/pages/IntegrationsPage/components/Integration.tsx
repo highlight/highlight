@@ -211,7 +211,7 @@ const Integration = ({
 					</Box>
 				</Box>
 				<Box display="flex" flexDirection="column" gap="4">
-					<Heading level="h4" size="xSmall">
+					<Heading level="h4">
 						{name}
 					</Heading>
 					<Text color="weak" size="small">

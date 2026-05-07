@@ -6,7 +6,7 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import React from 'react'
 
 import { useCloudflareIntegration } from './utils'
@@ -28,7 +28,7 @@ const CloudflareIntegration: React.FC<
 
 	if (action === IntegrationAction.Settings) {
 		return (
-			<Box paddingY="8">
+			<Box py="8">
 				<Text color="moderate">
 					Current proxy endpoint: {currentWorkspace?.cloudflare_proxy}
 				</Text>
@@ -37,7 +37,7 @@ const CloudflareIntegration: React.FC<
 	} else if (action === IntegrationAction.Disconnect) {
 		return (
 			<Stack gap="12">
-				<Box paddingY="8">
+				<Box py="8">
 					<Text color="moderate">
 						Disconnecting your Cloudflare workspace from Highlight
 						will disable highlight's access to your proxy workers!
@@ -79,13 +79,11 @@ const CloudflareIntegration: React.FC<
 
 	return (
 		<Stack gap="12">
-			<Box paddingY="8">
+			<Box py="8">
 				<Text color="moderate">
 					A highlight data proxy via Cloudflare can avoid ad-blockers
 					detecting highlight tracking and blocking recording. Create{' '}
 					<a
-						href="https://dash.cloudflare.com/profile/api-tokens"
-						target="_blank"
 						rel="noopener noreferrer"
 					>
 						a Cloudflare API token
@@ -128,6 +126,7 @@ const CloudflareIntegration: React.FC<
 							'IntegrationConfigurationCancel-Cloudflare',
 						)
 						setModalOpen(false)
+						window.open('https://dash.cloudflare.com/profile/api-tokens', '_blank')
 					}}
 				>
 					Cancel

@@ -8,7 +8,7 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import { CodeBlock } from '@/pages/Connect/CodeBlock'
-import { analytics } from '@util/analytics'
+import analytics from '@util/analytics'
 import React, { useEffect } from 'react'
 import { coy as lightTheme } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
@@ -32,7 +32,7 @@ const ZapierIntegrationConfig: React.FC<
 	if (action === IntegrationAction.Disconnect) {
 		return (
 			<Stack gap="12">
-				<Box paddingY="8">
+				<Box py="8">
 					<Text color="moderate">
 						Disconnecting Zapier from Highlight will cause your
 						Zaps to stop working.
@@ -76,7 +76,7 @@ const ZapierIntegrationConfig: React.FC<
 
 	return (
 		<Stack gap="12">
-			<Box paddingY="8">
+			<Box py="8">
 				<Stack gap="8">
 					<Text color="moderate">
 						Connect Highlight with Zapier to use alerts as triggers
@@ -117,11 +117,10 @@ const ZapierIntegrationConfig: React.FC<
 				<Button
 					kind="primary"
 					emphasis="high"
-					target="_blank"
-					href="https://zapier.com/app/zaps" // TODO: change to Highlight Zap URL
 					iconLeft={<Sparkles2Icon />}
 					onClick={() => {
 						analytics.track('IntegrationConfigurationSave-Zapier')
+						window.open('https://zapier.com/app/zaps', '_blank')
 					}}
 				>
 					Create a Zap
