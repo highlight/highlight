@@ -1,5 +1,4 @@
-import Button from '@components/Button/Button/Button'
-import { Form, Stack } from '@highlight-run/ui/components'
+import { Box, Button, Form, Stack, Text } from '@highlight-run/ui/components'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -7,9 +6,9 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
+import { analytics } from '@util/analytics'
 import React from 'react'
 
-import * as styles from './style.css'
 import { useCloudflareIntegration } from './utils'
 
 const CloudflareIntegration: React.FC<
@@ -29,62 +28,74 @@ const CloudflareIntegration: React.FC<
 
 	if (action === IntegrationAction.Settings) {
 		return (
-			<p className={styles.modalSubTitle}>
-				Current proxy endpoint: {currentWorkspace?.cloudflare_proxy}
-			</p>
+			<Box paddingY="8">
+				<Text color="moderate">
+					Current proxy endpoint: {currentWorkspace?.cloudflare_proxy}
+				</Text>
+			</Box>
 		)
 	} else if (action === IntegrationAction.Disconnect) {
 		return (
-			<>
-				<p className={styles.modalSubTitle}>
-					Disconnecting your Cloudflare workspace from Highlight will
-					disable highlight's access to your proxy workers!
-				</p>
-				<footer>
+			<Stack gap="12">
+				<Box paddingY="8">
+					<Text color="moderate">
+						Disconnecting your Cloudflare workspace from Highlight
+						will disable highlight's access to your proxy workers!
+					</Text>
+				</Box>
+				<Box
+					display="flex"
+					justifyContent="flex-end"
+					gap="8"
+					paddingTop="16"
+					borderTop="secondary"
+				>
 					<Button
-						trackingId="IntegrationDisconnectCancel-Cloudflare"
-						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
+							analytics.track('IntegrationDisconnectCancel-Cloudflare')
 							setModalOpen(false)
 						}}
 					>
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-Cloudflare"
-						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
+						emphasis="high"
+						iconLeft={<PlugIcon />}
 						onClick={async () => {
+							analytics.track('IntegrationDisconnectSave-Cloudflare')
 							setModalOpen(false)
 							await removeCloudflareIntegrationFromProject()
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect Cloudflare
 					</Button>
-				</footer>
-			</>
+				</Box>
+			</Stack>
 		)
 	}
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
-				A highlight data proxy via Cloudflare can avoid ad-blockers
-				detecting highlight tracking and blocking recording. Create{' '}
-				<a
-					href="https://dash.cloudflare.com/profile/api-tokens"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					a Cloudflare API token
-				</a>{' '}
-				with minimal permissions of{' '}
-				<code>
-					account.workers_scripts.edit, zone.workers_routes.edit
-				</code>
-			</p>
+		<Stack gap="12">
+			<Box paddingY="8">
+				<Text color="moderate">
+					A highlight data proxy via Cloudflare can avoid ad-blockers
+					detecting highlight tracking and blocking recording. Create{' '}
+					<a
+						href="https://dash.cloudflare.com/profile/api-tokens"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						a Cloudflare API token
+					</a>{' '}
+					with minimal permissions of{' '}
+					<code>
+						account.workers_scripts.edit, zone.workers_routes.edit
+					</code>
+				</Text>
+			</Box>
 			<Form store={formStore} resetOnSubmit={false}>
 				<Stack>
 					<Form.Input
@@ -102,31 +113,40 @@ const CloudflareIntegration: React.FC<
 					/>
 				</Stack>
 			</Form>
-			<footer>
+			<Box
+				display="flex"
+				justifyContent="flex-end"
+				gap="8"
+				paddingTop="16"
+				borderTop="secondary"
+			>
 				<Button
-					trackingId="IntegrationConfigurationCancel-Cloudflare"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track(
+							'IntegrationConfigurationCancel-Cloudflare',
+						)
 						setModalOpen(false)
 					}}
 				>
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Cloudflare"
-					className={styles.modalBtn}
-					type="primary"
+					kind="primary"
+					emphasis="high"
 					disabled={token.length < 40 || proxySubdomain.length < 3}
+					iconLeft={<AppsIcon />}
 					onClick={async () => {
+						analytics.track('IntegrationConfigurationSave-Cloudflare')
 						setModalOpen(false)
 						await addCloudflareToProject(token, proxySubdomain)
 					}}
 				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Cloudflare
+					Connect Highlight with Cloudflare
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 

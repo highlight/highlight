@@ -1,14 +1,14 @@
-import Button from '@components/Button/Button/Button'
+import { Box, Button, Stack, Text } from '@highlight-run/ui/components'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
+import { analytics } from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 
-import styles from './MicrosoftTeamsIntegrationConfig.module.css'
 import { useMicrosoftTeamsBot } from './utils'
 
 const MicrosoftTeamsIntegrationConfig: React.FC<
@@ -22,16 +22,28 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 
 	if (action === IntegrationAction.Disconnect) {
 		return (
-			<>
-				<p className={styles.modalSubTitle}>
-					Disconnecting your Microsoft Teams workspace from Highlight
-					will require you to reconfigure any alerts you have made!
-				</p>
-				<footer>
+			<Stack gap="12">
+				<Box paddingY="8">
+					<Text color="moderate">
+						Disconnecting your Microsoft Teams workspace from
+						Highlight will require you to reconfigure any alerts
+						you have made!
+					</Text>
+				</Box>
+				<Box
+					display="flex"
+					justifyContent="flex-end"
+					gap="8"
+					paddingTop="16"
+					borderTop="secondary"
+				>
 					<Button
-						trackingId="IntegrationDisconnectCancel-MicrosoftTeams"
-						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
+							analytics.track(
+								'IntegrationDisconnectCancel-MicrosoftTeams',
+							)
 							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
@@ -39,11 +51,13 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-MicrosoftTeams"
-						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
+						emphasis="high"
+						iconLeft={<PlugIcon />}
 						onClick={() => {
+							analytics.track(
+								'IntegrationDisconnectSave-MicrosoftTeams',
+							)
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeMicrosoftTeamsIntegrationFromProject(
@@ -51,25 +65,35 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 							)
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect Microsoft Teams
 					</Button>
-				</footer>
-			</>
+				</Box>
+			</Stack>
 		)
 	}
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
-				Connect Microsoft Teams to your Highlight workspace to setup
-				alerts and tag teammates in comments
-			</p>
-			<footer>
+		<Stack gap="12">
+			<Box paddingY="8">
+				<Text color="moderate">
+					Connect Microsoft Teams to your Highlight workspace to
+					setup alerts and tag teammates in comments
+				</Text>
+			</Box>
+			<Box
+				display="flex"
+				justifyContent="flex-end"
+				gap="8"
+				paddingTop="16"
+				borderTop="secondary"
+			>
 				<Button
-					trackingId="IntegrationConfigurationCancel-MicrosoftTeams"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track(
+							'IntegrationConfigurationCancel-MicrosoftTeams',
+						)
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
@@ -77,17 +101,23 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-MicrosoftTeams"
-					className={styles.modalBtn}
-					type="primary"
+					kind="primary"
+					emphasis="high"
 					href={microsoftTeamsAuthUrl}
+					as="a"
+					iconLeft={<AppsIcon />}
+					onClick={() => {
+						analytics.track(
+							'IntegrationConfigurationSave-MicrosoftTeams',
+						)
+					}}
 				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Microsoft Teams
+					Connect Highlight with Microsoft Teams
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 
 export default MicrosoftTeamsIntegrationConfig
+

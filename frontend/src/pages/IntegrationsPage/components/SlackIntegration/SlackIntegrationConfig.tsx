@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Box, Button, Stack, Text } from '@highlight-run/ui/components'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
@@ -6,10 +6,9 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
+import { analytics } from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
-
-import styles from './SlackIntegrationConfig.module.css'
 
 const SlackIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
@@ -19,16 +18,19 @@ const SlackIntegrationConfig: React.FC<
 
 	if (action === IntegrationAction.Disconnect) {
 		return (
-			<>
-				<p className={styles.modalSubTitle}>
+			<Stack gap="12">
+				<Text color="moderate">
 					Disconnecting your Slack workspace from Highlight will
 					require you to reconfigure any alerts you have made!
-				</p>
-				<footer>
+				</Text>
+				<Box display="flex" justifyContent="flex-end" gap="8">
 					<Button
-						trackingId="IntegrationDisconnectCancel-Slack"
-						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
+							analytics.track(
+								'IntegrationDisconnectCancel-Slack',
+							)
 							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
@@ -36,35 +38,39 @@ const SlackIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-Slack"
-						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
+						emphasis="high"
+						iconLeft={<PlugIcon />}
 						onClick={() => {
+							analytics.track(
+								'IntegrationDisconnectSave-Slack',
+							)
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeSlackIntegrationFromProject(project_id)
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect Slack
 					</Button>
-				</footer>
-			</>
+				</Box>
+			</Stack>
 		)
 	}
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
+		<Stack gap="12">
+			<Text color="moderate">
 				Connect Slack to your Highlight workspace to setup alerts and
 				tag teammates in comments
-			</p>
-			<footer>
+			</Text>
+			<Box display="flex" justifyContent="flex-end" gap="8">
 				<Button
-					trackingId="IntegrationConfigurationCancel-Slack"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track(
+							'IntegrationConfigurationCancel-Slack',
+						)
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
@@ -72,16 +78,21 @@ const SlackIntegrationConfig: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Slack"
-					className={styles.modalBtn}
-					type="primary"
+					kind="primary"
+					emphasis="high"
+					as="a"
 					href={slackUrl}
+					iconLeft={<AppsIcon />}
+					onClick={() => {
+						analytics.track(
+							'IntegrationConfigurationSave-Slack',
+						)
+					}}
 				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Slack
+					Connect Highlight with Slack
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 

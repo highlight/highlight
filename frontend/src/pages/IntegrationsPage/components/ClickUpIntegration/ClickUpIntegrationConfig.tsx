@@ -1,7 +1,4 @@
-import clsx from 'clsx'
-import React, { useEffect } from 'react'
-
-import Button from '@components/Button/Button/Button'
+import { Box, Button, Stack, Text } from '@highlight-run/ui/components'
 import Card from '@components/Card/Card'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
@@ -16,12 +13,13 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
+import { analytics } from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
 import { GetBaseURL } from '@util/window'
 import { btoaSafe } from '@/util/string'
-
-import styles from './ClickUpIntegrationConfig.module.css'
+import clsx from 'clsx'
+import React, { useEffect, useMemo } from 'react'
 
 const CLICKUP_CLIENT_ID = import.meta.env.CLICKUP_CLIENT_ID
 
@@ -69,15 +67,14 @@ const ClickUpIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 	const redirectUri = `${GetBaseURL()}/callback/clickup`
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
-				Connect Highlight with ClickUp.
-			</p>
-			<footer>
+		<Stack gap="12">
+			<Text color="moderate">Connect Highlight with ClickUp.</Text>
+			<Box display="flex" justifyContent="flex-end" gap="8">
 				<Button
-					trackingId="IntegrationConfigurationCancel-ClickUp"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track('IntegrationConfigurationCancel-ClickUp')
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
@@ -85,9 +82,8 @@ const ClickUpIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-ClickUp"
-					className={styles.modalBtn}
-					type="primary"
+					kind="primary"
+					emphasis="high"
 					target="_blank"
 					href={`https://app.clickup.com/api?client_id=${CLICKUP_CLIENT_ID}&redirect_uri=${redirectUri}&state=${btoaSafe(
 						JSON.stringify({
@@ -96,16 +92,16 @@ const ClickUpIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 						}),
 					)}`}
 					rel="noreferrer"
+					as="a"
+					iconLeft={<Sparkles2Icon />}
+					onClick={() => {
+						analytics.track('IntegrationConfigurationSave-ClickUp')
+					}}
 				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span style={{ marginTop: 4 }}>
-							Connect Highlight with ClickUp
-						</span>
-					</span>
+					Connect Highlight with ClickUp
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 
@@ -116,16 +112,17 @@ const ClickUpIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 	const { removeIntegration } = useClickUpIntegration()
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
+		<Stack gap="12">
+			<Text color="moderate">
 				Disconnecting ClickUp from Highlight will prevent you from
 				creating tasks from future comments
-			</p>
-			<footer>
+			</Text>
+			<Box display="flex" justifyContent="flex-end" gap="8">
 				<Button
-					trackingId="IntegrationDisconnectCancel-ClickUp"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track('IntegrationDisconnectCancel-ClickUp')
 						setModalOpen(false)
 						setIntegrationEnabled(true)
 					}}
@@ -133,11 +130,11 @@ const ClickUpIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationDisconnectSave-ClickUp"
-					className={styles.modalBtn}
-					type="primary"
-					danger
+					kind="danger"
+					emphasis="high"
+					iconLeft={<PlugIcon />}
 					onClick={() => {
+						analytics.track('IntegrationDisconnectSave-ClickUp')
 						removeIntegration()
 							.then(() => {
 								toast.success(
@@ -151,11 +148,10 @@ const ClickUpIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 							})
 					}}
 				>
-					<PlugIcon className={styles.modalBtnIcon} />
 					Disconnect ClickUp
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 
@@ -224,23 +220,32 @@ export const ClickUpIntegrationSettings: React.FC<
 			width: '35%',
 			render: (value: string) => {
 				return (
-					<div className="flex gap-2">
-						<div className="h-[20px] w-[20px]">
+					<Box display="flex" gap="8">
+						<Box display="flex" style={{ height: 20, width: 20 }}>
 							<SvgHighlightLogoOnLight width={20} height={20} />
-						</div>
-						<div
+						</Box>
+						<Box
 							title={value}
-							className="max-w-[150px] overflow-hidden text-ellipsis break-normal"
+							style={{
+								maxWidth: 150,
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
+								whiteSpace: 'nowrap',
+							}}
 						>
 							{value}
-						</div>
-					</div>
+						</Box>
+					</Box>
 				)
 			},
 		},
 		{
 			title: 'Arrow',
-			render: () => <div className="justify-center">→</div>,
+			render: () => (
+				<Box display="flex" justifyContent="center">
+					→
+				</Box>
+			),
 		},
 		{
 			title: 'ClickUp',
@@ -251,16 +256,14 @@ export const ClickUpIntegrationSettings: React.FC<
 				const clickUpSpaceId = projectMap.get(row.id)
 				const opts = allSpaces.find((s) => s.id === clickUpSpaceId)
 				return (
-					<div className={styles.select}>
-						<Select
-							className="w-full"
-							value={opts}
-							onChange={row.onUpdateProjectLink}
-							options={selectOptions}
-							placeholder="ClickUp space"
-							allowClear
-						/>
-					</div>
+					<Select
+						className="w-full"
+						value={opts}
+						onChange={row.onUpdateProjectLink}
+						options={selectOptions}
+						placeholder="ClickUp space"
+						allowClear
+					/>
 				)
 			},
 		},
@@ -296,12 +299,12 @@ export const ClickUpIntegrationSettings: React.FC<
 	}
 
 	return (
-		<div>
-			<p className={clsx(styles.modalSubTitle)}>
+		<Stack gap="12">
+			<Text color="moderate">
 				Select ClickUp spaces to use for each of your Highlight
 				projects.
-			</p>
-			<div className="my-6">
+			</Text>
+			<Box my="12">
 				<Card noPadding>
 					<Table
 						dataSource={highlightProjects}
@@ -312,12 +315,13 @@ export const ClickUpIntegrationSettings: React.FC<
 						smallPadding
 					></Table>
 				</Card>
-			</div>
-			<footer className="flex justify-end gap-2 pt-0">
+			</Box>
+			<Box display="flex" justifyContent="flex-end" gap="8">
 				<Button
-					trackingId="IntegrationConfigurationCancel-ClickUp"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track('IntegrationConfigurationCancel-ClickUp')
 						onCancel && onCancel()
 						setModalOpen(false)
 					}}
@@ -325,19 +329,18 @@ export const ClickUpIntegrationSettings: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-ClickUp"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					onClick={onSave}
+					kind="primary"
+					emphasis="high"
+					iconLeft={<Sparkles2Icon />}
+					onClick={() => {
+						analytics.track('IntegrationConfigurationSave-ClickUp')
+						onSave()
+					}}
 				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span>Update Settings</span>
-					</span>
+					Update Settings
 				</Button>
-			</footer>
-		</div>
+			</Box>
+		</Stack>
 	)
 }
 

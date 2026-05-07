@@ -1,11 +1,8 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import Tooltip from '@components/Tooltip/Tooltip'
-import { Box, SwitchButton, Text } from '@highlight-run/ui/components'
+import { Box, SwitchButton, Text, Tooltip } from '@highlight-run/ui/components'
 import React from 'react'
 
 import { getEmailDomain } from '@/util/email'
-
-import styles from './AutoJoinInput.module.css'
 
 const COMMON_EMAIL_PROVIDERS = ['gmail', 'yahoo', 'hotmail']
 
@@ -35,27 +32,25 @@ export const AutoJoinInput: React.FC<Props> = ({
 
 	return (
 		<Tooltip
-			title="Automatically share the workspace with all users on this domain."
-			align={{ offset: [0, 6] }}
-			mouseEnterDelay={0}
-		>
-			<div className={styles.container}>
-				<Box display="flex" alignItems="center" gap="8" p="0" m="0">
-					<SwitchButton
-						checked={autoJoinDomains.length > 0}
-						onChange={(checked) =>
-							handleSwitchChange(checked as boolean)
-						}
-					/>
-					<Text>Allowed email domains</Text>
+			trigger={
+				<Box display="flex" flexDirection="column" gap="4">
+					<Box display="flex" alignItems="center" gap="8">
+						<SwitchButton
+							checked={autoJoinDomains.length > 0}
+							onChange={() =>
+								handleSwitchChange(!autoJoinDomains.length)
+							}
+						/>
+						<Text weight="medium">Allowed email domains</Text>
+					</Box>
+					<Text color="n11">
+						Allow everyone with a <b>{adminsEmailDomain}</b> email
+						to join your workspace.
+					</Text>
 				</Box>
-				<Box py="4" />
-				<Text color="n11">
-					Allow everyone with a <b>{getEmailDomain(admin?.email)}</b>{' '}
-					email to join your workspace.
-				</Text>
-				<Box py="4" />
-			</div>
+			}
+		>
+			Automatically share the workspace with all users on this domain.
 		</Tooltip>
 	)
 }

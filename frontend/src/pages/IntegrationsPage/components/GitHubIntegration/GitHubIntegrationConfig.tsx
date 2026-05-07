@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Box, Button, Stack, Text } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
@@ -11,9 +11,8 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
+import { analytics } from '@util/analytics'
 import React, { useMemo } from 'react'
-
-import styles from './GitHubIntegrationConfig.module.css'
 
 const GitHubIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
@@ -31,17 +30,28 @@ const GitHubIntegrationConfig: React.FC<
 	)
 	if (action === IntegrationAction.Disconnect) {
 		return (
-			<>
-				<p className={styles.modalSubTitle}>
-					Disconnecting your GitHub workspace from Highlight will
-					prevent you from linking issues to future comments and your
-					stacktraces will not be enhanced.
-				</p>
-				<footer>
+			<Stack gap="12">
+				<Box paddingY="8">
+					<Text color="moderate">
+						Disconnecting your GitHub workspace from Highlight will
+						prevent you from linking issues to future comments and
+						your stacktraces will not be enhanced.
+					</Text>
+				</Box>
+				<Box
+					display="flex"
+					justifyContent="flex-end"
+					gap="8"
+					paddingTop="16"
+					borderTop="secondary"
+				>
 					<Button
-						trackingId="IntegrationDisconnectCancel-GitHub"
-						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
+							analytics.track(
+								'IntegrationDisconnectCancel-GitHub',
+							)
 							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
@@ -49,35 +59,47 @@ const GitHubIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-GitHub"
-						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
+						emphasis="high"
+						iconLeft={<PlugIcon />}
 						onClick={() => {
+							analytics.track(
+								'IntegrationDisconnectSave-GitHub',
+							)
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeIntegration()
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect GitHub
 					</Button>
-				</footer>
-			</>
+				</Box>
+			</Stack>
 		)
 	}
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
-				Connect GitHub to your Highlight workspace to enhance
-				stacktraces and create issues from comments.
-			</p>
-			<footer>
+		<Stack gap="12">
+			<Box paddingY="8">
+				<Text color="moderate">
+					Connect GitHub to your Highlight workspace to enhance
+					stacktraces and create issues from comments.
+				</Text>
+			</Box>
+			<Box
+				display="flex"
+				justifyContent="flex-end"
+				gap="8"
+				paddingTop="16"
+				borderTop="secondary"
+			>
 				<Button
-					trackingId="IntegrationConfigurationCancel-GitHub"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track(
+							'IntegrationConfigurationCancel-GitHub',
+						)
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
@@ -85,16 +107,21 @@ const GitHubIntegrationConfig: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-GitHub"
-					className={styles.modalBtn}
-					type="primary"
+					kind="primary"
+					emphasis="high"
+					as="a"
 					href={authUrl}
+					iconLeft={<AppsIcon />}
+					onClick={() => {
+						analytics.track(
+							'IntegrationConfigurationSave-GitHub',
+						)
+					}}
 				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with GitHub
+					Connect Highlight with GitHub
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 

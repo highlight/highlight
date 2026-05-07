@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Box, Button, Stack, Text } from '@highlight-run/ui/components'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -10,10 +10,9 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
+import { analytics } from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
-
-import styles from './GitlabIntegrationConfig.module.css'
 
 const GitlabIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,
@@ -27,16 +26,25 @@ const GitlabIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 	)
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
-				Connect GitLab to your Highlight workspace to create issues from
-				comments.
-			</p>
-			<footer>
+		<Stack gap="12">
+			<Box paddingY="8">
+				<Text color="moderate">
+					Connect GitLab to your Highlight workspace to create issues
+					from comments.
+				</Text>
+			</Box>
+			<Box
+				display="flex"
+				justifyContent="flex-end"
+				gap="8"
+				paddingTop="16"
+				borderTop="secondary"
+			>
 				<Button
-					trackingId="IntegrationConfigurationCancel-GitLab"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track('IntegrationConfigurationCancel-GitLab')
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
@@ -44,16 +52,19 @@ const GitlabIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-GitLab"
-					className={styles.modalBtn}
-					type="primary"
+					kind="primary"
+					emphasis="high"
 					href={authUrl}
+					as="a"
+					iconLeft={<AppsIcon />}
+					onClick={() => {
+						analytics.track('IntegrationConfigurationSave-GitLab')
+					}}
 				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with GitLab
+					Connect Highlight with GitLab
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 
@@ -63,16 +74,25 @@ const GitlabIntegrationDisconnect: React.FC<
 	const { removeIntegration } = useGitlabIntegration()
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
-				Disconnecting your GitLab from Highlight will prevent you from
-				linking issues to future comments
-			</p>
-			<footer>
+		<Stack gap="12">
+			<Box paddingY="8">
+				<Text color="moderate">
+					Disconnecting your GitLab from Highlight will prevent you
+					from linking issues to future comments
+				</Text>
+			</Box>
+			<Box
+				display="flex"
+				justifyContent="flex-end"
+				gap="8"
+				paddingTop="16"
+				borderTop="secondary"
+			>
 				<Button
-					trackingId="IntegrationDisconnectCancel-GitLab"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track('IntegrationDisconnectCancel-GitLab')
 						setModalOpen(false)
 						setIntegrationEnabled(true)
 					}}
@@ -80,21 +100,20 @@ const GitlabIntegrationDisconnect: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationDisconnectSave-GitLab"
-					className={styles.modalBtn}
-					type="primary"
-					danger
+					kind="danger"
+					emphasis="high"
+					iconLeft={<PlugIcon />}
 					onClick={() => {
+						analytics.track('IntegrationDisconnectSave-GitLab')
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 						removeIntegration()
 					}}
 				>
-					<PlugIcon className={styles.modalBtnIcon} />
 					Disconnect GitLab
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 
@@ -126,3 +145,4 @@ const GitlabIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 }
 
 export default GitlabIntegrationConfig
+

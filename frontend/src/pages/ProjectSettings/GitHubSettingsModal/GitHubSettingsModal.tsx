@@ -1,9 +1,7 @@
-import { Button } from '@components/Button'
-import { LinkButton } from '@components/LinkButton'
-import Modal from '@components/Modal/Modal'
-import ModalBody from '@components/ModalBody/ModalBody'
+import { LinkButton } from '@/components/LinkButton'
 import {
 	Box,
+	Button,
 	ButtonIcon,
 	ComboboxSelect,
 	Form,
@@ -11,11 +9,13 @@ import {
 	IconSolidQuestionMarkCircle,
 	IconSolidTrash,
 	IconSolidX,
+	Modal,
 	Text,
 	TextLink,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
+import analytics from '@util/analytics'
 import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
@@ -56,50 +56,23 @@ export const GitHubSettingsModal = ({
 
 	return (
 		<Modal
-			onCancel={closeModal}
-			visible={!!service}
-			minimal
-			minimalPaddingSize="0"
-			width="360px"
-			title={
-				<Box
-					display="flex"
-					alignItems="center"
-					userSelect="none"
-					px="8"
-					py="4"
-					bb="secondary"
-					justifyContent="space-between"
-				>
-					<Text size="xxSmall" color="n11" weight="medium">
-						GitHub settings for {service.name} service
-					</Text>
-					<ButtonIcon
-						kind="secondary"
-						emphasis="none"
-						size="xSmall"
-						onClick={closeModal}
-						icon={
-							<IconSolidX
-								size={14}
-								color={
-									vars.theme.interactive.fill.secondary
-										.content.text
-								}
-							/>
-						}
-					/>
-				</Box>
-			}
+			open={!!service}
+			onClose={closeModal}
+			width={360}
 		>
-			<ModalBody>
+			<Modal.Header>
+				<Text size="xxSmall" color="n11" weight="medium">
+					GitHub settings for {service.name} service
+				</Text>
+			</Modal.Header>
+			<Modal.Body>
 				<GithubSettingsForm
 					service={service}
 					githubRepos={githubRepos}
 					handleSubmit={handleSubmit}
 					handleCancel={closeModal}
 				/>
-			</ModalBody>
+			</Modal.Body>
 		</Modal>
 	)
 }
@@ -312,18 +285,22 @@ const GithubSettingsForm = ({
 					>
 						<Button
 							kind="secondary"
-							trackingId="cancel-service-github-settings"
 							size="medium"
 							emphasis="medium"
-							onClick={handleCancel}
+							onClick={() => {
+								analytics.track('cancel-service-github-settings')
+								handleCancel()
+							}}
 						>
 							Cancel
 						</Button>
 						<Button
 							type="submit"
 							kind="primary"
-							trackingId="update-service-github-settings"
 							size="medium"
+							onClick={() => {
+								analytics.track('update-service-github-settings')
+							}}
 						>
 							Save
 						</Button>

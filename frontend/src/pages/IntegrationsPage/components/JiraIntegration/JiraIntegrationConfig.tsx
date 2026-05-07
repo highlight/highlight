@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Box, Button, Stack, Text } from '@highlight-run/ui/components'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -10,10 +10,9 @@ import {
 	useJiraIntegration,
 } from '@pages/IntegrationsPage/components/JiraIntegration/utils'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
+import { analytics } from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
-
-import styles from './JiraIntegrationConfig.module.css'
 
 const JiraIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,
@@ -27,16 +26,17 @@ const JiraIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 	)
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
+		<Stack gap="12">
+			<Text color="moderate">
 				Connect Jira to your Highlight workspace to create issues from
 				comments.
-			</p>
-			<footer>
+			</Text>
+			<Box display="flex" justifyContent="flex-end" gap="8">
 				<Button
-					trackingId="IntegrationConfigurationCancel-Jira"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track('IntegrationConfigurationCancel-Jira')
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
@@ -44,16 +44,18 @@ const JiraIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Jira"
-					className={styles.modalBtn}
-					type="primary"
+					kind="primary"
+					emphasis="high"
 					href={authUrl}
+					iconLeft={<AppsIcon />}
+					onClick={() => {
+						analytics.track('IntegrationConfigurationSave-Jira')
+					}}
 				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Jira
+					Connect Highlight with Jira
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 
@@ -63,16 +65,17 @@ const JiraIntegrationDisconnect: React.FC<
 	const { removeIntegration } = useJiraIntegration()
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
+		<Stack gap="12">
+			<Text color="moderate">
 				Disconnecting your Jira from Highlight will prevent you from
 				linking issues to future comments
-			</p>
-			<footer>
+			</Text>
+			<Box display="flex" justifyContent="flex-end" gap="8">
 				<Button
-					trackingId="IntegrationDisconnectCancel-Jira"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track('IntegrationDisconnectCancel-Jira')
 						setModalOpen(false)
 						setIntegrationEnabled(true)
 					}}
@@ -80,21 +83,20 @@ const JiraIntegrationDisconnect: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationDisconnectSave-Jira"
-					className={styles.modalBtn}
-					type="primary"
-					danger
+					kind="danger"
+					emphasis="high"
+					iconLeft={<PlugIcon />}
 					onClick={() => {
+						analytics.track('IntegrationDisconnectSave-Jira')
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 						removeIntegration()
 					}}
 				>
-					<PlugIcon className={styles.modalBtnIcon} />
 					Disconnect Jira
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 
