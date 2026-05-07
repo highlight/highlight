@@ -1,8 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import Tooltip from '@components/Tooltip/Tooltip'
-import { Box, Text } from '@highlight-run/ui/components'
-import { Divider } from 'antd'
-import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
+import { Box, SwitchButton, Text } from '@highlight-run/ui/components'
 import React from 'react'
 
 import { getEmailDomain } from '@/util/email'
@@ -23,8 +21,8 @@ export const AutoJoinInput: React.FC<Props> = ({
 	const { admin } = useAuthContext()
 	const adminsEmailDomain = getEmailDomain(admin?.email)
 
-	const handleMessageChecked = (event: CheckboxChangeEvent) => {
-		const domains = event.target.checked ? [adminsEmailDomain] : []
+	const handleSwitchChange = (checked: boolean) => {
+		const domains = checked ? [adminsEmailDomain] : []
 		setAutoJoinDomains(domains)
 	}
 
@@ -43,18 +41,20 @@ export const AutoJoinInput: React.FC<Props> = ({
 		>
 			<div className={styles.container}>
 				<Box display="flex" alignItems="center" gap="8" p="0" m="0">
-					<Checkbox
+					<SwitchButton
 						checked={autoJoinDomains.length > 0}
-						onChange={handleMessageChecked}
+						onChange={(checked) =>
+							handleSwitchChange(checked as boolean)
+						}
 					/>
 					<Text>Allowed email domains</Text>
 				</Box>
-				<Divider className="m-0 border-none pt-1" />
+				<Box py="4" />
 				<Text color="n11">
 					Allow everyone with a <b>{getEmailDomain(admin?.email)}</b>{' '}
 					email to join your workspace.
 				</Text>
-				<Divider className="m-0 border-none pt-1" />
+				<Box py="4" />
 			</div>
 		</Tooltip>
 	)

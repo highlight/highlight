@@ -5,6 +5,7 @@ import ModalBody from '@components/ModalBody/ModalBody'
 import {
 	Box,
 	ButtonIcon,
+	ComboboxSelect,
 	Form,
 	IconSolidInformationCircle,
 	IconSolidQuestionMarkCircle,
@@ -15,7 +16,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
@@ -120,12 +120,11 @@ const GithubSettingsForm = ({
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				id: repo.key,
-				label: repo.name.split('/').pop(),
-				value: repo.repo_id.replace(
+				key: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
 				),
+				render: repo.name.split('/').pop() || repo.name,
 			})),
 		[githubRepos],
 	)
@@ -143,6 +142,10 @@ const GithubSettingsForm = ({
 		? `https://github.com/${formState.values.githubRepo}/blob/HEAD${formState.values.githubPrefix}/README.md`
 		: `https://github.com/${formState.values.githubRepo}/blob/HEAD/README.md`
 
+	const selectedRepoLabel = formState.values.githubRepo
+		? formState.values.githubRepo.split('/').pop()
+		: 'Search repos...'
+
 	return (
 		<Form store={formStore} onSubmit={() => handleSubmit(formState.values)}>
 			<Box px="12" py="8" gap="12" display="flex" flexDirection="column">
@@ -151,24 +154,20 @@ const GithubSettingsForm = ({
 					name="githubRepo"
 				>
 					<Box display="flex" alignItems="center" gap="8">
-						<Select
-							aria-label="GitHub repository"
-							className={styles.repoSelect}
-							placeholder="Search repos..."
-							onSelect={(repo: string) =>
+						<ComboboxSelect
+							label="GitHub repository"
+							value={formState.values.githubRepo || ''}
+							valueRender={selectedRepoLabel}
+							options={githubOptions}
+							onChange={(repo: string) =>
 								formStore.setValue(
 									formStore.names.githubRepo,
 									repo,
 								)
 							}
-							value={formState.values.githubRepo
-								?.split('/')
-								.pop()}
-							options={githubOptions}
-							notFoundContent={<span>No repos found</span>}
-							optionFilterProp="label"
-							filterOption
-							showSearch
+							onChangeQuery={() => undefined}
+							queryPlaceholder="Search repos..."
+							cssClass={styles.repoSelect}
 						/>
 						<ButtonIcon
 							kind="secondary"
