@@ -159,7 +159,6 @@ const ResourceTag: React.FC<
 	<Tag
 		kind="secondary"
 		emphasis="medium"
-		size="medium"
 		shape="basic"
 		disabled={disabled}
 		icon={icon}

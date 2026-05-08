@@ -298,7 +298,6 @@ export const ExpandedGraph = () => {
 								<Stack>
 									<Tag
 										shape="basic"
-										size="medium"
 										kind="secondary"
 										iconLeft={<IconSolidChartBar />}
 									>

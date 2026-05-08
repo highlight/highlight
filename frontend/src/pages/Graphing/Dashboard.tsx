@@ -445,7 +445,6 @@ export const Dashboard = () => {
 								<Stack>
 									<Tag
 										shape="basic"
-										size="medium"
 										kind="secondary"
 										iconLeft={<IconSolidChartBar />}
 									>

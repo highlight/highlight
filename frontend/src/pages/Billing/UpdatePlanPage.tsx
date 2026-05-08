@@ -335,7 +335,6 @@ const ProductCard = ({
 						</Box>
 						<Box>
 							<Badge
-								size="medium"
 								shape="basic"
 								variant="gray"
 								label={totalCostFormatted}
@@ -1139,7 +1138,6 @@ const UpdatePlanPage = ({
 									</Box>
 									<Box>
 										<Badge
-											size="medium"
 											shape="basic"
 											variant="gray"
 											label={baseAmountFormatted}
@@ -1171,7 +1169,6 @@ const UpdatePlanPage = ({
 									Bill
 								</Text>
 								<Badge
-									size="medium"
 									shape="basic"
 									variant="gray"
 									label={`Due ${moment(

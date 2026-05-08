@@ -23,11 +23,10 @@ export const TraceHeader = () => {
 			</Heading>
 			<Stack gap="4" direction="row" alignItems="center">
 				<Badge
-					size="medium"
 					variant="gray"
 					label={moment(startTime).format('MMM D HH:mm:ss A')}
 				/>
-				<Badge size="medium" variant="gray" label={durationString} />
+				<Badge variant="gray" label={durationString} />
 				<Box borderRight="divider" style={{ height: 12 }} />
 				<RelatedResourceButtons
 					traceId={traceId}
