@@ -1,11 +1,11 @@
-import Alert from '@components/Alert/Alert'
-import { FieldsBox } from '@components/FieldsBox/FieldsBox'
+
 import { AdminRole } from '@graph/schemas'
 import { Box } from '@highlight-run/ui/components'
 import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import { Authorization } from '@util/authorization/authorization'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useAuthContext } from '@/authentication/AuthContext'
+import CustomAlert from '@components/CustomAlert/CustomAlert'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import { FieldsForm } from './FieldsForm/FieldsForm'
@@ -43,12 +43,13 @@ const WorkspaceSettings = () => {
 						<Authorization
 							allowedRoles={[AdminRole.Admin]}
 							forbiddenFallback={
-								<Alert
+								<CustomAlert
 									trackingId="AdminNoAccessToAutoJoinDomains"
-									type="info"
-									message="You don't have access to auto-access domains."
-									description={`You don't have permission to configure auto-access domains. Please contact a workspace admin to make changes.`}
-								/>
+									kind="info"
+									title="You don't have access to auto-access domains."
+								>
+									You don't have permission to configure auto-access domains. Please contact a workspace admin to make changes.
+								</CustomAlert>
 							}
 						>
 							<AutoJoinForm />
