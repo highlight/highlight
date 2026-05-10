@@ -139,6 +139,7 @@ import { ReactNativeContent } from './frontend/react-native'
 import { siteUrl } from '../../utils/urls'
 import { NextJsTracesReorganizedContent } from './server/js/nextjs'
 import { AWSLambdaTracingSteps } from './server/serverless/shared-snippets-aws-lambda'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 
 export type QuickStartContent = {
 	title: string
@@ -209,6 +210,7 @@ export enum QuickStartType {
 	JSWinston = 'winston',
 	JSPino = 'pino',
 	JStRPC = 'trpc',
+	JSSvelteKit = 'sveltekit',
 	HTTPOTLP = 'curl',
 	Syslog = 'syslog',
 	Systemd = 'systemd',
@@ -461,6 +463,7 @@ export const quickStartContent = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 		},
 		php: {
 			title: 'PHP',
@@ -606,6 +609,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 		},
 	},
 	php: {
