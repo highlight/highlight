@@ -12,6 +12,7 @@ import { JSExpressContent } from './backend/js/express'
 import { JSFirebaseContent } from './backend/js/firebase'
 import { JSNestContent } from './backend/js/nestjs'
 import { JSNodeContent } from './backend/js/nodejs'
+import { JSSvelteKitContent } from './backend/js/sveltekit'
 import { JStRPCContent } from './backend/js/trpc'
 import { OTLPErrorMonitoringContent } from './backend/otlp'
 import { PHPOtherContent } from './backend/php/other'
@@ -273,6 +274,7 @@ export const quickStartContent = {
 			[QuickStartType.JSHono]: JSHonoContent,
 			[QuickStartType.JSNodejs]: JSNodeContent,
 			[QuickStartType.JSNestjs]: JSNestContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitContent,
 			[QuickStartType.JStRPC]: JStRPCContent,
 		},
 		ruby: {
@@ -456,6 +458,7 @@ export const quickStartContent = {
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
