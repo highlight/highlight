@@ -154,9 +154,7 @@ const GithubSettingsForm = ({
 								aria-label="GitHub repository"
 								name={formStore.names.githubRepo}
 								placeholder="Search repos..."
-								value={
-									formState.values.githubRepo ?? undefined
-								}
+								value={formState.values.githubRepo ?? undefined}
 								options={githubOptions}
 								filterable
 							/>
