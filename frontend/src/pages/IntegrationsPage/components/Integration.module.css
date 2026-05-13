@@ -1,26 +1,62 @@
 .integration {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-medium);
+	height: 100%;
+
 	& .logo {
+		background: var(--color-gray-100);
 		border-radius: 50%;
+		border: 1px solid var(--color-gray-300);
+		flex: 0 0 var(--size-xxLarge);
 		height: var(--size-xxLarge);
+		object-fit: contain;
+		padding: var(--size-xxSmall);
 		width: var(--size-xxLarge);
 	}
 
 	& .header {
 		align-items: flex-start;
 		display: flex;
+		gap: var(--size-medium);
 		justify-content: space-between;
-		padding-bottom: var(--size-small);
 	}
 
 	& .connectButton {
 		text-transform: uppercase;
 	}
 
+	& .actions {
+		align-items: center;
+		display: flex;
+		flex-shrink: 0;
+		gap: var(--size-small);
+	}
+
+	& .settingsButton {
+		flex-shrink: 0;
+	}
+
+	& .content {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		gap: var(--size-xSmall);
+	}
+
 	& .title {
-		margin-bottom: var(--size-small) !important;
+		margin: 0 !important;
 	}
 
 	& .description {
+		line-height: 1.5;
 		margin-bottom: 0 !important;
+	}
+
+	& .docsLink {
+		color: var(--color-purple);
+		font-weight: 500;
+		line-height: 1.5;
+		margin-top: auto;
 	}
 }

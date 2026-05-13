@@ -1,7 +1,7 @@
 .integrationsContainer {
 	display: grid;
-	grid-gap: var(--size-large);
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: var(--size-large);
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 .modalBtn {
 	padding-bottom: 4px !important;

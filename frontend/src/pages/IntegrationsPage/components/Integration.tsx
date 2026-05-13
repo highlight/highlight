@@ -75,7 +75,7 @@ const Integration = ({
 
 	return (
 		<>
-			<Card className={styles.integration} interactable>
+			<Card className={styles.integration} interactable full>
 				<div className={styles.header}>
 					<img
 						src={icon}
@@ -84,7 +84,7 @@ const Integration = ({
 							['rounded-none']: noRoundedIcon,
 						})}
 					/>
-					<div className="flex flex-col gap-2">
+					<div className={styles.actions}>
 						{isGated ? (
 							<EnterpriseFeatureButton
 								setting={enterpriseSetting}
@@ -144,27 +144,26 @@ const Integration = ({
 							/>
 						)}
 						{hasSettings && (
-							<div className="flex h-[18px] w-full justify-end">
-								<Button
-									trackingId="IntegrationSettings"
-									iconButton
-									onClick={() => {
-										setShowUpdateSettings(true)
-									}}
-									disabled={!integrationEnabled}
-								>
-									<SettingsIcon />
-								</Button>
-							</div>
+							<Button
+								trackingId="IntegrationSettings"
+								iconButton
+								className={styles.settingsButton}
+								onClick={() => {
+									setShowUpdateSettings(true)
+								}}
+								disabled={!integrationEnabled}
+							>
+								<SettingsIcon />
+							</Button>
 						)}
 					</div>
 				</div>
-				<div>
-					<h2 className={styles.title}>{name}</h2>
+				<div className={styles.content}>
+					<h3 className={styles.title}>{name}</h3>
 					<p className={styles.description}>{description}</p>
 					{docs && (
 						<a
-							className={styles.description}
+							className={styles.docsLink}
 							href={docs}
 							target="_blank"
 							rel="noopener noreferrer"
