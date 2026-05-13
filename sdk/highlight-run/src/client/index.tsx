@@ -102,6 +102,7 @@ import {
 	setItem,
 	setStorageMode,
 } from './utils/storage'
+import { getCanvasSamplingDefaults } from './utils/canvas-sampling'
 import { getDefaultDataURLOptions } from './utils/utils'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
 import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
@@ -379,8 +380,7 @@ export class Highlight {
 		this.inlineVideos = options.inlineVideos ?? this._isOnLocalHost
 		this.inlineStylesheet = options.inlineStylesheet ?? this._isOnLocalHost
 		this.samplingStrategy = {
-			canvasFactor: 0.5,
-			canvasMaxSnapshotDimension: 360,
+			...getCanvasSamplingDefaults(navigator.userAgent),
 			canvasClearWebGLBuffer: true,
 			dataUrlOptions: getDefaultDataURLOptions(),
 			...(options.samplingStrategy ?? {
