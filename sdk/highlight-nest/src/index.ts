@@ -9,8 +9,47 @@ import {
 	NestInterceptor,
 } from '@nestjs/common'
 import api from '@opentelemetry/api'
+import type { IncomingHttpHeaders } from 'http'
 import { finalize, Observable, throwError } from 'rxjs'
 import { catchError } from 'rxjs/operators'
+
+type RequestHeaders = Headers | IncomingHttpHeaders
+
+type RequestLike = {
+	headers?: RequestHeaders
+	method?: string
+	originalUrl?: string
+	url?: string
+}
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+	typeof value === 'object' && value !== null
+
+const getRequestFromContext = (context: ExecutionContext): RequestLike => {
+	const httpRequest = context
+		.switchToHttp()
+		.getRequest<RequestLike | undefined>()
+	if (isObject(httpRequest)) {
+		return httpRequest
+	}
+
+	const gqlContext = context.getArgByIndex<unknown>(2)
+	if (isObject(gqlContext)) {
+		const request = gqlContext.req ?? gqlContext.request
+		if (isObject(request)) {
+			return request
+		}
+	}
+
+	return {}
+}
+
+const getFallbackUrl = (context: ExecutionContext) => {
+	const className = context.getClass()?.name
+	const handlerName = context.getHandler()?.name
+
+	return [className, handlerName].filter(Boolean).join('.') || 'unknown'
+}
 
 @Injectable()
 export class HighlightLogger
@@ -95,16 +134,19 @@ export class HighlightInterceptor
 	}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-		const ctx = context.switchToHttp()
-		const request = ctx.getRequest()
+		const request = getRequestFromContext(context)
+		const method =
+			request.method ?? context.getType<string>()?.toUpperCase()
+		const url =
+			request.originalUrl ?? request.url ?? getFallbackUrl(context)
 
 		const { span: requestSpan, ctx: spanCtx } = NodeH.startWithHeaders(
-			`${request.method} ${request.url}`,
-			request.headers,
+			[method, url].filter(Boolean).join(' '),
+			request.headers ?? {},
 			{
 				attributes: {
-					'http.method': request.method,
-					'http.url': request.url,
+					'http.method': method,
+					'http.url': url,
 				},
 			},
 		)
