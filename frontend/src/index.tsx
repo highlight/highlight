@@ -24,7 +24,7 @@ import {
 	useGetProjectLazyQuery,
 } from '@graph/hooks'
 import { Admin, WorkspaceAdminRole } from '@graph/schemas'
-import { ErrorBoundary } from '@highlight-run/react'
+import { StandardErrorBoundary } from '@highlight-run/react'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
@@ -162,7 +162,7 @@ const App = () => {
 	)
 
 	return (
-		<ErrorBoundary>
+		<StandardErrorBoundary>
 			<ApolloProvider client={client}>
 				<SkeletonTheme
 					baseColor="var(--color-gray-200)"
@@ -195,7 +195,7 @@ const App = () => {
 					</LaunchDarklyProvider>
 				</SkeletonTheme>
 			</ApolloProvider>
-		</ErrorBoundary>
+		</StandardErrorBoundary>
 	)
 }
 
