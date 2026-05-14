@@ -1,9 +1,9 @@
 import {
 	configureSourcemapsCI,
+	fullstackMappingLink,
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
@@ -30,6 +30,27 @@ H.init('<YOUR_PROJECT_ID>', {
 	},
 });
 ...
+`
+
+const svelteKitServerInstrumentationSnippet = `// hooks.server.ts
+import { H, type NodeOptions } from '@highlight-run/node'
+import type { Handle } from '@sveltejs/kit'
+
+const nodeOptions: NodeOptions = {
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'my-sveltekit-backend',
+	serviceVersion: 'git-sha',
+}
+
+if (!H.isInitialized()) {
+	H.init(nodeOptions)
+}
+
+export const handle: Handle = async ({ event, resolve }) => {
+	return H.runWithHeaders(event.request.headers, async () => {
+		return resolve(event)
+	})
+}
 `
 
 export const SvelteKitContent: QuickStartContent = {
@@ -79,6 +100,18 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Instrument SvelteKit backend tracing.',
+			content:
+				'For fullstack correlation, initialize the Node.js SDK in `hooks.server.ts` and wrap your request pipeline with `H.runWithHeaders`. This forwards Highlight request context so backend logs, errors, and traces are linked to frontend sessions. Read more in our [fullstack mapping guide](' +
+				fullstackMappingLink +
+				').',
+			code: [
+				{
+					language: 'ts',
+					text: svelteKitServerInstrumentationSnippet,
+				},
+			],
+		},
 	],
 }
