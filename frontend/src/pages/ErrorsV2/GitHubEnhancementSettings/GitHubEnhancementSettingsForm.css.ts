@@ -1,9 +1,5 @@
-import { vars } from '@highlight-run/ui/vars'
 import { keyframes, style } from '@vanilla-extract/css'
-
-export const repoSelect = style({
-	width: '100%',
-})
+import { vars } from '@highlight-run/ui/vars'
 
 export const example = style({
 	background: vars.color.n5,
