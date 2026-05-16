@@ -1,9 +1,9 @@
 import {
+	backendInstrumentationLink,
 	configureSourcemapsCI,
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
@@ -31,6 +31,30 @@ H.init('<YOUR_PROJECT_ID>', {
 });
 ...
 `
+
+const svelteKitServerInitCodeSnippet = `// src/hooks.server.ts
+import type { Handle, HandleServerError } from '@sveltejs/kit';
+import { H } from 'highlight.run';
+
+H.init('<YOUR_PROJECT_ID>', {
+	serviceName: 'my-sveltekit-backend',
+	environment: 'production',
+});
+
+export const handle: Handle = async ({ event, resolve }) => {
+	return await H.runWithHeaders(event.request.headers, async () => {
+		return await resolve(event);
+	});
+};
+
+export const handleError: HandleServerError = ({ error, event }) => {
+	const { secureSessionId, requestId } = H.parseHeaders(event.request.headers);
+	H.consumeError(error, secureSessionId, requestId);
+
+	return {
+		message: 'Internal Server Error',
+	};
+};`
 
 export const SvelteKitContent: QuickStartContent = {
 	title: 'SvelteKit',
@@ -79,6 +103,15 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Instrument your backend.',
+			content: `Initialize Highlight in \`hooks.server.ts\` and wrap your SvelteKit \`handle\` function with \`H.runWithHeaders\` to associate backend traces and errors with frontend sessions. You can find more details in our [backend instrumentation](${backendInstrumentationLink}) docs.`,
+			code: [
+				{
+					language: 'ts',
+					text: svelteKitServerInitCodeSnippet,
+				},
+			],
+		},
 	],
 }
