@@ -7,3 +7,31 @@
 	padding-bottom: 4px !important;
 	padding-top: 4px !important;
 }
+
+.integrationsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 24px;
+}
+
+.integrationCard {
+  width: 320px;
+  background: var(--color-surface);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.integrationCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.badge {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
