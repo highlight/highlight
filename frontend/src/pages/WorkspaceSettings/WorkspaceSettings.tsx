@@ -9,7 +9,7 @@ import { useAuthContext } from '@/authentication/AuthContext'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import { FieldsForm } from './FieldsForm/FieldsForm'
-import styles from './WorkspaceSettings.module.css'
+
 
 const WorkspaceSettings = () => {
 	const { currentWorkspace } = useApplicationContext()
@@ -19,8 +19,8 @@ const WorkspaceSettings = () => {
 	return (
 		<Box>
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
-				<div className={styles.container}>
-					<div className={styles.titleContainer}>
+				<div style={{maxWidth: 560, margin: "40px auto"}}>
+					<div style={{marginBottom: 24}}>
 						<div>
 							<h3>Properties</h3>
 							<p className={layoutStyles.subTitle}>
