@@ -1,5 +1,5 @@
 import { toast } from '@components/Toaster'
-import { Form, Stack, Text } from '@highlight-run/ui/components'
+import { Form, Stack, Text, Select } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -20,7 +20,6 @@ import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
 import { getEmailDomain } from '@/util/email'
 import { showSupportMessage } from '@/util/window'
 
-import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
 
 export const DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY =
@@ -124,8 +123,8 @@ export const JoinWorkspace = () => {
 									</Text>
 								</Stack>
 
-								<select
-									className={styles.select}
+								<Select
+									value={workspaceId}
 									onChange={(e) => {
 										const selectedWorkspace =
 											data?.joinable_workspaces?.find(
@@ -154,7 +153,7 @@ export const JoinWorkspace = () => {
 											</option>
 										),
 									)}
-								</select>
+								</Select>
 							</>
 						)}
 					</Stack>
