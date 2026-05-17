@@ -71,7 +71,7 @@ export const HaroldAISettings = () => {
 		editWorkspaceSettings({
 			variables: {
 				...data?.workspaceSettings,
-				workspace_id: currentWorkspace?.id,
+				workspace_id: currentWorkspace.id,
 				[setting.key]: isOptIn,
 			},
 		})
