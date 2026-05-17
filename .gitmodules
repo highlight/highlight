@@ -1,6 +1,6 @@
 [submodule "rrweb"]
 	path = rrweb
-	url = https://github.com/highlight/rrweb.git
+	url = https://github.com/CuboYe/rrweb.git
 [submodule "sdk/highlight-php"]
 	path = sdk/highlight-php
 	url = https://github.com/highlight/highlight-php.git
