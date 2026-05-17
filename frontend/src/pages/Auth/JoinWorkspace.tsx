@@ -1,5 +1,5 @@
 import { toast } from '@components/Toaster'
-import { Form, Stack, Text, Select } from '@highlight-run/ui/components'
+import { Form, Select, Stack, Text } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -34,10 +34,12 @@ export const JoinWorkspace = () => {
 			)
 		},
 	})
+
 	const { data: adminData } = useGetAdminQuery()
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 	const [joinWorkspace, { loading: joinLoading }] = useJoinWorkspaceMutation()
+
 	const [_, setDismissedJoinWorkspace] = useLocalStorage(
 		DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY,
 		false,
@@ -48,6 +50,7 @@ export const JoinWorkspace = () => {
 			workspaceId: '',
 		},
 	})
+
 	const workspaceId = formStore.useValue('workspaceId')
 
 	formStore.useSubmit(async (formState) => {
@@ -63,7 +66,8 @@ export const JoinWorkspace = () => {
 			navigate(ABOUT_YOU_ROUTE, { replace: true })
 		} else if (response.errors?.length) {
 			const error = response.errors[0].message
-			toast.error(response.errors[0].message, { duration: 1000 })
+
+			toast.error(error, { duration: 1000 })
 
 			showSupportMessage(
 				`I can't join a workspace. This is the error I'm getting: "${error}"`,
@@ -91,6 +95,7 @@ export const JoinWorkspace = () => {
 				<AuthHeader>
 					<Text color="moderate">Join Workspace</Text>
 				</AuthHeader>
+
 				<AuthBody>
 					<Stack gap="16" direction="column">
 						{noJoinableWorkspaces ? (
@@ -101,10 +106,10 @@ export const JoinWorkspace = () => {
 										Learn more on our blog.
 									</a>
 								</Text>
+
 								<Text>
-									If you are trying to join an existing
-									workspace, please ask your admin for an
-									invite link.
+									If you are trying to join an existing workspace,
+									please ask your admin for an invite link.
 								</Text>
 							</Stack>
 						) : (
@@ -116,10 +121,11 @@ export const JoinWorkspace = () => {
 											Learn more on our blog.
 										</a>
 									</Text>
+
 									<Text>
-										Based on your <b>@{emailDomain}</b>{' '}
-										email address you are able to join the
-										following workspaces.
+										Based on your <b>@{emailDomain}</b> email
+										address you are able to join the following
+										workspaces.
 									</Text>
 								</Stack>
 
@@ -143,21 +149,20 @@ export const JoinWorkspace = () => {
 										Select a workspace
 									</option>
 
-									{data?.joinable_workspaces?.map(
-										(workspace) => (
-											<option
-												key={workspace?.id}
-												value={workspace?.id}
-											>
-												{workspace?.name}
-											</option>
-										),
-									)}
+									{data?.joinable_workspaces?.map((workspace) => (
+										<option
+											key={workspace?.id}
+											value={workspace?.id}
+										>
+											{workspace?.name}
+										</option>
+									))}
 								</Select>
 							</>
 						)}
 					</Stack>
 				</AuthBody>
+
 				<AuthFooter>
 					<Button
 						type="submit"
@@ -174,3 +179,5 @@ export const JoinWorkspace = () => {
 		</Landing>
 	)
 }
+
+export default JoinWorkspace
