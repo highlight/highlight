@@ -97,7 +97,7 @@ export const JoinWorkspace = () => {
 							<Stack>
 								<Text>
 									Creating new workspaces is disabled.{' '}
-									<a href="https://highlight.io/blog/launchdarkly-migration">
+									<a href="https://highlight.io">
 										Learn more on our blog.
 									</a>
 								</Text>
@@ -112,7 +112,7 @@ export const JoinWorkspace = () => {
 								<Stack>
 									<Text>
 										Creating new workspaces is disabled.{' '}
-										<a href="https://highlight.io/blog/launchdarkly-migration">
+										<a href="https://highlight.io">
 											Learn more on our blog.
 										</a>
 									</Text>
