@@ -39,7 +39,7 @@ const WorkspaceSettings = () => {
 							email origin join.
 						</Text>
 					</Box>
-					
+
 					<Authorization
 						allowedRoles={[AdminRole.Admin]}
 						forbiddenFallback={
