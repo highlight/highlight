@@ -1,5 +1,5 @@
 import { toast } from '@components/Toaster'
-import { Form, Select, Stack, Text } from '@highlight-run/ui/components'
+import { Form, Stack, Text } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -20,6 +20,7 @@ import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
 import { getEmailDomain } from '@/util/email'
 import { showSupportMessage } from '@/util/window'
 
+import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
 
 export const DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY =
@@ -34,12 +35,10 @@ export const JoinWorkspace = () => {
 			)
 		},
 	})
-
 	const { data: adminData } = useGetAdminQuery()
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 	const [joinWorkspace, { loading: joinLoading }] = useJoinWorkspaceMutation()
-
 	const [_, setDismissedJoinWorkspace] = useLocalStorage(
 		DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY,
 		false,
@@ -50,7 +49,6 @@ export const JoinWorkspace = () => {
 			workspaceId: '',
 		},
 	})
-
 	const workspaceId = formStore.useValue('workspaceId')
 
 	formStore.useSubmit(async (formState) => {
@@ -66,8 +64,7 @@ export const JoinWorkspace = () => {
 			navigate(ABOUT_YOU_ROUTE, { replace: true })
 		} else if (response.errors?.length) {
 			const error = response.errors[0].message
-
-			toast.error(error, { duration: 1000 })
+			toast.error(response.errors[0].message, { duration: 1000 })
 
 			showSupportMessage(
 				`I can't join a workspace. This is the error I'm getting: "${error}"`,
@@ -95,21 +92,20 @@ export const JoinWorkspace = () => {
 				<AuthHeader>
 					<Text color="moderate">Join Workspace</Text>
 				</AuthHeader>
-
 				<AuthBody>
 					<Stack gap="16" direction="column">
 						{noJoinableWorkspaces ? (
 							<Stack>
 								<Text>
 									Creating new workspaces is disabled.{' '}
-									<a href="https://highlight.io">
+									<a href="https://highlight.io/blog/launchdarkly-migration">
 										Learn more on our blog.
 									</a>
 								</Text>
-
 								<Text>
-									If you are trying to join an existing workspace,
-									please ask your admin for an invite link.
+									If you are trying to join an existing
+									workspace, please ask your admin for an
+									invite link.
 								</Text>
 							</Stack>
 						) : (
@@ -117,20 +113,19 @@ export const JoinWorkspace = () => {
 								<Stack>
 									<Text>
 										Creating new workspaces is disabled.{' '}
-										<a href="https://highlight.io">
+										<a href="https://highlight.io/blog/launchdarkly-migration">
 											Learn more on our blog.
 										</a>
 									</Text>
-
 									<Text>
-										Based on your <b>@{emailDomain}</b> email
-										address you are able to join the following
-										workspaces.
+										Based on your <b>@{emailDomain}</b>{' '}
+										email address you are able to join the
+										following workspaces.
 									</Text>
 								</Stack>
 
-								<Select
-									value={workspaceId}
+								<select
+									className={styles.select}
 									onChange={(e) => {
 										const selectedWorkspace =
 											data?.joinable_workspaces?.find(
@@ -149,20 +144,21 @@ export const JoinWorkspace = () => {
 										Select a workspace
 									</option>
 
-									{data?.joinable_workspaces?.map((workspace) => (
-										<option
-											key={workspace?.id}
-											value={workspace?.id}
-										>
-											{workspace?.name}
-										</option>
-									))}
-								</Select>
+									{data?.joinable_workspaces?.map(
+										(workspace) => (
+											<option
+												key={workspace?.id}
+												value={workspace?.id}
+											>
+												{workspace?.name}
+											</option>
+										),
+									)}
+								</select>
 							</>
 						)}
 					</Stack>
 				</AuthBody>
-
 				<AuthFooter>
 					<Button
 						type="submit"
