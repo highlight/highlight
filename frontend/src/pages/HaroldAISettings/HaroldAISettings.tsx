@@ -59,6 +59,7 @@ export const HaroldAISettings = () => {
 	})
 
 	const { checkPolicyAccess } = useAuthorization()
+
 	const canEdit = checkPolicyAccess({
 		policyName: POLICY_NAMES.HaroldSettingsUpdate,
 	})
@@ -77,9 +78,7 @@ export const HaroldAISettings = () => {
 		})
 			.then(() => {
 				toast.success(
-					`${isOptIn ? 'Enabled' : 'Disabled'} Harold for your ${
-						setting.feature
-					}.`,
+					`${isOptIn ? 'Enabled' : 'Disabled'} Harold for your ${setting.feature}.`,
 				)
 			})
 			.catch((reason: any) => {
@@ -94,6 +93,7 @@ export const HaroldAISettings = () => {
 					<Heading mt="16" level="h4">
 						Harold AI
 					</Heading>
+
 					<Text weight="medium" size="small" color="default">
 						Highlight&apos;s Harold is an AI assistant helping you better
 						understand the context around your data. Harold is based on OpenAI
@@ -107,6 +107,7 @@ export const HaroldAISettings = () => {
 							<Text weight="bold" size="small" color="strong">
 								Learn more about Highlight&apos;s AI
 							</Text>
+
 							<Text color="moderate">
 								Curious about how we use OpenAI&apos;s GPT-3.5 to power our AI
 								services? Read the blog post!
@@ -157,3 +158,5 @@ export const HaroldAISettings = () => {
 		</Box>
 	)
 }
+
+export default HaroldAISettings
