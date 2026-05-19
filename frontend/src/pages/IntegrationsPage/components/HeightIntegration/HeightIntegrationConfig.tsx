@@ -1,11 +1,8 @@
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
-import Button from '@components/Button/Button/Button'
-import Card from '@components/Card/Card'
-import Select from '@components/Select/Select'
-import Table from '@components/Table/Table'
 import { toast } from '@components/Toaster'
+import { Button, Card, Select, Table } from '@highlight-run/ui/components'
 import { IntegrationProjectMappingInput, IntegrationType } from '@graph/schemas'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import PlugIcon from '@icons/PlugIcon'
@@ -20,6 +17,7 @@ import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
 import { GetBaseURL } from '@util/window'
 import { btoaSafe } from '@/util/string'
+import analytics from '@util/analytics'
 
 import styles from './HeightIntegrationConfig.module.css'
 
@@ -75,9 +73,10 @@ const HeightIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 			</p>
 			<footer>
 				<Button
-					trackingId="IntegrationConfigurationCancel-Height"
+					kind="secondary"
 					className={styles.modalBtn}
 					onClick={() => {
+						analytics.track('Button-IntegrationConfigurationCancel-Height')
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
@@ -85,23 +84,21 @@ const HeightIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Height"
+					kind="primary"
 					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href={`https://height.app/oauth/authorization?client_id=${HEIGHT_CLIENT_ID}&redirect_uri=${redirectUri}&access_types=appWorkspace&scope=api&state=${btoaSafe(
-						JSON.stringify({
-							project_id: project_id,
-							workspace_id: currentWorkspace?.id,
-						}),
-					)}`}
-					rel="noreferrer"
+					iconLeft={<Sparkles2Icon className={styles.modalBtnIcon} />}
+					onClick={() => {
+						analytics.track('Button-IntegrationConfigurationSave-Height')
+						window.open(`https://height.app/oauth/authorization?client_id=${HEIGHT_CLIENT_ID}&redirect_uri=${redirectUri}&access_types=appWorkspace&scope=api&state=${btoaSafe(
+							JSON.stringify({
+								project_id: project_id,
+								workspace_id: currentWorkspace?.id,
+							}),
+						)}`, '_blank', 'noreferrer')
+					}}
 				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span style={{ marginTop: 4 }}>
-							Connect Highlight with Height
-						</span>
+					<span style={{ marginTop: 4 }}>
+						Connect Highlight with Height
 					</span>
 				</Button>
 			</footer>
@@ -123,9 +120,10 @@ const HeightIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 			</p>
 			<footer>
 				<Button
-					trackingId="IntegrationDisconnectCancel-Height"
+					kind="secondary"
 					className={styles.modalBtn}
 					onClick={() => {
+						analytics.track('Button-IntegrationDisconnectCancel-Height')
 						setModalOpen(false)
 						setIntegrationEnabled(true)
 					}}
@@ -133,11 +131,11 @@ const HeightIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationDisconnectSave-Height"
+					kind="danger"
 					className={styles.modalBtn}
-					type="primary"
-					danger
+					iconLeft={<PlugIcon className={styles.modalBtnIcon} />}
 					onClick={() => {
+						analytics.track('Button-IntegrationDisconnectSave-Height')
 						removeIntegration()
 							.then(() => {
 								toast.success(
@@ -151,7 +149,6 @@ const HeightIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 							})
 					}}
 				>
-					<PlugIcon className={styles.modalBtnIcon} />
 					Disconnect Height
 				</Button>
 			</footer>
@@ -211,65 +208,8 @@ export const HeightIntegrationSettings: React.FC<
 		settings.height_workspaces.map((w) => ({
 			id: w.id,
 			value: w.name,
-			displayValue: w.name,
+			name: w.name,
 		})) || []
-
-	const tableColumns = [
-		{
-			title: 'Highlight',
-			dataIndex: 'name',
-			key: 'name',
-			width: '35%',
-			render: (value: string) => {
-				return (
-					<div className="flex gap-2">
-						<div className="h-[20px] w-[20px]">
-							<SvgHighlightLogoOnLight width={20} height={20} />
-						</div>
-						<div
-							title={value}
-							className="max-w-[150px] overflow-hidden text-ellipsis break-normal"
-						>
-							{value}
-						</div>
-					</div>
-				)
-			},
-		},
-		{
-			title: 'Arrow',
-			render: () => <div className="justify-center">→</div>,
-		},
-		{
-			title: 'Height',
-			dataIndex: 'heightWorkspaces',
-			key: 'heightWorkspaces',
-			width: '55%',
-			render: (_: string, row: any) => {
-				const heightWorkspaceId = projectMap.get(row.id)
-				const selectedWorkspace = settings.height_workspaces.find(
-					(w) => w.id === heightWorkspaceId,
-				)
-				const value = {
-					id: selectedWorkspace?.id,
-					value: selectedWorkspace?.id,
-					label: selectedWorkspace?.name,
-				}
-				return (
-					<div className={styles.select}>
-						<Select
-							className="w-full"
-							value={value}
-							onChange={row.onUpdateProjectLink}
-							options={selectOptions}
-							placeholder="Height workspace"
-							allowClear
-						/>
-					</div>
-				)
-			},
-		},
-	]
 
 	const projectMappings: IntegrationProjectMappingInput[] = []
 	for (const [projectId, externalId] of projectMap.entries()) {
@@ -302,22 +242,59 @@ export const HeightIntegrationSettings: React.FC<
 				projects.
 			</p>
 			<div className="my-6">
-				<Card noPadding>
-					<Table
-						dataSource={highlightProjects}
-						columns={tableColumns}
-						pagination={false}
-						showHeader={false}
-						rowHasPadding
-						smallPadding
-					></Table>
+				<Card>
+					<Table noBorder>
+						<Table.Body>
+							{highlightProjects.map((project: any) => (
+								<Table.Row key={project.id}>
+									<Table.Cell style={{ width: '35%' }}>
+										<div className="flex gap-2">
+											<div className="h-[20px] w-[20px]">
+												<SvgHighlightLogoOnLight width={20} height={20} />
+											</div>
+											<div
+												title={project.name}
+												className="max-w-[150px] overflow-hidden text-ellipsis break-normal"
+											>
+												{project.name}
+											</div>
+										</div>
+									</Table.Cell>
+									<Table.Cell>
+										<div className="justify-center">→</div>
+									</Table.Cell>
+									<Table.Cell style={{ width: '55%' }}>
+										{(() => {
+											const heightWorkspaceId = projectMap.get(project.id)
+											const selectedWorkspace = settings.height_workspaces.find(
+												(w) => w.id === heightWorkspaceId,
+											)
+											const value = selectedWorkspace?.name
+											return (
+												<div className={styles.select}>
+													<Select
+														value={value}
+														onValueChange={(val: any) => project.onUpdateProjectLink(val?.name || val)}
+														options={selectOptions}
+														placeholder="Height workspace"
+														clearable
+													/>
+												</div>
+											)
+										})()}
+									</Table.Cell>
+								</Table.Row>
+							))}
+						</Table.Body>
+					</Table>
 				</Card>
 			</div>
 			<footer className="flex justify-end gap-2 pt-0">
 				<Button
-					trackingId="IntegrationConfigurationCancel-Height"
+					kind="secondary"
 					className={styles.modalBtn}
 					onClick={() => {
+						analytics.track('Button-IntegrationConfigurationCancel-Height')
 						onCancel && onCancel()
 						setModalOpen(false)
 					}}
@@ -325,16 +302,15 @@ export const HeightIntegrationSettings: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Height"
+					kind="primary"
 					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					onClick={onSave}
+					iconLeft={<Sparkles2Icon className={styles.modalBtnIcon} />}
+					onClick={() => {
+						analytics.track('Button-IntegrationConfigurationSave-Height')
+						onSave()
+					}}
 				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span>Update Settings</span>
-					</span>
+					<span>Update Settings</span>
 				</Button>
 			</footer>
 		</div>

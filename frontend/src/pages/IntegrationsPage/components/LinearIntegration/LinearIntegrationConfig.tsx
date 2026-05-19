@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@highlight-run/ui/components'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -9,6 +9,7 @@ import {
 	getLinearOAuthUrl,
 	useLinearIntegration,
 } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
 
@@ -29,9 +30,10 @@ const LinearIntegrationConfig: React.FC<
 				</p>
 				<footer>
 					<Button
-						trackingId="IntegrationDisconnectCancel-Slack"
+						kind="secondary"
 						className={styles.modalBtn}
 						onClick={() => {
+							analytics.track('Button-IntegrationDisconnectCancel-Slack')
 							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
@@ -39,17 +41,16 @@ const LinearIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-Slack"
+						kind="danger"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						iconLeft={<PlugIcon className={styles.modalBtnIcon} />}
 						onClick={() => {
+							analytics.track('Button-IntegrationDisconnectSave-Slack')
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeLinearIntegrationFromProject(project_id)
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect Linear
 					</Button>
 				</footer>
@@ -65,9 +66,10 @@ const LinearIntegrationConfig: React.FC<
 			</p>
 			<footer>
 				<Button
-					trackingId="IntegrationConfigurationCancel-Slack"
+					kind="secondary"
 					className={styles.modalBtn}
 					onClick={() => {
+						analytics.track('Button-IntegrationConfigurationCancel-Slack')
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
@@ -75,13 +77,15 @@ const LinearIntegrationConfig: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Slack"
+					kind="primary"
 					className={styles.modalBtn}
-					type="primary"
-					href={authUrl}
+					iconLeft={<AppsIcon className={styles.modalBtnIcon} />}
+					onClick={() => {
+						analytics.track('Button-IntegrationConfigurationSave-Slack')
+					}}
+					render={<a href={authUrl} />}
 				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Linear
+					Connect Highlight with Linear
 				</Button>
 			</footer>
 		</>
