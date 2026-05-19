@@ -1328,6 +1328,25 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}
 
 	async snapshot(element: HTMLCanvasElement) {
+		if (
+			 typeof ImageCapture !== 'undefined' &&
+			ImageCapture !== null
+		) {
+			try {
+				const track = element.captureStream?.()?.getVideoTracks()[0]
+				if (track) {
+					const capture = new ImageCapture(track)
+					const bitmap = await capture.grabFrame()
+					const ctx = element.getContext('2d')
+					if (ctx) {
+						ctx.drawImage(bitmap, 0, 0)
+						return
+					}
+				}
+			} catch (_) {
+				// fallback to rrweb snapshotCanvas
+			}
+		}
 		await record.snapshotCanvas(element)
 	}
 
