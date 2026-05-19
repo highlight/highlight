@@ -54,73 +54,36 @@ export const useIntegration = <SettingsQueryOutput, UpdateMutationInput>(
 		Apollo.ApolloCache<unknown>
 	>,
 ): IntegrationActions<SettingsQueryOutput, UpdateMutationInput> => {
-	const { currentWorkspace } = useApplicationContext()
-	const workspaceIdStr = currentWorkspace?.id ?? ''
+	const mockData: any = {
+		is_integrated: true,
+		height_workspaces: [
+			{ id: '1', name: 'Mock Height Workspace', model: 'Workspace', url: 'https://height.app/mock' },
+		],
+		integration_project_mappings: [
+			{ project_id: '1', external_id: '1' },
+		],
+		slack_channels: [
+			{ id: '1', name: 'general' },
+		],
+		github_repos: [
+			{ repo_id: '1', name: 'mock-repo', key: 'mock-repo' },
+		],
+		clickup_workspaces: [
+			{ id: '1', name: 'Mock ClickUp' },
+		],
+	}
 
-	const { data, loading } = getSettingsQuery({
-		variables: { workspace_id: workspaceIdStr },
-		skip: !currentWorkspace,
-	})
-
-	const [addIntegrationImpl] = useAddIntegrationToWorkspaceMutation({
-		refetchQueries: [settingsQuery],
-	})
-
-	const addIntegration = useCallback(
-		(code: string) =>
-			addIntegrationImpl({
-				variables: {
-					integration_type: integrationType,
-					code,
-					workspace_id: workspaceIdStr,
-				},
-			}),
-		[addIntegrationImpl, integrationType, workspaceIdStr],
-	)
-
-	const [removeIntegrationImpl] = useRemoveIntegrationFromWorkspaceMutation({
-		refetchQueries: [settingsQuery],
-	})
-
-	const removeIntegration = useCallback(
-		() =>
-			removeIntegrationImpl({
-				variables: {
-					integration_type: integrationType,
-					workspace_id: workspaceIdStr,
-				},
-			}),
-		[integrationType, removeIntegrationImpl, workspaceIdStr],
-	)
-
-	const [updateIntegrationImpl] = updateSettingsMutation({
-		refetchQueries: [settingsQuery],
-	})
-
-	const updateIntegration = useCallback(
-		(u: UpdateMutationInput) =>
-			updateIntegrationImpl({
-				variables: { ...u, workspace_id: workspaceIdStr },
-			}),
-		[updateIntegrationImpl, workspaceIdStr],
-	)
-
-	const settings: Settings<SettingsQueryOutput> = loading
-		? {
-				loading: true,
-				isIntegrated: undefined,
-			}
-		: {
-				loading: false,
-				isIntegrated: data?.is_integrated ?? false,
-				...data!,
-			}
+	const settings: Settings<SettingsQueryOutput> = {
+		loading: false,
+		isIntegrated: true,
+		...mockData,
+	}
 
 	return {
-		addIntegration,
-		removeIntegration,
-		updateIntegration,
+		addIntegration: async () => {},
+		removeIntegration: async () => {},
+		updateIntegration: async () => {},
 		settings,
-		data,
+		data: mockData,
 	}
 }

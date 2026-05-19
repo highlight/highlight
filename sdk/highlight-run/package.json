@@ -26,7 +26,7 @@
 	},
 	"scripts": {
 		"build": "yarn typegen && vite build && yarn build:umd",
-		"build:umd": "cp dist/index.umd.cjs dist/index.umd.js",
+		"build:umd": "node -e \"const fs = require('fs'); fs.copyFileSync('dist/index.umd.cjs', 'dist/index.umd.js')\"",
 		"build:watch": "vite build --watch",
 		"codegen": "graphql-codegen --config codegen.yml",
 		"dev": "run-p dev:server dev:watch",

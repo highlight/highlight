@@ -43,8 +43,8 @@
 	"scripts": {
 		"typegen": "tsc -d --emitDeclarationOnly",
 		"dev": "rm -rf .next && yarn watch:build & yarn build --watch",
-		"watch:build": "chokidar \"dist/next-client.d.ts\" -c \"sh ./bin/clean-dist.sh\"",
-		"build": "rollup --config rollup.config.js && sh bin/clean-dist.sh",
+		"watch:build": "chokidar \"dist/next-client.d.ts\" -c \"node ./bin/clean-dist.js\"",
+		"build": "rollup --config rollup.config.js && node bin/clean-dist.js",
 		"test": "vitest run",
 		"test:dev": "vitest"
 	},
