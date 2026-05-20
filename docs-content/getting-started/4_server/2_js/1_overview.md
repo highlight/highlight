@@ -33,6 +33,9 @@ updatedAt: 2022-04-01T19:52:59.000Z
     <DocsCard title="Next.js" href="../js/nextjs">
         {"Get started with Next.js"}
     </DocsCard>
+    <DocsCard title="SvelteKit" href="../js/sveltekit">
+        {"Get started with SvelteKit"}
+    </DocsCard>
     <DocsCard title="Node.js" href="../js/nodejs">
         {"Get started with Node.js"}
     </DocsCard>
