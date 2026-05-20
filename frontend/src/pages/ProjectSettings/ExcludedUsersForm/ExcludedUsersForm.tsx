@@ -1,9 +1,7 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
-import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
-import { Form, Stack } from '@highlight-run/ui/components'
+import { Form, Select, SelectOption, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
 
@@ -15,7 +13,7 @@ export const ExcludedUsersForm = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const [identifierQuery, setIdentifierQuery] = useState('')
+	const [, setIdentifierQuery] = useState('')
 	const [invalidExcludedUsers, setInvalidExcludedUsers] = useState<string[]>(
 		[],
 	)
@@ -43,18 +41,7 @@ export const ExcludedUsersForm = () => {
 
 	const identifierSuggestions = identifierSuggestionsLoading
 		? []
-		: (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
-				(suggestion) => ({
-					value: suggestion,
-					displayValue: (
-						<TextHighlighter
-							searchWords={[identifierQuery]}
-							textToHighlight={suggestion}
-						/>
-					),
-					id: suggestion,
-				}),
-			)
+		: identifierSuggestionsApiResponse?.identifier_suggestion || []
 
 	const handleIdentifierSearch = (query = '') => {
 		setIdentifierQuery(query)
@@ -77,18 +64,23 @@ export const ExcludedUsersForm = () => {
 						name="Filtered users"
 					>
 						<Select
-							mode="tags"
+							creatable
+							filterable
+							displayMode="tags"
 							placeholder=".*@yourdomain.com"
 							value={
 								data?.projectSettings?.excluded_users ||
 								undefined
 							}
-							onSearch={handleIdentifierSearch}
+							onSearchValueChange={handleIdentifierSearch}
 							options={identifierSuggestions}
-							onChange={(excluded: string[]) => {
+							onValueChange={(excluded: SelectOption[]) => {
+								const excludedValues = excluded.map(
+									(expression) => String(expression.value),
+								)
 								const validRegexes: string[] = []
 								const invalidRegexes: string[] = []
-								excluded.forEach((expression) => {
+								excludedValues.forEach((expression) => {
 									try {
 										new RegExp(expression)
 										validRegexes.push(expression)
@@ -97,16 +89,20 @@ export const ExcludedUsersForm = () => {
 									}
 								})
 								if (
-									excluded.length > 0 &&
+									excludedValues.length > 0 &&
 									invalidRegexes.length > 0 &&
-									excluded[excluded.length - 1] ===
+									excludedValues[
+										excludedValues.length - 1
+									] ===
 										invalidRegexes[
 											invalidRegexes.length - 1
 										]
 								) {
 									toast.error(
 										"'" +
-											excluded[excluded.length - 1] +
+											excludedValues[
+												excludedValues.length - 1
+											] +
 											"' is not a valid regular expression",
 										{ duration: 5000 },
 									)
