@@ -1,6 +1,11 @@
-import { LoadingBar } from '@components/Loading/Loading'
 import { toast } from '@components/Toaster'
-import { Select, type SelectOption, Stack } from '@highlight-run/ui/components'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
+import {
+	Box,
+	Select,
+	Stack,
+	type SelectOption,
+} from '@highlight-run/ui/components'
 
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
@@ -10,7 +15,7 @@ import styles from './ErrorFiltersForm.module.css'
 const isValidRegex = function (p: string) {
 	try {
 		new RegExp(p)
-	} catch (e: any) {
+	} catch {
 		toast.error(`Pattern \`${p}\` is not valid regex.`)
 		return false
 	}
@@ -25,7 +30,16 @@ export const ErrorFiltersForm = () => {
 	} = useProjectSettingsContext()
 
 	if (loading) {
-		return <LoadingBar />
+		return (
+			<Box
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				py="12"
+			>
+				<IconAnimatedLoading />
+			</Box>
+		)
 	}
 
 	return (

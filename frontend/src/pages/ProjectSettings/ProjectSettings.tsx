@@ -18,10 +18,7 @@ import { useNavigate } from 'react-router-dom'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import { Button } from '@/components/Button'
-import {
-	CircularSpinner,
-	LoadingRightPanel,
-} from '@/components/Loading/Loading'
+import { LoadingRightPanel } from '@/components/Loading/Loading'
 import {
 	useEditProjectSettingsMutation,
 	useGetProjectQuery,
@@ -173,18 +170,12 @@ const ProjectSettings = () => {
 												onClick={onSubmit(
 													'session replay',
 												)}
+												loading={
+													editProjectSettingsLoading
+												}
 												trackingId="ProjectSettingsUpdate"
 											>
-												{editProjectSettingsLoading ? (
-													<CircularSpinner
-														style={{
-															fontSize: 18,
-															color: 'var(--text-primary-inverted)',
-														}}
-													/>
-												) : (
-													'Save changes'
-												)}
+												Save changes
 											</Button>
 										</Box>
 										<ExcludedUsersForm />
@@ -212,18 +203,12 @@ const ProjectSettings = () => {
 												onClick={onSubmit(
 													'error monitoring',
 												)}
+												loading={
+													editProjectSettingsLoading
+												}
 												trackingId="ProjectSettingsUpdate"
 											>
-												{editProjectSettingsLoading ? (
-													<CircularSpinner
-														style={{
-															fontSize: 18,
-															color: 'var(--text-primary-inverted)',
-														}}
-													/>
-												) : (
-													'Save changes'
-												)}
+												Save changes
 											</Button>
 										</Box>
 										<BorderBox>

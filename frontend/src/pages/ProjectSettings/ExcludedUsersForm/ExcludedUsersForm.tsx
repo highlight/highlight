@@ -1,23 +1,65 @@
-import { LoadingBar } from '@components/Loading/Loading'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
 import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
 import {
+	Box,
 	Form,
 	Select,
 	type SelectOption,
 	Stack,
+	Text,
 } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
+import * as styles from './ExcludedUsersForm.css'
+
+const renderHighlightedSuggestion = (value: string, query: string) => {
+	if (!query) {
+		return value
+	}
+
+	const lowerValue = value.toLowerCase()
+	const lowerQuery = query.toLowerCase()
+	const parts: ReactNode[] = []
+	let startIndex = 0
+	let matchIndex = lowerValue.indexOf(lowerQuery, startIndex)
+
+	while (matchIndex !== -1) {
+		if (matchIndex > startIndex) {
+			parts.push(value.slice(startIndex, matchIndex))
+		}
+
+		const matchedText = value.slice(matchIndex, matchIndex + query.length)
+		parts.push(
+			<Text
+				key={`${matchIndex}-${parts.length}`}
+				as="mark"
+				cssClass={styles.highlightMatch}
+			>
+				{matchedText}
+			</Text>,
+		)
+
+		startIndex = matchIndex + query.length
+		matchIndex = lowerValue.indexOf(lowerQuery, startIndex)
+	}
+
+	if (startIndex < value.length) {
+		parts.push(value.slice(startIndex))
+	}
+
+	return <>{parts}</>
+}
 
 export const ExcludedUsersForm = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
+	const [identifierSearchQuery, setIdentifierSearchQuery] = useState('')
 	const [invalidExcludedUsers, setInvalidExcludedUsers] = useState<string[]>(
 		[],
 	)
@@ -40,7 +82,16 @@ export const ExcludedUsersForm = () => {
 	})
 
 	if (loading) {
-		return <LoadingBar />
+		return (
+			<Box
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				py="12"
+			>
+				<IconAnimatedLoading />
+			</Box>
+		)
 	}
 
 	const identifierSuggestions = identifierSuggestionsLoading
@@ -53,6 +104,7 @@ export const ExcludedUsersForm = () => {
 			)
 
 	const handleIdentifierSearch = (query = '') => {
+		setIdentifierSearchQuery(query)
 		refetchIdentifierSuggestions({ query, project_id })
 	}
 
@@ -79,6 +131,12 @@ export const ExcludedUsersForm = () => {
 							value={data?.projectSettings?.excluded_users || []}
 							resultsLoading={identifierSuggestionsLoading}
 							onSearchValueChange={handleIdentifierSearch}
+							renderOption={(option) =>
+								renderHighlightedSuggestion(
+									String(option.name),
+									identifierSearchQuery,
+								)
+							}
 							options={identifierSuggestions}
 							onValueChange={(excluded: SelectOption[]) => {
 								const excludedValues = excluded.map((option) =>
