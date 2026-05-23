@@ -1,7 +1,7 @@
 import { LoadingBar } from '@components/Loading/Loading'
+import { Box } from '@highlight-run/ui/components'
 import { useEffect, useState } from 'react'
 
-import BorderBox from '@/components/BorderBox/BorderBox'
 import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
@@ -38,7 +38,13 @@ export const FilterExtensionForm = () => {
 	return (
 		<>
 			{categories.map((c) => (
-				<BorderBox key={c.key}>
+				<Box
+					key={c.key}
+					border="dividerWeak"
+					borderRadius="8"
+					px="8"
+					py="12"
+				>
 					{ToggleRow(
 						c.key,
 						c.message,
@@ -59,7 +65,7 @@ export const FilterExtensionForm = () => {
 						},
 						false,
 					)}
-				</BorderBox>
+				</Box>
 			))}
 		</>
 	)

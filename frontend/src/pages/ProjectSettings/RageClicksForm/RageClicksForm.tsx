@@ -4,7 +4,6 @@ import { Box, Form, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 
-import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
@@ -45,7 +44,7 @@ export const RageClicksForm = () => {
 	}
 
 	return (
-		<BorderBox>
+		<Box border="dividerWeak" borderRadius="8" px="8" py="12">
 			<Form key={project_id}>
 				<Stack gap="8">
 					<BoxLabel
@@ -143,6 +142,6 @@ export const RageClicksForm = () => {
 					</Box>
 				</Stack>
 			</Form>
-		</BorderBox>
+		</Box>
 	)
 }
