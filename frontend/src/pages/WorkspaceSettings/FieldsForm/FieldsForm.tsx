@@ -1,5 +1,5 @@
-import Input from '@components/Input/Input'
-import { Tooltip } from '@highlight-run/ui/components'
+import { Button } from '@components/Button'
+import { Form, Tooltip } from '@highlight-run/ui/components'
 import { toast } from '@components/Toaster'
 import { useEditProjectMutation, useEditWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
@@ -7,8 +7,6 @@ import { useParams } from '@util/react-router/useParams'
 import React, { useState } from 'react'
 
 import commonStyles from '../../../Common.module.css'
-import Button from '../../../components/Button/Button/Button'
-import { CircularSpinner } from '../../../components/Loading/Loading'
 import styles from './FieldsForm.module.css'
 
 type Props = {
@@ -66,10 +64,10 @@ export const FieldsForm: React.FC<Props> = ({
 	}
 
 	return (
-		<form onSubmit={onSubmit} key={project_id}>
+		<Form onSubmit={onSubmit} key={project_id}>
 			<div className={styles.fieldRow}>
 				<label className={styles.fieldKey}>Name</label>
-				<Input
+				<Form.Input
 					name="name"
 					value={name}
 					onChange={(e) => {
@@ -83,7 +81,7 @@ export const FieldsForm: React.FC<Props> = ({
 					{' '}
 					<div className={styles.fieldRow}>
 						<label className={styles.fieldKey}>Billing Email</label>
-						<Input
+						<Form.Input
 							placeholder="Billing Email"
 							type="email"
 							name="email"
@@ -104,21 +102,14 @@ export const FieldsForm: React.FC<Props> = ({
 							trackingId={`${
 								isWorkspace ? 'Workspace' : 'Project'
 							}Update`}
-							htmlType="submit"
-							type="primary"
+							type="submit"
+							kind="primary"
+							emphasis="high"
 							className={commonStyles.submitButton}
 							disabled={formDisabled}
+							loading={editProjectLoading || editWorkspaceLoading}
 						>
-							{editProjectLoading || editWorkspaceLoading ? (
-								<CircularSpinner
-									style={{
-										fontSize: 18,
-										color: 'var(--text-primary-inverted)',
-									}}
-								/>
-							) : (
-								'Save changes'
-							)}
+							Save changes
 						</Button>
 					}
 				>
@@ -126,6 +117,6 @@ export const FieldsForm: React.FC<Props> = ({
 					contact your workspace admin.
 				</Tooltip>
 			</div>
-		</form>
+		</Form>
 	)
 }
