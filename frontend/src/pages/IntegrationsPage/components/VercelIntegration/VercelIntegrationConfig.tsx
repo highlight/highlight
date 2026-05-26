@@ -1,7 +1,5 @@
 import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
-import Input from '@components/Input/Input'
-import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
 import { toast } from '@components/Toaster'
 import {
@@ -10,6 +8,7 @@ import {
 } from '@context/AppLoadingContext'
 import { namedOperations } from '@graph/operations'
 import { VercelProjectMappingInput } from '@graph/schemas'
+import { Input, Select } from '@highlight-run/ui/components'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
@@ -237,15 +236,8 @@ export const VercelIntegrationSettings: React.FC<
 				highlightProjects.push({
 					...p,
 					vercelProjects: [],
-					onUpdateProjectLink: (vercelProjectNames: string[]) => {
-						projectMapSet(
-							p.id,
-							vercelProjectNames.map(
-								(n) =>
-									allVercelProjects?.find((p) => p.name === n)
-										?.id ?? '',
-							),
-						)
+					onUpdateProjectLink: (vercelProjectIds: string[]) => {
+						projectMapSet(p.id, vercelProjectIds)
 					},
 				})
 			}
@@ -265,11 +257,10 @@ export const VercelIntegrationSettings: React.FC<
 
 	const selectOptions = (
 		allVercelProjects?.map((p) => ({
-			id: p.id,
-			value: p.name,
-			displayValue: p.name,
+			name: p.name,
+			value: p.id,
 		})) || []
-	).filter((o) => !selectedOptions.includes(o.id))
+	).filter((o) => !selectedOptions.includes(o.value))
 
 	// If there's only one option available, default to that.
 	useEffect(() => {
@@ -287,20 +278,21 @@ export const VercelIntegrationSettings: React.FC<
 			width: '45%',
 			render: (_: string, row: any) => {
 				const vercelProjectIds = projectMap.get(row.id)
-				const opts = vercelProjectIds
-					?.map(
-						(i) => allVercelProjects?.find((j) => j.id === i)?.name,
-					)
-					.filter((i) => !!i)
 				return (
 					<div className={styles.select}>
 						<Select
 							className="w-full"
-							value={opts}
-							onChange={row.onUpdateProjectLink}
+							value={vercelProjectIds ?? []}
+							onValueChange={(
+								options: { value: string | number }[],
+							) =>
+								row.onUpdateProjectLink(
+									options.map((o) => String(o.value)),
+								)
+							}
 							options={selectOptions}
 							placeholder="Vercel project(s)"
-							mode="multiple"
+							displayMode="tags"
 						/>
 					</div>
 				)
@@ -324,7 +316,9 @@ export const VercelIntegrationSettings: React.FC<
 						{row.editable ? (
 							<>
 								<Input
-									className={styles.projectInput}
+									aria-label="Highlight project name"
+									cssClass={styles.projectInput}
+									name={`vercel-highlight-project-${row.id}`}
 									title={value}
 									value={value}
 									onChange={(e) => {
@@ -436,18 +430,11 @@ export const VercelIntegrationSettings: React.FC<
 											id: tId,
 											vercelProjects: [],
 											onUpdateProjectLink: (
-												vercelProjectNames: string[],
+												vercelProjectIds: string[],
 											) => {
 												projectMapSet(
 													tId,
-													vercelProjectNames.map(
-														(n) =>
-															allVercelProjects?.find(
-																(p) =>
-																	p.name ===
-																	n,
-															)?.id ?? '',
-													),
+													vercelProjectIds,
 												)
 											},
 										},
