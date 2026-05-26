@@ -1,5 +1,4 @@
 import { Button } from '@components/Button'
-import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
 import {
 	useDeleteErrorAlertMutation,
@@ -17,6 +16,7 @@ import {
 	IconSolidCheveronUp,
 	IconSolidBell,
 	Menu,
+	Select,
 	Stack,
 	Tag,
 	Text,
@@ -48,6 +48,13 @@ import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitl
 import analytics from '@/util/analytics'
 
 import * as styles from './styles.css'
+
+type RegexGroupValue = string | { value: string | number }
+
+const selectValuesToStrings = (values: RegexGroupValue[] = []) =>
+	values.map((value) =>
+		typeof value === 'string' ? value : String(value.value),
+	)
 
 export const ErrorAlertPage = () => {
 	const [queryParam] = useQueryParam('query', StringParam)
@@ -388,6 +395,7 @@ type ErrorAlertFormProps = {
 const ErrorAlertForm = ({ hideRegexExpression }: ErrorAlertFormProps) => {
 	const formStore = Form.useContext() as FormState<ErrorAlertFormItem>
 	const errors = formStore.useState('errors')
+	const regexGroups = formStore.getValue(formStore.names.regex_groups) ?? []
 
 	const { presets } = useRetentionPresets(ProductType.Errors)
 	const initialPreset = presets?.at(5) ?? presets?.at(-1)
@@ -437,17 +445,17 @@ const ErrorAlertForm = ({ hideRegexExpression }: ErrorAlertFormProps) => {
 							<Select
 								aria-label="Regex Patterns to Ignore list"
 								placeholder={`Input any valid regex, like: \\d{5}(-\\d{4})?, Hello\\nworld, [b-chm-pP]at|ot`}
-								onChange={(values: any): any =>
+								creatable
+								displayMode="tags"
+								filterable
+								options={regexGroups}
+								onValueChange={(values: RegexGroupValue[]) =>
 									formStore.setValue(
 										formStore.names.regex_groups,
-										values,
+										selectValuesToStrings(values),
 									)
 								}
-								className={styles.selectContainer}
-								mode="tags"
-								value={formStore.getValue(
-									formStore.names.regex_groups,
-								)}
+								value={regexGroups}
 							/>
 						</Form.NamedSection>
 					)}
