@@ -53,6 +53,8 @@ export enum NewIntegrationIssueType {
 	LinkIssue = 'link_issue',
 }
 
+export type IntegrationCategory = 'issue_tracker' | 'communication' | 'deployment' | 'automation' | 'analytics';
+
 export interface Integration {
 	key: string
 	name: string
@@ -72,7 +74,7 @@ export interface Integration {
 	hasSettings: boolean
 	modalWidth?: number
 	docs?: string
-}
+	category: IntegrationCategory
 
 export const SLACK_INTEGRATION: Integration = {
 	key: 'slack',
@@ -81,6 +83,7 @@ export const SLACK_INTEGRATION: Integration = {
 	description:
 		'Bring your highlight.io comments and alerts to Slack as messages.',
 	icon: SlackLogo,
+	category: 'communication',
 	configurationPage: (opts) => <SlackIntegrationConfig {...opts} />,
 	hasSettings: false,
 }
@@ -91,6 +94,7 @@ export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
 	configurationPath: 'microsoft_teams',
 	description: 'Receive highlight.io alerts via Microsoft Teams messages.',
 	icon: MicrosoftTeamsLogo,
+	category: 'communication',
 	configurationPage: (opts) => <MicrosoftTeamsIntegrationConfig {...opts} />,
 	hasSettings: false,
 }
@@ -101,6 +105,7 @@ export const HEROKU_INTEGRATION: Integration = {
 	configurationPath: 'heroku',
 	description: 'Setup a Heroku Log Drain.',
 	icon: HerokuLogo,
+	category: 'deployment',
 	configurationPage: (opts) => <HerokuIntegrationConfig {...opts} />,
 	hasSettings: false,
 }
@@ -111,6 +116,7 @@ export const CLOUDFLARE_INTEGRATION: Integration = {
 	configurationPath: 'cloudflare',
 	description: 'Setup a Cloudflare Proxy.',
 	icon: CloudflareLogo,
+	category: 'deployment',
 	configurationPage: (opts) => <CloudflareIntegrationConfig {...opts} />,
 	hasSettings: true,
 	modalWidth: VercelSettingsModalWidth,
@@ -122,6 +128,7 @@ export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
 	configurationPath: 'linear',
 	description: 'Bring your highlight.io comments to Linear as issues.',
 	icon: LinearLogo,
+	category: 'issue_tracker',
 	configurationPage: (opts) => <LinearIntegrationConfig {...opts} />,
 	hasSettings: false,
 	containerLabel: 'team',
@@ -136,6 +143,7 @@ export const JIRA_INTEGRATION: IssueTrackerIntegration = {
 	configurationPath: 'jira',
 	description: 'Bring your highlight.io comments to Jira as issues.',
 	icon: JiraLogo,
+	category: 'issue_tracker',
 	configurationPage: (opts) => <JiraIntegrationConfig {...opts} />,
 	hasSettings: false,
 	containerLabel: 'team',
@@ -150,6 +158,7 @@ export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
 	configurationPath: 'gitlab',
 	description: 'Bring your highlight.io comments to GitLab as issues.',
 	icon: GitlabLogo,
+	category: 'issue_tracker',
 	configurationPage: (opts) => <GitlabIntegrationConfig {...opts} />,
 	hasSettings: false,
 	containerLabel: 'team',
@@ -165,6 +174,7 @@ export const ZAPIER_INTEGRATION: Integration = {
 	onlyShowForHighlightAdmin: true,
 	description: 'Use highlight.io alerts to trigger a Zap.',
 	icon: ZapierLogo,
+	category: 'automation',
 	configurationPage: (opts) => <ZapierIntegrationConfig {...opts} />,
 	hasSettings: false,
 }
@@ -175,6 +185,7 @@ export const CLEARBIT_INTEGRATION: Integration = {
 	configurationPath: 'clearbit',
 	description: 'Collect enhanced user analytics.',
 	icon: ClearbitLogo,
+	category: 'analytics',
 	configurationPage: (opts) => <ClearbitIntegrationConfig {...opts} />,
 	hasSettings: false,
 }
@@ -184,6 +195,7 @@ export const VERCEL_INTEGRATION: Integration = {
 	name: 'Vercel',
 	configurationPath: 'vercel',
 	description: 'Configuration for your Vercel projects.',
+	category: 'deployment',
 	configurationPage: (opts) => <VercelIntegrationConfig {...opts} />,
 	icon: VercelLogo,
 	noRoundedIcon: true,
@@ -197,6 +209,7 @@ export const DISCORD_INTEGRATION: Integration = {
 	configurationPath: 'discord',
 	description: 'Bring your highlight.io alerts to Discord as messages.',
 	icon: DiscordLogo,
+	category: 'communication',
 	configurationPage: (opts) => <DiscordIntegrationConfig {...opts} />,
 	hasSettings: false,
 }
@@ -206,6 +219,7 @@ export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
 	name: 'ClickUp',
 	configurationPath: 'clickup',
 	description: 'Create ClickUp tasks from your highlight.io comments.',
+	category: 'issue_tracker',
 	configurationPage: (opts) => <ClickUpIntegrationConfig {...opts} />,
 	icon: ClickupLogo,
 	hasSettings: true,
@@ -221,6 +235,7 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 	name: 'Height',
 	configurationPath: 'height',
 	description: 'Create Height tasks from your highlight.io comments.',
+	category: 'issue_tracker',
 	configurationPage: (opts) => <HeightIntegrationConfig {...opts} />,
 	icon: HeightLogo,
 	hasSettings: true,
@@ -237,6 +252,7 @@ export const GITHUB_INTEGRATION: IssueTrackerIntegration = {
 	configurationPath: 'github',
 	description:
 		'Create GitHub issues from comments and enhance your stacktraces.',
+	category: 'issue_tracker',
 	configurationPage: (opts) => <GitHubIntegrationConfig {...opts} />,
 	icon: GitHubLogo,
 	hasSettings: false,

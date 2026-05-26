@@ -1,9 +1,101 @@
-.integrationsContainer {
-	display: grid;
-	grid-gap: var(--size-large);
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+.pageLayout {
+	max-width: 100%;
 }
-.modalBtn {
-	padding-bottom: 4px !important;
-	padding-top: 4px !important;
+
+.pageHeader {
+	margin-bottom: var(--size-large);
+}
+
+.pageHeader h2 {
+	font-size: 24px;
+	font-weight: 600;
+	margin-bottom: 4px !important;
+}
+
+.pageSubtitle {
+	color: var(--color-gray-500);
+	font-size: 15px;
+	margin-bottom: 0 !important;
+}
+
+.integrationCount {
+	color: var(--color-gray-500);
+	font-size: 13px;
+	margin-top: 4px !important;
+}
+
+.searchContainer {
+	margin-bottom: var(--size-large);
+	max-width: 400px;
+}
+
+.searchInput {
+	background: var(--color-gray-200) !important;
+	border: 1px solid transparent !important;
+	border-radius: 8px !important;
+	color: var(--text-primary) !important;
+	font-size: 14px !important;
+	padding: 10px 14px !important;
+	width: 100%;
+	transition: all 0.15s ease-in-out;
+	outline: none;
+}
+
+.searchInput::placeholder {
+	color: var(--color-gray-500) !important;
+}
+
+.searchInput:focus {
+	background: var(--color-primary-background) !important;
+	border-color: var(--color-purple) !important;
+	box-shadow: 0 0 0 3px rgba(86, 41, 198, 0.15) !important;
+}
+
+.categorySection {
+	margin-bottom: var(--size-xLarge);
+}
+
+.categoryHeader {
+	display: flex;
+	align-items: center;
+	gap: var(--size-small);
+	margin-bottom: var(--size-medium);
+}
+
+.categoryIcon {
+	font-size: 18px;
+}
+
+.categoryTitle {
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--text-primary);
+	margin-bottom: 0 !important;
+}
+
+.categoryCount {
+	font-size: 12px;
+	color: var(--color-gray-500);
+	background: var(--color-gray-200);
+	border-radius: 10px;
+	padding: 2px 8px;
+	margin-left: 4px;
+}
+
+.integrationsGrid {
+	display: grid;
+	gap: var(--size-medium);
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.noResults {
+	grid-column: 1 / -1;
+	text-align: center;
+	padding: var(--size-xxLarge) 0;
+	color: var(--color-gray-500);
+	font-size: 14px;
+}
+
+.noResults strong {
+	color: var(--text-primary);
 }
