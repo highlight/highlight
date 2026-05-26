@@ -16,7 +16,7 @@ import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
@@ -24,8 +24,18 @@ import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/Gitlab
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
 
+import { IntegrationCategory } from '@pages/IntegrationsPage/Integrations'
+
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import styles from './IntegrationsPage.module.css'
+
+const CATEGORY_LABELS: Record<IntegrationCategory, { label: string; icon: string }> = {
+	issue_tracker: { label: 'Issue Trackers', icon: '🎯' },
+	communication: { label: 'Communication', icon: '💬' },
+	deployment: { label: 'Deployment', icon: '🚀' },
+	automation: { label: 'Automation', icon: '⚡' },
+	analytics: { label: 'Analytics', icon: '📊' },
+}
 
 const IntegrationsPage = () => {
 	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
@@ -116,8 +126,10 @@ const IntegrationsPage = () => {
 		loadingHeroku ||
 		loadingCloudflare
 
+	const [searchQuery, setSearchQuery] = useState('')
+
 	const integrations = useMemo(() => {
-		return INTEGRATIONS.filter((integration) => {
+		const filtered = INTEGRATIONS.filter((integration) => {
 			if (
 				integration.allowlistWorkspaceIds ||
 				integration.onlyShowForHighlightAdmin
@@ -160,6 +172,16 @@ const IntegrationsPage = () => {
 				(inter.key === 'cloudflare' &&
 					isCloudflareConnectedToWorkspace),
 		}))
+
+		if (!searchQuery.trim()) return filtered
+
+		const query = searchQuery.toLowerCase()
+		return filtered.filter(
+			(i) =>
+				i.name.toLowerCase().includes(query) ||
+				i.description.toLowerCase().includes(query) ||
+				i.key.toLowerCase().includes(query),
+		)
 	}, [
 		currentWorkspace?.id,
 		isHighlightAdmin,
@@ -177,7 +199,36 @@ const IntegrationsPage = () => {
 		isGitlabIntegratedWithProject,
 		isHerokuConnectedToWorkspace,
 		isCloudflareConnectedToWorkspace,
+		searchQuery,
 	])
+
+	const groupedIntegrations = useMemo(() => {
+		const groups: Record<string, typeof integrations> = {}
+		const categories: IntegrationCategory[] = [
+			'issue_tracker',
+			'communication',
+			'deployment',
+			'automation',
+			'analytics',
+		]
+
+		for (const cat of categories) {
+			const items = integrations.filter((i) => i.category === cat)
+			if (items.length > 0) {
+				groups[cat] = items
+			}
+		}
+
+		return groups
+	}, [integrations])
+
+	const categoryOrder: IntegrationCategory[] = [
+		'issue_tracker',
+		'communication',
+		'deployment',
+		'automation',
+		'analytics',
+	]
 
 	useEffect(() => analytics.page('Integrations'), [])
 
@@ -186,25 +237,94 @@ const IntegrationsPage = () => {
 			<Helmet>
 				<title>Integrations</title>
 			</Helmet>
-			<LeadAlignLayout>
-				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
-					Supercharge your workflows and attach Highlight with the
-					tools you use everyday.
-				</p>
-				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) => (
-						<Integration
-							integration={integration}
-							key={integration.key}
-							showModalDefault={popUpModal === integration.key}
-							showSettingsDefault={
-								configureIntegration === integration.key
-							}
-							loading={loading}
-						/>
-					))}
+			<LeadAlignLayout fullWidth className={styles.pageLayout}>
+				<div className={styles.pageHeader}>
+					<h2>Integrations</h2>
+					<p className={styles.pageSubtitle}>
+						Supercharge your workflows and connect Highlight with
+						the tools you use everyday.
+					</p>
+					<p className={styles.integrationCount}>
+						{integrations.length} integration
+						{integrations.length !== 1 ? 's' : ''} available
+					</p>
 				</div>
+
+				<div className={styles.searchContainer}>
+					<input
+						type="text"
+						className={styles.searchInput}
+						placeholder="Search integrations..."
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+					/>
+				</div>
+
+				{searchQuery.trim() ? (
+					<div className={styles.integrationsGrid}>
+						{integrations.length > 0 ? (
+							integrations.map((integration) => (
+								<Integration
+									integration={integration}
+									key={integration.key}
+									showModalDefault={
+										popUpModal === integration.key
+									}
+									showSettingsDefault={
+										configureIntegration ===
+										integration.key
+									}
+									loading={loading}
+								/>
+							))
+						) : (
+							<div className={styles.noResults}>
+								No integrations found for{' '}
+								<strong>"{searchQuery}"</strong>
+							</div>
+						)}
+					</div>
+				) : (
+					categoryOrder.map((cat) => {
+						const items = groupedIntegrations[cat]
+						if (!items) return null
+						const info = CATEGORY_LABELS[cat]
+						return (
+							<div
+								key={cat}
+								className={styles.categorySection}
+							>
+								<div className={styles.categoryHeader}>
+									<span className={styles.categoryIcon}>
+										{info.icon}
+									</span>
+									<h3 className={styles.categoryTitle}>
+										{info.label}
+									</h3>
+									<span className={styles.categoryCount}>
+										{items.length}
+									</span>
+								</div>
+								<div className={styles.integrationsGrid}>
+									{items.map((integration) => (
+										<Integration
+											integration={integration}
+											key={integration.key}
+											showModalDefault={
+												popUpModal === integration.key
+											}
+											showSettingsDefault={
+												configureIntegration ===
+												integration.key
+											}
+											loading={loading}
+										/>
+									))}
+								</div>
+							</div>
+						)
+					})
+				)}
 			</LeadAlignLayout>
 		</>
 	)

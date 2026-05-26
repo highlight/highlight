@@ -75,16 +75,24 @@ const Integration = ({
 
 	return (
 		<>
-			<Card className={styles.integration} interactable>
+			<div className={styles.integrationCard} onClick={() => {
+				if (!integrationEnabled) {
+					const newValue = true
+					setShowConfiguration(true)
+					setIntegrationEnabled(newValue)
+				}
+			}}>
 				<div className={styles.header}>
-					<img
-						src={icon}
-						alt=""
-						className={clsx(styles.logo, {
-							['rounded-none']: noRoundedIcon,
-						})}
-					/>
-					<div className="flex flex-col gap-2">
+					<div className={styles.logoWrapper}>
+						<img
+							src={icon}
+							alt={name}
+							className={clsx(styles.logo, {
+								[styles.rounded]: !noRoundedIcon,
+							})}
+						/>
+					</div>
+					<div className={styles.controls}>
 						{isGated ? (
 							<EnterpriseFeatureButton
 								setting={enterpriseSetting}
@@ -115,6 +123,7 @@ const Integration = ({
 									}
 									size="default"
 									checked={integrationEnabled}
+									onClick={(e: any) => e.stopPropagation()}
 								/>
 							</EnterpriseFeatureButton>
 						) : (
@@ -144,36 +153,36 @@ const Integration = ({
 							/>
 						)}
 						{hasSettings && (
-							<div className="flex h-[18px] w-full justify-end">
-								<Button
-									trackingId="IntegrationSettings"
-									iconButton
-									onClick={() => {
-										setShowUpdateSettings(true)
-									}}
-									disabled={!integrationEnabled}
-								>
-									<SettingsIcon />
-								</Button>
-							</div>
+							<Button
+								trackingId="IntegrationSettings"
+								iconButton
+								onClick={(e: any) => {
+									e.stopPropagation()
+									setShowUpdateSettings(true)
+								}}
+								disabled={!integrationEnabled}
+							>
+								<SettingsIcon />
+							</Button>
 						)}
 					</div>
 				</div>
-				<div>
+				<div className={styles.content}>
 					<h2 className={styles.title}>{name}</h2>
 					<p className={styles.description}>{description}</p>
 					{docs && (
 						<a
-							className={styles.description}
+							className={styles.docsLink}
 							href={docs}
 							target="_blank"
 							rel="noopener noreferrer"
+							onClick={(e: any) => e.stopPropagation()}
 						>
-							Learn more about the integration.
+							Learn more &rarr;
 						</a>
 					)}
 				</div>
-			</Card>
+			</div>
 
 			<IntegrationModal
 				width={modalWidth}
