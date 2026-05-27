@@ -1,5 +1,4 @@
 import { Button } from '@components/Button'
-import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
 import {
 	useDeleteSessionAlertMutation,
@@ -18,6 +17,7 @@ import {
 	IconSolidCheveronUp,
 	IconSolidBell,
 	Menu,
+	Select,
 	Stack,
 	SwitchButton,
 	Tag,
@@ -39,7 +39,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import LoadingBox from '@/components/LoadingBox'
-import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
 import { namedOperations } from '@/graph/generated/operations'
 import { SessionAlertInput, SessionAlertType } from '@/graph/generated/schemas'
 import {
@@ -55,6 +54,25 @@ import analytics from '@/util/analytics'
 import * as styles from './styles.css'
 
 const SEPARATOR = ':$&'
+
+const selectValuesToStrings = (values: unknown): string[] => {
+	if (!Array.isArray(values)) {
+		return []
+	}
+
+	return values.map((value) => {
+		if (
+			value &&
+			typeof value === 'object' &&
+			'value' in value &&
+			value.value !== undefined
+		) {
+			return String(value.value)
+		}
+
+		return String(value)
+	})
+}
 
 const SessionAlertOptions = [
 	{ title: 'New Session', value: SessionAlertType.NewSessionAlert },
@@ -498,12 +516,9 @@ const SessionAlertForm = ({
 		(alertsPayload?.environment_suggestion ??
 			[]) as EnvironmentSuggestion[],
 	).map((environmentSuggestion) => ({
-		displayValue: environmentSuggestion,
+		name: environmentSuggestion,
 		value: environmentSuggestion,
-		id: environmentSuggestion,
 	}))
-
-	const [identifierQuery, setIdentifierQuery] = useState('')
 
 	const {
 		refetch: refetchIdentifierSuggestions,
@@ -522,18 +537,11 @@ const SessionAlertForm = ({
 		: (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
 				(suggestion) => ({
 					value: suggestion,
-					displayValue: (
-						<TextHighlighter
-							searchWords={[identifierQuery]}
-							textToHighlight={suggestion}
-						/>
-					),
-					id: suggestion,
+					name: suggestion,
 				}),
 			)
 
 	const handleIdentifierSearch = (query = '') => {
-		setIdentifierQuery(query)
 		refetchIdentifierSuggestions({ query, project_id: project_id })
 	}
 
@@ -593,21 +601,22 @@ const SessionAlertForm = ({
 							>
 								<Select
 									aria-label="Excluded identifiers list"
-									notFoundContent={
-										<p>No identifier suggestions</p>
-									}
-									onSearch={handleIdentifierSearch}
+									creatable
+									displayMode="tags"
+									filterable
+									onSearchValueChange={handleIdentifierSearch}
 									options={identifierSuggestions}
-									mode="tags"
 									placeholder="Select a identifier(s) that should not trigger alerts."
-									onChange={(values: any): any => {
+									resultsLoading={
+										identifierSuggestionsLoading
+									}
+									onValueChange={(values) => {
 										handleIdentifierSearch('')
 										formStore.setValue(
 											formStore.names.excludeRules,
-											values,
+											selectValuesToStrings(values),
 										)
 									}}
-									className={styles.selectContainer}
 									value={formStore.getValue(
 										formStore.names.excludeRules,
 									)}
@@ -621,13 +630,12 @@ const SessionAlertForm = ({
 								name={formStore.names.userProperties}
 							>
 								<Select
-									className={styles.selectContainer}
-									mode="multiple"
+									displayMode="tags"
 									placeholder="Pick the user properties that you would like to get alerted for."
-									onChange={(values: any): any =>
+									onValueChange={(values) =>
 										formStore.setValue(
 											formStore.names.userProperties,
-											values,
+											selectValuesToStrings(values),
 										)
 									}
 									value={formStore.getValue(
@@ -642,13 +650,12 @@ const SessionAlertForm = ({
 								name={formStore.names.trackProperties}
 							>
 								<Select
-									className={styles.selectContainer}
-									mode="multiple"
+									displayMode="tags"
 									placeholder="Pick the track properties that you would like to get alerted for."
-									onChange={(values: any): any =>
+									onValueChange={(values) =>
 										formStore.setValue(
 											formStore.names.trackProperties,
-											values,
+											selectValuesToStrings(values),
 										)
 									}
 									value={formStore.getValue(
@@ -677,15 +684,14 @@ const SessionAlertForm = ({
 							aria-label="Excluded environments list"
 							placeholder="Select excluded environments"
 							options={environments}
-							onChange={(values: any): any =>
+							displayMode="tags"
+							filterable
+							onValueChange={(values) =>
 								formStore.setValue(
 									formStore.names.excludedEnvironments,
-									values,
+									selectValuesToStrings(values),
 								)
 							}
-							notFoundContent={<p>No environment suggestions</p>}
-							className={styles.selectContainer}
-							mode="multiple"
 							value={formStore.getValue(
 								formStore.names.excludedEnvironments,
 							)}
