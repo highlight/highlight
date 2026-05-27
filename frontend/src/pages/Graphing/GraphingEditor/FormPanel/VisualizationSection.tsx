@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Input, Select, Text } from '@highlight-run/ui/components'
-import { Divider } from 'antd'
+import { Box } from '@highlight-run/ui/components'
 
 import { useProjectId } from '@/hooks/useProjectId'
 import { useGraphingEditorContext } from '@/pages/Graphing/GraphingEditor/GraphingEditorContext'
@@ -102,7 +102,7 @@ export const VisualizationSection: React.FC<Props> = ({ isPreview }) => {
 					disabled={isPreview}
 				/>
 			</LabeledRow>
-			<Divider className="m-0" />
+			<Box borderBottom="divider" width="full" />
 			<Text weight="bold">Visualization</Text>
 			<LabeledRow label="View type" name="viewType">
 				<OptionDropdown

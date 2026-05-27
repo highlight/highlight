@@ -1,12 +1,20 @@
-import { ConfigProvider, Table } from 'antd'
-import { ColumnsType } from 'antd/es/table'
+import Table from '@components/Table/Table'
 import React from 'react'
 
 import EmptyCardPlaceholder from '../../pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
 import styles from './ProgressBarTable.module.css'
 
+type Column = {
+	title?: string
+	dataIndex?: string
+	key?: string
+	render?: (value: any, record: any, index: number) => React.ReactNode
+	width?: number | string
+	sorter?: (a: any, b: any) => number
+}
+
 interface Props {
-	columns: ColumnsType<any>
+	columns: Column[]
 	data: any[]
 	onClickHandler: (record: any) => void
 	/** The string shown to the user when the table has no data. */
@@ -24,18 +32,9 @@ const ProgressBarTable = ({
 	loading,
 }: Props) => {
 	return (
-		<ConfigProvider
-			renderEmpty={() => (
-				<EmptyCardPlaceholder
-					message={noDataMessage}
-					title={noDataTitle}
-				/>
-			)}
-		>
+		<div className={styles.table}>
 			<Table
-				className={styles.table}
 				loading={loading}
-				scroll={{ y: 287 }}
 				showHeader={false}
 				columns={columns}
 				dataSource={data}
@@ -45,8 +44,14 @@ const ProgressBarTable = ({
 						onClickHandler(record)
 					},
 				})}
+				renderEmptyComponent={
+					<EmptyCardPlaceholder
+						message={noDataMessage}
+						title={noDataTitle}
+					/>
+				}
 			/>
-		</ConfigProvider>
+		</div>
 	)
 }
 

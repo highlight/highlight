@@ -60,7 +60,7 @@
 	"[scss]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
-	"editor.hover.enabled": true,
+	"editor.hover.enabled": "on",
 	"editor.colorDecorators": true,
 	"[typescriptreact]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
