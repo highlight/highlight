@@ -51,28 +51,10 @@ import AlertNotifyForm from '@/pages/Alerts/components/AlertNotifyForm/AlertNoti
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
 import analytics from '@/util/analytics'
 
+import { selectValuesToStrings } from './selectUtils'
 import * as styles from './styles.css'
 
 const SEPARATOR = ':$&'
-
-const selectValuesToStrings = (values: unknown): string[] => {
-	if (!Array.isArray(values)) {
-		return []
-	}
-
-	return values.map((value) => {
-		if (
-			value &&
-			typeof value === 'object' &&
-			'value' in value &&
-			value.value !== undefined
-		) {
-			return String(value.value)
-		}
-
-		return String(value)
-	})
-}
 
 const SessionAlertOptions = [
 	{ title: 'New Session', value: SessionAlertType.NewSessionAlert },
@@ -130,7 +112,7 @@ export const SessionAlertPage = () => {
 			formStore.setValues({
 				name: alert.Name ?? '',
 				belowThreshold: false,
-				excludedEnvironments: alert.ExcludedEnvironments,
+				excludedEnvironments: alert.ExcludedEnvironments ?? [],
 				slackChannels: alert.ChannelsToNotify.map((c: any) => ({
 					...c,
 					webhook_channel_name: c.webhook_channel,
@@ -160,15 +142,17 @@ export const SessionAlertPage = () => {
 				threshold: alert.CountThreshold,
 				frequency: getFrequencyOption(alert.Frequency).value,
 				threshold_window: alert.ThresholdWindow,
-				userProperties: alert.UserProperties?.map(
-					(userProperty: any) =>
-						getPropertiesOption(userProperty).value,
-				),
-				trackProperties: alert.TrackProperties?.map(
-					(trackProperty: any) =>
-						getPropertiesOption(trackProperty).value,
-				),
-				excludeRules: alert.ExcludeRules,
+				userProperties:
+					alert.UserProperties?.map(
+						(userProperty: any) =>
+							getPropertiesOption(userProperty).value,
+					) ?? [],
+				trackProperties:
+					alert.TrackProperties?.map(
+						(trackProperty: any) =>
+							getPropertiesOption(trackProperty).value,
+					) ?? [],
+				excludeRules: alert.ExcludeRules ?? [],
 				type: alertType,
 				loaded: true,
 			})
@@ -617,9 +601,11 @@ const SessionAlertForm = ({
 											selectValuesToStrings(values),
 										)
 									}}
-									value={formStore.getValue(
-										formStore.names.excludeRules,
-									)}
+									value={
+										formStore.getValue(
+											formStore.names.excludeRules,
+										) ?? []
+									}
 								/>
 							</Form.NamedSection>
 						)}
@@ -638,9 +624,11 @@ const SessionAlertForm = ({
 											selectValuesToStrings(values),
 										)
 									}
-									value={formStore.getValue(
-										formStore.names.userProperties,
-									)}
+									value={
+										formStore.getValue(
+											formStore.names.userProperties,
+										) ?? []
+									}
 								/>
 							</Form.NamedSection>
 						)}
@@ -658,9 +646,11 @@ const SessionAlertForm = ({
 											selectValuesToStrings(values),
 										)
 									}
-									value={formStore.getValue(
-										formStore.names.trackProperties,
-									)}
+									value={
+										formStore.getValue(
+											formStore.names.trackProperties,
+										) ?? []
+									}
 								/>
 							</Form.NamedSection>
 						)}
@@ -692,9 +682,11 @@ const SessionAlertForm = ({
 									selectValuesToStrings(values),
 								)
 							}
-							value={formStore.getValue(
-								formStore.names.excludedEnvironments,
-							)}
+							value={
+								formStore.getValue(
+									formStore.names.excludedEnvironments,
+								) ?? []
+							}
 						/>
 					</Form.NamedSection>
 				</Stack>
