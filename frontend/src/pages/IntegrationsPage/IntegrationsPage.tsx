@@ -16,7 +16,7 @@ import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
@@ -179,6 +179,18 @@ const IntegrationsPage = () => {
 		isCloudflareConnectedToWorkspace,
 	])
 
+	const [searchQuery, setSearchQuery] = useState('')
+
+	const filteredIntegrations = useMemo(() => {
+		if (!searchQuery.trim()) return integrations
+		const q = searchQuery.toLowerCase()
+		return integrations.filter(
+			(integration) =>
+				integration.name.toLowerCase().includes(q) ||
+				integration.description?.toLowerCase().includes(q),
+		)
+	}, [integrations, searchQuery])
+
 	useEffect(() => analytics.page('Integrations'), [])
 
 	return (
@@ -187,23 +199,44 @@ const IntegrationsPage = () => {
 				<title>Integrations</title>
 			</Helmet>
 			<LeadAlignLayout>
-				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
-					Supercharge your workflows and attach Highlight with the
-					tools you use everyday.
-				</p>
+				<div className={styles.pageHeader}>
+					<div>
+						<h2 className={styles.pageTitle}>Integrations</h2>
+						<p className={layoutStyles.subTitle}>
+							Supercharge your workflows and attach Highlight with
+							the tools you use everyday.
+						</p>
+					</div>
+					<input
+						type="text"
+						className={styles.searchInput}
+						placeholder="Search integrations..."
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+					/>
+				</div>
 				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) => (
-						<Integration
-							integration={integration}
-							key={integration.key}
-							showModalDefault={popUpModal === integration.key}
-							showSettingsDefault={
-								configureIntegration === integration.key
-							}
-							loading={loading}
-						/>
-					))}
+					{filteredIntegrations.length > 0 ? (
+						filteredIntegrations.map((integration) => (
+							<Integration
+								integration={integration}
+								key={integration.key}
+								showModalDefault={
+									popUpModal === integration.key
+								}
+								showSettingsDefault={
+									configureIntegration === integration.key
+								}
+								loading={loading}
+							/>
+						))
+					) : (
+						<div className={styles.emptyState}>
+							{searchQuery
+								? `No integrations found matching "${searchQuery}".`
+								: 'No integrations available.'}
+						</div>
+					)}
 				</div>
 			</LeadAlignLayout>
 		</>
