@@ -1,9 +1,52 @@
-.integrationsContainer {
-	display: grid;
-	grid-gap: var(--size-large);
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+.header {
+	margin-bottom: var(--size-xLarge);
 }
-.modalBtn {
-	padding-bottom: 4px !important;
-	padding-top: 4px !important;
+
+.categoriesContainer {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-xxLarge);
+}
+
+.category {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-large);
+}
+
+.categoryHeader {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-xxSmall);
+}
+
+.categoryName {
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--text-primary);
+	margin-bottom: 0 !important;
+}
+
+.categoryDescription {
+	font-size: 14px;
+	color: var(--text-secondary);
+	margin-bottom: 0 !important;
+}
+
+.integrationsGrid {
+	display: grid;
+	grid-gap: var(--size-medium);
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+@media (min-width: 1024px) {
+	.integrationsGrid {
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	}
+}
+
+@media (min-width: 1280px) {
+	.integrationsGrid {
+		grid-template-columns: repeat(3, 1fr);
+	}
 }

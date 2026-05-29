@@ -61,7 +61,7 @@ const Integration = ({
 	}, [defaultEnable, setIntegrationEnabled])
 	if (loading) {
 		return (
-			<Card>
+			<Card className={styles.integration}>
 				<LoadingBox height={156} />
 			</Card>
 		)
@@ -75,16 +75,28 @@ const Integration = ({
 
 	return (
 		<>
-			<Card className={styles.integration} interactable>
+			<Card
+				className={clsx(styles.integration, {
+					[styles.integrationConnected]: integrationEnabled,
+				})}
+				interactable
+			>
 				<div className={styles.header}>
-					<img
-						src={icon}
-						alt=""
-						className={clsx(styles.logo, {
-							['rounded-none']: noRoundedIcon,
-						})}
-					/>
-					<div className="flex flex-col gap-2">
+					<div className={styles.logoContainer}>
+						<img
+							src={icon}
+							alt=""
+							className={clsx(styles.logo, {
+								['rounded-none']: noRoundedIcon,
+							})}
+						/>
+						{integrationEnabled && (
+							<span className={styles.connectedBadge}>
+								Connected
+							</span>
+						)}
+					</div>
+					<div className={styles.actions}>
 						{isGated ? (
 							<EnterpriseFeatureButton
 								setting={enterpriseSetting}
@@ -144,7 +156,7 @@ const Integration = ({
 							/>
 						)}
 						{hasSettings && (
-							<div className="flex h-[18px] w-full justify-end">
+							<div className={styles.settingsButton}>
 								<Button
 									trackingId="IntegrationSettings"
 									iconButton
@@ -159,17 +171,17 @@ const Integration = ({
 						)}
 					</div>
 				</div>
-				<div>
+				<div className={styles.content}>
 					<h2 className={styles.title}>{name}</h2>
 					<p className={styles.description}>{description}</p>
 					{docs && (
 						<a
-							className={styles.description}
+							className={styles.docsLink}
 							href={docs}
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							Learn more about the integration.
+							View documentation →
 						</a>
 					)}
 				</div>

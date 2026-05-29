@@ -12,7 +12,9 @@ import Integration from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
-import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import INTEGRATIONS, {
+	type Integration as IntegrationType,
+} from '@pages/IntegrationsPage/Integrations'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
@@ -26,6 +28,46 @@ import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/Micros
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import styles from './IntegrationsPage.module.css'
+
+type IntegrationCategory = {
+	name: string
+	description: string
+	keys: string[]
+}
+
+const INTEGRATION_CATEGORIES: IntegrationCategory[] = [
+	{
+		name: 'Issue Trackers',
+		description:
+			'Create and link issues from your Highlight comments and errors.',
+		keys: [
+			'linear',
+			'github',
+			'jira',
+			'gitlab',
+			'clickup',
+			'height',
+		],
+	},
+	{
+		name: 'Messaging & Alerts',
+		description:
+			'Receive alerts and notifications in your team communication tools.',
+		keys: ['slack', 'discord', 'microsoft_teams'],
+	},
+	{
+		name: 'Monitoring & Observability',
+		description:
+			'Enhance your monitoring stack with additional data sources.',
+		keys: ['clearbit', 'cloudflare', 'heroku'],
+	},
+	{
+		name: 'Deployment & CI/CD',
+		description:
+			'Connect your deployment pipeline for enhanced tracing and visibility.',
+		keys: ['vercel', 'zapier'],
+	},
+]
 
 const IntegrationsPage = () => {
 	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
@@ -179,6 +221,23 @@ const IntegrationsPage = () => {
 		isCloudflareConnectedToWorkspace,
 	])
 
+	const categorizedIntegrations = useMemo(() => {
+		const integrationMap = new Map<string, IntegrationType>()
+		for (const integration of integrations) {
+			integrationMap.set(integration.key, integration)
+		}
+
+		return INTEGRATION_CATEGORIES.map((category) => ({
+			...category,
+			integrations: category.keys
+				.map((key) => integrationMap.get(key))
+				.filter(
+					(integration): integration is IntegrationType =>
+						integration !== undefined,
+				),
+		})).filter((category) => category.integrations.length > 0)
+	}, [integrations])
+
 	useEffect(() => analytics.page('Integrations'), [])
 
 	return (
@@ -187,22 +246,42 @@ const IntegrationsPage = () => {
 				<title>Integrations</title>
 			</Helmet>
 			<LeadAlignLayout>
-				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
-					Supercharge your workflows and attach Highlight with the
-					tools you use everyday.
-				</p>
-				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) => (
-						<Integration
-							integration={integration}
-							key={integration.key}
-							showModalDefault={popUpModal === integration.key}
-							showSettingsDefault={
-								configureIntegration === integration.key
-							}
-							loading={loading}
-						/>
+				<div className={styles.header}>
+					<h2>Integrations</h2>
+					<p className={layoutStyles.subTitle}>
+						Supercharge your workflows and connect Highlight with the
+						tools you use everyday.
+					</p>
+				</div>
+
+				<div className={styles.categoriesContainer}>
+					{categorizedIntegrations.map((category) => (
+						<div key={category.name} className={styles.category}>
+							<div className={styles.categoryHeader}>
+								<h3 className={styles.categoryName}>
+									{category.name}
+								</h3>
+								<p className={styles.categoryDescription}>
+									{category.description}
+								</p>
+							</div>
+							<div className={styles.integrationsGrid}>
+								{category.integrations.map((integration) => (
+									<Integration
+										integration={integration}
+										key={integration.key}
+										showModalDefault={
+											popUpModal === integration.key
+										}
+										showSettingsDefault={
+											configureIntegration ===
+											integration.key
+										}
+										loading={loading}
+									/>
+								))}
+							</div>
+						</div>
 					))}
 				</div>
 			</LeadAlignLayout>

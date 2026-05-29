@@ -1,26 +1,99 @@
 .integration {
+	transition: all 0.2s ease;
+	border: 1px solid var(--divider);
+	background: var(--color-white);
+
+	&:hover {
+		border-color: var(--color-purple-500);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	}
+
+	& .logoContainer {
+		display: flex;
+		align-items: center;
+		gap: var(--size-small);
+	}
+
 	& .logo {
 		border-radius: 50%;
 		height: var(--size-xxLarge);
 		width: var(--size-xxLarge);
+		object-fit: cover;
+	}
+
+	& .connectedBadge {
+		display: inline-flex;
+		align-items: center;
+		padding: 2px 8px;
+		background: var(--color-green-100);
+		color: var(--color-green-700);
+		border-radius: 12px;
+		font-size: 11px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
 	}
 
 	& .header {
 		align-items: flex-start;
 		display: flex;
 		justify-content: space-between;
-		padding-bottom: var(--size-small);
+		padding-bottom: var(--size-medium);
 	}
 
-	& .connectButton {
-		text-transform: uppercase;
+	& .actions {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: var(--size-xxSmall);
+	}
+
+	& .settingsButton {
+		display: flex;
+		height: 18px;
+		width: 100%;
+		justify-content: flex-end;
+	}
+
+	& .content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-xxSmall);
 	}
 
 	& .title {
-		margin-bottom: var(--size-small) !important;
+		margin-bottom: 0 !important;
+		font-size: 15px;
+		font-weight: 600;
+		color: var(--text-primary);
 	}
 
 	& .description {
 		margin-bottom: 0 !important;
+		font-size: 13px;
+		color: var(--text-secondary);
+		line-height: 1.5;
+	}
+
+	& .docsLink {
+		display: inline-block;
+		margin-top: var(--size-xxSmall);
+		font-size: 13px;
+		color: var(--color-purple-500);
+		text-decoration: none;
+		font-weight: 500;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+}
+
+.integrationConnected {
+	border-color: var(--color-green-300);
+	background: var(--color-green-50);
+
+	&:hover {
+		border-color: var(--color-green-500);
 	}
 }
