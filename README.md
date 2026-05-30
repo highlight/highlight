@@ -123,6 +123,14 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
 
 ## Contributors
 
+## Enhancing Log Filtering with Record Attributes
+
+This update introduces enhanced filtering capabilities for logs, allowing users to filter based on specific record attributes. This mirrors the existing filtering functionality for traces, providing a more consistent and powerful way to narrow down log data.
+
+Previously, filtering was primarily focused on log messages themselves. Now, you can leverage attributes associated with log records to refine your searches. This is particularly useful for debugging and analysis, as it allows for more granular control over the data you're viewing.
+
+For example, you might want to filter logs based on a specific user ID, a request ID, or any other custom attribute that has been logged. This feature aims to make it easier to pinpoint relevant information within large volumes of log data.
+
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
