@@ -53,12 +53,23 @@ export enum NewIntegrationIssueType {
 	LinkIssue = 'link_issue',
 }
 
+export type IntegrationCategory = 'Issue Tracker' | 'Deployment' | 'Communication' | 'Automation' | 'Data'
+
+export const INTEGRATION_CATEGORIES: IntegrationCategory[] = [
+	'Issue Tracker',
+	'Deployment',
+	'Communication',
+	'Automation',
+	'Data',
+]
+
 export interface Integration {
 	key: string
 	name: string
 	externalLink?: string
 	configurationPath: string
 	description: string
+	category: IntegrationCategory
 	defaultEnable?: boolean
 	icon: string
 	noRoundedIcon?: boolean
@@ -75,6 +86,7 @@ export interface Integration {
 }
 
 export const SLACK_INTEGRATION: Integration = {
+	category: 'Communication',
 	key: 'slack',
 	name: 'Slack',
 	configurationPath: 'slack',
@@ -86,6 +98,7 @@ export const SLACK_INTEGRATION: Integration = {
 }
 
 export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
+	category: 'Communication',
 	key: 'microsoft_teams',
 	name: 'Microsoft Teams',
 	configurationPath: 'microsoft_teams',
@@ -96,6 +109,7 @@ export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
 }
 
 export const HEROKU_INTEGRATION: Integration = {
+	category: 'Deployment',
 	key: 'heroku',
 	name: 'Heroku',
 	configurationPath: 'heroku',
@@ -106,6 +120,7 @@ export const HEROKU_INTEGRATION: Integration = {
 }
 
 export const CLOUDFLARE_INTEGRATION: Integration = {
+	category: 'Deployment',
 	key: 'cloudflare',
 	name: 'Cloudflare',
 	configurationPath: 'cloudflare',
@@ -159,6 +174,7 @@ export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
 }
 
 export const ZAPIER_INTEGRATION: Integration = {
+	category: 'Automation',
 	key: 'zapier',
 	name: 'Zapier',
 	configurationPath: 'zapier',
@@ -170,6 +186,7 @@ export const ZAPIER_INTEGRATION: Integration = {
 }
 
 export const CLEARBIT_INTEGRATION: Integration = {
+	category: 'Data',
 	key: 'clearbit',
 	name: 'Clearbit',
 	configurationPath: 'clearbit',
@@ -180,6 +197,7 @@ export const CLEARBIT_INTEGRATION: Integration = {
 }
 
 export const VERCEL_INTEGRATION: Integration = {
+	category: 'Deployment',
 	key: 'vercel',
 	name: 'Vercel',
 	configurationPath: 'vercel',
@@ -192,6 +210,7 @@ export const VERCEL_INTEGRATION: Integration = {
 }
 
 export const DISCORD_INTEGRATION: Integration = {
+	category: 'Communication',
 	key: 'discord',
 	name: 'Discord',
 	configurationPath: 'discord',
