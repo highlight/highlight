@@ -1,5 +1,4 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
 import { Form, Select, Stack } from '@highlight-run/ui/components'
@@ -45,12 +44,7 @@ export const ExcludedUsersForm = () => {
 		: (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
 				(suggestion) => ({
 					value: suggestion,
-					name: (
-						<TextHighlighter
-							searchWords={[identifierQuery]}
-							textToHighlight={suggestion}
-						/>
-					) as unknown as string,
+					name: suggestion,
 				}),
 			)
 
