@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { Form, Stack } from '@highlight-run/ui/components'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
@@ -14,7 +14,7 @@ import { useCloudflareIntegration } from './utils'
 
 const CloudflareIntegration: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModalOpen: setModalOpen, action }) => {
+> = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
 	const { addCloudflareToProject, removeCloudflareIntegrationFromProject } =
 		useCloudflareIntegration()
 	const { currentWorkspace } = useApplicationContext()
@@ -44,8 +44,11 @@ const CloudflareIntegration: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectCancel-Cloudflare"
 						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
 							setModalOpen(false)
+							setIntegrationEnabled(true)
 						}}
 					>
 						Cancel
@@ -53,11 +56,11 @@ const CloudflareIntegration: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectSave-Cloudflare"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
 						onClick={async () => {
-							setModalOpen(false)
 							await removeCloudflareIntegrationFromProject()
+							setModalOpen(false)
+							setIntegrationEnabled(false)
 						}}
 					>
 						<PlugIcon className={styles.modalBtnIcon} />
@@ -106,8 +109,11 @@ const CloudflareIntegration: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationCancel-Cloudflare"
 					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
+						setIntegrationEnabled(false)
 					}}
 				>
 					Cancel
@@ -115,11 +121,13 @@ const CloudflareIntegration: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationSave-Cloudflare"
 					className={styles.modalBtn}
-					type="primary"
+					kind="primary"
+					emphasis="high"
 					disabled={token.length < 40 || proxySubdomain.length < 3}
 					onClick={async () => {
-						setModalOpen(false)
 						await addCloudflareToProject(token, proxySubdomain)
+						setModalOpen(false)
+						setIntegrationEnabled(true)
 					}}
 				>
 					<AppsIcon className={styles.modalBtnIcon} /> Connect
