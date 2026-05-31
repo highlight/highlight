@@ -132,6 +132,7 @@ export const CLOUDFLARE_INTEGRATION: Integration = {
 }
 
 export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
+	category: 'Issue Tracker',
 	key: 'linear',
 	name: 'Linear',
 	configurationPath: 'linear',
@@ -146,6 +147,7 @@ export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
 }
 
 export const JIRA_INTEGRATION: IssueTrackerIntegration = {
+	category: 'Issue Tracker',
 	key: 'jira',
 	name: 'Jira',
 	configurationPath: 'jira',
@@ -160,6 +162,7 @@ export const JIRA_INTEGRATION: IssueTrackerIntegration = {
 }
 
 export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
+	category: 'Issue Tracker',
 	key: 'gitlab',
 	name: 'GitLab',
 	configurationPath: 'gitlab',
@@ -221,6 +224,7 @@ export const DISCORD_INTEGRATION: Integration = {
 }
 
 export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
+	category: 'Issue Tracker',
 	key: 'clickup',
 	name: 'ClickUp',
 	configurationPath: 'clickup',
@@ -236,6 +240,7 @@ export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
 }
 
 export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
+	category: 'Issue Tracker',
 	key: 'height',
 	name: 'Height',
 	configurationPath: 'height',
@@ -251,6 +256,7 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 }
 
 export const GITHUB_INTEGRATION: IssueTrackerIntegration = {
+	category: 'Issue Tracker',
 	key: 'github',
 	name: 'GitHub',
 	configurationPath: 'github',
