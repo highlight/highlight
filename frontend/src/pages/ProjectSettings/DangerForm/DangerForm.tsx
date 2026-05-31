@@ -1,5 +1,4 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
-import Input from '@components/Input/Input'
 import LoadingBox from '@components/LoadingBox'
 import { useDeleteProjectMutation, useGetProjectQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
@@ -63,7 +62,8 @@ export const DangerForm = () => {
 									{`${data?.project?.name}`}' to confirm.
 								</p>
 								<div className={styles.dangerRow}>
-									<Input
+									<input
+										className={styles.confirmInput}
 										placeholder={`${data?.project?.name}`}
 										name="text"
 										value={confirmationText}
