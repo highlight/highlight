@@ -1,7 +1,5 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import Card from '@components/Card/Card'
-import Input from '@components/Input/Input'
-import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
 import { toast } from '@components/Toaster'
 import {
@@ -10,6 +8,11 @@ import {
 } from '@context/AppLoadingContext'
 import { namedOperations } from '@graph/operations'
 import { VercelProjectMappingInput } from '@graph/schemas'
+import {
+	ButtonIcon,
+	Select,
+	type SelectOption,
+} from '@highlight-run/ui/components'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
@@ -20,11 +23,19 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
+import analytics from '@util/analytics'
 import useMap from '@util/useMap'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
 import styles from './VercelIntegrationConfig.module.css'
+
+const getVercelProjectNames = (
+	vercelProjects: Array<string | SelectOption>,
+): string[] =>
+	vercelProjects.map((project) =>
+		typeof project === 'string' ? project : project.name,
+	)
 
 const VercelIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,
@@ -75,6 +86,8 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				<Button
 					trackingId="IntegrationConfigurationCancel-Vercel"
 					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)
@@ -85,10 +98,15 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				<Button
 					trackingId="IntegrationConfigurationSave-Vercel"
 					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href="https://vercel.com/integrations/highlight/new"
-					rel="noreferrer"
+					kind="primary"
+					emphasis="high"
+					onClick={() => {
+						window.open(
+							'https://vercel.com/integrations/highlight/new',
+							'_blank',
+							'noreferrer',
+						)
+					}}
 				>
 					<span className={styles.modalBtnText}>
 						<Sparkles2Icon className={styles.modalBtnIcon} />
@@ -118,6 +136,8 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 				<Button
 					trackingId="IntegrationDisconnectCancel-Slack"
 					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(true)
@@ -128,8 +148,7 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 				<Button
 					trackingId="IntegrationDisconnectSave-Slack"
 					className={styles.modalBtn}
-					type="primary"
-					danger
+					kind="danger"
 					onClick={() => {
 						removeVercelIntegrationFromProject()
 							.then(() => {
@@ -266,8 +285,8 @@ export const VercelIntegrationSettings: React.FC<
 	const selectOptions = (
 		allVercelProjects?.map((p) => ({
 			id: p.id,
+			name: p.name,
 			value: p.name,
-			displayValue: p.name,
 		})) || []
 	).filter((o) => !selectedOptions.includes(o.id))
 
@@ -291,16 +310,22 @@ export const VercelIntegrationSettings: React.FC<
 					?.map(
 						(i) => allVercelProjects?.find((j) => j.id === i)?.name,
 					)
-					.filter((i) => !!i)
+					.filter((i): i is string => !!i)
 				return (
 					<div className={styles.select}>
-						<Select
+						<Select<Array<string | SelectOption>>
 							className="w-full"
-							value={opts}
-							onChange={row.onUpdateProjectLink}
+							value={opts ?? []}
+							onValueChange={(vercelProjects) => {
+								row.onUpdateProjectLink(
+									getVercelProjectNames(vercelProjects),
+								)
+							}}
 							options={selectOptions}
 							placeholder="Vercel project(s)"
-							mode="multiple"
+							displayMode="tags"
+							filterable
+							checkType="checkbox"
 						/>
 					</div>
 				)
@@ -323,29 +348,33 @@ export const VercelIntegrationSettings: React.FC<
 						</div>
 						{row.editable ? (
 							<>
-								<Input
+								<input
 									className={styles.projectInput}
 									title={value}
 									value={value}
-									onChange={(e) => {
+									onChange={(
+										e: React.ChangeEvent<HTMLInputElement>,
+									) => {
 										onProjectNameChange(
 											row.id,
 											e.target.value,
 										)
 									}}
 									placeholder="e.g. Frontend"
-								></Input>
+								/>
 								<div className="h-8 w-8">
-									<Button
+									<ButtonIcon
 										className="rounded-lg"
-										iconButton
-										trackingId="IntegrationConfiguration-Vercel-DeleteNewProject"
+										kind="secondary"
+										emphasis="low"
+										icon={<SvgTrashIconSolid />}
 										onClick={() => {
+											analytics.track(
+												'IntegrationConfiguration-Vercel-DeleteNewProject',
+											)
 											onProjectDelete(row.id)
 										}}
-									>
-										<SvgTrashIconSolid />
-									</Button>
+									/>
 								</div>
 							</>
 						) : (
@@ -426,6 +455,8 @@ export const VercelIntegrationSettings: React.FC<
 						<Button
 							trackingId="IntegrationConfiguration-Vercel-NewHighlightProject"
 							className={clsx('m-4 ml-auto', styles.modalBtn)}
+							kind="secondary"
+							emphasis="medium"
 							onClick={() => {
 								const tId = 'new_' + tempId
 								setTempHighlightProjects((cur) =>
@@ -465,6 +496,8 @@ export const VercelIntegrationSettings: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationCancel-Vercel"
 					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
 						onCancel && onCancel()
 						setModalOpen(false)
@@ -475,13 +508,13 @@ export const VercelIntegrationSettings: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationSave-Vercel"
 					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
+					kind="primary"
+					emphasis="high"
 					onClick={onSave}
 					disabled={
 						projectMappings.length === 0 || // If no project mappings
-						tempHighlightProjects.find((p) => !p.name) || // If a new project is missing a name
-						tempHighlightProjects.find((p) => {
+						tempHighlightProjects.some((p) => !p.name) || // If a new project is missing a name
+						tempHighlightProjects.some((p) => {
 							const vercelProjects = projectMap.get(p.id)
 							// If a new project has no Vercel projects
 							return (
