@@ -9,10 +9,10 @@ import firebase from 'firebase/compat/app'
 import React, { useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 
-import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
+import { SignInRedirect } from '@pages/Auth/SignInRedirect'
 
 import * as styles from './AuthRouter.css'
-import { AUTH_MODE } from '@/constants'
+import { AUTH_MODE } from '@components/constants'
 
 export const SIGN_IN_ROUTE = '/sign_in'
 export const SIGN_UP_ROUTE = '/sign_up'
@@ -20,8 +20,7 @@ export const SIGN_UP_ROUTE = '/sign_up'
 export const AuthRouter: React.FC = () => {
 	const { isAuthLoading } = useAuthContext()
 
-	const [resolver, setResolver] =
-		useState<firebase.auth.MultiFactorResolver>()
+	const [resolver, setResolver] = useState<firebase.auth.MultiFactorResolver>()
 
 	if (isAuthLoading) {
 		return null
@@ -29,7 +28,7 @@ export const AuthRouter: React.FC = () => {
 
 	return (
 		<Landing>
-			<Box cssClass={styles.container}>
+			<Box className={styles.container}>
 				<Routes>
 					<Route
 						path={SIGN_IN_ROUTE}
