@@ -123,13 +123,13 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
 
 ## Contributors
 
-## Enhancing Log Filtering with Record Attributes
+## Enhancing Log Filtering by Record Attributes
 
-We've enhanced the log filtering capabilities to allow users to filter logs based on record attributes, similar to how trace filtering currently works. This provides more granular control over log analysis and debugging.
+We've improved the log filtering capabilities to allow users to filter logs based on specific record attributes. This enhancement provides more granular control over log analysis, enabling developers to pinpoint relevant information more efficiently.
 
-This feature allows you to specify filters directly on log records, enabling you to quickly narrow down search results to specific events or conditions. For example, you can now filter logs by attributes like `level`, `service_name`, `user_id`, or any custom attributes you've added to your logs.
+Previously, filtering was primarily focused on log messages themselves. Now, you can leverage attributes associated with log records, such as `level`, `service`, `environment`, or any custom attributes you've added. This makes it easier to isolate logs from specific services, environments, or logs with particular severity levels.
 
-This improvement aims to streamline the debugging process by making it easier to find relevant log entries without relying solely on full-text search. By leveraging record attributes, developers can more efficiently pinpoint issues and understand the context of their application's behavior.
+This feature aligns with our goal of providing a comprehensive and intuitive monitoring experience, allowing developers to spend less time searching for issues and more time building. We're committed to making Highlight.io the go-to platform for modern development teams, and this enhancement is a step in that direction.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
