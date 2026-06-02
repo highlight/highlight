@@ -125,11 +125,15 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
 
 ## Enhancing Log Filtering by Record Attributes
 
-We've improved the log filtering capabilities to allow users to filter logs based on specific record attributes. This enhancement provides more granular control over log analysis, enabling developers to pinpoint relevant information more efficiently.
+This update introduces enhanced filtering capabilities for logs, allowing users to filter not only by standard log fields but also by specific record attributes. This provides more granular control and a more powerful way to pinpoint relevant log entries.
 
-Previously, filtering was primarily focused on log messages themselves. Now, you can leverage attributes associated with log records, such as `level`, `service`, `environment`, or any custom attributes you've added. This makes it easier to isolate logs from specific services, environments, or logs with particular severity levels.
+### Key Features:
 
-This feature aligns with our goal of providing a comprehensive and intuitive monitoring experience, allowing developers to spend less time searching for issues and more time building. We're committed to making Highlight.io the go-to platform for modern development teams, and this enhancement is a step in that direction.
+*   **Attribute-based Filtering:** Apply filters directly to custom attributes within log records.
+*   **Flexible Querying:** Combine attribute filters with existing log filtering options for complex searches.
+*   **Improved Debugging:** Quickly isolate issues by filtering logs based on specific application states or custom metadata.
+
+This feature aims to streamline the debugging process by making it easier to find the exact log data you need, especially in large or complex applications.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
