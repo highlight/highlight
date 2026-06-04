@@ -640,7 +640,7 @@ export const AlertForm: React.FC = () => {
 										/>
 									</LabeledRow>
 								</SidebarSection>
-								<Divider className="m-0" />
+								<Box borderTop="dividerWeak" />
 								<SidebarSection>
 									<Box cssClass={style.editorSection}>
 										<Box cssClass={style.editorHeader}>
@@ -718,7 +718,7 @@ export const AlertForm: React.FC = () => {
 															</Callout>
 														)}
 												</SidebarSection>
-												<Divider className="m-0" />
+												<Box borderTop="dividerWeak" />
 												<SidebarSection>
 													{productType ===
 													ProductType.Events ? (
@@ -775,7 +775,7 @@ export const AlertForm: React.FC = () => {
 														!isErrorAlert)) && (
 													<>
 														<Box px="12">
-															<Divider className="m-0" />
+															<Box borderTop="dividerWeak" />
 														</Box>
 														<SidebarSection>
 															<LabeledRow
@@ -850,7 +850,7 @@ export const AlertForm: React.FC = () => {
 										)}
 									</Box>
 								</SidebarSection>
-								<Divider className="m-0" />
+								<Box borderTop="dividerWeak" />
 								<SidebarSection>
 									<LabeledRow
 										label="Alert threshold type"
@@ -970,7 +970,7 @@ export const AlertForm: React.FC = () => {
 										</>
 									)}
 								</SidebarSection>
-								<Divider className="m-0" />
+								<Box borderTop="dividerWeak" />
 								<SidebarSection>
 									<DestinationInput
 										initialDestinations={
