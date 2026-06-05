@@ -8,9 +8,9 @@ import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
 import { IntegrationModal } from '@/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
+import EnterpriseFeatureButton from '@/components/Billing/EnterpriseFeatureButton'
 
 import styles from './Integration.module.css'
-import EnterpriseFeatureButton from '@/components/Billing/EnterpriseFeatureButton'
 
 export enum IntegrationAction {
 	Setup,
@@ -59,6 +59,7 @@ const Integration = ({
 	useEffect(() => {
 		setIntegrationEnabled(defaultEnable)
 	}, [defaultEnable, setIntegrationEnabled])
+
 	if (loading) {
 		return (
 			<Card>
@@ -73,104 +74,99 @@ const Integration = ({
 	const enterpriseName =
 		name === 'Jira' ? 'Jira Integration' : 'Teams Integration'
 
+	const switchLabel =
+		!showConfiguration && integrationEnabled ? 'Connected' : 'Connect'
+	const switchLoading =
+		(showConfiguration && integrationEnabled) ||
+		(showDeleteConfirmation && !integrationEnabled)
+
+	const handleToggle = () => {
+		const newValue = !integrationEnabled
+		if (newValue) {
+			setShowConfiguration(true)
+		} else {
+			setShowDeleteConfirmation(true)
+		}
+		setIntegrationEnabled(newValue)
+	}
+
 	return (
 		<>
 			<Card className={styles.integration} interactable>
-				<div className={styles.header}>
-					<img
-						src={icon}
-						alt=""
-						className={clsx(styles.logo, {
-							['rounded-none']: noRoundedIcon,
-						})}
-					/>
-					<div className="flex flex-col gap-2">
-						{isGated ? (
-							<EnterpriseFeatureButton
-								setting={enterpriseSetting}
-								name={enterpriseName}
-								fn={async () => {
-									const newValue = !integrationEnabled
-									if (newValue) {
-										setShowConfiguration(true)
-									} else {
-										setShowDeleteConfirmation(true)
-									}
-									setIntegrationEnabled(newValue)
-								}}
-								variant="basic"
-							>
-								<Switch
-									trackingId={`IntegrationConnect-${name}`}
-									label={
-										!showConfiguration && integrationEnabled
-											? 'Connected'
-											: 'Connect'
-									}
-									loading={
-										(showConfiguration &&
-											integrationEnabled) ||
-										(showDeleteConfirmation &&
-											!integrationEnabled)
-									}
-									size="default"
-									checked={integrationEnabled}
-								/>
-							</EnterpriseFeatureButton>
-						) : (
-							<Switch
-								trackingId={`IntegrationConnect-${name}`}
-								label={
-									!showConfiguration && integrationEnabled
-										? 'Connected'
-										: 'Connect'
-								}
-								loading={
-									(showConfiguration && integrationEnabled) ||
-									(showDeleteConfirmation &&
-										!integrationEnabled)
-								}
-								onChange={() => {
-									const newValue = !integrationEnabled
-									if (newValue) {
-										setShowConfiguration(true)
-									} else {
-										setShowDeleteConfirmation(true)
-									}
-									setIntegrationEnabled(newValue)
-								}}
-								size="default"
-								checked={integrationEnabled}
+				<div className={styles.cardInner}>
+					{/* Header: logo + controls */}
+					<div className={styles.header}>
+						<div className={styles.logoWrapper}>
+							<img
+								src={icon}
+								alt={`${name} logo`}
+								className={clsx(styles.logo, {
+									[styles.logoRounded]: !noRoundedIcon,
+								})}
 							/>
-						)}
-						{hasSettings && (
-							<div className="flex h-[18px] w-full justify-end">
+							{integrationEnabled && (
+								<span className={styles.connectedBadge} />
+							)}
+						</div>
+
+						<div className={styles.controls}>
+							{hasSettings && (
 								<Button
 									trackingId="IntegrationSettings"
 									iconButton
-									onClick={() => {
-										setShowUpdateSettings(true)
-									}}
+									onClick={() => setShowUpdateSettings(true)}
 									disabled={!integrationEnabled}
 								>
 									<SettingsIcon />
 								</Button>
-							</div>
-						)}
+							)}
+
+							{isGated ? (
+								<EnterpriseFeatureButton
+									setting={enterpriseSetting}
+									name={enterpriseName}
+									fn={async () => handleToggle()}
+									variant="basic"
+								>
+									<Switch
+										trackingId={`IntegrationConnect-${name}`}
+										label={switchLabel}
+										loading={switchLoading}
+										size="default"
+										checked={integrationEnabled}
+									/>
+								</EnterpriseFeatureButton>
+							) : (
+								<Switch
+									trackingId={`IntegrationConnect-${name}`}
+									label={switchLabel}
+									loading={switchLoading}
+									onChange={handleToggle}
+									size="default"
+									checked={integrationEnabled}
+								/>
+							)}
+						</div>
 					</div>
-				</div>
-				<div>
-					<h2 className={styles.title}>{name}</h2>
-					<p className={styles.description}>{description}</p>
+
+					{/* Body: name + description */}
+					<div className={styles.body}>
+						<h3 className={styles.title}>{name}</h3>
+						<p className={styles.description}>{description}</p>
+					</div>
+
+					{/* Footer: docs link */}
 					{docs && (
-						<a
-							className={styles.description}
-							href={docs}
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							Learn more about the integration.
-						</a>
+						<div className={styles.footer}>
+							<a
+								className={styles.docsLink}
+								href={docs}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								View docs →
+							</a>
+						</div>
 					)}
 				</div>
 			</Card>
