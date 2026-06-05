@@ -2,6 +2,7 @@ import { Button } from '@components/Button'
 import {
 	Box,
 	ButtonIcon,
+	ComboboxSelect,
 	Form,
 	IconSolidBeaker,
 	IconSolidInformationCircle,
@@ -14,7 +15,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -64,12 +64,11 @@ export const GitHubEnhancementSettingsForm: React.FC<
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				id: repo.key,
-				label: repo.name.split('/').pop(),
-				value: repo.repo_id.replace(
+				key: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
 				),
+				render: repo.name.split('/').pop() ?? repo.name,
 			})),
 		[githubRepos],
 	)
@@ -217,25 +216,29 @@ export const GitHubEnhancementSettingsForm: React.FC<
 						name="githubRepo"
 					>
 						<Box display="flex" alignItems="center" gap="8">
-							<Select
-								aria-label="GitHub repository"
-								className={styles.repoSelect}
-								placeholder="Search repos..."
-								onSelect={(repo: string) =>
+							<ComboboxSelect
+								label="GitHub repository"
+								queryPlaceholder="Search repos..."
+								value={formState.values.githubRepo ?? undefined}
+								valueRender={
+									formState.values.githubRepo
+										?.split('/')
+										.pop() ?? undefined
+								}
+								options={githubOptions}
+								onChange={(repo: string) =>
 									formStore.setValue(
 										formStore.names.githubRepo,
 										repo,
 									)
 								}
-								value={formState.values.githubRepo
-									?.split('/')
-									.pop()}
-								options={githubOptions}
 								disabled={disabled || testLoading}
-								notFoundContent={<span>No repos found</span>}
-								optionFilterProp="label"
-								filterOption
-								showSearch
+								emptyStateRender={
+									<Text size="xSmall" color="weak">
+										No repos found
+									</Text>
+								}
+								wrapperCssClass={styles.repoSelect}
 							/>
 							<ButtonIcon
 								kind="secondary"
