@@ -7,7 +7,6 @@ import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { serializeErrorIdentifier } from '@util/error'
 import { clamp } from '@util/numbers'
-import { TooltipPlacement } from 'antd/es/tooltip'
 import clsx from 'clsx'
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 
@@ -18,6 +17,8 @@ import {
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
 
 import styles from './TimelineBar.module.css'
+
+type TooltipPlacement = 'top' | 'topLeft' | 'topRight'
 
 interface IBar {
 	bucket: EventBucket
