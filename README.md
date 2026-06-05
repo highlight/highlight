@@ -123,17 +123,17 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
 
 ## Contributors
 
-## Log Filtering Enhancements
+## Enhancing Log Filtering by Record Attributes
 
-We've enhanced the log filtering capabilities to allow filtering by record attributes, similar to how it's done for traces. This provides more granular control over log data analysis.
+We're excited to announce an enhancement to our log filtering capabilities, allowing you to filter logs and traces based on specific record attributes. This feature, inspired by user feedback, brings the same powerful filtering experience you're accustomed to with logs to a broader range of record types.
 
-### How it works
+### How it Works
 
-You can now use the same filtering syntax used for traces to filter logs based on their attributes. This includes the ability to specify conditions on various record fields, enabling you to quickly pinpoint specific log entries.
+Previously, filtering was primarily focused on log messages. Now, you can leverage the same intuitive filtering interface to narrow down your search results by various attributes associated with different record types. This means you can more precisely pinpoint issues by filtering based on properties like user IDs, session IDs, custom metadata, and more, depending on the record type.
 
-For example, you can now filter logs by attributes such as `service.name`, `http.status_code`, or any custom attributes you've added to your logs.
+This improvement aims to streamline the debugging process, enabling you to quickly isolate the relevant data and understand the context of your application's behavior. Whether you're looking for specific errors, performance bottlenecks, or user interactions, attribute-based filtering will be a valuable addition to your monitoring workflow.
 
-This feature aims to improve the efficiency of debugging and monitoring by making it easier to isolate relevant log data.
+We encourage you to explore this new functionality and provide feedback. Your input is crucial in helping us continue to refine and improve the Highlight platform.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
