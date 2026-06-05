@@ -12,7 +12,7 @@ import { useAuthContext } from '@/authentication/AuthContext'
 import { AdminRole } from '@/graph/generated/schemas'
 
 import commonStyles from '../../../Common.module.css'
-import Button from '../../../components/Button/Button/Button'
+import { Button } from '../../../components/Button'
 import styles from './DangerForm.module.css'
 
 export const DangerForm = () => {
@@ -73,8 +73,8 @@ export const DangerForm = () => {
 									/>
 									<Button
 										trackingId="DeleteProject"
-										danger
-										type="primary"
+										kind="primary"
+										emphasis="high"
 										className={clsx(
 											commonStyles.submitButton,
 											styles.deleteButton,
@@ -83,7 +83,7 @@ export const DangerForm = () => {
 											confirmationText !==
 											data?.project?.name
 										}
-										htmlType="submit"
+										type="submit"
 										loading={deleteLoading}
 									>
 										Delete

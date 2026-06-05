@@ -2,4 +2,4 @@
 "@highlight-run/frontend": patch
 ---
 
-Replace the error state join workspace legacy button usage
+Replace remaining targeted settings legacy button usages
