@@ -15,7 +15,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
@@ -120,8 +119,7 @@ const GithubSettingsForm = ({
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				id: repo.key,
-				label: repo.name.split('/').pop(),
+				name: repo.name.split('/').pop() || '',
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -151,25 +149,20 @@ const GithubSettingsForm = ({
 					name="githubRepo"
 				>
 					<Box display="flex" alignItems="center" gap="8">
-						<Select
-							aria-label="GitHub repository"
-							className={styles.repoSelect}
-							placeholder="Search repos..."
-							onSelect={(repo: string) =>
-								formStore.setValue(
-									formStore.names.githubRepo,
-									repo,
-								)
-							}
-							value={formState.values.githubRepo
-								?.split('/')
-								.pop()}
-							options={githubOptions}
-							notFoundContent={<span>No repos found</span>}
-							optionFilterProp="label"
-							filterOption
-							showSearch
-						/>
+						<Box cssClass={styles.repoSelect}>
+							<Form.Select
+								name={formStore.names.githubRepo}
+								options={githubOptions}
+								filterable
+								placeholder="Search repos..."
+								onValueChange={(option) => {
+									formStore.setValue(
+										formStore.names.githubRepo,
+										option.value as string,
+									)
+								}}
+							/>
+						</Box>
 						<ButtonIcon
 							kind="secondary"
 							emphasis="medium"
