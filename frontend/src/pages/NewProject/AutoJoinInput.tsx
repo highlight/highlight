@@ -1,7 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { Box, Text } from '@highlight-run/ui/components'
-import { Divider } from 'antd'
 import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import React from 'react'
 
@@ -49,12 +48,12 @@ export const AutoJoinInput: React.FC<Props> = ({
 					/>
 					<Text>Allowed email domains</Text>
 				</Box>
-				<Divider className="m-0 border-none pt-1" />
+				<Box pt="4" width="full" />
 				<Text color="n11">
 					Allow everyone with a <b>{getEmailDomain(admin?.email)}</b>{' '}
 					email to join your workspace.
 				</Text>
-				<Divider className="m-0 border-none pt-1" />
+				<Box pt="4" width="full" />
 			</div>
 		</Tooltip>
 	)
