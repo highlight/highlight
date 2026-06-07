@@ -154,17 +154,6 @@ const SourcemapSettings = () => {
 				>
 					<ProgressBarTable
 						loading={loading}
-						columns={[
-							{
-								title: 'Sourcemap',
-								dataIndex: 'key',
-								key: 'key',
-								width: '100%',
-								render: (key) => (
-									<div className={styles.listRow}>{key}</div>
-								),
-							},
-						]}
 						data={visibleFileKeys?.map((file) => ({
 							key: file,
 							file: file,
