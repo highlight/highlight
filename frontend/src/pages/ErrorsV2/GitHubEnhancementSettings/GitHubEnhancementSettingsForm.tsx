@@ -49,6 +49,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 		useState<ErrorObjectFragment>(errorObject)
 	const [testLoading, setTestLoading] = useState(false)
 	const [failedEnhancement, setFailedEnhancement] = useState(false)
+	const [repoQuery, setRepoQuery] = useState('')
 	const [testErrorEnhancement] = useTestErrorEnhancementMutation()
 	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
 
@@ -64,13 +65,19 @@ export const GitHubEnhancementSettingsForm: React.FC<
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				key: repo.repo_id.replace(
-					'https://api.github.com/repos/',
-					'',
-				),
+				key: repo.repo_id.replace('https://api.github.com/repos/', ''),
 				render: repo.name.split('/').pop() ?? repo.name,
 			})),
 		[githubRepos],
+	)
+	const filteredGithubOptions = useMemo(
+		() =>
+			githubOptions.filter((repo) =>
+				`${repo.key} ${repo.render}`
+					.toLowerCase()
+					.includes(repoQuery.toLowerCase()),
+			),
+		[githubOptions, repoQuery],
 	)
 
 	useEffect(() => {
@@ -225,7 +232,9 @@ export const GitHubEnhancementSettingsForm: React.FC<
 										?.split('/')
 										.pop() ?? undefined
 								}
-								options={githubOptions}
+								options={filteredGithubOptions}
+								onChangeQuery={setRepoQuery}
+								onClose={() => setRepoQuery('')}
 								onChange={(repo: string) =>
 									formStore.setValue(
 										formStore.names.githubRepo,

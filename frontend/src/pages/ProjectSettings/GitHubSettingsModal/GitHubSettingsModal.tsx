@@ -16,7 +16,7 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
 
@@ -117,16 +117,23 @@ const GithubSettingsForm = ({
 	handleSubmit,
 	handleCancel,
 }: GithubSettingsFormProps) => {
+	const [repoQuery, setRepoQuery] = useState('')
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				key: repo.repo_id.replace(
-					'https://api.github.com/repos/',
-					'',
-				),
+				key: repo.repo_id.replace('https://api.github.com/repos/', ''),
 				render: repo.name.split('/').pop(),
 			})),
 		[githubRepos],
+	)
+	const filteredGithubOptions = useMemo(
+		() =>
+			githubOptions.filter((repo) =>
+				`${repo.key} ${repo.render}`
+					.toLowerCase()
+					.includes(repoQuery.toLowerCase()),
+			),
+		[githubOptions, repoQuery],
 	)
 
 	const formStore = Form.useStore<GithubSettingsFormValues>({
@@ -156,12 +163,13 @@ const GithubSettingsForm = ({
 							queryPlaceholder="Search repos..."
 							value={formState.values.githubRepo ?? undefined}
 							valueRender={
-								formState.values.githubRepo
-									?.split('/')
-									.pop() ?? undefined
+								formState.values.githubRepo?.split('/').pop() ??
+								undefined
 							}
-							options={githubOptions}
+							options={filteredGithubOptions}
 							emptyStateRender={<Text>No repos found</Text>}
+							onChangeQuery={setRepoQuery}
+							onClose={() => setRepoQuery('')}
 							onChange={(repo: string) =>
 								formStore.setValue(
 									formStore.names.githubRepo,
