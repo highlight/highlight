@@ -155,6 +155,11 @@ const GithubSettingsForm = ({
 							cssClass={styles.repoSelect}
 							queryPlaceholder="Search repos..."
 							value={formState.values.githubRepo ?? undefined}
+							valueRender={
+								formState.values.githubRepo
+									?.split('/')
+									.pop() ?? undefined
+							}
 							options={githubOptions}
 							emptyStateRender={<Text>No repos found</Text>}
 							onChange={(repo: string) =>
