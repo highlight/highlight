@@ -1,15 +1,21 @@
-import { ConfigProvider, Table } from 'antd'
-import { ColumnsType } from 'antd/es/table'
+﻿import { CircularSpinner } from '@components/Loading/Loading'
 import React from 'react'
 
 import EmptyCardPlaceholder from '../../pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
 import styles from './ProgressBarTable.module.css'
 
+interface Column {
+	title: string
+	dataIndex: string
+	key: string
+	width?: string
+	render?: (value: any, record: any) => React.ReactNode
+}
+
 interface Props {
-	columns: ColumnsType<any>
+	columns: Column[]
 	data: any[]
 	onClickHandler: (record: any) => void
-	/** The string shown to the user when the table has no data. */
 	noDataMessage?: string | React.ReactNode
 	noDataTitle?: string
 	loading: boolean
@@ -23,30 +29,47 @@ const ProgressBarTable = ({
 	noDataTitle,
 	loading,
 }: Props) => {
-	return (
-		<ConfigProvider
-			renderEmpty={() => (
+	if (loading) {
+		return (
+			<div className={styles.loadingContainer}>
+				<CircularSpinner />
+			</div>
+		)
+	}
+
+	if (!data || data.length === 0) {
+		return (
+			<div className={styles.emptyContainer}>
 				<EmptyCardPlaceholder
 					message={noDataMessage}
 					title={noDataTitle}
 				/>
-			)}
-		>
-			<Table
-				className={styles.table}
-				loading={loading}
-				scroll={{ y: 287 }}
-				showHeader={false}
-				columns={columns}
-				dataSource={data}
-				pagination={false}
-				onRow={(record) => ({
-					onClick: () => {
-						onClickHandler(record)
-					},
-				})}
-			/>
-		</ConfigProvider>
+			</div>
+		)
+	}
+
+	return (
+		<div className={styles.scrollContainer}>
+			<table className={styles.table}>
+				<tbody>
+					{data.map((record: any, rowIndex: number) => (
+						<tr
+							key={record.key || rowIndex}
+							className={styles.row}
+							onClick={() => onClickHandler(record)}
+						>
+							{columns.map((col) => (
+								<td key={col.key} className={styles.cell}>
+									{col.render
+										? col.render(record[col.dataIndex], record)
+										: record[col.dataIndex]}
+								</td>
+							))}
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
 	)
 }
 
