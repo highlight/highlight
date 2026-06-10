@@ -48,26 +48,4 @@
 				]),
 				(tracking.factory = function (e) {
 					return function () {
-						var r = Array.prototype.slice.call(arguments)
-						return r.unshift(e), tracking.push(r), tracking
-					}
-				})
-
-			for (var r = 0; r < tracking.methods.length; r++) {
-				var o = tracking.methods[r]
-				tracking[o] = tracking.factory(o)
-			}
-
-			var clearbitjs = document.createElement('script')
-			clearbitjs.src =
-				'https://x.clearbitjs.com/v2/pk_07d68634b41ba01ce3e518b6120f201e/tracking.min.js'
-			clearbitjs.referrerPolicy = 'strict-origin-when-cross-origin'
-
-			var first = document.getElementsByTagName('script')[0]
-			clearbitjs.async = true
-			first.parentNode.insertBefore(clearbitjs, first)
-		}
-	}
-
-	tracking.page()
-})(window)
+						var r = Array.prototype
