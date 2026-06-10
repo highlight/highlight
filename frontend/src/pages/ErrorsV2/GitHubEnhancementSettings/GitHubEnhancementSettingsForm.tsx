@@ -14,7 +14,7 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
+import Select from '@components/Select/Select'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -65,7 +65,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
 				id: repo.key,
-				label: repo.name.split('/').pop(),
+				displayValue: repo.name.split('/').pop(),
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -233,7 +233,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 								options={githubOptions}
 								disabled={disabled || testLoading}
 								notFoundContent={<span>No repos found</span>}
-								optionFilterProp="label"
+								optionFilterProp="displayValue"
 								filterOption
 								showSearch
 							/>
