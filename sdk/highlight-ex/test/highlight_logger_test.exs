@@ -13,7 +13,7 @@ defmodule Highlight.LoggerTest do
 
   describe "Highlight.Logger backend lifecycle" do
     test "can be added as a Logger backend" do
-      assert :ok = Logger.add_backend(Highlight.Logger)
+      assert {:ok, _pid} = Logger.add_backend(Highlight.Logger)
       backends = Application.get_env(:logger, :backends, [])
       # The backend is registered via Logger, just verify no crash
       Logger.remove_backend(Highlight.Logger)

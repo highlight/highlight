@@ -102,7 +102,7 @@ defmodule Highlight.PlugTest do
         |> call()
 
       # The conn returned by the plug should have before_send callbacks
-      assert is_list(conn.before_send)
+      assert is_list(conn.private.before_send)
     end
 
     test "before_send callback fires on send_resp" do
