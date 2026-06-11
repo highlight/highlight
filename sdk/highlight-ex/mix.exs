@@ -4,17 +4,20 @@ defmodule Highlight.MixProject do
   def project do
     [
       app: :highlight,
-      version: "0.1.0",
-      description: "Highlight Elixir SDK for capturing logs, spans and metrics",
+      version: "0.2.0",
+      description: "Highlight Elixir SDK — automatic error tracking, Logger backend, and Phoenix/Plug HTTP tracing via OpenTelemetry",
       elixir: "~> 1.13",
       package: package(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      releases: [
-        otel_getting_started: [
-          version: "0.0.1",
-          applications: [opentelemetry: :temporary, otel_getting_started: :permanent]
-        ]
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.html": :test
+      ],
+      docs: [
+        main: "Highlight",
+        extras: ["README.md"]
       ]
     ]
   end
@@ -36,10 +39,23 @@ defmodule Highlight.MixProject do
 
   defp deps do
     [
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      # OpenTelemetry core
       {:opentelemetry, "~> 1.3"},
-      {:opentelemetry_api, "~> 1.2"},
+      {:opentelemetry_api, "~> 1.3"},
+      {:opentelemetry_semantic_conventions, "~> 0.2"},
+
+      # OTLP HTTP exporter – ships traces/logs to otel.highlight.io:4318
+      {:opentelemetry_exporter, "~> 1.6"},
+
+      # Plug integration (optional – only needed for Highlight.Plug)
+      {:plug, "~> 1.14", optional: true},
+
+      # telemetry is a transitive dep but we pin it explicitly
       {:telemetry, "~> 1.0"},
+
+      # Dev / test only
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:plug_cowboy, "~> 2.6", only: :test, runtime: false}
     ]
   end
 end
