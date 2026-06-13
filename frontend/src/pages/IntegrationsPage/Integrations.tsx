@@ -53,9 +53,18 @@ export enum NewIntegrationIssueType {
 	LinkIssue = 'link_issue',
 }
 
+export enum IntegrationCategory {
+	Ticketing = 'Ticketing',
+	Communication = 'Communication',
+	Automation = 'Automation',
+	Infrastructure = 'Infrastructure',
+	Analytics = 'Analytics',
+}
+
 export interface Integration {
 	key: string
 	name: string
+	category: IntegrationCategory
 	externalLink?: string
 	configurationPath: string
 	description: string
@@ -77,6 +86,7 @@ export interface Integration {
 export const SLACK_INTEGRATION: Integration = {
 	key: 'slack',
 	name: 'Slack',
+	category: IntegrationCategory.Communication,
 	configurationPath: 'slack',
 	description:
 		'Bring your highlight.io comments and alerts to Slack as messages.',
@@ -88,6 +98,7 @@ export const SLACK_INTEGRATION: Integration = {
 export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
 	key: 'microsoft_teams',
 	name: 'Microsoft Teams',
+	category: IntegrationCategory.Communication,
 	configurationPath: 'microsoft_teams',
 	description: 'Receive highlight.io alerts via Microsoft Teams messages.',
 	icon: MicrosoftTeamsLogo,
@@ -98,6 +109,7 @@ export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
 export const HEROKU_INTEGRATION: Integration = {
 	key: 'heroku',
 	name: 'Heroku',
+	category: IntegrationCategory.Infrastructure,
 	configurationPath: 'heroku',
 	description: 'Setup a Heroku Log Drain.',
 	icon: HerokuLogo,
@@ -108,6 +120,7 @@ export const HEROKU_INTEGRATION: Integration = {
 export const CLOUDFLARE_INTEGRATION: Integration = {
 	key: 'cloudflare',
 	name: 'Cloudflare',
+	category: IntegrationCategory.Infrastructure,
 	configurationPath: 'cloudflare',
 	description: 'Setup a Cloudflare Proxy.',
 	icon: CloudflareLogo,
@@ -119,6 +132,7 @@ export const CLOUDFLARE_INTEGRATION: Integration = {
 export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
 	key: 'linear',
 	name: 'Linear',
+	category: IntegrationCategory.Ticketing,
 	configurationPath: 'linear',
 	description: 'Bring your highlight.io comments to Linear as issues.',
 	icon: LinearLogo,
@@ -133,6 +147,7 @@ export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
 export const JIRA_INTEGRATION: IssueTrackerIntegration = {
 	key: 'jira',
 	name: 'Jira',
+	category: IntegrationCategory.Ticketing,
 	configurationPath: 'jira',
 	description: 'Bring your highlight.io comments to Jira as issues.',
 	icon: JiraLogo,
@@ -147,6 +162,7 @@ export const JIRA_INTEGRATION: IssueTrackerIntegration = {
 export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
 	key: 'gitlab',
 	name: 'GitLab',
+	category: IntegrationCategory.Ticketing,
 	configurationPath: 'gitlab',
 	description: 'Bring your highlight.io comments to GitLab as issues.',
 	icon: GitlabLogo,
@@ -161,6 +177,7 @@ export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
 export const ZAPIER_INTEGRATION: Integration = {
 	key: 'zapier',
 	name: 'Zapier',
+	category: IntegrationCategory.Automation,
 	configurationPath: 'zapier',
 	onlyShowForHighlightAdmin: true,
 	description: 'Use highlight.io alerts to trigger a Zap.',
@@ -172,6 +189,7 @@ export const ZAPIER_INTEGRATION: Integration = {
 export const CLEARBIT_INTEGRATION: Integration = {
 	key: 'clearbit',
 	name: 'Clearbit',
+	category: IntegrationCategory.Analytics,
 	configurationPath: 'clearbit',
 	description: 'Collect enhanced user analytics.',
 	icon: ClearbitLogo,
@@ -182,6 +200,7 @@ export const CLEARBIT_INTEGRATION: Integration = {
 export const VERCEL_INTEGRATION: Integration = {
 	key: 'vercel',
 	name: 'Vercel',
+	category: IntegrationCategory.Infrastructure,
 	configurationPath: 'vercel',
 	description: 'Configuration for your Vercel projects.',
 	configurationPage: (opts) => <VercelIntegrationConfig {...opts} />,
@@ -194,6 +213,7 @@ export const VERCEL_INTEGRATION: Integration = {
 export const DISCORD_INTEGRATION: Integration = {
 	key: 'discord',
 	name: 'Discord',
+	category: IntegrationCategory.Communication,
 	configurationPath: 'discord',
 	description: 'Bring your highlight.io alerts to Discord as messages.',
 	icon: DiscordLogo,
@@ -204,6 +224,7 @@ export const DISCORD_INTEGRATION: Integration = {
 export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
 	key: 'clickup',
 	name: 'ClickUp',
+	category: IntegrationCategory.Ticketing,
 	configurationPath: 'clickup',
 	description: 'Create ClickUp tasks from your highlight.io comments.',
 	configurationPage: (opts) => <ClickUpIntegrationConfig {...opts} />,
@@ -219,6 +240,7 @@ export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
 export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 	key: 'height',
 	name: 'Height',
+	category: IntegrationCategory.Ticketing,
 	configurationPath: 'height',
 	description: 'Create Height tasks from your highlight.io comments.',
 	configurationPage: (opts) => <HeightIntegrationConfig {...opts} />,
@@ -234,6 +256,7 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 export const GITHUB_INTEGRATION: IssueTrackerIntegration = {
 	key: 'github',
 	name: 'GitHub',
+	category: IntegrationCategory.Ticketing,
 	configurationPath: 'github',
 	description:
 		'Create GitHub issues from comments and enhance your stacktraces.',
