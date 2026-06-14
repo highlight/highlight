@@ -84,7 +84,19 @@ const Integration = ({
 							['rounded-none']: noRoundedIcon,
 						})}
 					/>
-					<div className="flex flex-col gap-2">
+					<div className="flex flex-row items-center gap-2">
+						{hasSettings && (
+							<Button
+								trackingId="IntegrationSettings"
+								iconButton
+								onClick={() => {
+									setShowUpdateSettings(true)
+								}}
+								disabled={!integrationEnabled}
+							>
+								<SettingsIcon />
+							</Button>
+						)}
 						{isGated ? (
 							<EnterpriseFeatureButton
 								setting={enterpriseSetting}
@@ -143,33 +155,19 @@ const Integration = ({
 								checked={integrationEnabled}
 							/>
 						)}
-						{hasSettings && (
-							<div className="flex h-[18px] w-full justify-end">
-								<Button
-									trackingId="IntegrationSettings"
-									iconButton
-									onClick={() => {
-										setShowUpdateSettings(true)
-									}}
-									disabled={!integrationEnabled}
-								>
-									<SettingsIcon />
-								</Button>
-							</div>
-						)}
 					</div>
 				</div>
-				<div>
-					<h2 className={styles.title}>{name}</h2>
+				<div className="flex flex-col gap-1">
+					<h3 className={styles.title}>{name}</h3>
 					<p className={styles.description}>{description}</p>
 					{docs && (
 						<a
-							className={styles.description}
+							className={styles.docsLink}
 							href={docs}
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							Learn more about the integration.
+							View Documentation
 						</a>
 					)}
 				</div>
