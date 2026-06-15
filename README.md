@@ -123,68 +123,58 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
 
 ## Contributors
 
-### SvelteKit Backend Instrumentation
+## Backend Instrumentation
 
-To monitor your SvelteKit backend with Highlight, you can use the `@highlight-run/node` SDK. This allows you to capture errors, logs, and traces from your server-side code, including API routes and server-side rendering functions.
+### SvelteKit
 
-1.  **Install the Node.js SDK:**
-    ```bash
-    npm install @highlight-run/node
-    # or yarn add @highlight-run/node
-    # or pnpm add @highlight-run/node
-    ```
+To instrument your SvelteKit backend with Highlight, you'll use the `@highlight-run/node` SDK. This allows you to capture errors and traces from your server-side code, providing full-stack visibility when combined with your frontend instrumentation.
 
-2.  **Initialize Highlight in `src/hooks.server.ts`:**
-    Create or update your `src/hooks.server.ts` file to initialize Highlight and wrap your server-side requests.
+#### 1. Install the SDK
 
-    ```typescript
-    // src/hooks.server.ts
-    import { H } from '@highlight-run/node';
-    import { building } from '$app/environment';
+First, install the `@highlight-run/node` package:
 
-    if (!building) {
-        H.init({
-            projectID: import.meta.env.VITE_HIGHLIGHT_PROJECT_ID,
-            serviceName: 'sveltekit-backend',
-            // Optional: Configure other options like environment, version, etc.
-        });
-    }
+```bash
+npm install @highlight-run/node
+# or
+yarn add @highlight-run/node
+# or
+pnpm add @highlight-run/node
+```
 
-    export const handleError = H.errorHandler;
+#### 2. Initialize Highlight
 
-    export const handle = H.wrapSvelteKitHandle(async ({ event, resolve }) => {
-        // Your existing handle logic here
-        const response = await resolve(event);
-        return response;
-    });
-    ```
+Create a server-side file, for example, `src/lib/server/highlight.ts`, and initialize the Highlight SDK. Make sure to replace `YOUR_PROJECT_ID` with your actual Highlight project ID.
 
-    Ensure you replace `import.meta.env.VITE_HIGHLIGHT_PROJECT_ID` with your actual Highlight project ID, ideally loaded from environment variables.
+```typescript
+// src/lib/server/highlight.ts
+import { H } from '@highlight-run/node';
 
-3.  **Capture errors and logs:**
-    With the `handleError` and `handle` hooks wrapped, Highlight will automatically capture unhandled errors and provide context for requests. You can also manually log or capture exceptions:
+H.init({
+    projectID: 'YOUR_PROJECT_ID', // Replace with your Project ID
+    serviceName: 'sveltekit-backend',
+    environment: process.env.NODE_ENV,
+});
 
-    ```typescript
-    // Example in a server load function or API route
-    import { H } from '@highlight-run/node';
+export const highlight = H;
+```
 
-    export async function load({ params }) {
-        try {
-            // ... some server-side logic that might throw an error
-            throw new Error('Something went wrong on the server!');
-        } catch (e) {
-            H.log('Error in server load function', e);
-            H.consumeError(e); // Manually send error to Highlight
-        }
-        return {
-            props: {
-                // ...
-            }
-        };
-    }
-    ```
+#### 3. Wrap your SvelteKit `handle` function
 
-For more advanced configuration and usage, refer to the [Node.js SDK documentation](https://www.highlight.io/docs/getting-started/backend-sdk/node).
+In your `src/hooks.server.ts` file, import the `highlight` instance and wrap your `handle` function using `highlight.wrapSvelteKitHandle`. This ensures that all requests are automatically instrumented for error and trace capturing.
+
+```typescript
+// src/hooks.server.ts
+import { highlight } from '$lib/server/highlight';
+import type { Handle } from '@sveltejs/kit';
+
+export const handle: Handle = highlight.wrapSvelteKitHandle(async ({ event, resolve }) => {
+    // Your existing handle logic here
+    const response = await resolve(event);
+    return response;
+});
+```
+
+With these steps, your SvelteKit backend will send errors and traces to Highlight, linking them to your frontend sessions for a complete view of user issues.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
