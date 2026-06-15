@@ -123,41 +123,68 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
 
 ## Contributors
 
-## SvelteKit Backend Instrumentation
+### SvelteKit Backend Instrumentation
 
-Highlight.io provides robust backend instrumentation for your SvelteKit applications, allowing you to monitor errors and performance on your server-side code.
+To monitor your SvelteKit backend with Highlight, you can use the `@highlight-run/node` SDK. This allows you to capture errors, logs, and traces from your server-side code, including API routes and server-side rendering functions.
 
-To get started, install the Highlight SvelteKit SDK:
+1.  **Install the Node.js SDK:**
+    ```bash
+    npm install @highlight-run/node
+    # or yarn add @highlight-run/node
+    # or pnpm add @highlight-run/node
+    ```
 
-```bash
-npm install @highlight-run/sveltekit
-# or yarn add @highlight-run/sveltekit
-# or pnpm add @highlight-run/sveltekit
-```
+2.  **Initialize Highlight in `src/hooks.server.ts`:**
+    Create or update your `src/hooks.server.ts` file to initialize Highlight and wrap your server-side requests.
 
-Then, initialize the SDK in your `src/hooks.server.ts` file. This ensures that all server-side requests are automatically instrumented.
+    ```typescript
+    // src/hooks.server.ts
+    import { H } from '@highlight-run/node';
+    import { building } from '$app/environment';
 
-```typescript
-// src/hooks.server.ts
-import { H } from '@highlight-run/sveltekit';
-import { sequence } from '@sveltejs/kit/hooks';
+    if (!building) {
+        H.init({
+            projectID: import.meta.env.VITE_HIGHLIGHT_PROJECT_ID,
+            serviceName: 'sveltekit-backend',
+            // Optional: Configure other options like environment, version, etc.
+        });
+    }
 
-H.init({
-    projectID: '<YOUR_PROJECT_ID>',
-    serviceName: 'my-sveltekit-backend',
-    backendUrl: 'https://pri.highlight.io', // Optional: if self-hosting or using a custom ingest endpoint
-});
+    export const handleError = H.errorHandler;
 
-export const handleError = H.handleError;
+    export const handle = H.wrapSvelteKitHandle(async ({ event, resolve }) => {
+        // Your existing handle logic here
+        const response = await resolve(event);
+        return response;
+    });
+    ```
 
-export const handle = sequence(H.handle, async ({ event, resolve }) => {
-    // Your custom server-side logic here
-    const response = await resolve(event);
-    return response;
-});
-```
+    Ensure you replace `import.meta.env.VITE_HIGHLIGHT_PROJECT_ID` with your actual Highlight project ID, ideally loaded from environment variables.
 
-Replace `<YOUR_PROJECT_ID>` with your actual Highlight.io project ID. This setup will automatically capture unhandled errors and provide context for requests. For more advanced configuration and custom error reporting, refer to the [official SvelteKit documentation](https://www.highlight.io/docs/getting-started/fullstack-frameworks/sveltekit).
+3.  **Capture errors and logs:**
+    With the `handleError` and `handle` hooks wrapped, Highlight will automatically capture unhandled errors and provide context for requests. You can also manually log or capture exceptions:
+
+    ```typescript
+    // Example in a server load function or API route
+    import { H } from '@highlight-run/node';
+
+    export async function load({ params }) {
+        try {
+            // ... some server-side logic that might throw an error
+            throw new Error('Something went wrong on the server!');
+        } catch (e) {
+            H.log('Error in server load function', e);
+            H.consumeError(e); // Manually send error to Highlight
+        }
+        return {
+            props: {
+                // ...
+            }
+        };
+    }
+    ```
+
+For more advanced configuration and usage, refer to the [Node.js SDK documentation](https://www.highlight.io/docs/getting-started/backend-sdk/node).
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
