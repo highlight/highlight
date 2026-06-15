@@ -147,4 +147,4 @@ Remove the temporary test route after validating the setup.
 
 ## Optional source maps
 
-If you upload browser source maps in CI, use `@highlight-run/sourcemap-uploader` for the SvelteKit client build output. See the [source maps guide](../../3_browser/2_replay-configuration/sourcemaps.md) for configuration details.
+If you upload browser source maps in CI, use `@highlight-run/sourcemap-uploader` for the SvelteKit client build output. See the [source maps guide](../3_browser/7_replay-configuration/sourcemaps.md) for configuration details.
