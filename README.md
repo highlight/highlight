@@ -123,9 +123,9 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
 
 ## Contributors
 
-### Enhanced Log and Trace Filtering
+### Enhanced Observability: Powerful Filtering
 
-We've significantly improved our log and trace filtering capabilities. You can now apply granular filters based on record attributes, allowing for more precise and efficient debugging and analysis. This enhancement brings a consistent and powerful filtering experience across both logs and traces, making it easier to pinpoint specific events and troubleshoot issues.
+Highlight.io empowers developers with advanced filtering capabilities to quickly pinpoint issues. Beyond standard log and trace filtering, you can now apply granular filters based on **record attributes**. This allows for highly specific data analysis, enabling you to efficiently drill down into relevant logs and traces by custom attributes, just like you would with other log fields. This enhancement significantly improves the speed and precision of debugging and incident response.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
