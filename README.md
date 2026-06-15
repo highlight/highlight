@@ -123,6 +123,42 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
 
 ## Contributors
 
+## SvelteKit Backend Instrumentation
+
+Highlight.io provides robust backend instrumentation for your SvelteKit applications, allowing you to monitor errors and performance on your server-side code.
+
+To get started, install the Highlight SvelteKit SDK:
+
+```bash
+npm install @highlight-run/sveltekit
+# or yarn add @highlight-run/sveltekit
+# or pnpm add @highlight-run/sveltekit
+```
+
+Then, initialize the SDK in your `src/hooks.server.ts` file. This ensures that all server-side requests are automatically instrumented.
+
+```typescript
+// src/hooks.server.ts
+import { H } from '@highlight-run/sveltekit';
+import { sequence } from '@sveltejs/kit/hooks';
+
+H.init({
+    projectID: '<YOUR_PROJECT_ID>',
+    serviceName: 'my-sveltekit-backend',
+    backendUrl: 'https://pri.highlight.io', // Optional: if self-hosting or using a custom ingest endpoint
+});
+
+export const handleError = H.handleError;
+
+export const handle = sequence(H.handle, async ({ event, resolve }) => {
+    // Your custom server-side logic here
+    const response = await resolve(event);
+    return response;
+});
+```
+
+Replace `<YOUR_PROJECT_ID>` with your actual Highlight.io project ID. This setup will automatically capture unhandled errors and provide context for requests. For more advanced configuration and custom error reporting, refer to the [official SvelteKit documentation](https://www.highlight.io/docs/getting-started/fullstack-frameworks/sveltekit).
+
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
