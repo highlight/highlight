@@ -123,17 +123,13 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
 
 ## Contributors
 
-## Enhancing Log Filtering by Record Attributes
+## Recent Enhancements
 
-We're excited to announce an enhancement to our log filtering capabilities, allowing you to filter logs and traces based on specific record attributes. This feature, inspired by user feedback, brings the same powerful filtering experience you're accustomed to with logs to a broader range of record types.
+We're constantly working to make highlight.io more powerful and intuitive. Here's a recent improvement:
 
-### How it Works
+### Enhanced Log and Trace Filtering
 
-Previously, filtering was primarily focused on log messages. Now, you can leverage the same intuitive filtering interface to narrow down your search results by various attributes associated with different record types. This means you can more precisely pinpoint issues by filtering based on properties like user IDs, session IDs, custom metadata, and more, depending on the record type.
-
-This improvement aims to streamline the debugging process, enabling you to quickly isolate the relevant data and understand the context of your application's behavior. Whether you're looking for specific errors, performance bottlenecks, or user interactions, attribute-based filtering will be a valuable addition to your monitoring workflow.
-
-We encourage you to explore this new functionality and provide feedback. Your input is crucial in helping us continue to refine and improve the Highlight platform.
+You can now apply advanced filters to your logs and traces based on their specific record attributes. This provides a more granular and precise way to pinpoint relevant data, significantly improving your debugging and analysis workflows. This feature extends our existing robust filtering capabilities, allowing you to drill down into your data with unprecedented detail.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
