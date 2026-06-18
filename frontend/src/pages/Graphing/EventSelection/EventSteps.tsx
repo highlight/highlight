@@ -18,7 +18,7 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { LabeledRow } from '@pages/Graphing/LabeledRow'
-import { Divider } from 'antd'
+import { Divider } from '@components/Divider/Divider'
 import { EventSelection } from '@pages/Graphing/EventSelection/index'
 import {
 	EventSelectionDetails,
