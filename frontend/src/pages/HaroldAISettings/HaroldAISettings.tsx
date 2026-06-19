@@ -1,6 +1,7 @@
 import { toast } from '@components/Toaster'
 import {
 	Box,
+	Button,
 	Heading,
 	IconSolidExternalLink,
 	Stack,
@@ -10,7 +11,6 @@ import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
-import { Button } from '@/components/Button'
 import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
 import {
 	useEditWorkspaceSettingsMutation,
@@ -112,19 +112,17 @@ export const HaroldAISettings = () => {
 								</Text>
 							</Stack>
 							<Button
-								kind="secondary"
-								emphasis="high"
-								iconRight={<IconSolidExternalLink size={14} />}
-								onClick={() => {
-									window.open(
-										'https://highlight.io/blog/introducing-harold',
-										'_blank',
-									)
-								}}
-								trackingId="settings_ai-learn-more"
-							>
-								Read the blog post
-							</Button>
+                               kind="secondary"
+                               iconRight={<IconSolidExternalLink size={14} />}
+                               onClick={() => {
+                                  window.open(
+                                     'https://highlight.io/blog/introducing-harold',
+                                    '_blank',
+                                  )
+							    }}
+                            >
+                                Read the blog post
+                            </Button>
 						</Box>
 					</BorderBox>
 					<Stack gap="12" direction="column" paddingTop="24">
