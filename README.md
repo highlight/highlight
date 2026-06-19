@@ -123,9 +123,9 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
 
 ## Contributors
 
-### Advanced Log Filtering
+## Advanced Log and Trace Filtering
 
-Highlight.io now offers enhanced capabilities for filtering your logs and traces. Beyond standard text and level-based filtering, you can now precisely target and analyze your data using **record attributes**. This allows for highly granular filtering, enabling you to quickly pinpoint issues, debug specific user flows, or monitor custom metrics by applying filters directly to the attributes associated with your log and trace records. This brings a powerful, consistent filtering experience across logs and traces, similar to the robust filtering already available for other data types.
+Highlight.io now provides enhanced capabilities for filtering your logs and traces based on their record attributes. This allows for more granular and precise analysis of your application's telemetry data. You can apply filters to specific attributes, similar to how you filter general logs, enabling you to quickly pinpoint relevant information and troubleshoot issues with greater efficiency. This improvement helps you drill down into the exact data points you need, making your debugging workflow smoother and more effective.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
