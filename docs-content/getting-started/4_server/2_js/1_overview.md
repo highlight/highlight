@@ -1,4 +1,4 @@
----
+﻿---
 toc: Overview
 title: Highlight Integration in Javascript / Typescript
 slug: js

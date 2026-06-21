@@ -34,15 +34,13 @@ H.init({
 })
 
 export const handle: Handle = async ({ event, resolve }) => {
-	return H.runWithHeaders(
-		`${event.request.method} ${event.url.pathname}`,
-		event.request.headers,
-		async () => resolve(event),
+	return H.runWithHeaders('sveltekit.handle', event.request.headers, () =>
+		resolve(event),
 	)
 }
 ```
 
-`H.runWithHeaders()` reads the incoming SvelteKit request headers and propagates Highlight context to spans created while `resolve(event)` runs. When your frontend Highlight setup sends tracing headers, server traces can be connected back to the originating session and request.
+`H.runWithHeaders()` takes a span name, the incoming request headers, and a callback. When your frontend Highlight setup sends tracing headers, server traces can be connected back to the originating session and request.
 
 ## Report uncaught server errors
 
@@ -54,15 +52,11 @@ import { H } from '@highlight-run/node'
 import type { HandleServerError } from '@sveltejs/kit'
 
 export const handleError: HandleServerError = ({ error, event }) => {
-	const { secureSessionId, requestId } = H.parseHeaders(
-		event.request.headers,
-	)
+	const parsed = H.parseHeaders(event.request.headers)
+	const reportedError =
+		error instanceof Error ? error : new Error(String(error))
 
-	H.consumeError(
-		error instanceof Error ? error : new Error(String(error)),
-		secureSessionId,
-		requestId,
-	)
+	H.consumeError(reportedError, parsed.secureSessionId, parsed.requestId)
 }
 ```
 
@@ -71,11 +65,9 @@ export const handleError: HandleServerError = ({ error, event }) => {
 If you need to report exceptions outside of `handleError`, use the Highlight SDK with headers from the active SvelteKit request event.
 
 ```ts
-const { secureSessionId, requestId } = H.parseHeaders(
-	event.request.headers,
-)
+const parsed = H.parseHeaders(event.request.headers)
 
-H.consumeError(error, secureSessionId, requestId)
+H.consumeError(error, parsed.secureSessionId, parsed.requestId)
 ```
 
 ## Verify the setup
@@ -84,8 +76,18 @@ Create a temporary server endpoint that throws an error, then request it locally
 
 ```ts
 // src/routes/error/+server.ts
-export const GET = () => {
-	throw new Error('sample SvelteKit server error!')
+import { H } from '@highlight-run/node'
+import type { RequestHandler } from './$types'
+
+export const GET: RequestHandler = async ({ request }) => {
+	const { span } = H.startWithHeaders('sveltekit.server.route', request.headers)
+
+	try {
+		console.info('Highlight captured this server log from SvelteKit')
+		throw new Error('sample SvelteKit server error!')
+	} finally {
+		span.end()
+	}
 }
 ```
 
