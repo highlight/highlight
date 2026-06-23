@@ -1,0 +1,27 @@
+# Dependencies
+deps/
+_build/
+
+# Generated on crash
+erl_crash.dump
+
+# Temporary files
+*.ez
+*.beam
+
+# Mix lock (for SDK, we check it in)
+# mix.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ElixirLS
+.elixir_ls/
