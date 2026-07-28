@@ -1,5 +1,4 @@
 import { Button } from '@components/Button'
-import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
 import {
 	useDeleteSessionAlertMutation,
@@ -18,6 +17,7 @@ import {
 	IconSolidCheveronUp,
 	IconSolidBell,
 	Menu,
+	Select,
 	Stack,
 	SwitchButton,
 	Tag,
@@ -39,7 +39,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import LoadingBox from '@/components/LoadingBox'
-import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
 import { namedOperations } from '@/graph/generated/operations'
 import { SessionAlertInput, SessionAlertType } from '@/graph/generated/schemas'
 import {
@@ -52,6 +51,7 @@ import AlertNotifyForm from '@/pages/Alerts/components/AlertNotifyForm/AlertNoti
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
 import analytics from '@/util/analytics'
 
+import { selectValuesToStrings } from './selectUtils'
 import * as styles from './styles.css'
 
 const SEPARATOR = ':$&'
@@ -112,7 +112,7 @@ export const SessionAlertPage = () => {
 			formStore.setValues({
 				name: alert.Name ?? '',
 				belowThreshold: false,
-				excludedEnvironments: alert.ExcludedEnvironments,
+				excludedEnvironments: alert.ExcludedEnvironments ?? [],
 				slackChannels: alert.ChannelsToNotify.map((c: any) => ({
 					...c,
 					webhook_channel_name: c.webhook_channel,
@@ -142,15 +142,17 @@ export const SessionAlertPage = () => {
 				threshold: alert.CountThreshold,
 				frequency: getFrequencyOption(alert.Frequency).value,
 				threshold_window: alert.ThresholdWindow,
-				userProperties: alert.UserProperties?.map(
-					(userProperty: any) =>
-						getPropertiesOption(userProperty).value,
-				),
-				trackProperties: alert.TrackProperties?.map(
-					(trackProperty: any) =>
-						getPropertiesOption(trackProperty).value,
-				),
-				excludeRules: alert.ExcludeRules,
+				userProperties:
+					alert.UserProperties?.map(
+						(userProperty: any) =>
+							getPropertiesOption(userProperty).value,
+					) ?? [],
+				trackProperties:
+					alert.TrackProperties?.map(
+						(trackProperty: any) =>
+							getPropertiesOption(trackProperty).value,
+					) ?? [],
+				excludeRules: alert.ExcludeRules ?? [],
 				type: alertType,
 				loaded: true,
 			})
@@ -498,12 +500,9 @@ const SessionAlertForm = ({
 		(alertsPayload?.environment_suggestion ??
 			[]) as EnvironmentSuggestion[],
 	).map((environmentSuggestion) => ({
-		displayValue: environmentSuggestion,
+		name: environmentSuggestion,
 		value: environmentSuggestion,
-		id: environmentSuggestion,
 	}))
-
-	const [identifierQuery, setIdentifierQuery] = useState('')
 
 	const {
 		refetch: refetchIdentifierSuggestions,
@@ -522,18 +521,11 @@ const SessionAlertForm = ({
 		: (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
 				(suggestion) => ({
 					value: suggestion,
-					displayValue: (
-						<TextHighlighter
-							searchWords={[identifierQuery]}
-							textToHighlight={suggestion}
-						/>
-					),
-					id: suggestion,
+					name: suggestion,
 				}),
 			)
 
 	const handleIdentifierSearch = (query = '') => {
-		setIdentifierQuery(query)
 		refetchIdentifierSuggestions({ query, project_id: project_id })
 	}
 
@@ -593,24 +585,27 @@ const SessionAlertForm = ({
 							>
 								<Select
 									aria-label="Excluded identifiers list"
-									notFoundContent={
-										<p>No identifier suggestions</p>
-									}
-									onSearch={handleIdentifierSearch}
+									creatable
+									displayMode="tags"
+									filterable
+									onSearchValueChange={handleIdentifierSearch}
 									options={identifierSuggestions}
-									mode="tags"
 									placeholder="Select a identifier(s) that should not trigger alerts."
-									onChange={(values: any): any => {
+									resultsLoading={
+										identifierSuggestionsLoading
+									}
+									onValueChange={(values) => {
 										handleIdentifierSearch('')
 										formStore.setValue(
 											formStore.names.excludeRules,
-											values,
+											selectValuesToStrings(values),
 										)
 									}}
-									className={styles.selectContainer}
-									value={formStore.getValue(
-										formStore.names.excludeRules,
-									)}
+									value={
+										formStore.getValue(
+											formStore.names.excludeRules,
+										) ?? []
+									}
 								/>
 							</Form.NamedSection>
 						)}
@@ -621,18 +616,19 @@ const SessionAlertForm = ({
 								name={formStore.names.userProperties}
 							>
 								<Select
-									className={styles.selectContainer}
-									mode="multiple"
+									displayMode="tags"
 									placeholder="Pick the user properties that you would like to get alerted for."
-									onChange={(values: any): any =>
+									onValueChange={(values) =>
 										formStore.setValue(
 											formStore.names.userProperties,
-											values,
+											selectValuesToStrings(values),
 										)
 									}
-									value={formStore.getValue(
-										formStore.names.userProperties,
-									)}
+									value={
+										formStore.getValue(
+											formStore.names.userProperties,
+										) ?? []
+									}
 								/>
 							</Form.NamedSection>
 						)}
@@ -642,18 +638,19 @@ const SessionAlertForm = ({
 								name={formStore.names.trackProperties}
 							>
 								<Select
-									className={styles.selectContainer}
-									mode="multiple"
+									displayMode="tags"
 									placeholder="Pick the track properties that you would like to get alerted for."
-									onChange={(values: any): any =>
+									onValueChange={(values) =>
 										formStore.setValue(
 											formStore.names.trackProperties,
-											values,
+											selectValuesToStrings(values),
 										)
 									}
-									value={formStore.getValue(
-										formStore.names.trackProperties,
-									)}
+									value={
+										formStore.getValue(
+											formStore.names.trackProperties,
+										) ?? []
+									}
 								/>
 							</Form.NamedSection>
 						)}
@@ -677,18 +674,19 @@ const SessionAlertForm = ({
 							aria-label="Excluded environments list"
 							placeholder="Select excluded environments"
 							options={environments}
-							onChange={(values: any): any =>
+							displayMode="tags"
+							filterable
+							onValueChange={(values) =>
 								formStore.setValue(
 									formStore.names.excludedEnvironments,
-									values,
+									selectValuesToStrings(values),
 								)
 							}
-							notFoundContent={<p>No environment suggestions</p>}
-							className={styles.selectContainer}
-							mode="multiple"
-							value={formStore.getValue(
-								formStore.names.excludedEnvironments,
-							)}
+							value={
+								formStore.getValue(
+									formStore.names.excludedEnvironments,
+								) ?? []
+							}
 						/>
 					</Form.NamedSection>
 				</Stack>
