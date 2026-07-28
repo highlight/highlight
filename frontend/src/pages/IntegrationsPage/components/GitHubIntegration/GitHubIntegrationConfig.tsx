@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { useProjectId } from '@hooks/useProjectId'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
@@ -51,8 +51,7 @@ const GitHubIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectSave-GitHub"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -84,15 +83,15 @@ const GitHubIntegrationConfig: React.FC<
 				>
 					Cancel
 				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-GitHub"
-					className={styles.modalBtn}
-					type="primary"
-					href={authUrl}
-				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with GitHub
-				</Button>
+				<a href={authUrl}>
+					<Button
+						trackingId="IntegrationConfigurationSave-GitHub"
+						className={styles.modalBtn}
+					>
+						<AppsIcon className={styles.modalBtnIcon} /> Connect
+						Highlight with GitHub
+					</Button>
+				</a>
 			</footer>
 		</>
 	)

@@ -1,5 +1,5 @@
 import { AdminAvatar } from '@components/Avatar/Avatar'
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import Card from '@components/Card/Card'
 import PopConfirm from '@components/PopConfirm/PopConfirm'
 import Table from '@components/Table/Table'
@@ -164,7 +164,6 @@ const TABLE_COLUMNS = [
 					<Button
 						className={styles.removeTeamMemberButton}
 						trackingId="DeleteInvite"
-						iconButton
 					>
 						<SvgTrashIconSolid />
 					</Button>

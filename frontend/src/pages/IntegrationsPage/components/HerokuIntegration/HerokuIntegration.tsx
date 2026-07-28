@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { Form } from '@highlight-run/ui/components'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
@@ -48,8 +48,7 @@ const HerokuIntegration: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectSave-Heroku"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -110,7 +109,6 @@ const HerokuIntegration: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationSave-Heroku"
 					className={styles.modalBtn}
-					type="primary"
 					disabled={!tokens.filter((t) => t.length >= 38).length}
 					onClick={async () => {
 						setModalOpen(false)

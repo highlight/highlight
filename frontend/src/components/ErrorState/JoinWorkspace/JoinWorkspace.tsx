@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import { useJoinWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
@@ -22,7 +22,6 @@ const JoinWorkspace = ({
 	return (
 		<Button
 			trackingId="ErrorStateJoinWorkspace"
-			type="primary"
 			onClick={async () => {
 				try {
 					await JoinWorkspace({
