@@ -20,7 +20,6 @@
 	"license": "Apache-2.0",
 	"peerDependencies": {
 		"@nestjs/core": ">=10",
-		"@nestjs/graphql": ">=10",
 		"rxjs": ">=7"
 	},
 	"dependencies": {
