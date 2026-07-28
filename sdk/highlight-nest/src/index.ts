@@ -8,7 +8,6 @@ import {
 	Injectable,
 	NestInterceptor,
 } from '@nestjs/common'
-import { GqlExecutionContext } from '@nestjs/graphql' // peer dep (graphql support)
 import api from '@opentelemetry/api'
 import { finalize, Observable, throwError } from 'rxjs'
 import { catchError } from 'rxjs/operators'
@@ -78,36 +77,51 @@ export class HighlightLogger
 	}
 }
 
-// Pull a human-readable name + headers out of either a REST (HTTP) or
-// GraphQL execution context so the same interceptor can trace both.
+// GraphQL requests run through a different execution context than REST.
+// We resolve GqlExecutionContext lazily so consumers who don't use GraphQL
+// don't need @nestjs/graphql installed (avoids a hard peer-dependency conflict
+// on NestJS 10, where @nestjs/graphql@11+ requires NestJS 11).
+function getGraphQLContext(context: ExecutionContext): {
+	req: any
+	info: any
+} | null {
+	try {
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		const { GqlExecutionContext } = require('@nestjs/graphql')
+		const gqlCtx = GqlExecutionContext.create(context)
+		const req = gqlCtx.getContext()?.req
+		if (req) {
+			return { req, info: gqlCtx.getInfo() }
+		}
+	} catch {
+		// @nestjs/graphql not installed — not a GraphQL request
+	}
+	return null
+}
+
 function describeContext(context: ExecutionContext): {
 	name: string
 	headers: Record<string, any>
 	attributes: Record<string, any>
 } {
-	const gqlCtx = GqlExecutionContext.create(context)
-	const gqlReq = gqlCtx.getContext().req
-	if (gqlReq) {
-		// GraphQL request ( resolvers run inside an HTTP request )
-		const op = gqlCtx.getInfo()
+	const gql = getGraphQLContext(context)
+	if (gql) {
+		const op: any = gql.info
 		const operationName =
-			(op as any)?.operationName ||
-			(op as any)?.fieldName ||
-			'graphql'
-		const operationType = (op as any)?.operation?.operation || 'query'
+			op?.operationName || op?.fieldName || 'graphql'
+		const operationType = op?.operation?.operation || 'query'
 		return {
 			name: `graphql.${operationType} ${operationName}`,
-			headers: gqlReq.headers || {},
+			headers: gql.req.headers || {},
 			attributes: {
 				'graphql.operation.name': operationName,
 				'graphql.operation.type': operationType,
-				'http.method': (gqlReq.method as string) || 'POST',
-				'http.url': (gqlReq.url as string) || '',
+				'http.method': (gql.req.method as string) || 'POST',
+				'http.url': (gql.req.url as string) || '',
 			},
 		}
 	}
 
-	// Fallback to the plain HTTP context ( REST / RPC-over-HTTP )
 	const ctx = context.switchToHttp()
 	const request = ctx.getRequest()
 	const method: string = request.method
