@@ -1,5 +1,5 @@
 ---
-title: The complete guide to OpenTelemetry in Python
+title: The complete guide to OpenTelemetry in FastAPI
 createdAt: 2025-01-14T12:00:00.000Z
 readingTime: 18
 authorFirstName: Vadim
@@ -11,7 +11,7 @@ authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
 authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
 tags: 'Engineering, Backend, Observability'
-metaTitle: The complete guide to OpenTelemetry in Python
+metaTitle: The complete guide to OpenTelemetry in FastAPI
 ---
 
 ```hint
@@ -22,7 +22,7 @@ Highlight.io is an [open source](https://github.com/highlight/highlight) monitor
 OpenTelemetry is an important specification that defines how we send telemetry data to observability backends like Highlight.io, Grafana, and others. OpenTelemetry is great because it is vendor agnostic, and can be used with several observability backends. If you're new to OpenTelemetry, you can learn more about it [here](https://www.youtube.com/watch?v=ASgosEzG4Pw). 
 
 
-Today, we'll go through a complete guide to using OpenTelemetry in Python, including the high-level concepts as well as how to send traces and logs to your OpenTelemetry backend of choice.
+Today, we'll go through a complete guide to using OpenTelemetry in FastAPI, including the high-level concepts as well as how to send traces and logs to your OpenTelemetry backend of choice. For the purposes of this guide, we'll be following the example [here](https://github.com/highlight/otel-fastapi-example), so if you're feeling inspired, you can follow along.
 
 ### **Step One: Signals**
 
@@ -250,27 +250,19 @@ Note that this is a simple example, and you can also create other types of metri
 
 ### **Auto-instrumentation & Middleware**
 
-Last but not least, in addition to manual instrumentation, OpenTelemetry also supports auto-instrumentation for popular libraries and frameworks. This allows you to automatically collect telemetry data without having to modify your application code. For example, in Python, you could use the [OpenTelemetry Distro SDK](https://opentelemetry.io/docs/languages/python/distro/) or the [Zero Code Python setup](https://opentelemetry.io/docs/zero-code/python/) to automatically instrument your application. The downside of these options, however, is that it requires that you change the way your application is run (and may affect your deployment strategy).
+Last but not least, in addition to manual instrumentation, OpenTelemetry also supports auto-instrumentation for popular libraries and frameworks, both at the application level and at the container level. This allows you to automatically collect telemetry data without having to modify your application code. 
 
-As a good alternative, you could use middleware to automatically instrument your application. Middleware is a layer of code that sits between your application and the OpenTelemetry backend, and can be used to automatically collect telemetry data. For example, in a Python FastAPI application, you could write a simple middleware to wrap your application and automatically create traces for each request, like so:
+At the container level, in Python, you could use the [OpenTelemetry Distro SDK](https://opentelemetry.io/docs/languages/python/distro/) or the [Zero Code Python setup](https://opentelemetry.io/docs/zero-code/python/) to automatically instrument your application. The downside of these options, however, is that it requires that you change the way your application is deployed/run (and may affect your deployment strategy).
+
+For fastapi specifically, you  can use the FastAPI Instrumentor library which is the example we'll go through below.
 
 ```python
-from fastapi import Request, FastAPI
+app = FastAPI(debug=True)
 
-app = FastAPI()
-
-@app.middleware("http")
-async def trace_middleware(request, call_next):
-    with tracer.start_as_current_span(f"{request.method} {request.url.path}"):
-        response = await call_next(request)
-        return response
-
-@app.get("/")
-def read_root():
-    return {"message": "Hello, World!"}
+FastAPIInstrumentor.instrument_app(app)
 ```
 
-The great thing about middleware is that it doesn't require that you change the way your application is run, and everytime you write signals within each of your endpoints, you'll automatically have traces and logs associated with that request.
+The great thing about using this approach is that it doesn't require that you change the way your application is run, and everytime you write signals within each of your endpoints, you'll automatically have traces and logs associated with that request.
 
 ## **Putting it all together**
 
