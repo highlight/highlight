@@ -1,6 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import JoinWorkspace from '@components/ErrorState/JoinWorkspace/JoinWorkspace'
+import { LinkButton } from '@components/LinkButton'
 import Space from '@components/Space/Space'
 import { Maybe } from '@graph/schemas'
 import { Callout } from '@highlight-run/ui/components'
@@ -9,7 +9,6 @@ import { useState } from 'react'
 
 import { SIGN_IN_ROUTE, SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
 
-import Button from '../Button/Button/Button'
 import styles from './ErrorState.module.css'
 import RequestAccess from './RequestAccess/RequestAccess'
 
@@ -66,19 +65,23 @@ export const ErrorState = ({
 				<div className={styles.buttonGroup}>
 					{isLoggedIn ? (
 						<div className={styles.loggedInButtonGroup}>
-							<a href="/">
-								<Button
-									small
-									type={
-										joinableWorkspace || showRequestAccess
-											? 'text'
-											: 'primary'
-									}
-									trackingId="ErrorStateGoToMyAccount"
-								>
-									Go to My Account
-								</Button>
-							</a>
+							<LinkButton
+								size="small"
+								to="/"
+								kind={
+									joinableWorkspace || showRequestAccess
+										? 'secondary'
+										: 'primary'
+								}
+								emphasis={
+									joinableWorkspace || showRequestAccess
+										? 'low'
+										: 'high'
+								}
+								trackingId="Button-ErrorStateGoToMyAccount"
+							>
+								Go to My Account
+							</LinkButton>
 							{joinableWorkspace && (
 								<JoinWorkspace workspace={joinableWorkspace} />
 							)}
@@ -86,22 +89,24 @@ export const ErrorState = ({
 						</div>
 					) : (
 						<Space size="small">
-							<ButtonLink
-								type="primary"
-								trackingId="ErrorStateSignIn"
-								href={SIGN_IN_ROUTE}
-								anchor
+							<LinkButton
+								kind="primary"
+								emphasis="high"
+								trackingId="Link-ErrorStateSignIn"
+								to={SIGN_IN_ROUTE}
+								target="_blank"
 							>
 								Sign in
-							</ButtonLink>
-							<ButtonLink
-								trackingId="ErrorStateSignUp"
-								type="default"
-								href={SIGN_UP_ROUTE}
-								anchor
+							</LinkButton>
+							<LinkButton
+								kind="secondary"
+								emphasis="medium"
+								trackingId="Link-ErrorStateSignUp"
+								to={SIGN_UP_ROUTE}
+								target="_blank"
 							>
 								Sign up
-							</ButtonLink>
+							</LinkButton>
 						</Space>
 					)}
 				</div>
