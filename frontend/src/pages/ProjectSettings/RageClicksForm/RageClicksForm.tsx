@@ -1,12 +1,32 @@
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { LoadingBar } from '@components/Loading/Loading'
-import { Box, Form, Stack } from '@highlight-run/ui/components'
+import {
+	Box,
+	Form,
+	IconSolidInformationCircle,
+	Stack,
+	Tooltip,
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
+
+const RageClickTooltip = ({ title }: { title: string }) => (
+	<Tooltip
+		trigger={
+			<IconSolidInformationCircle
+				color={vars.theme.interactive.fill.secondary.content.onDisabled}
+				size={13}
+			/>
+		}
+		renderInLine
+	>
+		{title}
+	</Tooltip>
+)
 
 export const RageClicksForm = () => {
 	const { project_id } = useParams<{
@@ -60,10 +80,7 @@ export const RageClicksForm = () => {
 							type="number"
 							value={rageClickWindowSeconds}
 							labelTag={
-								<InfoTooltip
-									title="The maximum time allowed between clicks in a rage click event"
-									size="small"
-								/>
+								<RageClickTooltip title="The maximum time allowed between clicks in a rage click event" />
 							}
 							onChange={(e) => {
 								const val = Number(e.target.value)
@@ -86,10 +103,7 @@ export const RageClicksForm = () => {
 						<Form.Input
 							label="Radius (pixels)"
 							labelTag={
-								<InfoTooltip
-									title="The maximum distance allowed between clicks in a rage click event"
-									size="small"
-								/>
+								<RageClickTooltip title="The maximum distance allowed between clicks in a rage click event" />
 							}
 							name="rage_click_radius_pixels"
 							type="number"
@@ -116,10 +130,7 @@ export const RageClicksForm = () => {
 							name="rage_click_minimum_clicks"
 							label="Minimum clicks"
 							labelTag={
-								<InfoTooltip
-									title="The minimum number of clicks needed to be considered a rage click event"
-									size="small"
-								/>
+								<RageClickTooltip title="The minimum number of clicks needed to be considered a rage click event" />
 							}
 							type="number"
 							value={rageClickCount}
