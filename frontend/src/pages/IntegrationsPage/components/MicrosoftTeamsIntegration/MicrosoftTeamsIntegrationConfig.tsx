@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -29,8 +29,10 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 				</p>
 				<footer>
 					<Button
-						trackingId="IntegrationDisconnectCancel-MicrosoftTeams"
+						trackingId="Button-IntegrationDisconnectCancel-MicrosoftTeams"
 						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(true)
@@ -39,10 +41,10 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-MicrosoftTeams"
+						trackingId="Button-IntegrationDisconnectSave-MicrosoftTeams"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
+						iconLeft={<PlugIcon />}
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -51,7 +53,6 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 							)
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect Microsoft Teams
 					</Button>
 				</footer>
@@ -67,8 +68,10 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 			</p>
 			<footer>
 				<Button
-					trackingId="IntegrationConfigurationCancel-MicrosoftTeams"
+					trackingId="Button-IntegrationConfigurationCancel-MicrosoftTeams"
 					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)
@@ -77,13 +80,14 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-MicrosoftTeams"
+					trackingId="Button-IntegrationConfigurationSave-MicrosoftTeams"
 					className={styles.modalBtn}
-					type="primary"
+					kind="primary"
+					emphasis="high"
+					iconLeft={<AppsIcon />}
 					href={microsoftTeamsAuthUrl}
 				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Microsoft Teams
+					Connect Highlight with Microsoft Teams
 				</Button>
 			</footer>
 		</>
