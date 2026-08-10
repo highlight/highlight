@@ -5,10 +5,7 @@ import React from 'react'
 
 import styles from './Table.module.css'
 
-type Props = Pick<
-	TableProps<any>,
-	'columns' | 'dataSource' | 'loading' | 'pagination' | 'showHeader' | 'onRow'
-> & {
+type Props = TableProps<any> & {
 	renderEmptyComponent?: React.ReactNode
 	rowHasPadding?: boolean
 	smallPadding?: boolean

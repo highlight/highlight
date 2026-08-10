@@ -10,7 +10,7 @@ import {
 } from '@graph/hooks'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
-import { Table } from 'antd'
+import Table from '@components/Table/Table'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -286,40 +286,42 @@ export const Account = () => {
 						pagination={false}
 						sticky={true}
 						size="small"
-						columns={[
-							{
-								title: 'ID',
-								dataIndex: 'id',
-								sorter: (a: Row, b: Row) =>
-									(a.id ?? 0) - (b.id ?? 0),
-							},
-							{
-								title: 'Name',
-								dataIndex: 'name',
-								sorter: (a: Row, b: Row) =>
-									(a.name ?? '').localeCompare(b.name ?? ''),
-							},
-							{
-								title: 'Email',
-								dataIndex: 'email',
-								sorter: (a: Row, b: Row) =>
-									(a.email ?? '').localeCompare(
-										b.email ?? '',
-									),
-							},
-							{
-								title: 'Last Active',
-								dataIndex: 'last_active',
-								render: (value: moment.MomentInput) =>
-									moment(value).format('MM/DD/YY'),
-								sorter: (a: Row, b: Row) =>
-									(a.last_active ?? '').localeCompare(
-										b.last_active ?? '',
-									),
-							},
-						]}
-						dataSource={accountData?.account_details.members}
-					/>
+							columns={[
+								{
+									title: 'ID',
+									dataIndex: 'id',
+									sorter: (a: Row, b: Row) =>
+										(a.id ?? 0) - (b.id ?? 0),
+								},
+								{
+									title: 'Name',
+									dataIndex: 'name',
+									sorter: (a: Row, b: Row) =>
+										(a.name ?? '').localeCompare(
+											b.name ?? '',
+										),
+								},
+								{
+									title: 'Email',
+									dataIndex: 'email',
+									sorter: (a: Row, b: Row) =>
+										(a.email ?? '').localeCompare(
+											b.email ?? '',
+										),
+								},
+								{
+									title: 'Last Active',
+									dataIndex: 'last_active',
+									render: (value: moment.MomentInput) =>
+										moment(value).format('MM/DD/YY'),
+									sorter: (a: Row, b: Row) =>
+										(a.last_active ?? '').localeCompare(
+											b.last_active ?? '',
+										),
+								},
+							]}
+							dataSource={accountData?.account_details.members}
+						/>
 				</>
 			)}
 		</ResponsiveContainer>

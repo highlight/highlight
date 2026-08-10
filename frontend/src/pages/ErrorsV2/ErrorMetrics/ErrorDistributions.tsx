@@ -8,7 +8,7 @@ import {
 } from '@graph/schemas'
 import { colors } from '@highlight-run/ui/colors'
 import { Badge, Box, Stack, Text } from '@highlight-run/ui/components'
-import { Progress } from 'antd'
+import { Progress } from '@components/Progress/Progress'
 import React, { useEffect, useState } from 'react'
 
 type Props = {
