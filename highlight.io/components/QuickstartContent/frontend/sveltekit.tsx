@@ -3,10 +3,10 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
+import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts
@@ -79,6 +79,9 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Instrument your SvelteKit server.',
+			content: `The browser SDK records sessions and client errors. To record server errors, logs, and traces and connect them to those sessions, follow the [SvelteKit server quickstart](${siteUrl('/docs/getting-started/server/js/sveltekit')}).`,
+		},
 	],
 }
