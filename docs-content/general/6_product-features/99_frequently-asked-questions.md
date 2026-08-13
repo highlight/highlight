@@ -30,7 +30,7 @@ This documentation provides solutions and guidance for common issues encountered
 
 **Question:** How can I set up tracing with SvelteKit as I am not seeing any traces despite having logs and errors?
 
-**Answer:** Ensure that your `H.init` configuration is correctly set up in both `hooks.client.ts` and `hooks.server.ts`. Use `H.runWithHeaders` in your server-side handle function to ensure that headers are correctly passed and handled. If issues persist, please provide the Highlight traces page URL and check the version of the `@highlight-run/node` SDK you are using. For detailed guidance, refer to the [Highlight.io SvelteKit Documentation](https://www.highlight.io/docs/getting-started/client-sdk/sveltekit).
+**Answer:** Make sure Highlight is set up in both `src/hooks.client.ts` and `src/hooks.server.ts`. On the server side, wrap your request handler with `H.runWithHeaders(...)` so Highlight can carry the session context into traces and errors. If you still are not seeing traces, confirm that the browser SDK has `tracingOrigins` and `networkRecording.enabled` turned on. For a full example, see the [SvelteKit walkthrough](https://www.highlight.io/docs/getting-started/fullstack-frameworks/sveltekit).
 
 ## Session Recording Issues
 
