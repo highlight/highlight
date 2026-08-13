@@ -1,5 +1,11 @@
 # highlight.run
 
+## 9.16.1
+
+### Patch Changes
+
+-   4b2b0ec: improve LD sdk integration to report context
+
 ## 9.16.0
 
 ### Minor Changes
