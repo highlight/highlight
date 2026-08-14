@@ -13787,6 +13787,24 @@ var CanvasManager = class {
   unlock() {
     this.locked = false;
   }
+
+  /* Ranukita fix: Safari < 17.4 blocks on createImageBitmap() and ignores resize options.
+     Workaround: draw to a pre-sized temp canvas, then create bitmap without resize args.
+     See: https://github.com/highlight/highlight/issues/6775 */
+  _rkSafeCreateImageBitmap(source, width, height) {
+    var ua = navigator.userAgent;
+    var isSafari = / AppleWebKit\//.test(ua) && !/ Chrome\//.test(ua) && !/ Chromium\//.test(ua);
+    if (isSafari) {
+      var tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width = width;
+      tmpCanvas.height = height;
+      var ctx = tmpCanvas.getContext('2d');
+      ctx.drawImage(source, 0, 0, width, height);
+      return createImageBitmap(tmpCanvas);
+    }
+    return createImageBitmap(source, { resizeWidth: width, resizeHeight: height });
+  }
+
   debug(element, ...args) {
     if (!this.logger) return;
     const id = this.mirror.getId(element);
@@ -13845,10 +13863,7 @@ var CanvasManager = class {
       }
       const width = canvas.width * scale;
       const height = canvas.height * scale;
-      const bitmap = await createImageBitmap(canvas, {
-        resizeWidth: width,
-        resizeHeight: height
-      });
+      const bitmap = await this._rkSafeCreateImageBitmap(canvas, width, height);
       this.debug(canvas, "created image bitmap", {
         width: bitmap.width,
         height: bitmap.height
@@ -13995,10 +14010,7 @@ var CanvasManager = class {
             }
             const width = actualWidth * scale;
             const height = actualHeight * scale;
-            const bitmap = await createImageBitmap(video, {
-              resizeWidth: width,
-              resizeHeight: height
-            });
+            const bitmap = await this._rkSafeCreateImageBitmap(video, width, height);
             const outputScale = Math.max(boxWidth, boxHeight) / maxDim;
             const outputWidth = actualWidth * outputScale;
             const outputHeight = actualHeight * outputScale;
