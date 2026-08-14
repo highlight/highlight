@@ -120,7 +120,7 @@
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
-      <HintPath>..\packages/Newtonsoft.Json.13.0.1/lib/net45/Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages/Newtonsoft.Json.13.0.3/lib/net45/Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="OpenTelemetry, Version=1.0.0.0, Culture=neutral, PublicKeyToken=7bd6737fe5b67e3c, processorArchitecture=MSIL">
