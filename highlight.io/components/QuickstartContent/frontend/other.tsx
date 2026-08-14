@@ -23,7 +23,7 @@ export const OtherContext: QuickStartContent = {
 				{
 					text: `<html>
 <head>
-    <script src="https://unpkg.com/highlight.run"></script>
+    <script src="https://unpkg.com/highlight.run@9.14.0"></script>
 </head>
 <body>
     <!-- Your Application -->
@@ -43,7 +43,7 @@ To get started, we recommend setting \`environment\`, \`version\`, and \`network
 				{
 					text: `<html>
 <head>
-    <script src="https://unpkg.com/highlight.run"></script>
+    <script src="https://unpkg.com/highlight.run@9.14.0"></script>
     <script>
         H.init('<YOUR_PROJECT_ID>', { // Get your project ID from https://app.highlight.io/setup
             environment: 'production',
