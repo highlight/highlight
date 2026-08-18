@@ -38,7 +38,9 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 	sampling := customModels.SamplingConfig{}
 
 	if err != nil {
-		log.WithContext(ctx).Errorf("An unsupported verboseID was used: %s, %s", organizationVerboseID, clientConfig)
+		log.WithContext(ctx).WithField("organization_verbose_id", organizationVerboseID).
+			WithField("client_config", clientConfig).
+			Warnf("Failed to decode organization verboseID: %v", err)
 	} else {
 		err = r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 			Type: kafkaqueue.InitializeSession,
@@ -329,7 +331,8 @@ func (r *queryResolver) Sampling(ctx context.Context, organizationVerboseID stri
 	projectID, err := model.FromVerboseID(organizationVerboseID)
 
 	if err != nil {
-		log.WithContext(ctx).Errorf("An unsupported verboseID was used: %s", organizationVerboseID)
+		log.WithContext(ctx).WithField("organization_verbose_id", organizationVerboseID).
+			Warnf("Failed to decode organization verboseID in Sampling query: %v", err)
 		return &sampling, nil
 	}
 
