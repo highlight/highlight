@@ -120,6 +120,7 @@
 		"cookie@^0.6.0": "0.7.2",
 		"cookie@~0.4.1": "0.7.2",
 		"debug@4.1.1": "4.3.7",
+		"basic-ftp": "^5.2.0",
 		"lodash-es@^4.17.21": "patch:lodash-es@npm%3A4.17.21#./.yarn/patches/lodash-es-npm-4.17.21-b45832dfce.patch",
 		"protobufjs": "patch:protobufjs@npm%3Alatest#~/.yarn/patches/protobufjs-npm-7.2.6-4bb38caa1d.patch",
 		"semver@7.3.5": "7.6.0",
