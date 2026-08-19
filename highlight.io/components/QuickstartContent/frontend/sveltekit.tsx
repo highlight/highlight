@@ -3,10 +3,10 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
+import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts
@@ -43,7 +43,7 @@ export const SvelteKitContent: QuickStartContent = {
 		{
 			...initializeSnippet,
 			content:
-				'In SvelteKit, we recommend initializing highlight.io in the `hooks.client.js` or `hooks.client.ts` file. You can find more details about this file in the SvelteKit docs [here](https://kit.svelte.dev/docs/hooks). To get started, we recommend setting `tracingOrigins` and `networkRecording` so that we can pass a header to pair frontend and backend errors. \n\n\n' +
+				'In SvelteKit, we recommend initializing highlight.io in the `hooks.client.js` or `hooks.client.ts` file. You can find more details about this file in the SvelteKit docs [here](https://kit.svelte.dev/docs/hooks). Set `tracingOrigins` so the browser SDK sends the correlation header used to pair frontend sessions with backend errors. Enable `networkRecording` when you also want to capture request and response details. \n\n\n' +
 				`Grab your project ID from [app.highlight.io/setup](https://app.highlight.io/setup), and pass it as the first parameter of the \`H.init()\` method.`,
 			code: [
 				{
@@ -79,6 +79,11 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Instrument your SvelteKit server. (optional)',
+			content: `Use the [SvelteKit server quick start](${siteUrl(
+				'/docs/getting-started/server/js/sveltekit',
+			)}) to capture server errors, logs, and traces and connect them to browser sessions.`,
+		},
 	],
 }
