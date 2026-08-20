@@ -427,6 +427,16 @@ const nextConfig: Promise<NextConfig> = withHighlightConfig({
 				destination: '/docs/general/integrations/wordpress-integration',
 				permanent: true,
 			},
+			// Keep last: highlight.io is sunset, so any page without a more
+			// specific redirect above goes to launchdarkly.com. Next internals,
+			// API routes and public assets are excluded so that the
+			// sitemap.xml and /blog/rss.xml rewrites keep serving -- rewrites
+			// are applied after redirects, so a bare catch-all would eat them.
+			{
+				source: '/:path((?!_next/|api/|images/|videos/|styles/|favicon\\.ico|robots\\.txt|sitemap\\.xml|blog/rss\\.xml).*)',
+				destination: 'https://launchdarkly.com/',
+				permanent: true,
+			},
 		]
 	},
 	async headers() {
