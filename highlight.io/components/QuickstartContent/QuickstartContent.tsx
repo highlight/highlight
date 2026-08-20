@@ -138,6 +138,7 @@ import { ElixirOtherReorganizedContent } from './server/elixir/other'
 import { ReactNativeContent } from './frontend/react-native'
 import { siteUrl } from '../../utils/urls'
 import { NextJsTracesReorganizedContent } from './server/js/nextjs'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { AWSLambdaTracingSteps } from './server/serverless/shared-snippets-aws-lambda'
 
 export type QuickStartContent = {
@@ -206,6 +207,7 @@ export enum QuickStartType {
 	JSNextjs = 'nextjs',
 	JSManual = 'manual',
 	JSNestjs = 'nestjs',
+	JSSvelteKit = 'sveltekit',
 	JSWinston = 'winston',
 	JSPino = 'pino',
 	JStRPC = 'trpc',
@@ -456,6 +458,7 @@ export const quickStartContent = {
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
@@ -601,6 +604,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
