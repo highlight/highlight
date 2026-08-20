@@ -1,6 +1,7 @@
 import { withHighlightConfig } from '@highlight-run/next/config'
 import getStaticPages from './scripts/get-static-pages'
 import { NextConfig } from 'next/types'
+import { launchDarklyRedirects } from './shared/launchdarkly-redirects'
 
 const nextConfig: Promise<NextConfig> = withHighlightConfig({
 	webpack: (config, { isServer, dev }) => {
@@ -353,21 +354,6 @@ const nextConfig: Promise<NextConfig> = withHighlightConfig({
 				permanent: true,
 			},
 			{
-				source: '/docs',
-				destination: '/docs/general/welcome',
-				permanent: false,
-			},
-			{
-				source: '/docs/getting-started',
-				destination: '/docs/getting-started/overview',
-				permanent: false,
-			},
-			{
-				source: '/docs/general',
-				destination: '/docs/general/welcome',
-				permanent: false,
-			},
-			{
 				source: '/careers/:slug*',
 				destination: 'https://careers.highlight.io',
 				permanent: false,
@@ -383,50 +369,14 @@ const nextConfig: Promise<NextConfig> = withHighlightConfig({
 				permanent: false,
 			},
 			{
-				source: '/docs/product-features/comments',
-				destination:
-					'/docs/general/product-features/general-features/comments',
-				permanent: true,
-			},
-			{
-				source: '/docs/general/company/product-philosphy',
-				destination: '/docs/general/company/product-philosophy',
-				permanent: true,
-			},
-			{
-				source: '/docs/general/product-features/session-replay/privacy',
-				destination:
-					'/docs/getting-started/client-sdk/replay-configuration/privacy',
-				permanent: true,
-			},
-			{
-				source: '/docs/reference',
-				destination: '/docs',
-				permanent: true,
-			},
-			{
 				source: '/blog/post/opensearch-for-a-write-heavy-workload',
 				destination:
 					'https://launchdarkly.com/docs/tutorials/opensearch-for-a-write-heavy-workload',
 				permanent: true,
 			},
-			{
-				source: '/docs/general/getting-started/backend-sdk/cloudflare',
-				destination:
-					'/docs/getting-started/backend-logging/js/cloudflare',
-				permanent: true,
-			},
-			{
-				source: '/docs/general/getting-started/backend-sdk/python',
-				destination:
-					'/docs/getting-started/backend-logging/python/other',
-				permanent: true,
-			},
-			{
-				source: '/docs/wordpress',
-				destination: '/docs/general/integrations/wordpress-integration',
-				permanent: true,
-			},
+			// Keep last: maps the remaining docs pages to their LaunchDarkly
+			// equivalent and sends every other page to launchdarkly.com.
+			...launchDarklyRedirects(),
 		]
 	},
 	async headers() {
