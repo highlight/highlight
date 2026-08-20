@@ -79,6 +79,10 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			...setupBackendSnippet,
+			content:
+				'To set up backend error monitoring in SvelteKit, follow our [SvelteKit backend guide](/docs/getting-started/server/js/sveltekit).',
+		},
 	],
 }
