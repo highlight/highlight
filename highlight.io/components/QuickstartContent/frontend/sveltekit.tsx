@@ -79,6 +79,36 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
+		{
+			title: 'Instrument your SvelteKit backend (hooks.server.ts).',
+			content:
+				"If you're using SvelteKit as a fullstack framework, initialize the Highlight Node SDK on the server and wrap your request handling with `H.runWithHeaders` so backend traces/errors can be connected to the originating frontend session.",
+			code: [
+				{
+					language: 'ts',
+					text: `// hooks.server.ts
+import { H } from '@highlight-run/node'
+
+H.init({
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'sveltekit-server',
+	environment: 'production',
+})
+
+export const handle = async ({ event, resolve }) => {
+	// Convert Fetch headers to a plain object (carrier) for propagation.
+	const headers = Object.fromEntries(event.request.headers.entries())
+
+	return await H.runWithHeaders(
+		\`${'${event.request.method} ${event.url.pathname}'}\`,
+		headers,
+		() => resolve(event),
+	)
+}
+`,
+				},
+			],
+		},
 		setupBackendSnippet,
 	],
 }
