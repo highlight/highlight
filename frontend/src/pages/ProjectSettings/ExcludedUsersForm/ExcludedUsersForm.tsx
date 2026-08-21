@@ -1,12 +1,10 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
-import { Form, Stack } from '@highlight-run/ui/components'
+import { Form, Select, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
-
 import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
@@ -77,15 +75,15 @@ export const ExcludedUsersForm = () => {
 						name="Filtered users"
 					>
 						<Select
-							mode="tags"
+							creatable
+							filterable
+							displayMode="tags"
 							placeholder=".*@yourdomain.com"
 							value={
 								data?.projectSettings?.excluded_users ||
 								undefined
 							}
-							onSearch={handleIdentifierSearch}
-							options={identifierSuggestions}
-							onChange={(excluded: string[]) => {
+							onValueChange={(excluded: string[]) => {
 								const validRegexes: string[] = []
 								const invalidRegexes: string[] = []
 								excluded.forEach((expression) => {

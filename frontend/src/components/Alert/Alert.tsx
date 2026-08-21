@@ -1,12 +1,8 @@
 import SvgXIcon from '@icons/XIcon'
 import analytics from '@util/analytics'
-import {
-	Alert as AntDesignAlert,
-	AlertProps as AntDesignAlertProps,
-} from 'antd'
+import { Callout } from '@highlight-run/ui/components'
 import clsx from 'clsx'
 import { useSessionStorage } from 'react-use'
-
 import SvgInformationIcon from '../../static/InformationIcon'
 import styles from './Alert.module.css'
 
@@ -14,20 +10,26 @@ export type AlertProps = {
 	trackingId: string
 	closable?: boolean
 	shouldAlwaysShow?: boolean
-} & Pick<
-	AntDesignAlertProps,
-	'description' | 'type' | 'onClose' | 'message' | 'className'
->
+} & {
+	description?: React.ReactNode
+	type?: 'info' | 'error' | 'warning' | 'success'
+	onClose?: (e?: React.MouseEvent) => void
+	message?: React.ReactNode
+	className?: string
+}
 
 const Alert = ({
 	trackingId,
 	closable,
 	shouldAlwaysShow = false,
 	type = 'info',
-	...props
+	description,
+	message,
+	className,
+	onClose,
 }: AlertProps) => {
 	const [temporarilyHideAlert, setTemporarilyHideAlert] = useSessionStorage(
-		`highlightHideAlert-${trackingId}`,
+		highlightHideAlert-,
 		false,
 	)
 
@@ -36,22 +38,13 @@ const Alert = ({
 	}
 
 	return (
-		<AntDesignAlert
-			{...props}
-			type={type}
-			className={clsx(props.className, styles.alert)}
-			closable={closable != null ? closable : true}
-			showIcon
-			closeText={(closable != null ? closable : true) && <SvgXIcon />}
-			icon={<SvgInformationIcon />}
-			onClose={(e) => {
-				if (props.onClose) {
-					props.onClose(e)
-				}
-				analytics.track(`AlertClose-${trackingId}`)
-				setTemporarilyHideAlert(true)
-			}}
-		></AntDesignAlert>
+		<Callout
+			kind={type === 'success' ? 'info' : type}
+			title={message}
+			className={clsx(className, styles.alert)}
+		>
+			{description}
+		</Callout>
 	)
 }
 
