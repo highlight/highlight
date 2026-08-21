@@ -66,3 +66,4 @@ google-chrome*
 # WordPress plugin build files
 sdk/highlight-wordpress/highlight-io.zip
 sdk/highlight-wordpress/highlight-io/highlight.js
+*.changeset/migrate-legacy-ui.md

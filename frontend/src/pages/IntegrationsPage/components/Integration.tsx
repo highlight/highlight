@@ -1,9 +1,15 @@
-import Button from '@components/Button/Button/Button'
-import Card from '@components/Card/Card'
-import LoadingBox from '@components/LoadingBox'
-import Switch from '@components/Switch/Switch'
+import {
+	Box,
+	ButtonIcon,
+	IconSolidLoading,
+	Heading,
+	Stack,
+	SwitchButton,
+	Text,
+} from '@highlight-run/ui/components'
 import SettingsIcon from '@icons/SettingsIcon'
 import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
+import analytics from '@util/analytics'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
@@ -61,9 +67,18 @@ const Integration = ({
 	}, [defaultEnable, setIntegrationEnabled])
 	if (loading) {
 		return (
-			<Card>
-				<LoadingBox height={156} />
-			</Card>
+			<Box
+				background="elevated"
+				borderRadius="8"
+				border="secondary"
+				padding="16"
+				display="flex"
+				alignItems="center"
+				justifyContent="center"
+				style={{ height: 156 }}
+			>
+				<IconSolidLoading size={32} />
+			</Box>
 		)
 	}
 
@@ -75,16 +90,31 @@ const Integration = ({
 
 	return (
 		<>
-			<Card className={styles.integration} interactable>
-				<div className={styles.header}>
-					<img
+			<Box
+				background="elevated"
+				borderRadius="8"
+				border="secondary"
+				padding="16"
+				shadow="small"
+				display="flex"
+				flexDirection="column"
+				gap="12"
+				cssClass={styles.integration}
+			>
+				<Box
+					display="flex"
+					justifyContent="space-between"
+					alignItems="flex-start"
+				>
+					<Box
+						as="img"
 						src={icon}
 						alt=""
-						className={clsx(styles.logo, {
+						cssClass={clsx(styles.logo, {
 							['rounded-none']: noRoundedIcon,
 						})}
 					/>
-					<div className="flex flex-col gap-2">
+					<Box display="flex" flexDirection="column" gap="8">
 						{isGated ? (
 							<EnterpriseFeatureButton
 								setting={enterpriseSetting}
@@ -100,38 +130,41 @@ const Integration = ({
 								}}
 								variant="basic"
 							>
-								<Switch
-									trackingId={`IntegrationConnect-${name}`}
-									label={
-										!showConfiguration && integrationEnabled
-											? 'Connected'
-											: 'Connect'
-									}
-									loading={
+								<SwitchButton
+									checked={integrationEnabled}
+									onChange={() => {
+										analytics.track(
+											`Switch-IntegrationConnect-${name}`,
+											{
+												checked: !integrationEnabled,
+											},
+										)
+									}}
+									iconLeft={
 										(showConfiguration &&
 											integrationEnabled) ||
 										(showDeleteConfirmation &&
-											!integrationEnabled)
+											!integrationEnabled) ? (
+											<IconSolidLoading />
+										) : undefined
 									}
-									size="default"
-									checked={integrationEnabled}
-								/>
+								>
+									{!showConfiguration && integrationEnabled
+										? 'Connected'
+										: 'Connect'}
+								</SwitchButton>
 							</EnterpriseFeatureButton>
 						) : (
-							<Switch
-								trackingId={`IntegrationConnect-${name}`}
-								label={
-									!showConfiguration && integrationEnabled
-										? 'Connected'
-										: 'Connect'
-								}
-								loading={
-									(showConfiguration && integrationEnabled) ||
-									(showDeleteConfirmation &&
-										!integrationEnabled)
-								}
+							<SwitchButton
+								checked={integrationEnabled}
 								onChange={() => {
 									const newValue = !integrationEnabled
+									analytics.track(
+										`Switch-IntegrationConnect-${name}`,
+										{
+											checked: newValue,
+										},
+									)
 									if (newValue) {
 										setShowConfiguration(true)
 									} else {
@@ -139,41 +172,64 @@ const Integration = ({
 									}
 									setIntegrationEnabled(newValue)
 								}}
-								size="default"
-								checked={integrationEnabled}
-							/>
+								iconLeft={
+									(showConfiguration &&
+										integrationEnabled) ||
+									(showDeleteConfirmation &&
+										!integrationEnabled) ? (
+										<IconSolidLoading />
+									) : undefined
+								}
+							>
+								{!showConfiguration && integrationEnabled
+									? 'Connected'
+									: 'Connect'}
+							</SwitchButton>
 						)}
 						{hasSettings && (
-							<div className="flex h-[18px] w-full justify-end">
-								<Button
-									trackingId="IntegrationSettings"
-									iconButton
+							<Box
+								display="flex"
+								width="full"
+								justifyContent="flex-end"
+								style={{ height: 18 }}
+							>
+								<ButtonIcon
+									kind="secondary"
+									emphasis="low"
+									size="xSmall"
+									icon={<SettingsIcon />}
 									onClick={() => {
+										analytics.track(
+											'Button-IntegrationSettings',
+										)
 										setShowUpdateSettings(true)
 									}}
 									disabled={!integrationEnabled}
-								>
-									<SettingsIcon />
-								</Button>
-							</div>
+								/>
+							</Box>
 						)}
-					</div>
-				</div>
-				<div>
-					<h2 className={styles.title}>{name}</h2>
-					<p className={styles.description}>{description}</p>
+					</Box>
+				</Box>
+				<Box display="flex" flexDirection="column" gap="4">
+					<Heading level="h4">
+						{name}
+					</Heading>
+					<Text color="weak" size="small">
+						{description}
+					</Text>
 					{docs && (
 						<a
-							className={styles.description}
 							href={docs}
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							Learn more about the integration.
+							<Text color="weak" size="small">
+								Learn more about the integration.
+							</Text>
 						</a>
 					)}
-				</div>
-			</Card>
+				</Box>
+			</Box>
 
 			<IntegrationModal
 				width={modalWidth}

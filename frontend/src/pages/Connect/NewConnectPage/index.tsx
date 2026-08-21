@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
 	Badge,
 	Box,
+	Button,
 	ButtonIcon,
 	Heading,
 	IconSolidArrowRight,
@@ -17,7 +18,6 @@ import {
 import { vars } from '@highlight-run/ui/vars'
 import { QuickStartContent, quickStartContentReorganized } from 'highlight.io'
 
-import { Button } from '@/components/Button'
 import LoadingBox from '@components/LoadingBox'
 import { toast } from '@components/Toaster'
 import {
@@ -66,6 +66,7 @@ export const NewConnectPage = () => {
 	}
 
 	const handleSave = () => {
+		analytics.track('setup-save-selected-platforms')
 		editProjectPlatforms({
 			variables: {
 				projectId: projectId!,
@@ -211,7 +212,6 @@ export const NewConnectPage = () => {
 							</Stack>
 							<Box>
 								<Button
-									trackingId="setup-save-selected-platforms"
 									onClick={handleSave}
 									disabled={
 										loading || selectedPlatforms.size === 0

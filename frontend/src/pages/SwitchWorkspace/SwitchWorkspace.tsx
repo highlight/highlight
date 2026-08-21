@@ -1,5 +1,5 @@
-import Button from '@components/Button/Button/Button'
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
+import { Button } from '@highlight-run/ui/components'
+import { LinkButton } from '@components/LinkButton'
 import { CircularSpinner, LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
 import Tag from '@components/Tag/Tag'
@@ -9,6 +9,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks'
+import analytics from '@util/analytics'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Navigate, useLocation } from 'react-router-dom'
@@ -154,12 +155,13 @@ const SwitchWorkspace = () => {
 						placeholder="Enter a Workspace"
 					/>
 					<Button
-						trackingId="SubmitWorkspaceSwitchForm"
-						type="primary"
-						className={styles.button}
-						block
-						htmlType="submit"
+						kind="primary"
+						style={{ width: '100%' }}
+						type="submit"
 						disabled={selectedWorkspace.length === 0}
+						onClick={() => {
+							analytics.track('Button-SubmitWorkspaceSwitchForm')
+						}}
 					>
 						{joinLoading ? (
 							<CircularSpinner
@@ -172,15 +174,14 @@ const SwitchWorkspace = () => {
 							`${actionText} Workspace`
 						)}
 					</Button>
-					<ButtonLink
+					<LinkButton
 						trackingId="SwitchWorkspace-CreateWorkspace"
-						className={styles.button}
 						to={`/new${search}`}
-						fullWidth
-						type="default"
+						kind="secondary"
+						emphasis="low"
 					>
 						Create a New Workspace
-					</ButtonLink>
+					</LinkButton>
 				</form>
 			</div>
 		</>

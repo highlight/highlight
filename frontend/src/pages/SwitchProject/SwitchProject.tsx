@@ -1,11 +1,12 @@
-import Button from '@components/Button/Button/Button'
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
+import { Button, IconSolidLoading } from '@highlight-run/ui/components'
+import { LinkButton } from '@components/LinkButton'
 import Select from '@components/Select/Select'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspaceQuery } from '@graph/hooks'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -77,25 +78,24 @@ const SwitchProject = () => {
 						placeholder="Enter a Project"
 					/>
 					<Button
-						trackingId="SubmitProjectSwitchForm"
-						type="primary"
-						className={styles.button}
-						block
-						htmlType="submit"
-						loading={loading}
-						disabled={selectedProject.length === 0}
+						kind="primary"
+						style={{ width: '100%' }}
+						type="submit"
+						disabled={selectedProject.length === 0 || loading}
+						onClick={() => {
+							analytics.track('Button-SubmitProjectSwitchForm')
+						}}
 					>
-						Enter Project
+						{loading ? <IconSolidLoading /> : 'Enter Project'}
 					</Button>
-					<ButtonLink
+					<LinkButton
 						trackingId="SwitchProject-CreateProject"
-						className={styles.button}
 						to={`/w/${workspace_id}/new`}
-						fullWidth
-						type="default"
+						kind="secondary"
+						emphasis="low"
 					>
 						Create a New Project
-					</ButtonLink>
+					</LinkButton>
 				</form>
 			</div>
 		</>

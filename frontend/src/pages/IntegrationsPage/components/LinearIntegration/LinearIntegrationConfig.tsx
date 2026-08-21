@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Box, Button, Stack, Text } from '@highlight-run/ui/components'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -9,10 +9,9 @@ import {
 	getLinearOAuthUrl,
 	useLinearIntegration,
 } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
-
-import styles from './LinearIntegrationConfig.module.css'
 
 const LinearIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
@@ -22,16 +21,25 @@ const LinearIntegrationConfig: React.FC<
 	const authUrl = useMemo(() => getLinearOAuthUrl(project_id!), [project_id])
 	if (action === IntegrationAction.Disconnect) {
 		return (
-			<>
-				<p className={styles.modalSubTitle}>
-					Disconnecting your Linear workspace from Highlight will
-					prevent you from linking issues to future comments
-				</p>
-				<footer>
+			<Stack gap="12">
+				<Box py="8">
+					<Text color="moderate">
+						Disconnecting your Linear workspace from Highlight will
+						prevent you from linking issues to future comments
+					</Text>
+				</Box>
+				<Box
+					display="flex"
+					justifyContent="flex-end"
+					gap="8"
+					paddingTop="16"
+					borderTop="secondary"
+				>
 					<Button
-						trackingId="IntegrationDisconnectCancel-Slack"
-						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
+							analytics.track('IntegrationDisconnectCancel-Linear')
 							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
@@ -39,35 +47,43 @@ const LinearIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-Slack"
-						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
+						emphasis="high"
+						iconLeft={<PlugIcon />}
 						onClick={() => {
+							analytics.track('IntegrationDisconnectSave-Linear')
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeLinearIntegrationFromProject(project_id)
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect Linear
 					</Button>
-				</footer>
-			</>
+				</Box>
+			</Stack>
 		)
 	}
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
-				Connect Linear to your Highlight workspace to create issues from
-				comments.
-			</p>
-			<footer>
+		<Stack gap="12">
+			<Box py="8">
+				<Text color="moderate">
+					Connect Linear to your Highlight workspace to create issues
+					from comments.
+				</Text>
+			</Box>
+			<Box
+				display="flex"
+				justifyContent="flex-end"
+				gap="8"
+				paddingTop="16"
+				borderTop="secondary"
+			>
 				<Button
-					trackingId="IntegrationConfigurationCancel-Slack"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track('IntegrationConfigurationCancel-Linear')
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
@@ -75,17 +91,21 @@ const LinearIntegrationConfig: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Slack"
-					className={styles.modalBtn}
-					type="primary"
-					href={authUrl}
+					kind="primary"
+					emphasis="high"
+					iconLeft={<AppsIcon />}
+					onClick={() => {
+						analytics.track('IntegrationConfigurationSave-Linear')
+					window.open(authUrl, '_blank')
+					}}
 				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Linear
+					Connect Highlight with Linear
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 
+
 export default LinearIntegrationConfig
+
