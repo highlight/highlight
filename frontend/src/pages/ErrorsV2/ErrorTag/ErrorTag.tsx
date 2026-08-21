@@ -31,7 +31,6 @@ const ErrorTag = React.memo(
 				<Tag
 					iconLeft={<IconSolidLocationMarker />}
 					kind="secondary"
-					size="medium"
 					shape="basic"
 					lines="1"
 				>

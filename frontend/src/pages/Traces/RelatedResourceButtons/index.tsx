@@ -78,7 +78,6 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 
 					analytics.track('trace_related-session-button_click')
 				}}
-				size="medium"
 				kind="secondary"
 				emphasis="medium"
 				iconLeft={<IconSolidPlayCircle />}
@@ -102,7 +101,6 @@ export const RelatedResourceButtons: React.FC<Props> = ({
 
 					analytics.track('trace_related-logs-button_click')
 				}}
-				size="medium"
 				kind="secondary"
 				emphasis="medium"
 				iconLeft={<IconSolidLogs />}

@@ -66,7 +66,6 @@ export const OptionDropdown = <T extends string>({
 									trigger={
 										<Tag
 											kind="secondary"
-											size="medium"
 											shape="basic"
 											emphasis="low"
 											iconRight={

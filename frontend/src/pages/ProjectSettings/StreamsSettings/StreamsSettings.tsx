@@ -33,11 +33,9 @@ export const StreamsSettings: React.FC = () => {
 
 			<Form>
 				<Stack gap="24">
-					<Text size="medium" weight="bold">
-						AWS Infrastructure Monitoring
-					</Text>
+					<Text weight="bold">AWS Infrastructure Monitoring</Text>
 
-					<Text color="moderate" size="medium">
+					<Text color="moderate">
 						Select the AWS regions you want to monitor. This will
 						create CloudFormation stacks that set up metrics
 						streaming to Highlight in each selected region.
@@ -57,7 +55,6 @@ export const StreamsSettings: React.FC = () => {
 					<LinkButton
 						to={url}
 						kind="primary"
-						size="medium"
 						emphasis="high"
 						disabled={!selectedRegion}
 						trackingId="launch-cloudformation-stacks"

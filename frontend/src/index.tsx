@@ -233,10 +233,10 @@ const MigrationBlockedPage = ({ onSignOut }: { onSignOut: () => void }) => {
 					<Heading level="h3">
 						Highlight has migrated to LaunchDarkly
 					</Heading>
-					<Text size="medium" color="moderate">
+					<Text color="moderate">
 						Highlight is no longer accepting logins.
 					</Text>
-					<Text size="medium" color="moderate">
+					<Text color="moderate">
 						Visit{' '}
 						<a
 							href="https://launchdarkly.com"

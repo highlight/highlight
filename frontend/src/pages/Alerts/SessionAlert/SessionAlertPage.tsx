@@ -412,7 +412,6 @@ export const SessionAlertPage = () => {
 									>
 										<Tag
 											kind="secondary"
-											size="medium"
 											shape="basic"
 											emphasis="high"
 											iconLeft={<IconSolidBell />}

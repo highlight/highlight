@@ -138,7 +138,6 @@ const SessionShareButtonV2 = () => {
 							<Tag
 								shape="basic"
 								kind="secondary"
-								size="medium"
 								iconLeft={<IconSolidLink size={12} />}
 								onClick={() => {
 									copyToClipboard(
@@ -185,7 +184,6 @@ const SessionShareButtonV2 = () => {
 						shape="basic"
 						kind="secondary"
 						emphasis="low"
-						size="medium"
 						iconLeft={<IconSolidQuestionMarkCircle size={12} />}
 						onClick={() => {
 							window.open(

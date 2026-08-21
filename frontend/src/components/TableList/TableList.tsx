@@ -87,7 +87,6 @@ export const TableList = ({
 									<Tag
 										kind="secondary"
 										shape="basic"
-										size="medium"
 										emphasis="low"
 										iconRight={
 											item.valueInfoTooltipMessage ? (

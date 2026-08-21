@@ -188,7 +188,7 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						<Text size="large" weight="bold" color="strong">
 							Harold AI
 						</Text>
-						<Badge label="Beta" size="medium" variant="purple" />
+						<Badge label="Beta" variant="purple" />
 					</Stack>
 					<AiErrorSuggestion
 						errorObjectId={errorInstance.error_object.id}

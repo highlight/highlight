@@ -92,7 +92,7 @@ export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 						{body}
 					</Text>
 					{recentlyCreated(errorGroup) && (
-						<Badge variant="yellow" label="New" size="medium" />
+						<Badge variant="yellow" label="New" />
 					)}
 				</Box>
 				<Box display="flex" gap="12" justifyContent="space-between">
