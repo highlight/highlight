@@ -1,15 +1,17 @@
-import { Box, IconSolidInformationCircle } from '@highlight-run/ui/components'
+import { Box, IconSolidInformationCircle, Tooltip } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Tooltip } from 'antd'
-import { TooltipPropsWithTitle } from 'antd/es/tooltip'
 import clsx from 'clsx'
 
 import styles from './InfoTooltip.module.css'
 
-type Props = Pick<
-	TooltipPropsWithTitle,
-	'title' | 'placement' | 'className' | 'align' | 'visible'
-> & {
+type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
+
+type Props = {
+	title?: React.ReactNode
+	placement?: TooltipPlacement
+	className?: string
+	align?: object
+	visible?: boolean
 	size?: 'small' | 'medium' | 'large'
 	hideArrow?: boolean
 	onClick?: () => void
