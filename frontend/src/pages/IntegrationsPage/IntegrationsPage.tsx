@@ -12,11 +12,12 @@ import Integration from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
-import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import INTEGRATIONS, { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { useEffect, useMemo } from 'react'
+import clsx from 'clsx'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
@@ -24,7 +25,6 @@ import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/Gitlab
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import styles from './IntegrationsPage.module.css'
 
 const IntegrationsPage = () => {
@@ -179,31 +179,162 @@ const IntegrationsPage = () => {
 		isCloudflareConnectedToWorkspace,
 	])
 
+	const [selectedKey, setSelectedKey] = useState<string | null>(null)
+
+	const selectedIntegration = useMemo(
+		() => integrations.find((i) => i.key === selectedKey) ?? null,
+		[integrations, selectedKey],
+	)
+
+	const installedIntegrations = useMemo(
+		() => integrations.filter((i) => i.defaultEnable),
+		[integrations],
+	)
+
+	const notInstalledIntegrations = useMemo(
+		() => integrations.filter((i) => !i.defaultEnable),
+		[integrations],
+	)
+
+	const handleSelect = useCallback(
+		(integration: IntegrationType) => {
+			setSelectedKey((prev) =>
+				prev === integration.key ? null : integration.key,
+			)
+		},
+		[],
+	)
+
 	useEffect(() => analytics.page('Integrations'), [])
+
+	useEffect(() => {
+		if (configureIntegration) {
+			setSelectedKey(configureIntegration)
+		}
+	}, [configureIntegration])
 
 	return (
 		<>
 			<Helmet>
 				<title>Integrations</title>
 			</Helmet>
-			<LeadAlignLayout>
+			<LeadAlignLayout fullWidth>
 				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
+				<p className={styles.subTitle}>
 					Supercharge your workflows and attach Highlight with the
 					tools you use everyday.
 				</p>
-				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) => (
-						<Integration
-							integration={integration}
-							key={integration.key}
-							showModalDefault={popUpModal === integration.key}
-							showSettingsDefault={
-								configureIntegration === integration.key
-							}
-							loading={loading}
-						/>
-					))}
+				<div className={styles.splitLayout}>
+					<div className={styles.sidebar}>
+						{installedIntegrations.length > 0 && (
+							<div className={styles.sidebarGroup}>
+								<h4 className={styles.sidebarGroupTitle}>
+									Installed integrations
+								</h4>
+								{installedIntegrations.map((integration) => (
+									<button
+										key={integration.key}
+										type="button"
+										className={clsx(
+											styles.sidebarItem,
+											{
+												[styles.sidebarItemActive]:
+													selectedKey ===
+													integration.key,
+											},
+										)}
+										onClick={() =>
+											handleSelect(integration)
+										}
+									>
+										<img
+											src={integration.icon}
+											alt=""
+											className={clsx(
+												styles.sidebarItemIcon,
+												{
+													['rounded-none']:
+														integration.noRoundedIcon,
+												},
+											)}
+										/>
+										<span
+											className={
+												styles.sidebarItemName
+											}
+										>
+											{integration.name}
+										</span>
+										<span
+											className={
+												styles.sidebarItemStatus
+											}
+										>
+											✓
+										</span>
+									</button>
+								))}
+							</div>
+						)}
+						<div className={styles.sidebarGroup}>
+							<h4 className={styles.sidebarGroupTitle}>
+								{installedIntegrations.length > 0
+									? 'Not installed'
+									: 'All integrations'}
+							</h4>
+							{notInstalledIntegrations.map((integration) => (
+								<button
+									key={integration.key}
+									type="button"
+									className={clsx(styles.sidebarItem, {
+										[styles.sidebarItemActive]:
+											selectedKey === integration.key,
+									})}
+									onClick={() => handleSelect(integration)}
+								>
+									<img
+										src={integration.icon}
+										alt=""
+										className={clsx(
+											styles.sidebarItemIcon,
+											{
+												['rounded-none']:
+													integration.noRoundedIcon,
+											},
+										)}
+									/>
+									<span
+										className={styles.sidebarItemName}
+									>
+										{integration.name}
+									</span>
+								</button>
+							))}
+						</div>
+					</div>
+					<div className={styles.detailPanel}>
+						{selectedIntegration ? (
+							<Integration
+								integration={selectedIntegration}
+								key={selectedIntegration.key}
+								showModalDefault={
+									popUpModal === selectedIntegration.key
+								}
+								showSettingsDefault={
+									configureIntegration ===
+									selectedIntegration.key
+								}
+								loading={loading}
+							/>
+						) : (
+							<div className={styles.detailEmpty}>
+								<p>
+									Select an integration to view its
+									details and configuration.
+								</p>
+							</div>
+						)}
+					</div>
 				</div>
 			</LeadAlignLayout>
 		</>

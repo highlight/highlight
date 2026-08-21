@@ -1,9 +1,120 @@
-.integrationsContainer {
-	display: grid;
-	grid-gap: var(--size-large);
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+.subTitle {
+	color: var(--color-gray-500);
+	font-size: 18px;
+	margin-bottom: var(--size-xLarge) !important;
 }
+
+.splitLayout {
+	display: grid;
+	grid-template-columns: 280px 1fr;
+	gap: var(--size-xLarge);
+	min-height: 500px;
+}
+
+.sidebar {
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	background-color: var(--color-primary-background);
+	overflow-y: auto;
+	max-height: 70vh;
+	padding: var(--size-small) 0;
+}
+
+.sidebarGroup {
+	padding: var(--size-small) 0;
+}
+
+.sidebarGroup + .sidebarGroup {
+	border-top: 1px solid var(--color-gray-300);
+}
+
+.sidebarGroupTitle {
+	color: var(--color-gray-500);
+	font-size: 11px !important;
+	font-weight: 600;
+	letter-spacing: 0.05em;
+	margin: 0 !important;
+	padding: var(--size-xSmall) var(--size-medium);
+	text-transform: uppercase;
+}
+
+.sidebarItem {
+	align-items: center;
+	background: none;
+	border: none;
+	border-radius: 0;
+	cursor: pointer;
+	display: flex;
+	font-family: inherit;
+	font-size: 14px;
+	gap: var(--size-small);
+	padding: var(--size-xSmall) var(--size-medium);
+	text-align: left;
+	width: 100%;
+	transition: background-color 0.15s ease;
+}
+
+.sidebarItem:hover {
+	background-color: var(--color-gray-200);
+}
+
+.sidebarItemActive {
+	background-color: var(--color-gray-200);
+	font-weight: 600;
+}
+
+.sidebarItemIcon {
+	border-radius: 50%;
+	flex-shrink: 0;
+	height: 24px;
+	object-fit: contain;
+	width: 24px;
+}
+
+.sidebarItemName {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.sidebarItemStatus {
+	color: var(--color-green-500, #22c55e);
+	flex-shrink: 0;
+	font-size: 14px;
+}
+
+.detailPanel {
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	background-color: var(--color-primary-background);
+	padding: var(--size-large);
+	min-height: 300px;
+}
+
+.detailEmpty {
+	align-items: center;
+	color: var(--color-gray-500);
+	display: flex;
+	height: 100%;
+	justify-content: center;
+}
+
+.detailEmpty p {
+	margin: 0;
+}
+
 .modalBtn {
 	padding-bottom: 4px !important;
 	padding-top: 4px !important;
+}
+
+@media (max-width: 768px) {
+	.splitLayout {
+		grid-template-columns: 1fr;
+	}
+
+	.sidebar {
+		max-height: 300px;
+	}
 }
