@@ -13,3 +13,24 @@
 	display: flex;
 	height: 100%;
 }
+
+.fieldInput {
+	background: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	color: var(--color-gray-700);
+	font-size: 13px;
+	height: 32px;
+	padding: 0 var(--size-small);
+	width: 100%;
+}
+
+.fieldInput:focus {
+	border-color: var(--color-purple-400);
+	outline: none;
+}
+
+.fieldInput:disabled {
+	cursor: not-allowed;
+	opacity: 0.7;
+}

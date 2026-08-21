@@ -1,8 +1,7 @@
-import Input from '@components/Input/Input'
-import { Tooltip } from '@highlight-run/ui/components'
 import { toast } from '@components/Toaster'
 import { useEditProjectMutation, useEditWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
+import { Tooltip } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import React, { useState } from 'react'
 
@@ -69,7 +68,8 @@ export const FieldsForm: React.FC<Props> = ({
 		<form onSubmit={onSubmit} key={project_id}>
 			<div className={styles.fieldRow}>
 				<label className={styles.fieldKey}>Name</label>
-				<Input
+				<input
+					className={styles.fieldInput}
 					name="name"
 					value={name}
 					onChange={(e) => {
@@ -83,7 +83,8 @@ export const FieldsForm: React.FC<Props> = ({
 					{' '}
 					<div className={styles.fieldRow}>
 						<label className={styles.fieldKey}>Billing Email</label>
-						<Input
+						<input
+							className={styles.fieldInput}
 							placeholder="Billing Email"
 							type="email"
 							name="email"
