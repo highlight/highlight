@@ -1,5 +1,12 @@
-import Select from '@components/Select/Select'
-import { Box, Form, FormState, Stack, Text } from '@highlight-run/ui/components'
+import {
+	Box,
+	Form,
+	FormState,
+	Select,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
+import type { SelectOption } from '@highlight-run/ui/components'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -10,6 +17,43 @@ import { AlertForm } from '@/pages/Alerts/utils/AlertsUtils'
 
 import * as styles from './styles.css'
 
+type ExistingChannel = {
+	id?: string
+	value?: string
+	name?: string
+	displayValue?: string
+	webhook_channel?: string
+	webhook_channel_id?: string
+	webhook_channel_name?: string
+}
+
+type ChannelOption = SelectOption & {
+	id: string
+	displayValue?: string
+	webhook_channel_id?: string
+	webhook_channel_name?: string
+}
+
+const channelValue = (channel: ExistingChannel) =>
+	channel.webhook_channel_id ?? channel.value ?? channel.id ?? ''
+
+const channelName = (channel: ExistingChannel) =>
+	channel.webhook_channel_name ??
+	channel.webhook_channel ??
+	channel.name ??
+	channel.displayValue ??
+	channelValue(channel)
+
+const toSelectedOptions = (channels: ExistingChannel[]): SelectOption[] =>
+	channels.map((channel) => ({
+		name: channelName(channel),
+		value: channelValue(channel),
+		...channel,
+	}))
+
+const toStringOptions = (values: string[] = []): SelectOption[] =>
+	values.map((value) => ({ name: value, value }))
+
 const AlertNotifyForm = () => {
 	const { alertsPayload, slackUrl } = useAlertsContext()
 	const { slackLoading, syncSlack } = useSlackSync()
@@ -19,8 +63,11 @@ const AlertNotifyForm = () => {
 	const slackChannels = (alertsPayload?.slack_channel_suggestion ?? []).map(
 		({ webhook_channel, webhook_channel_id }) => ({
 			displayValue: webhook_channel!,
+			name: webhook_channel!,
 			value: webhook_channel_id!,
 			id: webhook_channel_id!,
+			webhook_channel_id: webhook_channel_id!,
+			webhook_channel_name: webhook_channel!,
 		}),
 	)
 
@@ -28,14 +75,16 @@ const AlertNotifyForm = () => {
 		alertsPayload?.discord_channel_suggestions ?? []
 	).map(({ name, id }) => ({
 		displayValue: name,
+		name,
 		value: id,
-		id: id,
+		id,
 	}))
 
 	const emails = (alertsPayload?.admins ?? [])
 		.map((wa) => wa.admin!.email)
 		.map((email) => ({
 			displayValue: email,
+			name: email,
 			value: email,
 			id: email,
 		}))
@@ -44,9 +93,26 @@ const AlertNotifyForm = () => {
 		alertsPayload?.microsoft_teams_channel_suggestions ?? []
 	).map(({ name, id }) => ({
 		displayValue: name,
+		name,
 		value: id,
-		id: id,
+		id,
 	}))
+
+	const selectedSlackChannels = toSelectedOptions(
+		formStore.getValue(formStore.names.slackChannels),
+	)
+	const selectedDiscordChannels = toSelectedOptions(
+		formStore.getValue(formStore.names.discordChannels),
+	)
+	const selectedMicrosoftTeamsChannels = toSelectedOptions(
+		formStore.getValue(formStore.names.microsoftTeamsChannels),
+	)
+	const selectedEmails = toStringOptions(
+		formStore.getValue(formStore.names.emails),
+	)
+	const selectedWebhooks = toStringOptions(
+		formStore.getValue(formStore.names.webhookDestinations),
+	)
 
 	return (
 		<Stack gap="12">
@@ -65,22 +131,26 @@ const AlertNotifyForm = () => {
 					aria-label="Slack channels to notify"
 					placeholder="Select Slack channels"
 					options={slackChannels}
-					optionFilterProp="label"
+					filterable
+					displayMode="tags"
+					checkType="checkbox"
 					onFocus={syncSlack}
-					onSearch={(value) => {
-						setSlackSearchQuery(value)
-					}}
-					onChange={(values) => {
+					onSearchValueChange={setSlackSearchQuery}
+					onValueChange={(values: ChannelOption[]) => {
 						formStore.setValue(
 							formStore.names.slackChannels,
-							values.map((v: any) => ({
-								webhook_channel_name: v.label,
-								webhook_channel_id: v.value,
+							values.map((v) => ({
+								webhook_channel_name: v.name,
+								webhook_channel_id: String(v.value),
 								...v,
 							})),
 						)
 					}}
-					notFoundContent={
+					className={styles.selectContainer}
+					value={selectedSlackChannels}
+				/>
+				{slackChannels.length === 0 && (
+					<Box mt="4">
 						<SlackLoadOrConnect
 							isLoading={slackLoading}
 							searchQuery={slackSearchQuery}
@@ -89,12 +159,8 @@ const AlertNotifyForm = () => {
 								alertsPayload?.is_integrated_with_slack ?? false
 							}
 						/>
-					}
-					className={styles.selectContainer}
-					mode="multiple"
-					labelInValue
-					value={formStore.getValue(formStore.names.slackChannels)}
-				/>
+					</Box>
+				)}
 			</Form.NamedSection>
 
 			<Form.NamedSection
@@ -105,31 +171,29 @@ const AlertNotifyForm = () => {
 					aria-label="Discord channels to notify"
 					placeholder="Select Discord channels"
 					options={discordChannels}
-					optionFilterProp="label"
-					onChange={(values) => {
+					filterable
+					displayMode="tags"
+					checkType="checkbox"
+					onValueChange={(values: ChannelOption[]) => {
 						formStore.setValue(
 							formStore.names.discordChannels,
-							values.map((v: any) => ({
-								name: v.label,
-								id: v.value,
+							values.map((v) => ({
+								name: v.name,
+								id: String(v.value),
 								...v,
 							})),
 						)
 					}}
-					notFoundContent={
-						discordChannels.length === 0 ? (
-							<Link to="/integrations">
-								Connect Highlight with Discord
-							</Link>
-						) : (
-							'Discord channel not found'
-						)
-					}
 					className={styles.selectContainer}
-					mode="multiple"
-					labelInValue
-					value={formStore.getValue(formStore.names.discordChannels)}
+					value={selectedDiscordChannels}
 				/>
+				{discordChannels.length === 0 && (
+					<Box mt="4">
+						<Link to="/integrations">
+							Connect Highlight with Discord
+						</Link>
+					</Box>
+				)}
 			</Form.NamedSection>
 
 			<Form.NamedSection
@@ -140,33 +204,29 @@ const AlertNotifyForm = () => {
 					aria-label="Microsoft Teams channels to notify"
 					placeholder="Select Microsoft Teams channels"
 					options={microsoftTeamsChannels}
-					optionFilterProp="label"
-					onChange={(values) => {
+					filterable
+					displayMode="tags"
+					checkType="checkbox"
+					onValueChange={(values: ChannelOption[]) => {
 						formStore.setValue(
 							formStore.names.microsoftTeamsChannels,
-							values.map((v: any) => ({
-								name: v.label,
-								id: v.value,
+							values.map((v) => ({
+								name: v.name,
+								id: String(v.value),
 								...v,
 							})),
 						)
 					}}
-					notFoundContent={
-						microsoftTeamsChannels.length === 0 ? (
-							<Link to="/integrations">
-								Connect Highlight with Microsoft Teams
-							</Link>
-						) : (
-							'Microsoft Teams channel not found'
-						)
-					}
 					className={styles.selectContainer}
-					mode="multiple"
-					labelInValue
-					value={formStore.getValue(
-						formStore.names.microsoftTeamsChannels,
-					)}
+					value={selectedMicrosoftTeamsChannels}
 				/>
+				{microsoftTeamsChannels.length === 0 && (
+					<Box mt="4">
+						<Link to="/integrations">
+							Connect Highlight with Microsoft Teams
+						</Link>
+					</Box>
+				)}
 			</Form.NamedSection>
 
 			<Form.NamedSection
@@ -177,13 +237,18 @@ const AlertNotifyForm = () => {
 					aria-label="Emails to notify"
 					placeholder="Select emails"
 					options={emails}
-					onChange={(values: any): any =>
-						formStore.setValue(formStore.names.emails, values)
+					filterable
+					creatable
+					displayMode="tags"
+					checkType="checkbox"
+					onValueChange={(values: SelectOption[]) =>
+						formStore.setValue(
+							formStore.names.emails,
+							values.map(({ value }) => String(value)),
+						)
 					}
-					notFoundContent={<p>No email suggestions</p>}
 					className={styles.selectContainer}
-					mode="tags"
-					value={formStore.getValue(formStore.names.emails)}
+					value={selectedEmails}
 				/>
 			</Form.NamedSection>
 
@@ -194,18 +259,18 @@ const AlertNotifyForm = () => {
 				<Select
 					aria-label="Webhooks to notify"
 					placeholder="Enter webhook addresses"
-					onChange={(values: any): any =>
+					filterable
+					creatable
+					displayMode="tags"
+					checkType="checkbox"
+					onValueChange={(values: SelectOption[]) =>
 						formStore.setValue(
 							formStore.names.webhookDestinations,
-							values,
+							values.map(({ value }) => String(value)),
 						)
 					}
-					notFoundContent={null}
 					className={styles.selectContainer}
-					mode="tags"
-					value={formStore.getValue(
-						formStore.names.webhookDestinations,
-					)}
+					value={selectedWebhooks}
 				/>
 			</Form.NamedSection>
 		</Stack>
