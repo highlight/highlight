@@ -1,63 +1,53 @@
-import Alert from '@components/Alert/Alert'
-import { FieldsBox } from '@components/FieldsBox/FieldsBox'
-import { AdminRole } from '@graph/schemas'
-import { Box } from '@highlight-run/ui/components'
+// File: frontend/src/pages/WorkspaceSettings/WorkspaceSettings.tsx
+import { Alert } from '@components/Alert/Alert'
 import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
-import { Authorization } from '@util/authorization/authorization'
-import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
-import { useAuthContext } from '@/authentication/AuthContext'
+import { FieldsBox } from '@components/FieldsBox/FieldsBox'
+import { useGetWorkspaceQuery } from '@graph/hooks'
+import { Box, Stack } from '@highlight-run/ui/components'
+import { useParams } from '@util/react-router/useParams'
+import React from 'react'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
-import { FieldsForm } from './FieldsForm/FieldsForm'
-import styles from './WorkspaceSettings.module.css'
+import { Authorization } from '@/components/Authorization/Authorization'
+import { useProjectId } from '@/hooks/useProjectId'
 
-const WorkspaceSettings = () => {
-	const { currentWorkspace } = useApplicationContext()
-	const { workspaceRole } = useAuthContext()
-	const isAdminRole = workspaceRole === AdminRole.Admin
+export const WorkspaceSettings: React.FC<React.PropsWithChildren<unknown>> = ({
+	children,
+}) => {
+	const { workspace_id } = useParams<{
+		workspace_id: string
+	}>()
+	const { projectId } = useProjectId()
+	const { data, loading } = useGetWorkspaceQuery({
+		variables: { workspace_id: workspace_id! },
+		skip: !workspace_id,
+	})
+
+	const workspace = data?.workspace
+
+	if (loading || !workspace) {
+		return null
+	}
 
 	return (
-		<Box>
-			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
-				<div className={styles.container}>
-					<div className={styles.titleContainer}>
-						<div>
-							<h3>Properties</h3>
-							<p className={layoutStyles.subTitle}>
-								Manage your workspace details.
-							</p>
-						</div>
-					</div>
-					<FieldsBox id="workspace">
-						<FieldsForm
-							defaultName={currentWorkspace?.name}
-							disabled={!isAdminRole}
-						/>
+		<Authorization
+			kind="workspace"
+			id={workspace.id}
+			forbiddenFallback={
+				<Box p="16" gap="16" direction="column" style={{ width: '100%' }}>
+					<Alert kind="error">
+						You don’t have permission to view this workspace.
+					</Alert>
+				</Box>
+			}
+		>
+			<Box p="16" gap="16" direction="column" style={{ width: '100%' }}>
+				<Stack gap="16" direction="column">
+					<FieldsBox title="Auto-join Projects">
+						<AutoJoinForm projectId={projectId} />
 					</FieldsBox>
-					<FieldsBox id="autojoin">
-						<h3>Auto Join</h3>
-						<p>
-							Enable auto join to allow anyone with an approved
-							email origin join.
-						</p>
-						<Authorization
-							allowedRoles={[AdminRole.Admin]}
-							forbiddenFallback={
-								<Alert
-									trackingId="AdminNoAccessToAutoJoinDomains"
-									type="info"
-									message="You don't have access to auto-access domains."
-									description={`You don't have permission to configure auto-access domains. Please contact a workspace admin to make changes.`}
-								/>
-							}
-						>
-							<AutoJoinForm />
-						</Authorization>
-					</FieldsBox>
-				</div>
+				</Stack>
+				{children}
 			</Box>
-		</Box>
+		</Authorization>
 	)
 }
-
-export default WorkspaceSettings
