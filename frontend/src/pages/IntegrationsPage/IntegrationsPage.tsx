@@ -1,6 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
-import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import { useClearbitIntegration } from '@pages/IntegrationsPage/components/ClearbitIntegration/utils'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useCloudflareIntegration } from '@pages/IntegrationsPage/components/CloudflareIntegration/utils'
@@ -19,19 +18,22 @@ import { useParams } from '@util/react-router/useParams'
 import { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
+import { NavLink, Route, Routes, useNavigate } from 'react-router-dom'
+import { Box, Stack, Text } from '@highlight-run/ui/components'
+import * as settingsRouterStyles from '@/pages/SettingsRouter/SettingsRouter.css'
+import clsx from 'clsx'
 
 import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
-import styles from './IntegrationsPage.module.css'
 
 const IntegrationsPage = () => {
 	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
+	const navigate = useNavigate()
 
-	const { integration_type: configureIntegration } = useParams<{
-		integration_type: string
+	const { '*': configureIntegration } = useParams<{
+		'*': string
 	}>()
 
 	const [popUpModal] = useQueryParam('enable', StringParam)
@@ -181,31 +183,104 @@ const IntegrationsPage = () => {
 
 	useEffect(() => analytics.page('Integrations'), [])
 
+	useEffect(() => {
+		if (integrations.length > 0 && (!configureIntegration || configureIntegration === '')) {
+			navigate(integrations[0].key, { replace: true })
+		}
+	}, [configureIntegration, navigate, integrations])
+
 	return (
 		<>
 			<Helmet>
 				<title>Integrations</title>
 			</Helmet>
-			<LeadAlignLayout>
-				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
-					Supercharge your workflows and attach Highlight with the
-					tools you use everyday.
-				</p>
-				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) => (
-						<Integration
-							integration={integration}
-							key={integration.key}
-							showModalDefault={popUpModal === integration.key}
-							showSettingsDefault={
-								configureIntegration === integration.key
-							}
-							loading={loading}
-						/>
-					))}
-				</div>
-			</LeadAlignLayout>
+			<Box
+				display="flex"
+				flexDirection="row"
+				flexGrow={1}
+				backgroundColor="raised"
+			>
+				<Box
+					p="8"
+					gap="12"
+					display="flex"
+					flexDirection="column"
+					borderRight="secondary"
+					position="relative"
+					cssClass={settingsRouterStyles.sidebarScroll}
+				>
+					<Stack gap="0">
+						<Box mt="12" mb="4" ml="8">
+							<Text
+								size="xxSmall"
+								color="secondaryContentText"
+								cssClass={settingsRouterStyles.menuTitle}
+							>
+								Integrations
+							</Text>
+						</Box>
+						{integrations.map((integration) => (
+							<NavLink
+								key={integration.key}
+								to={integration.key}
+								className={({ isActive }) =>
+									clsx(settingsRouterStyles.menuItem, {
+										[settingsRouterStyles.menuItemActive]: isActive,
+									})
+								}
+							>
+								<Stack direction="row" align="center" gap="4">
+									<Box style={{ width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+										<img
+											src={integration.icon}
+											alt=""
+											style={{
+												maxWidth: '100%',
+												maxHeight: '100%',
+												borderRadius: integration.noRoundedIcon ? 0 : 4,
+											}}
+										/>
+									</Box>
+									<Text>{integration.name}</Text>
+								</Stack>
+							</NavLink>
+						))}
+					</Stack>
+				</Box>
+				<Box flexGrow={1} display="flex" flexDirection="column">
+					<Box
+						m="8"
+						backgroundColor="white"
+						border="secondary"
+						borderRadius="6"
+						boxShadow="medium"
+						flexGrow={1}
+						position="relative"
+						overflow="hidden"
+					>
+						<Box overflowY="scroll" height="full" p="12">
+							<Routes>
+								{integrations.map((integration) => (
+									<Route
+										key={integration.key}
+										path={integration.key}
+										element={
+											<Box style={{ maxWidth: 560 }} mx="auto" mt="40">
+												<Integration
+													integration={integration}
+													showModalDefault={popUpModal === integration.key}
+													showSettingsDefault={configureIntegration === integration.key}
+													loading={loading}
+												/>
+											</Box>
+										}
+									/>
+								))}
+							</Routes>
+						</Box>
+					</Box>
+				</Box>
+			</Box>
 		</>
 	)
 }
