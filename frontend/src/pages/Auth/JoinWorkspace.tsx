@@ -175,3 +175,5 @@ export const JoinWorkspace = () => {
 		</Landing>
 	)
 }
+
+export default JoinWorkspace
