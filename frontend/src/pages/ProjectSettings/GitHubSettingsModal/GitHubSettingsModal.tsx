@@ -5,6 +5,7 @@ import ModalBody from '@components/ModalBody/ModalBody'
 import {
 	Box,
 	ButtonIcon,
+	ComboboxSelect,
 	Form,
 	IconSolidInformationCircle,
 	IconSolidQuestionMarkCircle,
@@ -15,7 +16,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
@@ -121,7 +121,7 @@ const GithubSettingsForm = ({
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
 				id: repo.key,
-				label: repo.name.split('/').pop(),
+				render: repo.name.split('/').pop(),
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -151,24 +151,19 @@ const GithubSettingsForm = ({
 					name="githubRepo"
 				>
 					<Box display="flex" alignItems="center" gap="8">
-						<Select
-							aria-label="GitHub repository"
-							className={styles.repoSelect}
-							placeholder="Search repos..."
-							onSelect={(repo: string) =>
+						<ComboboxSelect
+							label="GitHub repository"
+							queryPlaceholder="Search repos..."
+							value={formState.values.githubRepo || undefined}
+							onChange={(value: string) => {
 								formStore.setValue(
 									formStore.names.githubRepo,
-									repo,
+									value || null,
 								)
-							}
-							value={formState.values.githubRepo
-								?.split('/')
-								.pop()}
+							}}
 							options={githubOptions}
-							notFoundContent={<span>No repos found</span>}
-							optionFilterProp="label"
-							filterOption
-							showSearch
+							cssClass={styles.repoSelect}
+							emptyStateRender={<Text size="small">No repos found</Text>}
 						/>
 						<ButtonIcon
 							kind="secondary"

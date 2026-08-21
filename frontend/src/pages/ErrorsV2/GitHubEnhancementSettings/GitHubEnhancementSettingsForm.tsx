@@ -2,6 +2,7 @@ import { Button } from '@components/Button'
 import {
 	Box,
 	ButtonIcon,
+	ComboboxSelect,
 	Form,
 	IconSolidBeaker,
 	IconSolidInformationCircle,
@@ -14,7 +15,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -65,7 +65,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
 				id: repo.key,
-				label: repo.name.split('/').pop(),
+				render: repo.name.split('/').pop(),
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -217,25 +217,20 @@ export const GitHubEnhancementSettingsForm: React.FC<
 						name="githubRepo"
 					>
 						<Box display="flex" alignItems="center" gap="8">
-							<Select
-								aria-label="GitHub repository"
-								className={styles.repoSelect}
-								placeholder="Search repos..."
-								onSelect={(repo: string) =>
+							<ComboboxSelect
+								label="GitHub repository"
+								queryPlaceholder="Search repos..."
+								value={formState.values.githubRepo || undefined}
+								onChange={(value: string) => {
 									formStore.setValue(
 										formStore.names.githubRepo,
-										repo,
+										value || null,
 									)
-								}
-								value={formState.values.githubRepo
-									?.split('/')
-									.pop()}
+								}}
 								options={githubOptions}
+								cssClass={styles.repoSelect}
 								disabled={disabled || testLoading}
-								notFoundContent={<span>No repos found</span>}
-								optionFilterProp="label"
-								filterOption
-								showSearch
+								emptyStateRender={<Text size="small">No repos found</Text>}
 							/>
 							<ButtonIcon
 								kind="secondary"
@@ -279,7 +274,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 							</Box>
 							<Text>
 								Report service & connect to GitHub before being
-								able to access the enhancement settings.
+								abled to access the enhancement settings.
 							</Text>
 						</Box>
 					)}
