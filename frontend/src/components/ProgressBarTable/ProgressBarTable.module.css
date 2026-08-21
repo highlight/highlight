@@ -1,46 +1,50 @@
-.table {
+.tableFrame {
 	margin-bottom: -24px;
 	margin-left: -24px;
 	margin-right: -24px;
-	max-width: initial !important;
+	max-height: 287px;
+	overflow-y: auto;
+}
 
-	:global(.ant-table) {
-		background: var(--color-primary-background) !important;
-		color: var(--text-primary) !important;
-	}
+.table {
+	background: var(--color-primary-background);
+	border-collapse: collapse;
+	color: var(--text-primary);
+	max-width: initial;
+	width: 100%;
+}
 
-	:global(.ant-table-cell) {
-		border-bottom: 1px solid var(--color-gray-300) !important;
-		padding: 12px 0 !important;
-	}
+.table tr:hover td,
+.table tr:focus td {
+	background: var(--color-gray-300);
+	cursor: pointer;
+	outline: none;
+}
 
-	:global(.ant-table-cell:first-of-type) {
-		padding-left: var(--size-large) !important;
-	}
+.table td {
+	border-bottom: 1px solid var(--color-gray-300);
+	padding: 12px 0;
+}
 
-	:global(.ant-table-cell:last-of-type) {
-		padding-right: var(--size-large) !important;
-	}
+.table td:first-of-type {
+	padding-left: var(--size-large);
+}
 
-	:global(.ant-table-row:last-of-type) {
-		:global(.ant-table-cell) {
-			border-bottom: 0 !important;
-		}
-	}
+.table td:last-of-type {
+	padding-right: var(--size-large);
+}
 
-	:global(.ant-table-tbody > tr.ant-table-row:hover > td) {
-		background: var(--color-gray-300) !important;
-	}
+.table tr:last-of-type td {
+	border-bottom: 0;
+}
 
-	:global(.ant-table-tbody > tr.ant-table-placeholder:hover > td) {
-		background: transparent !important;
-	}
+.emptyState {
+	margin-top: var(--size-xxLarge);
+	padding: 0 var(--size-large) var(--size-large);
+}
 
-	:global(.ant-table-empty) {
-		margin-top: var(--size-xxLarge);
-
-		:global(.ant-table-cell) {
-			border-bottom: 0 !important;
-		}
-	}
+.loadingState {
+	color: var(--color-gray-500);
+	padding: var(--size-xxLarge) var(--size-large);
+	text-align: center;
 }
