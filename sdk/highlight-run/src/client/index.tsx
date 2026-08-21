@@ -378,9 +378,15 @@ export class Highlight {
 		this.inlineImages = options.inlineImages ?? this._isOnLocalHost
 		this.inlineVideos = options.inlineVideos ?? this._isOnLocalHost
 		this.inlineStylesheet = options.inlineStylesheet ?? this._isOnLocalHost
+		const isSafari =
+			typeof navigator !== 'undefined' &&
+			/^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+		const canvasDefaults = isSafari
+			? { canvasFactor: 0.25, canvasMaxSnapshotDimension: 180 }
+			: { canvasFactor: 0.5, canvasMaxSnapshotDimension: 360 }
+
 		this.samplingStrategy = {
-			canvasFactor: 0.5,
-			canvasMaxSnapshotDimension: 360,
+			...canvasDefaults,
 			canvasClearWebGLBuffer: true,
 			dataUrlOptions: getDefaultDataURLOptions(),
 			...(options.samplingStrategy ?? {
