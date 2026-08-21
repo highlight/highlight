@@ -3,7 +3,6 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
@@ -32,6 +31,76 @@ H.init('<YOUR_PROJECT_ID>', {
 ...
 `
 
+const svelteKitPackageInstallSnippet = {
+	...packageInstallSnippet,
+	content:
+		'Install the `highlight.run` browser SDK and the `@highlight-run/node` server SDK with your package manager.',
+	code: [
+		{
+			key: 'yarn',
+			text: 'yarn add highlight.run @highlight-run/node',
+			language: 'bash',
+		},
+		{
+			key: 'pnpm',
+			text: 'pnpm add highlight.run @highlight-run/node',
+			language: 'bash',
+		},
+		{
+			key: 'npm',
+			text: 'npm install highlight.run @highlight-run/node',
+			language: 'bash',
+		},
+	],
+}
+
+const svelteKitBackendInstrumentationSnippet = {
+	title: 'Instrument your SvelteKit backend.',
+	content:
+		'Create or update `src/hooks.server.ts` to initialize the Node SDK, wrap each request, and report unexpected server errors. Convert the Web `Headers` object to a plain object before passing it to the SDK. The `tracingOrigins` option above sends the Highlight request header used to associate backend telemetry with the frontend session. This setup requires a Node-compatible SvelteKit adapter.',
+	code: [
+		{
+			language: 'ts',
+			text: `// src/hooks.server.ts
+import { env } from '$env/dynamic/private'
+import { H } from '@highlight-run/node'
+import type { Handle, HandleServerError } from '@sveltejs/kit'
+
+const projectID = env.HIGHLIGHT_PROJECT_ID
+
+if (!projectID) {
+	throw new Error('HIGHLIGHT_PROJECT_ID is required')
+}
+
+H.init({
+	projectID,
+	serviceName: env.HIGHLIGHT_SERVICE_NAME ?? 'sveltekit',
+	environment: env.HIGHLIGHT_ENVIRONMENT ?? 'production',
+})
+
+const headersToObject = (headers: Headers): Record<string, string> =>
+	Object.fromEntries(headers.entries())
+
+export const handle: Handle = async ({ event, resolve }) => {
+	const headers = headersToObject(event.request.headers)
+
+	return H.runWithHeaders('sveltekit.request', headers, () => resolve(event))
+}
+
+export const handleError: HandleServerError = ({ error, event }) => {
+	const headers = headersToObject(event.request.headers)
+	const { secureSessionId, requestId } = H.parseHeaders(headers)
+	const reportedError =
+		error instanceof Error ? error : new Error(String(error))
+
+	H.consumeError(reportedError, secureSessionId, requestId)
+
+	return { message: 'Internal server error' }
+}`,
+		},
+	],
+}
+
 export const SvelteKitContent: QuickStartContent = {
 	title: 'SvelteKit',
 	subtitle:
@@ -39,7 +108,7 @@ export const SvelteKitContent: QuickStartContent = {
 	logoKey: 'sveltekit',
 	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
 	entries: [
-		packageInstallSnippet,
+		svelteKitPackageInstallSnippet,
 		{
 			...initializeSnippet,
 			content:
@@ -79,6 +148,6 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		svelteKitBackendInstrumentationSnippet,
 	],
 }
