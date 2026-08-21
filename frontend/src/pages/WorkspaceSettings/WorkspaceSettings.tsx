@@ -1,7 +1,6 @@
-import Alert from '@components/Alert/Alert'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import { AdminRole } from '@graph/schemas'
-import { Box } from '@highlight-run/ui/components'
+import { Box, Stack, Text } from '@highlight-run/ui/components'
 import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import { Authorization } from '@util/authorization/authorization'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
@@ -12,52 +11,60 @@ import { FieldsForm } from './FieldsForm/FieldsForm'
 import styles from './WorkspaceSettings.module.css'
 
 const WorkspaceSettings = () => {
-	const { currentWorkspace } = useApplicationContext()
-	const { workspaceRole } = useAuthContext()
-	const isAdminRole = workspaceRole === AdminRole.Admin
+    const { currentWorkspace } = useApplicationContext()
+    const { workspaceRole } = useAuthContext()
+    const isAdminRole = workspaceRole === AdminRole.Admin
 
-	return (
-		<Box>
-			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
-				<div className={styles.container}>
-					<div className={styles.titleContainer}>
-						<div>
-							<h3>Properties</h3>
-							<p className={layoutStyles.subTitle}>
-								Manage your workspace details.
-							</p>
-						</div>
-					</div>
-					<FieldsBox id="workspace">
-						<FieldsForm
-							defaultName={currentWorkspace?.name}
-							disabled={!isAdminRole}
-						/>
-					</FieldsBox>
-					<FieldsBox id="autojoin">
-						<h3>Auto Join</h3>
-						<p>
-							Enable auto join to allow anyone with an approved
-							email origin join.
-						</p>
-						<Authorization
-							allowedRoles={[AdminRole.Admin]}
-							forbiddenFallback={
-								<Alert
-									trackingId="AdminNoAccessToAutoJoinDomains"
-									type="info"
-									message="You don't have access to auto-access domains."
-									description={`You don't have permission to configure auto-access domains. Please contact a workspace admin to make changes.`}
-								/>
-							}
-						>
-							<AutoJoinForm />
-						</Authorization>
-					</FieldsBox>
-				</div>
-			</Box>
-		</Box>
-	)
+    return (
+        <Box>
+            <Box style={{ maxWidth: 560 }} my="40" mx="auto">
+                <div className={styles.container}>
+                    <div className={styles.titleContainer}>
+                        <div>
+                            <h3>Properties</h3>
+                            <p className={layoutStyles.subTitle}>
+                                Manage your workspace details.
+                            </p>
+                        </div>
+                    </div>
+                    <FieldsBox id="workspace">
+                        <FieldsForm
+                            defaultName={currentWorkspace?.name}
+                            disabled={!isAdminRole}
+                        />
+                    </FieldsBox>
+                    <FieldsBox id="autojoin">
+                        <h3>Auto Join</h3>
+                        <p>
+                            Enable auto join to allow anyone with an approved
+                            email origin join.
+                        </p>
+                        <Authorization
+                            allowedRoles={[AdminRole.Admin]}
+                            forbiddenFallback={
+                                <Box
+                                    padding="16"
+                                    border="dividerWeak"
+                                    style={{ borderRadius: 8, backgroundColor: 'var(--color-background-raised)' }}
+                                >
+                                    <Stack gap="4">
+                                        <Text weight="bold">
+                                            You don't have access to auto-access domains.
+                                        </Text>
+                                        <Text color="weak">
+                                            You don't have permission to configure auto-access domains. Please contact a workspace admin to make changes.
+                                        </Text>
+                                    </Stack>
+                                </Box>
+                            }
+                        >
+                            <AutoJoinForm />
+                        </Authorization>
+                    </FieldsBox>
+                </div>
+            </Box>
+        </Box>
+    )
 }
 
 export default WorkspaceSettings

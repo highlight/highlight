@@ -6,6 +6,7 @@ import Card from '@components/Card/Card'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
 import { toast } from '@components/Toaster'
+import { ComboboxSelect } from "@highlight-run/ui/components";
 import { IntegrationProjectMappingInput, IntegrationType } from '@graph/schemas'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import PlugIcon from '@icons/PlugIcon'
@@ -257,13 +258,11 @@ export const HeightIntegrationSettings: React.FC<
 				}
 				return (
 					<div className={styles.select}>
-						<Select
-							className="w-full"
-							value={value}
+						<ComboboxSelect
+							value={value?.value}
 							onChange={row.onUpdateProjectLink}
 							options={selectOptions}
 							placeholder="Height workspace"
-							allowClear
 						/>
 					</div>
 				)
