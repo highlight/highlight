@@ -1,5 +1,4 @@
 import { Box, Form, Stack } from '@highlight-run/ui/components'
-import { Divider } from 'antd'
 import React, { useMemo } from 'react'
 
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'
@@ -74,7 +73,7 @@ export const FormPanel: React.FC<Props> = ({
 			<Form>
 				<Stack gap="16">
 					<VisualizationSection isPreview={isPreview} />
-					<Divider className="m-0" />
+					<Box borderTop="dividerWeak" />
 					<SidebarSection isError={errors.length > 0}>
 						<Box>
 							<Box cssClass={style.editorHeader}>
