@@ -16,15 +16,15 @@ import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
 import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/GitlabIntegration/utils'
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
+import { Box, Text } from '@highlight-run/ui/components'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import styles from './IntegrationsPage.module.css'
 
 const IntegrationsPage = () => {
@@ -35,6 +35,7 @@ const IntegrationsPage = () => {
 	}>()
 
 	const [popUpModal] = useQueryParam('enable', StringParam)
+	const [searchQuery, setSearchQuery] = useState('')
 
 	const { isHighlightAdmin } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
@@ -179,6 +180,24 @@ const IntegrationsPage = () => {
 		isCloudflareConnectedToWorkspace,
 	])
 
+	// Split into connected vs available, with search filter
+	const filteredIntegrations = useMemo(() => {
+		if (!searchQuery.trim()) return integrations
+		const q = searchQuery.toLowerCase()
+		return integrations.filter(
+			(i) =>
+				i.name.toLowerCase().includes(q) ||
+				i.description.toLowerCase().includes(q),
+		)
+	}, [integrations, searchQuery])
+
+	const connectedIntegrations = filteredIntegrations.filter(
+		(i) => i.defaultEnable,
+	)
+	const availableIntegrations = filteredIntegrations.filter(
+		(i) => !i.defaultEnable,
+	)
+
 	useEffect(() => analytics.page('Integrations'), [])
 
 	return (
@@ -187,23 +206,87 @@ const IntegrationsPage = () => {
 				<title>Integrations</title>
 			</Helmet>
 			<LeadAlignLayout>
-				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
-					Supercharge your workflows and attach Highlight with the
-					tools you use everyday.
-				</p>
-				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) => (
-						<Integration
-							integration={integration}
-							key={integration.key}
-							showModalDefault={popUpModal === integration.key}
-							showSettingsDefault={
-								configureIntegration === integration.key
-							}
-							loading={loading}
-						/>
-					))}
+				<div className={styles.pageWrapper}>
+					{/* Page header */}
+					<div className={styles.pageHeader}>
+						<Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap="8">
+							<div>
+								<h2>Integrations</h2>
+								<Text color="n9" size="small">
+									Supercharge your workflows by connecting Highlight with the tools you use every day.
+								</Text>
+							</div>
+							{/* Search box */}
+							<div className={styles.searchWrapper}>
+								<input
+									type="search"
+									placeholder="Search integrations…"
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									style={{
+										width: '100%',
+										padding: '6px 12px',
+										borderRadius: 6,
+										border: '1px solid var(--color-gray-300)',
+										fontSize: 13,
+										background: 'var(--color-background)',
+										color: 'inherit',
+										outline: 'none',
+									}}
+								/>
+							</div>
+						</Box>
+					</div>
+
+					{/* Connected integrations */}
+					{connectedIntegrations.length > 0 && (
+						<div className={styles.connectedSection}>
+							<span className={styles.sectionLabel}>
+								✓ Connected ({connectedIntegrations.length})
+							</span>
+							<div className={styles.integrationsContainer}>
+								{connectedIntegrations.map((integration) => (
+									<Integration
+										integration={integration}
+										key={integration.key}
+										showModalDefault={popUpModal === integration.key}
+										showSettingsDefault={
+											configureIntegration === integration.key
+										}
+										loading={loading}
+									/>
+								))}
+							</div>
+						</div>
+					)}
+
+					{/* Available integrations */}
+					<div className={styles.connectedSection}>
+						{connectedIntegrations.length > 0 && (
+							<span className={styles.sectionLabel}>
+								Available ({availableIntegrations.length})
+							</span>
+						)}
+						<div className={styles.integrationsContainer}>
+							{availableIntegrations.length === 0 && searchQuery ? (
+								<div className={styles.emptyState}>
+									No integrations match "{searchQuery}"
+								</div>
+							) : (
+								availableIntegrations.map((integration) => (
+									<Integration
+										integration={integration}
+										key={integration.key}
+										showModalDefault={popUpModal === integration.key}
+										showSettingsDefault={
+											configureIntegration === integration.key
+										}
+										loading={loading}
+									/>
+								))
+							)}
+						</div>
+					</div>
 				</div>
 			</LeadAlignLayout>
 		</>

@@ -1,8 +1,51 @@
+.pageWrapper {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-xLarge);
+}
+
+.pageHeader {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-xSmall);
+}
+
+.connectedSection {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-medium);
+}
+
+.sectionLabel {
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--color-text-secondary);
+}
+
 .integrationsContainer {
 	display: grid;
-	grid-gap: var(--size-large);
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	grid-gap: var(--size-medium);
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
+
+.searchWrapper {
+	max-width: 320px;
+}
+
+.emptyState {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: var(--size-small);
+	padding: var(--size-xxLarge);
+	color: var(--color-text-secondary);
+	font-size: 14px;
+	grid-column: 1 / -1;
+}
+
 .modalBtn {
 	padding-bottom: 4px !important;
 	padding-top: 4px !important;
