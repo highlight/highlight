@@ -7,7 +7,7 @@ import { useClearbitIntegration } from '@pages/IntegrationsPage/components/Clear
 import {
 	IntegrationAction,
 	IntegrationConfigProps,
-} from '@pages/IntegrationsPage/components/Integration'
+} from '@pages/IntegrationsPage/components/IntegrationTypes'
 import React, { useEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 

@@ -14,7 +14,7 @@ import {
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
-import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
+import { IntegrationAction } from '@pages/IntegrationsPage/components/IntegrationTypes'
 import { IntegrationModal } from '@pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
 import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
 import { camelCase } from 'lodash'

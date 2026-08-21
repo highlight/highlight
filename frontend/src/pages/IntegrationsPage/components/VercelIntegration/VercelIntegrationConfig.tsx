@@ -17,7 +17,7 @@ import SvgTrashIconSolid from '@icons/TrashIconSolid'
 import {
 	IntegrationAction,
 	IntegrationConfigProps,
-} from '@pages/IntegrationsPage/components/Integration'
+} from '@pages/IntegrationsPage/components/IntegrationTypes'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import useMap from '@util/useMap'

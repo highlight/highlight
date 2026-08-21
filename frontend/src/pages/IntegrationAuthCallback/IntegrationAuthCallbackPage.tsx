@@ -23,7 +23,7 @@ import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickU
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
-import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
+import { IntegrationAction } from '@pages/IntegrationsPage/components/IntegrationTypes'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { VercelIntegrationSettings } from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
