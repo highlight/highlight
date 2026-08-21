@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import { PlanType } from '@graph/schemas'
 import PlugIcon from '@icons/PlugIcon'
@@ -53,6 +53,8 @@ const ClearbitIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectCancel-Slack"
 						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(true)
@@ -63,8 +65,7 @@ const ClearbitIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectSave-Slack"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -102,6 +103,8 @@ const ClearbitIntegrationConfig: React.FC<
 						<Button
 							trackingId="IntegrationConfigurationCancelUpgrade-Clearbit"
 							className={styles.modalBtn}
+							kind="secondary"
+							emphasis="medium"
 							onClick={() => {
 								setModalOpen(false)
 								setIntegrationEnabled(false)
@@ -112,7 +115,8 @@ const ClearbitIntegrationConfig: React.FC<
 						<Button
 							trackingId="IntegrationConfigurationViewUpgrade-Clearbit"
 							className={styles.modalBtn}
-							type="primary"
+							kind="primary"
+							emphasis="high"
 							onClick={() => {
 								navigate(`/${projectID}/integrations`)
 								setRedirectToBilling(true)
@@ -127,6 +131,8 @@ const ClearbitIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationConfigurationCancel-Clearbit"
 						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -137,7 +143,8 @@ const ClearbitIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationConfigurationSave-Clearbit"
 						className={styles.modalBtn}
-						type="primary"
+						kind="primary"
+						emphasis="high"
 						onClick={() => {
 							modifyClearbit({ enabled: true })
 						}}
