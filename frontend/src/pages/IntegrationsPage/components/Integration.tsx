@@ -84,7 +84,7 @@ const Integration = ({
 							['rounded-none']: noRoundedIcon,
 						})}
 					/>
-					<div className="flex flex-col gap-2">
+					<div className={styles.controls}>
 						{isGated ? (
 							<EnterpriseFeatureButton
 								setting={enterpriseSetting}
@@ -159,17 +159,20 @@ const Integration = ({
 						)}
 					</div>
 				</div>
-				<div>
+				<div className={styles.content}>
+					{integrationEnabled && (
+						<span className={styles.badge}>Connected</span>
+					)}
 					<h2 className={styles.title}>{name}</h2>
 					<p className={styles.description}>{description}</p>
 					{docs && (
 						<a
-							className={styles.description}
+							className={styles.docsLink}
 							href={docs}
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							Learn more about the integration.
+							Learn more about the integration. →
 						</a>
 					)}
 				</div>
