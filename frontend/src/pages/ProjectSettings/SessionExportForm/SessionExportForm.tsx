@@ -5,6 +5,7 @@ import { useGetSessionExportsQuery } from '@graph/hooks'
 import {
 	Badge,
 	Box,
+	Heading,
 	IconSolidDownload,
 	IconSolidExternalLink,
 	Stack,
@@ -47,115 +48,108 @@ export const SessionExportForm = () => {
 	const gridColumns = ['120px', '120px', '1fr', '124px']
 	return (
 		<Box ref={ref}>
-			<BorderBox noPadding>
-				<Stack gap="8">
-					<Box paddingTop="12" px="8">
-						<BoxLabel
-							label="Session Export Requests"
-							info="Requests to download sessions."
-						/>
-					</Box>
-					<Table noBorder>
-						<Table.Head>
-							<Table.Row gridColumns={gridColumns}>
-								<Table.Header>Status</Table.Header>
-								<Table.Header>Session length</Table.Header>
-								<Table.Header>Request time</Table.Header>
-							</Table.Row>
-						</Table.Head>
-						<Table.Body>
-							{data?.session_exports?.map((se) => {
-								const status = se.error
-									? ExportStatus.Failure
-									: se.url
-										? ExportStatus.Success
-										: ExportStatus.InProgress
-								return (
-									<Table.Row
-										key={se.secure_id}
-										gridColumns={gridColumns}
-									>
-										<Table.Cell>
-											<Badge
-												iconStart={
-													status ===
-													ExportStatus.InProgress ? (
-														<IconAnimatedLoading
-															size={14}
-														/>
-													) : undefined
-												}
-												variant={
-													status ===
-													ExportStatus.Success
-														? 'green'
-														: status ===
-															  ExportStatus.Failure
-															? 'red'
-															: 'gray'
-												}
-												label={status}
-											/>
-										</Table.Cell>
-										<Table.Cell>
-											<Text>
-												{moment
-													.duration(
-														se.active_length,
-														'millisecond',
-													)
-													.humanize()}
-											</Text>
-										</Table.Cell>
-										<Table.Cell>
-											<Text>
-												{moment(se.created_at).format(
-													'lll',
-												)}
-											</Text>
-										</Table.Cell>
-										<Table.Cell justifyContent="center">
-											<Box display="flex" gap="4">
-												<Tag
-													shape="basic"
-													emphasis="medium"
-													kind="secondary"
-													iconLeft={
-														<IconSolidDownload />
-													}
-													disabled={!se.url}
-													onClick={() =>
-														window.open(
-															se.url,
-															'_blank',
-														)
-													}
-												>
-													Download
-												</Tag>
-												<Tag
-													shape="basic"
-													emphasis="medium"
-													kind="secondary"
-													iconLeft={
-														<IconSolidExternalLink />
-													}
-													onClick={() =>
-														window.open(
-															`/${projectId}/sessions/${se.secure_id}`,
-															'_blank',
-														)
-													}
-												/>
-											</Box>
-										</Table.Cell>
-									</Table.Row>
-								)
-							})}
-						</Table.Body>
-					</Table>
+		<Box ref={ref} background="white" border="dividerWeak" borderRadius="8" p="24">
+			<Stack gap="16">
+				<Stack gap="4">
+					<Heading level="h4">Session Export Requests</Heading>
+					<Text color="moderate">Requests to download sessions.</Text>
 				</Stack>
-			</BorderBox>
+				<Table noBorder>
+					<Table.Head>
+						<Table.Row gridColumns={gridColumns}>
+							<Table.Header>Status</Table.Header>
+							<Table.Header>Session length</Table.Header>
+							<Table.Header>Request time</Table.Header>
+						</Table.Row>
+					</Table.Head>
+					<Table.Body>
+						{data?.session_exports?.map((se) => {
+							const status = se.error
+								? ExportStatus.Failure
+								: se.url
+								? ExportStatus.Success
+								: ExportStatus.InProgress
+							return (
+								<Table.Row
+									key={se.secure_id}
+									gridColumns={gridColumns}
+								>
+									<Table.Cell>
+										<Badge
+											iconStart={
+												status ===
+												ExportStatus.InProgress ? (
+													<IconAnimatedLoading
+														size={14}
+													/>
+												) : undefined
+											}
+											variant={
+												status === ExportStatus.Success
+													? 'green'
+													: status ===
+													  ExportStatus.Failure
+													? 'red'
+													: 'gray'
+											}
+											label={status}
+										/>
+									</Table.Cell>
+									<Table.Cell>
+										<Text>
+											{moment
+												.duration(
+													se.active_length,
+													'millisecond',
+												)
+												.humanize()}
+										</Text>
+									</Table.Cell>
+									<Table.Cell>
+										<Text>
+											{moment(se.created_at).format(
+												'lll',
+											)}
+										</Text>
+									</Table.Cell>
+									<Table.Cell justifyContent="center">
+										<Box display="flex" gap="4">
+											<Tag
+												shape="basic"
+												emphasis="medium"
+												kind="secondary"
+												iconLeft={<IconSolidDownload />}
+												disabled={!se.url}
+												onClick={() =>
+													window.open(se.url, '_blank')
+												}
+											>
+												Download
+											</Tag>
+											<Tag
+												shape="basic"
+												emphasis="medium"
+												kind="secondary"
+												iconLeft={
+													<IconSolidExternalLink />
+												}
+												onClick={() =>
+													window.open(
+														`/${projectId}/sessions/${se.secure_id}`,
+														'_blank',
+													)
+												}
+											/>
+										</Box>
+									</Table.Cell>
+								</Table.Row>
+							)
+						})}
+					</Table.Body>
+				</Table>
+			</Stack>
+		</Box>
+
 		</Box>
 	)
 }
