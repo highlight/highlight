@@ -13799,6 +13799,37 @@ var CanvasManager = class {
     }
     this.logger.debug(prefix, element, ...args);
   }
+  shouldAvoidImageBitmapResizeOptions() {
+    var _a2, _b;
+    const navigator2 = (_b = (_a2 = this.options) == null ? void 0 : _a2.win) == null ? void 0 : _b.navigator;
+    if (!navigator2) return false;
+    const userAgent = navigator2.userAgent || "";
+    return navigator2.vendor === "Apple Computer, Inc." || /Safari/i.test(userAgent) && !/(Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Android)/i.test(userAgent);
+  }
+  async createSnapshotBitmap(source, width, height) {
+    const resizeWidth = Math.max(1, Math.round(width));
+    const resizeHeight = Math.max(1, Math.round(height));
+    if (!this.shouldAvoidImageBitmapResizeOptions()) {
+      return createImageBitmap(source, {
+        resizeWidth,
+        resizeHeight
+      });
+    }
+    const win = this.options.win;
+    const scaledCanvas = typeof OffscreenCanvas !== "undefined" ? new OffscreenCanvas(resizeWidth, resizeHeight) : win.document.createElement("canvas");
+    scaledCanvas.width = resizeWidth;
+    scaledCanvas.height = resizeHeight;
+    const context = scaledCanvas.getContext("2d");
+    if (!context) {
+      return createImageBitmap(source, {
+        resizeWidth,
+        resizeHeight
+      });
+    }
+    context.imageSmoothingEnabled = true;
+    context.drawImage(source, 0, 0, resizeWidth, resizeHeight);
+    return createImageBitmap(scaledCanvas);
+  }
   async snapshot(canvas) {
     var _a2;
     const id = this.mirror.getId(canvas);
@@ -13843,12 +13874,9 @@ var CanvasManager = class {
         const maxDim = Math.max(canvas.width, canvas.height);
         scale = Math.min(scale, this.options.maxSnapshotDimension / maxDim);
       }
-      const width = canvas.width * scale;
-      const height = canvas.height * scale;
-      const bitmap = await createImageBitmap(canvas, {
-        resizeWidth: width,
-        resizeHeight: height
-      });
+      const width = Math.max(1, Math.round(canvas.width * scale));
+      const height = Math.max(1, Math.round(canvas.height * scale));
+      const bitmap = await this.createSnapshotBitmap(canvas, width, height);
       this.debug(canvas, "created image bitmap", {
         width: bitmap.width,
         height: bitmap.height
@@ -13993,12 +14021,9 @@ var CanvasManager = class {
             if (maxSnapshotDimension) {
               scale = Math.min(scale, maxSnapshotDimension / maxDim);
             }
-            const width = actualWidth * scale;
-            const height = actualHeight * scale;
-            const bitmap = await createImageBitmap(video, {
-              resizeWidth: width,
-              resizeHeight: height
-            });
+            const width = Math.max(1, Math.round(actualWidth * scale));
+            const height = Math.max(1, Math.round(actualHeight * scale));
+            const bitmap = await this.createSnapshotBitmap(video, width, height);
             const outputScale = Math.max(boxWidth, boxHeight) / maxDim;
             const outputWidth = actualWidth * outputScale;
             const outputHeight = actualHeight * outputScale;
