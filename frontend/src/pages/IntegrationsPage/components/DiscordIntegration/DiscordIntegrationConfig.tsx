@@ -1,7 +1,11 @@
-import Button from '@components/Button/Button/Button'
 import { toast } from '@components/Toaster'
-import PlugIcon from '@icons/PlugIcon'
-import Sparkles2Icon from '@icons/Sparkles2Icon'
+import {
+	Box,
+	IconSolidDiscord,
+	IconSolidLogout,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import {
 	IntegrationAction,
@@ -10,6 +14,8 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import React, { useEffect } from 'react'
+
+import { Button } from '@/components/Button'
 
 import styles from './DiscordIntegrationConfig.module.css'
 
@@ -29,13 +35,6 @@ export const getDiscordOauthUrl = (
 	)
 	const scope = ['bot']
 
-	// If the bot needs more permissions,
-	// visit https://discord.com/developers/applications/1024079182013149185/oauth2/url-generator
-	// and use the generator to get a new value
-	// Current bot permissions:
-	// * Manage Channels
-	// * Read Messages/View Channels
-	// * Send Messages
 	const botPermissions = '3088'
 
 	return `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&permissions=${botPermissions}&redirect_uri=${redirectURI}&state=${state}&response_type=code&scope=${scope}`
@@ -46,9 +45,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	setIntegrationEnabled,
 	action,
 }) => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
+	const { project_id } = useParams<{ project_id: string }>()
 	const {
 		removeDiscordIntegrationFromProject,
 		isDiscordIntegratedWithProject,
@@ -70,75 +67,72 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 		action,
 	])
 
-	if (action === IntegrationAction.Disconnect) {
-		return (
-			<>
-				<p className={styles.modalSubTitle}>
-					Disconnecting Discord from Highlight will prevent alerts
-					from notifying Discord channels.
-				</p>
-				<footer>
-					<Button
-						trackingId="IntegrationDisconnectCancel-Discord"
-						className={styles.modalBtn}
-						onClick={() => {
-							setModalOpen(false)
-							setIntegrationEnabled(true)
-						}}
-					>
-						Cancel
-					</Button>
+	const isDisconnect = action === IntegrationAction.Disconnect
+
+	return (
+		<Stack gap="16" cssClass={styles.container}>
+			<Text color="moderate" size="small">
+				{isDisconnect
+					? 'Disconnecting Discord from Highlight will prevent alerts from notifying Discord channels.'
+					: 'Connect Discord to your Highlight workspace to set up alerts.'}
+			</Text>
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="flex-end"
+				gap="8"
+			>
+				<Button
+					trackingId={
+						isDisconnect
+							? 'IntegrationDisconnectCancel-Discord'
+							: 'IntegrationConfigurationCancel-Discord'
+					}
+					kind="secondary"
+					size="medium"
+					emphasis="medium"
+					onClick={() => {
+						setModalOpen(false)
+						setIntegrationEnabled(isDisconnect)
+					}}
+				>
+					Cancel
+				</Button>
+				{isDisconnect ? (
 					<Button
 						trackingId="IntegrationDisconnectSave-Discord"
-						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
+						size="medium"
+						emphasis="high"
+						iconLeft={<IconSolidLogout />}
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeDiscordIntegrationFromProject()
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect Discord
 					</Button>
-				</footer>
-			</>
-		)
-	}
-
-	return (
-		<>
-			<p className={styles.modalSubTitle}>
-				Connect Discord to your Highlight workspace to setup alerts.
-			</p>
-			<footer>
-				<Button
-					trackingId="IntegrationConfigurationCancel-Discord"
-					className={styles.modalBtn}
-					onClick={() => {
-						setModalOpen(false)
-						setIntegrationEnabled(false)
-					}}
-				>
-					Cancel
-				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-Discord"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href={getDiscordOauthUrl(project_id!)}
-				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span className="mt-1">
-							Connect Highlight with Discord
-						</span>
-					</span>
-				</Button>
-			</footer>
-		</>
+				) : (
+					<Button
+						trackingId="IntegrationConfigurationSave-Discord"
+						kind="primary"
+						size="medium"
+						emphasis="high"
+						iconLeft={<IconSolidDiscord />}
+						onClick={() => {
+							window.open(
+								getDiscordOauthUrl(project_id!),
+								'_blank',
+								'noreferrer',
+							)
+						}}
+					>
+						Connect with Discord
+					</Button>
+				)}
+			</Box>
+		</Stack>
 	)
 }
 
