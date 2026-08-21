@@ -8,10 +8,9 @@
 	min-height: var(--size-xxLarge);
 }
 
-.select {
-	width: 100%;
-
-	&:global(.ant-select-disabled .ant-select-selector) {
-		background-color: var(--color-primary-background) !important;
-	}
+.checkbox {
+	accent-color: var(--color-purple-500);
+	cursor: pointer;
+	height: 16px;
+	width: 16px;
 }
