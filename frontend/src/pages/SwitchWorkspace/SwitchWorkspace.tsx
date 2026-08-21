@@ -1,13 +1,12 @@
 import Button from '@components/Button/Button/Button'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import { CircularSpinner, LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
-import Tag from '@components/Tag/Tag'
 import { toast } from '@components/Toaster'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
+import { Select } from '@highlight-run/ui/components'
 import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -70,29 +69,17 @@ const SwitchWorkspace = () => {
 	const workspaceOptions = (data?.workspaces || [])
 		?.map((workspace) => ({
 			value: workspace?.id || '',
-			displayValue: workspace?.name || '',
-			id: workspace?.id || '',
+			name: workspace?.name || '',
 		}))
 		.concat(
 			(data?.joinable_workspaces || [])?.map((workspace) => ({
 				value: workspace?.id || '',
-				displayValue: workspace?.name || '',
-				id: workspace?.id || '',
-				dropDownIcon: (
-					<Tag
-						className={styles.joinButton}
-						infoTooltipText="Your email domain is whitelisted by this workspace!"
-						backgroundColor="var(--color-purple)"
-						color="var(--color-white)"
-					>
-						Join
-					</Tag>
-				),
+				name: workspace?.name || '',
 			})),
 		)
 
 	const currentWorkspace = workspaceOptions?.find(
-		(workspace) => workspace.id === currentWorkspaceId,
+		(workspace) => workspace.value === currentWorkspaceId,
 	)
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
@@ -147,10 +134,10 @@ const SwitchWorkspace = () => {
 					<Select
 						className={styles.fullWidth}
 						options={workspaceOptions}
-						onChange={(workspaceId) => {
+						onValueChange={(workspaceId) => {
 							setSelectedWorkspace(workspaceId)
 						}}
-						value={currentWorkspace?.value}
+						value={selectedWorkspace || currentWorkspace?.value}
 						placeholder="Enter a Workspace"
 					/>
 					<Button
