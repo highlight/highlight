@@ -3,11 +3,9 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
-
-import { QuickStartContent } from '../QuickstartContent'
+import { QuickStartContent, QuickStartStep } from '../QuickstartContent'
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts
 ...
@@ -31,6 +29,52 @@ H.init('<YOUR_PROJECT_ID>', {
 });
 ...
 `
+
+const svelteKitServerSnippet: QuickStartStep = {
+	title: 'Instrument your server.',
+	content:
+		'Add Highlight to `hooks.server.ts` so SvelteKit can trace server-side work and connect it back to the frontend session. Install `@highlight-run/node` if you have not already, then wrap your `handle` function with `H.runWithHeaders`.',
+	code: [
+		{
+			text: `// src/hooks.server.ts
+import { H } from '@highlight-run/node'
+import type { Handle } from '@sveltejs/kit'
+
+const nodeOptions = {
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'my-sveltekit-app',
+	environment: 'production',
+	version: 'commit:abcdefg12345',
+}
+
+if (!H.isInitialized()) {
+	H.init(nodeOptions)
+}
+
+export const handle: Handle = async ({ event, resolve }) => {
+	return H.runWithHeaders(
+		\`\${event.request.method} \${event.url.pathname}\`,
+		event.request.headers,
+		async () => resolve(event),
+		{
+			attributes: {
+				'http.method': event.request.method,
+				'http.route': event.url.pathname,
+				'http.url': event.url.toString(),
+			},
+		},
+	)
+}
+`,
+			language: 'ts',
+		},
+		{
+			text: `# install the backend SDK if needed
+npm install @highlight-run/node`,
+			language: 'bash',
+		},
+	],
+}
 
 export const SvelteKitContent: QuickStartContent = {
 	title: 'SvelteKit',
@@ -79,6 +123,6 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		svelteKitServerSnippet,
 	],
 }
