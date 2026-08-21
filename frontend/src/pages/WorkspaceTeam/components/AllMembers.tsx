@@ -25,7 +25,7 @@ import { getDisplayNameFromEmail } from '@util/string'
 import clsx from 'clsx'
 import { useEffect, useMemo, useState } from 'react'
 
-import LoadingBox from '@/components/LoadingBox'
+import { IconAnimatedLoading } from '@/components/Loading/Loading'
 import { toast } from '@/components/Toaster'
 import {
 	ChangeAdminRoleMutation,
@@ -317,7 +317,16 @@ const AllMembers = ({
 	}
 
 	if (loading) {
-		return <LoadingBox />
+		return (
+			<Box
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				py="12"
+			>
+				<IconAnimatedLoading />
+			</Box>
+		)
 	}
 
 	const getSortIcon = (column: string) => {

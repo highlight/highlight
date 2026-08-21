@@ -1,18 +1,17 @@
+import { Button } from '@components/Button'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
-import Input from '@components/Input/Input'
-import LoadingBox from '@components/LoadingBox'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
 import { useDeleteProjectMutation, useGetProjectQuery } from '@graph/hooks'
+import { Box, Form } from '@highlight-run/ui/components'
 import { namedOperations } from '@graph/operations'
 import { FieldsForm } from '@pages/WorkspaceSettings/FieldsForm/FieldsForm'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
-import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuthContext } from '@/authentication/AuthContext'
 import { AdminRole } from '@/graph/generated/schemas'
 
 import commonStyles from '../../../Common.module.css'
-import Button from '../../../components/Button/Button/Button'
 import styles from './DangerForm.module.css'
 
 export const DangerForm = () => {
@@ -21,7 +20,6 @@ export const DangerForm = () => {
 		variables: { id: project_id! },
 		skip: !project_id,
 	})
-	const [confirmationText, setConfirmationText] = useState('')
 
 	const { workspaceRole } = useAuthContext()
 	const isAdminRole = workspaceRole === AdminRole.Admin
@@ -30,6 +28,14 @@ export const DangerForm = () => {
 		useDeleteProjectMutation({
 			refetchQueries: [namedOperations.Query.GetProjects],
 		})
+
+	const formStore = Form.useStore({
+		defaultValues: {
+			text: '',
+		},
+	})
+
+	const confirmationText = formStore.useValue(formStore.names.text) ?? ''
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
@@ -52,9 +58,16 @@ export const DangerForm = () => {
 				<FieldsBox id="danger">
 					<h3>Danger Zone</h3>
 
-					<form onSubmit={onSubmit}>
+					<Form store={formStore} onSubmit={onSubmit}>
 						{loading ? (
-							<LoadingBox />
+							<Box
+								display="flex"
+								justifyContent="center"
+								alignItems="center"
+								py="12"
+							>
+								<IconAnimatedLoading />
+							</Box>
 						) : (
 							<>
 								<p className={styles.dangerSubTitle}>
@@ -63,18 +76,13 @@ export const DangerForm = () => {
 									{`${data?.project?.name}`}' to confirm.
 								</p>
 								<div className={styles.dangerRow}>
-									<Input
+									<Form.Input
 										placeholder={`${data?.project?.name}`}
-										name="text"
-										value={confirmationText}
-										onChange={(e) => {
-											setConfirmationText(e.target.value)
-										}}
+										name={formStore.names.text}
 									/>
 									<Button
 										trackingId="DeleteProject"
-										danger
-										type="primary"
+										kind="danger"
 										className={clsx(
 											commonStyles.submitButton,
 											styles.deleteButton,
@@ -83,7 +91,7 @@ export const DangerForm = () => {
 											confirmationText !==
 											data?.project?.name
 										}
-										htmlType="submit"
+										type="submit"
 										loading={deleteLoading}
 									>
 										Delete
@@ -91,7 +99,7 @@ export const DangerForm = () => {
 								</div>
 							</>
 						)}
-					</form>
+					</Form>
 				</FieldsBox>
 			)}
 		</>

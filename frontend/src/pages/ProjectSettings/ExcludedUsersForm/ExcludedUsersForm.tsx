@@ -1,21 +1,65 @@
-import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
-import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
 import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
-import { Form, Stack } from '@highlight-run/ui/components'
+import {
+	Box,
+	Form,
+	Select,
+	type SelectOption,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
+import * as styles from './ExcludedUsersForm.css'
+
+const renderHighlightedSuggestion = (value: string, query: string) => {
+	if (!query) {
+		return value
+	}
+
+	const lowerValue = value.toLowerCase()
+	const lowerQuery = query.toLowerCase()
+	const parts: ReactNode[] = []
+	let startIndex = 0
+	let matchIndex = lowerValue.indexOf(lowerQuery, startIndex)
+
+	while (matchIndex !== -1) {
+		if (matchIndex > startIndex) {
+			parts.push(value.slice(startIndex, matchIndex))
+		}
+
+		const matchedText = value.slice(matchIndex, matchIndex + query.length)
+		parts.push(
+			<Text
+				key={`${matchIndex}-${parts.length}`}
+				as="mark"
+				cssClass={styles.highlightMatch}
+			>
+				{matchedText}
+			</Text>,
+		)
+
+		startIndex = matchIndex + query.length
+		matchIndex = lowerValue.indexOf(lowerQuery, startIndex)
+	}
+
+	if (startIndex < value.length) {
+		parts.push(value.slice(startIndex))
+	}
+
+	return <>{parts}</>
+}
 
 export const ExcludedUsersForm = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const [identifierQuery, setIdentifierQuery] = useState('')
+	const [identifierSearchQuery, setIdentifierSearchQuery] = useState('')
 	const [invalidExcludedUsers, setInvalidExcludedUsers] = useState<string[]>(
 		[],
 	)
@@ -38,26 +82,29 @@ export const ExcludedUsersForm = () => {
 	})
 
 	if (loading) {
-		return <LoadingBar />
+		return (
+			<Box
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				py="12"
+			>
+				<IconAnimatedLoading />
+			</Box>
+		)
 	}
 
 	const identifierSuggestions = identifierSuggestionsLoading
 		? []
 		: (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
 				(suggestion) => ({
+					name: suggestion,
 					value: suggestion,
-					displayValue: (
-						<TextHighlighter
-							searchWords={[identifierQuery]}
-							textToHighlight={suggestion}
-						/>
-					),
-					id: suggestion,
 				}),
 			)
 
 	const handleIdentifierSearch = (query = '') => {
-		setIdentifierQuery(query)
+		setIdentifierSearchQuery(query)
 		refetchIdentifierSuggestions({ query, project_id })
 	}
 
@@ -77,18 +124,27 @@ export const ExcludedUsersForm = () => {
 						name="Filtered users"
 					>
 						<Select
-							mode="tags"
+							creatable
+							customFilterable
+							displayMode="tags"
 							placeholder=".*@yourdomain.com"
-							value={
-								data?.projectSettings?.excluded_users ||
-								undefined
+							value={data?.projectSettings?.excluded_users || []}
+							resultsLoading={identifierSuggestionsLoading}
+							onSearchValueChange={handleIdentifierSearch}
+							renderOption={(option) =>
+								renderHighlightedSuggestion(
+									String(option.name),
+									identifierSearchQuery,
+								)
 							}
-							onSearch={handleIdentifierSearch}
 							options={identifierSuggestions}
-							onChange={(excluded: string[]) => {
+							onValueChange={(excluded: SelectOption[]) => {
+								const excludedValues = excluded.map((option) =>
+									String(option.value),
+								)
 								const validRegexes: string[] = []
 								const invalidRegexes: string[] = []
-								excluded.forEach((expression) => {
+								excludedValues.forEach((expression) => {
 									try {
 										new RegExp(expression)
 										validRegexes.push(expression)
@@ -97,16 +153,20 @@ export const ExcludedUsersForm = () => {
 									}
 								})
 								if (
-									excluded.length > 0 &&
+									excludedValues.length > 0 &&
 									invalidRegexes.length > 0 &&
-									excluded[excluded.length - 1] ===
+									excludedValues[
+										excludedValues.length - 1
+									] ===
 										invalidRegexes[
 											invalidRegexes.length - 1
 										]
 								) {
 									toast.error(
 										"'" +
-											excluded[excluded.length - 1] +
+											excludedValues[
+												excludedValues.length - 1
+											] +
 											"' is not a valid regular expression",
 										{ duration: 5000 },
 									)
