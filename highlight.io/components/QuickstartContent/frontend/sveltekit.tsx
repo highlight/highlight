@@ -32,6 +32,46 @@ H.init('<YOUR_PROJECT_ID>', {
 ...
 `
 
+const svelteKitBackendInitCodeSnippet = `// hooks.server.ts
+import { H } from '@highlight-run/node';
+
+H.init({
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'my-sveltekit-backend',
+	environment: 'production',
+});
+`
+
+const svelteKitHandleCodeSnippet = `// hooks.server.ts
+import type { Handle } from '@sveltejs/kit';
+import { H } from '@highlight-run/node';
+
+export const handle: Handle = async ({ event, resolve }) => {
+	return H.runWithHeaders(
+		\`\${event.request.method} \${event.url.pathname}\`,
+		event.request.headers,
+		() => resolve(event),
+	);
+};
+`
+
+const svelteKitHandleErrorCodeSnippet = `// hooks.server.ts
+import type { HandleServerError } from '@sveltejs/kit';
+import { H } from '@highlight-run/node';
+
+export const handleError: HandleServerError = ({ error, event }) => {
+	const parsed = H.parseHeaders(event.request.headers);
+	const normalizedError =
+		error instanceof Error ? error : new Error(String(error));
+
+	H.consumeError(
+		normalizedError,
+		parsed.secureSessionId,
+		parsed.requestId,
+	);
+};
+`
+
 export const SvelteKitContent: QuickStartContent = {
 	title: 'SvelteKit',
 	subtitle:
@@ -78,6 +118,64 @@ export default config;`,
 		},
 		identifySnippet,
 		verifySnippet,
+		{
+			title: 'Install the backend SDK.',
+			content:
+				'Install `@highlight-run/node` to capture backend errors, logs, and traces from your SvelteKit server hooks.',
+			code: [
+				{
+					key: 'yarn',
+					text: `# with yarn
+yarn add @highlight-run/node`,
+					language: 'bash',
+				},
+				{
+					key: 'pnpm',
+					text: `# with pnpm
+pnpm add @highlight-run/node`,
+					language: 'bash',
+				},
+				{
+					key: 'npm',
+					text: `# with npm
+npm install @highlight-run/node`,
+					language: 'bash',
+				},
+			],
+		},
+		{
+			title: 'Initialize the backend SDK.',
+			content:
+				'Initialize Highlight once in `hooks.server.ts` so the Node SDK can collect server-side telemetry.',
+			code: [
+				{
+					text: svelteKitBackendInitCodeSnippet,
+					language: 'js',
+				},
+			],
+		},
+		{
+			title: 'Wrap SvelteKit requests.',
+			content:
+				'Wrap the SvelteKit `handle` hook with `H.runWithHeaders` to connect backend telemetry to the frontend session headers sent by `tracingOrigins`.',
+			code: [
+				{
+					text: svelteKitHandleCodeSnippet,
+					language: 'js',
+				},
+			],
+		},
+		{
+			title: 'Report server errors.',
+			content:
+				'Use SvelteKit `handleError` to send server-side exceptions to Highlight with the session and request IDs parsed from the incoming headers.',
+			code: [
+				{
+					text: svelteKitHandleErrorCodeSnippet,
+					language: 'js',
+				},
+			],
+		},
 		configureSourcemapsCI(),
 		setupBackendSnippet,
 	],
