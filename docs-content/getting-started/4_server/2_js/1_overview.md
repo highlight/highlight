@@ -39,6 +39,9 @@ updatedAt: 2022-04-01T19:52:59.000Z
     <DocsCard title="Pino" href="../js/pino">
         {"Get started with Pino"}
     </DocsCard>
+    <DocsCard title="SvelteKit" href="../js/sveltekit">
+        {"Get started with SvelteKit"}
+    </DocsCard>
     <DocsCard title="tRPC" href="../js/trpc">
         {"Get started with tRPC"}
     </DocsCard>
