@@ -3,7 +3,6 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
@@ -79,6 +78,44 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Instrument your backend.',
+			content:
+				'Use `@highlight-run/node` in your `hooks.server.ts` to capture server-side errors and link them to frontend sessions. ' +
+				'See the [SvelteKit Walkthrough](https://www.highlight.io/docs/getting-started/fullstack-frameworks/sveltekit) for full setup instructions.',
+			code: [
+				{
+					language: 'ts',
+					text: `// hooks.server.ts
+import { H } from '@highlight-run/node';
+import type { Handle, HandleServerError } from '@sveltejs/kit';
+
+H.init({
+	projectID: '<YOUR_PROJECT_ID>',
+	environment: 'production',
+	serviceName: 'my-sveltekit-app',
+});
+
+// Server errors are automatically captured
+export const handleError: HandleServerError = ({ error, event }) => {
+	const headers = Object.fromEntries(event.request.headers);
+	const parsed = H.parseHeaders(headers);
+
+	if (error instanceof Error) {
+		H.consumeError(error, parsed?.secureSessionId, parsed?.requestId);
+	}
+
+	return {
+		message: 'An unexpected error occurred.',
+	};
+};
+
+export const handle: Handle = async ({ event, resolve }) => {
+	const response = await resolve(event);
+	return response;
+};`,
+				},
+			],
+		},
 	],
 }
