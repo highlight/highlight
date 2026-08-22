@@ -3,7 +3,6 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
@@ -32,6 +31,71 @@ H.init('<YOUR_PROJECT_ID>', {
 ...
 `
 
+const svelteKitBackendCodeSnippet = `// hooks.server.ts
+import { H } from '@highlight-run/node'
+import type { Handle, HandleServerError } from '@sveltejs/kit'
+
+H.init({
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'sveltekit-app',
+	environment: 'production',
+})
+
+export const handle: Handle = async ({ event, resolve }) => {
+	return H.runWithHeaders('sveltekit.server', event.request.headers, () =>
+		resolve(event),
+	)
+}
+
+export const handleError: HandleServerError = ({ error, event }) => {
+	const parsedHeaders = H.parseHeaders(event.request.headers)
+
+	if (error instanceof Error) {
+		H.consumeError(
+			error,
+			parsedHeaders.secureSessionId,
+			parsedHeaders.requestId,
+		)
+	}
+
+	return {
+		message: 'Unexpected error',
+	}
+}
+`
+
+const svelteKitBackendInstrumentationSnippet = {
+	title: 'Instrument your SvelteKit backend.',
+	content:
+		'SvelteKit browser instrumentation belongs in `hooks.client.ts`; server instrumentation belongs in `hooks.server.ts`. ' +
+		'Setting `tracingOrigins: true` in your frontend setup lets Highlight send headers that `@highlight-run/node` can parse to connect backend traces and errors to frontend sessions.\n\n' +
+		'Install both packages, initialize the Node SDK in `hooks.server.ts`, wrap server requests with `H.runWithHeaders`, and report server errors from `handleError`.',
+	code: [
+		{
+			key: 'npm',
+			text: `# with npm
+npm install highlight.run @highlight-run/node`,
+			language: 'bash',
+		},
+		{
+			key: 'pnpm',
+			text: `# with pnpm
+pnpm add highlight.run @highlight-run/node`,
+			language: 'bash',
+		},
+		{
+			key: 'yarn',
+			text: `# with yarn
+yarn add highlight.run @highlight-run/node`,
+			language: 'bash',
+		},
+		{
+			text: svelteKitBackendCodeSnippet,
+			language: 'ts',
+		},
+	],
+}
+
 export const SvelteKitContent: QuickStartContent = {
 	title: 'SvelteKit',
 	subtitle:
@@ -53,6 +117,7 @@ export const SvelteKitContent: QuickStartContent = {
 				},
 			],
 		},
+		svelteKitBackendInstrumentationSnippet,
 		{
 			title: 'Confirm CSS is served by absolute path.',
 			content:
@@ -79,6 +144,5 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
 	],
 }
