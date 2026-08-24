@@ -108,6 +108,7 @@ import { JSNodeReorganizedContent } from './server/js/nodejs'
 import { JSNestReorganizedContent } from './server/js/nestjs'
 import { JStRPCReorganizedContent } from './server/js/trpc'
 import { JSPinoHTTPJSONLogReorganizedContent } from './server/js/pino'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { JSWinstonHTTPJSONLogReorganizedContent } from './server/js/winston'
 import { JSManualTracesReorganizedContent } from './server/js/manual'
 import { PHPOtherReorganizedContent } from './server/php/other'
@@ -209,6 +210,7 @@ export enum QuickStartType {
 	JSWinston = 'winston',
 	JSPino = 'pino',
 	JStRPC = 'trpc',
+	JSSvelteKit = 'sveltekit',
 	HTTPOTLP = 'curl',
 	Syslog = 'syslog',
 	Systemd = 'systemd',
@@ -461,6 +463,7 @@ export const quickStartContent = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 		},
 		php: {
 			title: 'PHP',
