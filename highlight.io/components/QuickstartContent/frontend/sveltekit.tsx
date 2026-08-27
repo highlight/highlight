@@ -7,7 +7,7 @@ import {
 	verifySnippet,
 } from './shared-snippets'
 
-import { QuickStartContent } from '../QuickstartContent'
+import { QuickStartContent, QuickStartStep } from '../QuickstartContent'
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts
 ...
@@ -30,6 +30,72 @@ H.init('<YOUR_PROJECT_ID>', {
 	},
 });
 ...
+`
+
+const svelteKitBackendInstallSnippet: QuickStartStep = {
+	title: 'Install the backend SDK.',
+	content:
+		'Install `@highlight-run/node` so your SvelteKit server hooks can report backend errors, logs, and traces.',
+	code: [
+		{
+			key: 'yarn',
+			text: `# with yarn
+yarn add @highlight-run/node`,
+			language: 'bash',
+		},
+		{
+			key: 'pnpm',
+			text: `# with pnpm
+pnpm add @highlight-run/node`,
+			language: 'bash',
+		},
+		{
+			key: 'npm',
+			text: `# with npm
+npm install @highlight-run/node`,
+			language: 'bash',
+		},
+	],
+}
+
+const svelteKitBackendCodeSnippet = `// hooks.server.ts
+import { H } from '@highlight-run/node'
+
+H.init({
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'sveltekit-server',
+	environment: 'production',
+})
+
+export const handle = async ({ event, resolve }) => {
+	const headers = Object.fromEntries(event.request.headers.entries())
+	const parsedHeaders = H.parseHeaders(headers)
+
+	return H.runWithHeaders(
+		\`${'${event.request.method} ${event.url.pathname}'}\`,
+		headers,
+		async (span) => {
+			try {
+				return await resolve(event)
+			} catch (error) {
+				if (error instanceof Error) {
+					H.consumeError(
+						error,
+						parsedHeaders.secureSessionId,
+						parsedHeaders.requestId,
+						{
+							method: event.request.method,
+							url: event.url.toString(),
+						},
+						{ span },
+					)
+				}
+
+				throw error
+			}
+		},
+	)
+}
 `
 
 export const SvelteKitContent: QuickStartContent = {
@@ -79,6 +145,18 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
+		svelteKitBackendInstallSnippet,
+		{
+			title: 'Instrument your SvelteKit backend.',
+			content:
+				'Initialize the Highlight Node SDK in `hooks.server.ts`, then wrap SvelteKit request handling with `H.runWithHeaders` so backend traces and errors can be linked to the originating frontend session.',
+			code: [
+				{
+					language: 'ts',
+					text: svelteKitBackendCodeSnippet,
+				},
+			],
+		},
 		setupBackendSnippet,
 	],
 }
