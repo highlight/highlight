@@ -62,10 +62,12 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		span.SetAttributes(attribute.String("graphql.field.arguments", args))
 	}
 	res, err := next(ctx)
-	highlight.RecordSpanError(
-		span, err,
-		attribute.String(highlight.SourceAttribute, "InterceptField"),
-	)
+	if err != nil {
+		highlight.RecordSpanError(
+			span, err,
+			attribute.String(highlight.SourceAttribute, "InterceptField"),
+		)
+	}
 	highlight.EndTrace(span)
 
 	return res, err

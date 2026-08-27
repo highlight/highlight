@@ -508,6 +508,10 @@ func RecordError(ctx context.Context, err error, tags ...attribute.KeyValue) con
 }
 
 func RecordSpanError(span trace.Span, err error, tags ...attribute.KeyValue) {
+	// Don't record nil errors
+	if err == nil {
+		return
+	}
 	if urlErr, ok := err.(*url.Error); ok {
 		span.SetAttributes(attribute.String("Op", urlErr.Op))
 		span.SetAttributes(attribute.String(ErrorURLAttribute, urlErr.URL))
