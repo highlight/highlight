@@ -1,19 +1,9 @@
-import 'react-loading-skeleton/dist/skeleton.css'
+import { Skeleton as AntDesignSkeleton, SkeletonProps } from 'antd'
 
-import SkeletonComponent, { SkeletonProps } from 'react-loading-skeleton'
+type Props = SkeletonProps
 
-import styles from './Skeleton.module.css'
-
-type Props = Pick<
-	SkeletonProps,
-	'height' | 'width' | 'count' | 'containerClassName' | 'circle' | 'style'
->
-
-export const Skeleton = (props: Props) => {
-	return (
-		<SkeletonComponent
-			{...props}
-			className={styles.skeleton}
-		></SkeletonComponent>
-	)
+const Skeleton = (props: Props) => {
+	return <AntDesignSkeleton {...props} />
 }
+
+export { Skeleton }

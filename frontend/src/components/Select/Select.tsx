@@ -20,9 +20,12 @@ export interface OptionType {
 	dropDownIcon?: React.ReactNode
 }
 
-type Props = Omit<AntDesignSelectProps, 'options'> & {
+type Props = Omit<AntDesignSelectProps<any>, 'options'> & {
 	options?: OptionType[]
 	dropdownClassName?: string
+	placeholder?: string
+	size?: 'large' | 'middle' | 'small'
+	onSelect?: (value: any, option: any) => void
 }
 
 const Select = ({
