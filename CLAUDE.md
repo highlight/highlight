@@ -184,6 +184,96 @@ yarn build:sdk
 - `sdk/highlight-run/`: Core JavaScript SDK
 - Each SDK follows language-specific patterns and conventions
 
+## Common Troubleshooting
+
+### Backend Issues
+
+**Database Connection Errors**
+```bash
+# Check if PostgreSQL is running
+docker ps | grep postgres
+
+# Verify connection settings
+make migrate  # This will test the connection
+```
+
+**Port Already in Use**
+```bash
+# Find process using port 8082 (backend default)
+lsof -ti:8082 | xargs kill -9
+
+# Or use alternative port
+BACKEND_PORT=8083 make start
+```
+
+**GraphQL Schema Generation Failures**
+```bash
+# Clean generated files and regenerate
+rm -rf graph/generated
+make public-gen private-gen
+```
+
+### Frontend Issues
+
+**Node.js Version Mismatch**
+```bash
+# Use the correct Node.js version (18+)
+nvm use 18
+# or
+yarn install  # Will warn about version issues
+```
+
+**TypeScript Compilation Errors**
+```bash
+# Clear TypeScript cache
+rm -rf node_modules/.cache
+yarn install
+yarn types:check
+```
+
+**GraphQL Type Mismatches**
+```bash
+# Regenerate types after backend schema changes
+yarn codegen
+# If still failing, clear Apollo cache
+rm -rf src/graph/generated
+yarn codegen
+```
+
+### Docker Issues
+
+**Port Conflicts**
+```bash
+# Check which ports are in use
+docker-compose ps
+# Stop all services and restart
+docker-compose down && docker-compose up
+```
+
+**Volume Permission Issues**
+```bash
+# Reset Docker volumes (will lose data)
+docker-compose down -v
+docker system prune -f
+```
+
+### General Development Issues
+
+**Dependency Installation Problems**
+```bash
+# Clear all caches and reinstall
+yarn cache clean
+rm -rf node_modules yarn.lock
+yarn install
+```
+
+**Environment Variable Issues**
+```bash
+# Verify doppler is working
+doppler run -- env | grep PSQL
+# Or check your .env file exists and is properly formatted
+```
+
 ## Important Notes
 
 - **Hot Reload**: Frontend supports hot reload; backend uses Air for live reload
