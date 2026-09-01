@@ -24,7 +24,7 @@ To install highlight.io in a Salesforce application, follow the [normal highligh
 
 1. Navigate to Setup -> Digital Experiences -> and select the Builder of your choice
 2. Open the Head Markup editor in Builder | Settings | Advanced
-3. Add the `<script src="https://unpkg.com/highlight.run"></script>` tag.
+3. Add the `<script src="https://unpkg.com/highlight.run@9.14.0"></script>` tag.
 4. Add another `<script></script>` with the `H.init` contents as described on our [normal highlight HTML installation instructions](../8_other.md).
 5. Save the contents of the Head Markup.
 
