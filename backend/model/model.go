@@ -624,19 +624,31 @@ func (u *Project) VerboseID() string {
 }
 
 func FromVerboseID(verboseId string) (int, error) {
+	// Handle empty or invalid verboseID values gracefully
+	if verboseId == "" {
+		return 0, e.New("verboseID cannot be empty")
+	}
+	
+	// Handle known invalid values that shouldn't be processed
+	if verboseId == "default" || verboseId == "undefined" || verboseId == "null" {
+		return 0, e.Errorf("invalid verboseID format: %s", verboseId)
+	}
+	
 	// Try to convert the id to an integer in the case that the client is out of date.
 	if projectID, err := strconv.Atoi(verboseId); err == nil {
 		return projectID, nil
 	}
+	
 	// Otherwise, decode with HashID library
 	if ints, err := HashID.DecodeWithError(verboseId); err == nil {
 		if len(ints) != 1 {
-			return 1, e.Errorf("An unsupported verboseID was used: %s", verboseId)
+			return 0, e.Errorf("verboseID decoded to multiple values (%d), expected exactly one: %s", len(ints), verboseId)
 		}
 		return ints[0], nil
 	}
 
-	return 0, e.New(fmt.Sprintf("failed to decode %s", verboseId))
+	// If all decoding attempts fail, return a descriptive error
+	return 0, e.Errorf("failed to decode verboseID '%s': not a valid integer or HashID format", verboseId)
 }
 
 func (u *Project) BeforeCreate(tx *gorm.DB) (err error) {
