@@ -104,6 +104,7 @@ import { JSCloudflareReorganizedContent } from './server/js/cloudflare'
 import { JSExpressReorganizedContent } from './server/js/express'
 import { JSFirebaseReorganizedContent } from './server/js/firebase'
 import { JSHonoReorganizedContent } from './server/js/hono'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { JSNodeReorganizedContent } from './server/js/nodejs'
 import { JSNestReorganizedContent } from './server/js/nestjs'
 import { JStRPCReorganizedContent } from './server/js/trpc'
@@ -461,6 +462,7 @@ export const quickStartContent = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
 		},
 		php: {
 			title: 'PHP',
@@ -605,6 +607,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
 		},
 	},
