@@ -79,6 +79,10 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			...setupBackendSnippet,
+			content:
+				'Follow the [SvelteKit server quickstart](/docs/getting-started/server/js/sveltekit) to capture server errors, logs, and traces and link them to your browser sessions.',
+		},
 	],
 }
