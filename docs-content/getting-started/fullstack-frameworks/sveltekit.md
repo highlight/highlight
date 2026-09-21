@@ -8,10 +8,12 @@ updatedAt: 2026-09-21T00:00:00.000Z
 
 ## Overview
 
-There is no dedicated `@highlight-run/sveltekit` package. Use the browser SDK (`highlight.run`) plus `@highlight-run/node` on a Node adapter:
+There is no dedicated `@highlight-run/sveltekit` package. Pair the browser SDK (`highlight.run`) with `@highlight-run/node` on a Node adapter:
 
 1. `hooks.client.ts` for session replay and client errors
 2. `hooks.server.ts` for server errors, logs, and traces linked to that session
+
+This walkthrough focuses on the server half and the header carrier detail that trips up most SvelteKit setups. For the interactive checklist, see the [SvelteKit server quickstart](/docs/getting-started/server/js/sveltekit).
 
 ## Installation
 
@@ -47,7 +49,7 @@ Also set `kit.paths.relative: false` in `svelte.config.js` so Highlight can fetc
 
 Initialize once outside prerender (`building`), wrap requests with `H.runWithHeaders`, and report unexpected errors from `handleError`.
 
-Important SDK detail: copy headers into a plain object before `H.runWithHeaders` / `H.startWithHeaders`. `H.parseHeaders` already understands Web `Headers` via `.get()`, but OpenTelemetry `propagation.inject` mutates the carrier with `carrier[key] = value`, which does not update a `Headers` instance.
+Important SDK detail: copy headers into a plain object before `H.runWithHeaders` / `H.startWithHeaders`. `H.parseHeaders` already understands Web `Headers` via `.get()`, but OpenTelemetry `propagation.inject` mutates the carrier with `carrier[key] = value`, which does not update a `Headers` instance. The default extract getter also uses property access, so W3C `traceparent` only flows correctly when you pass a plain object.
 
 ```ts
 // src/hooks.server.ts
@@ -55,6 +57,7 @@ import { building } from '$app/environment'
 import { env } from '$env/dynamic/private'
 import { H } from '@highlight-run/node'
 import type { Handle, HandleServerError } from '@sveltejs/kit'
+// Optional: import { sequence } from '@sveltejs/kit/hooks'
 
 if (!building) {
 	H.init({
@@ -86,6 +89,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		},
 	)
 }
+
+// Existing auth or i18n hooks: keep Highlight outermost
+// export const handle = sequence(highlightHandle, authHandle)
 
 export const handleError: HandleServerError = ({ error, event, message }) => {
 	if (!building) {
