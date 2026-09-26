@@ -36,7 +36,7 @@ updatedAt: 2022-04-01T19:52:59.000Z
     <DocsCard title="Node.js" href="../js/nodejs">
         {"Get started with Node.js"}
     </DocsCard>
-    <DocsCard title="SvelteKit" href="../js/sveltekit-server">
+    <DocsCard title="SvelteKit" href="../js/sveltekit">
         {"Get started with SvelteKit server instrumentation"}
     </DocsCard>
     <DocsCard title="Pino" href="../js/pino">
