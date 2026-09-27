@@ -15,32 +15,60 @@ if (!building && !H.isInitialized()) {
   })
 }
 
-export const handle: Handle = async ({ event, resolve }) => {
-  if (building) return resolve(event)
+const highlightHandle: Handle = async ({ event, resolve }) => {
+  if (building || !H.isInitialized()) return resolve(event)
 
-  // Copy Web Headers into a mutable carrier before passing them to OpenTelemetry.
+  // OpenTelemetry propagation injects values by mutating this carrier.
   const headers = Object.fromEntries(event.request.headers)
+  const route = event.route.id ?? event.url.pathname
 
   return H.runWithHeaders(
-    \`\${event.request.method} \${event.url.pathname}\`,
+    \`\${event.request.method} \${route}\`,
     headers,
-    () => resolve(event),
+    async (span) => {
+      const response = await resolve(event)
+      span.setAttribute('http.request.method', event.request.method)
+      span.setAttribute('http.route', route)
+      span.setAttribute('http.response.status_code', response.status)
+      return response
+    },
   )
 }
 
-export const handleError: HandleServerError = ({ error, event, message }) => {
-  if (!building) {
+export const handle: Handle = highlightHandle
+
+export const handleError: HandleServerError = ({
+  error,
+  event,
+  status,
+  message,
+}) => {
+  if (!building && H.isInitialized()) {
     const headers = Object.fromEntries(event.request.headers)
     const { secureSessionId, requestId } = H.parseHeaders(headers)
+
+    // Report on a dedicated span: H.consumeError ends the span it receives.
+    const { span } = H.startWithHeaders('sveltekit.error', headers)
+    span.setAttribute('http.request.method', event.request.method)
+    span.setAttribute('http.route', event.route.id ?? event.url.pathname)
+    span.setAttribute('http.response.status_code', status)
+
     H.consumeError(
       error instanceof Error ? error : new Error(String(error)),
       secureSessionId,
       requestId,
+      undefined,
+      { span },
     )
   }
 
   return { message }
 }`
+
+const composeHooks = `import { sequence } from '@sveltejs/kit/hooks'
+
+// Keep Highlight first so it wraps downstream auth, locale, and route work.
+export const handle = sequence(highlightHandle, existingHandle)`
 
 export const JSSvelteKitReorganizedContent: QuickStartContent = {
 	title: 'SvelteKit',
@@ -53,9 +81,15 @@ export const JSSvelteKitReorganizedContent: QuickStartContent = {
 			title: 'Instrument requests in `hooks.server.ts`.',
 			content:
 				'Initialize `@highlight-run/node` in a server-only hook and wrap each request with `H.runWithHeaders`. ' +
-				'Use `Object.fromEntries(event.request.headers)` for the tracing carrier: SvelteKit exposes Web `Headers`, while OpenTelemetry injects propagation values by mutating the carrier. ' +
-				"`handleError` reports unexpected server errors and preserves SvelteKit's safe response message.",
+				'Use a mutable copy of SvelteKit Web `Headers` for OpenTelemetry propagation, name traces by route, and attach the final HTTP status. ' +
+				"`handleError` reports unexpected server errors on a dedicated error span so the request span is not ended early, while preserving SvelteKit's safe response message.",
 			code: [{ text: serverHooks, language: 'ts' }],
+		},
+		{
+			title: 'Compose with an existing `handle` hook.',
+			content:
+				"If the app already has auth, locale, or other server hooks, keep them and compose the handlers with SvelteKit's `sequence` helper.",
+			code: [{ text: composeHooks, language: 'ts' }],
 		},
 		{
 			title: 'Use a Node-compatible SvelteKit deployment.',
