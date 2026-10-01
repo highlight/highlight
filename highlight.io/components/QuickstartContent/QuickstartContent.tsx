@@ -599,6 +599,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSExpress]: JSExpressReorganizedContent,
 			[QuickStartType.JSFirebase]: JSFirebaseReorganizedContent,
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
+			[QuickStartType.SvelteKit]: SvelteKitServerContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
