@@ -123,6 +123,59 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
 
 ## Contributors
 
+## Backend Instrumentation
+
+### SvelteKit
+
+To instrument your SvelteKit backend with Highlight, you'll use the `@highlight-run/node` SDK. This allows you to capture errors and traces from your server-side code, providing full-stack visibility when combined with your frontend instrumentation.
+
+#### 1. Install the SDK
+
+First, install the `@highlight-run/node` package:
+
+```bash
+npm install @highlight-run/node
+# or
+yarn add @highlight-run/node
+# or
+pnpm add @highlight-run/node
+```
+
+#### 2. Initialize Highlight
+
+Create a server-side file, for example, `src/lib/server/highlight.ts`, and initialize the Highlight SDK. Make sure to replace `YOUR_PROJECT_ID` with your actual Highlight project ID.
+
+```typescript
+// src/lib/server/highlight.ts
+import { H } from '@highlight-run/node';
+
+H.init({
+    projectID: 'YOUR_PROJECT_ID', // Replace with your Project ID
+    serviceName: 'sveltekit-backend',
+    environment: process.env.NODE_ENV,
+});
+
+export const highlight = H;
+```
+
+#### 3. Wrap your SvelteKit `handle` function
+
+In your `src/hooks.server.ts` file, import the `highlight` instance and wrap your `handle` function using `highlight.wrapSvelteKitHandle`. This ensures that all requests are automatically instrumented for error and trace capturing.
+
+```typescript
+// src/hooks.server.ts
+import { highlight } from '$lib/server/highlight';
+import type { Handle } from '@sveltejs/kit';
+
+export const handle: Handle = highlight.wrapSvelteKitHandle(async ({ event, resolve }) => {
+    // Your existing handle logic here
+    const response = await resolve(event);
+    return response;
+});
+```
+
+With these steps, your SvelteKit backend will send errors and traces to Highlight, linking them to your frontend sessions for a complete view of user issues.
+
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
