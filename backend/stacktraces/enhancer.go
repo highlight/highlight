@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/highlight-run/highlight/backend/env"
 	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/util/saferequest"
 	"io"
 	"net/http"
 	"net/url"
@@ -48,11 +49,20 @@ func init() {
 		client := &http.Client{Transport: customTransport}
 		fetch = NetworkFetcher{client: client, redis: redis.NewClient()}
 	} else {
-		fetch = NetworkFetcher{redis: redis.NewClient()}
+		fetch = NetworkFetcher{client: newPublicClient(), redis: redis.NewClient()}
 	}
 }
 
 var fetch fetcher
+
+// newPublicClient returns a client that only connects to public addresses.
+func newPublicClient() *http.Client {
+	return &http.Client{Transport: &http.Transport{
+		DialContext:           saferequest.DialContext,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 30 * time.Second,
+	}}
+}
 
 type DiskFetcher struct{}
 
@@ -84,7 +94,7 @@ func (n NetworkFetcher) fetchFile(ctx context.Context, href string) ([]byte, err
 		}
 		// get minified file
 		if n.client == nil {
-			n.client = http.DefaultClient
+			n.client = newPublicClient()
 		}
 		res, err := n.client.Get(href)
 		if err != nil {

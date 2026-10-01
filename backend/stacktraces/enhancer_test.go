@@ -3,10 +3,13 @@ package stacktraces
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/aws/smithy-go/ptr"
@@ -14,6 +17,7 @@ import (
 	modelInput "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModelInput "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/util/saferequest"
 	e "github.com/pkg/errors"
 )
 
@@ -422,4 +426,16 @@ func TestEnhanceStackTraceProd(t *testing.T) {
 	assert.Equal(t, 1, len(mappedStackTrace))
 	assert.Equal(t, "", *mappedStackTrace[0].FunctionName)
 	assert.Equal(t, "      console.error(`Supplementary data not found for identifier ${identifier}`);\n", *mappedStackTrace[0].LineContent)
+}
+
+func TestPublicClientRejectsLoopback(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("ok"))
+	}))
+	defer srv.Close()
+
+	_, err := newPublicClient().Get(srv.URL)
+	if !errors.Is(err, saferequest.ErrBlockedAddress) {
+		t.Fatalf("expected ErrBlockedAddress fetching %s, got %v", srv.URL, err)
+	}
 }
