@@ -3,11 +3,11 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
 import { QuickStartContent } from '../QuickstartContent'
+import { siteUrl } from '../../../utils/urls'
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts
 ...
@@ -79,6 +79,11 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Instrument the SvelteKit server.',
+			content: `Continue with the [SvelteKit server quickstart](${siteUrl(
+				'/docs/getting-started/server/js/sveltekit',
+			)}) to capture backend errors, logs, and traces. Use the same project ID to link server events to browser sessions.`,
+		},
 	],
 }
