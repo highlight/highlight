@@ -9,6 +9,7 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspacesQuery, useJoinWorkspaceMutation } from '@graph/hooks'
+import { Box, Heading, Text } from '@highlight-run/ui/components'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Navigate, useLocation } from 'react-router-dom'
@@ -137,13 +138,18 @@ const SwitchWorkspace = () => {
 			<Helmet>
 				<title>Enter Workspace</title>
 			</Helmet>
-			<div className={styles.box}>
+
+			<Box cssClass={styles.box}>
 				<form onSubmit={onSubmit}>
-					<h2 className={styles.title}>Enter Workspace</h2>
-					<p className={styles.subTitle}>
+					<Heading level="h2" cssClass={styles.title}>
+						Enter Workspace
+					</Heading>
+
+					<Text cssClass={styles.subTitle}>
 						Pick a workspace. If you’re having trouble getting into
 						the correct workspace, reach out to us.
-					</p>
+					</Text>
+
 					<Select
 						className={styles.fullWidth}
 						options={workspaceOptions}
@@ -153,6 +159,7 @@ const SwitchWorkspace = () => {
 						value={currentWorkspace?.value}
 						placeholder="Enter a Workspace"
 					/>
+
 					<Button
 						trackingId="SubmitWorkspaceSwitchForm"
 						type="primary"
@@ -172,6 +179,7 @@ const SwitchWorkspace = () => {
 							`${actionText} Workspace`
 						)}
 					</Button>
+
 					<ButtonLink
 						trackingId="SwitchWorkspace-CreateWorkspace"
 						className={styles.button}
@@ -182,7 +190,7 @@ const SwitchWorkspace = () => {
 						Create a New Workspace
 					</ButtonLink>
 				</form>
-			</div>
+			</Box>
 		</>
 	)
 }
