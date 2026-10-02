@@ -1,7 +1,13 @@
-import Button from '@components/Button/Button/Button'
-import { Form } from '@highlight-run/ui/components'
-import AppsIcon from '@icons/AppsIcon'
-import PlugIcon from '@icons/PlugIcon'
+import Select from '@components/Select/Select'
+import {
+	Box,
+	Form,
+	IconSolidLogout,
+	IconSolidPuzzle,
+	Stack,
+	Text,
+	TextLink,
+} from '@highlight-run/ui/components'
 import {
 	IntegrationAction,
 	IntegrationConfigProps,
@@ -9,13 +15,14 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 
+import { Button } from '@/components/Button'
+
 import styles from './HerokuIntegration.module.css'
 import { useHerokuIntegration } from './utils'
-import Select from '@components/Select/Select'
 
 const HerokuIntegration: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
+> = ({ setModalOpen, setIntegrationEnabled, action }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { addHerokuToProject, removeHerokuIntegrationFromProject } =
 		useHerokuIntegration()
@@ -28,16 +35,23 @@ const HerokuIntegration: React.FC<
 
 	if (action === IntegrationAction.Disconnect) {
 		return (
-			<>
-				<p className={styles.modalSubTitle}>
+			<Stack gap="16" cssClass={styles.container}>
+				<Text color="moderate" size="small">
 					Disconnecting your Heroku workspace from Highlight will
 					break your Heroku log drains that may currently be sending
-					data!
-				</p>
-				<footer>
+					data.
+				</Text>
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="flex-end"
+					gap="8"
+				>
 					<Button
 						trackingId="IntegrationDisconnectCancel-Heroku"
-						className={styles.modalBtn}
+						kind="secondary"
+						size="medium"
+						emphasis="medium"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(true)
@@ -47,38 +61,36 @@ const HerokuIntegration: React.FC<
 					</Button>
 					<Button
 						trackingId="IntegrationDisconnectSave-Heroku"
-						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
+						size="medium"
+						emphasis="high"
+						iconLeft={<IconSolidLogout />}
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeHerokuIntegrationFromProject(project_id)
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect Heroku
 					</Button>
-				</footer>
-			</>
+				</Box>
+			</Stack>
 		)
 	}
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
+		<Stack gap="16" cssClass={styles.container}>
+			<Text color="moderate" size="small">
 				Connect a Heroku Syslog drain pointed to{' '}
 				<code>syslog+tls://syslog.highlight.io:34302</code> to start
-				shipping your logs to highlight.{' '}
-				<a
-					className={styles.description}
+				shipping your logs to Highlight.{' '}
+				<TextLink
 					href="https://devcenter.heroku.com/articles/log-drains#syslog-drains"
 					target="_blank"
-					rel="noopener noreferrer"
 				>
-					Add the drain token to highlight.
-				</a>
-			</p>
+					Add the drain token to Highlight.
+				</TextLink>
+			</Text>
 			<Form store={formStore} resetOnSubmit={false}>
 				<Form.NamedSection
 					name={formStore.names.tokens}
@@ -96,10 +108,17 @@ const HerokuIntegration: React.FC<
 					/>
 				</Form.NamedSection>
 			</Form>
-			<footer>
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="flex-end"
+				gap="8"
+			>
 				<Button
 					trackingId="IntegrationConfigurationCancel-Heroku"
-					className={styles.modalBtn}
+					kind="secondary"
+					size="medium"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)
@@ -109,19 +128,20 @@ const HerokuIntegration: React.FC<
 				</Button>
 				<Button
 					trackingId="IntegrationConfigurationSave-Heroku"
-					className={styles.modalBtn}
-					type="primary"
+					kind="primary"
+					size="medium"
+					emphasis="high"
+					iconLeft={<IconSolidPuzzle />}
 					disabled={!tokens.filter((t) => t.length >= 38).length}
 					onClick={async () => {
 						setModalOpen(false)
 						await addHerokuToProject(tokens, project_id)
 					}}
 				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Heroku
+					Connect with Heroku
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 

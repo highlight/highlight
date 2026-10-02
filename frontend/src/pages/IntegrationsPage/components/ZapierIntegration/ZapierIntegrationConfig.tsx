@@ -1,21 +1,27 @@
-import Button from '@components/Button/Button/Button'
 import { toast } from '@components/Toaster'
-import PlugIcon from '@icons/PlugIcon'
-import Sparkles2Icon from '@icons/Sparkles2Icon'
+import {
+	Box,
+	IconSolidLightningBolt,
+	IconSolidLogout,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
 import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
-import { CodeBlock } from '@/pages/Connect/CodeBlock'
 import React, { useEffect } from 'react'
 import { coy as lightTheme } from 'react-syntax-highlighter/dist/esm/styles/prism'
+
+import { Button } from '@/components/Button'
+import { CodeBlock } from '@/pages/Connect/CodeBlock'
 
 import styles from './ZapierIntegrationConfig.module.css'
 
 const ZapierIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
+> = ({ setModalOpen, setIntegrationEnabled, action }) => {
 	const {
 		generatedJwtToken,
 		removeZapierIntegrationFromProject,
@@ -32,15 +38,22 @@ const ZapierIntegrationConfig: React.FC<
 
 	if (action === IntegrationAction.Disconnect) {
 		return (
-			<>
-				<p className={styles.modalSubTitle}>
+			<Stack gap="16" cssClass={styles.container}>
+				<Text color="moderate" size="small">
 					Disconnecting Zapier from Highlight will cause your Zaps to
 					stop working.
-				</p>
-				<footer>
+				</Text>
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="flex-end"
+					gap="8"
+				>
 					<Button
-						trackingId="IntegrationDisconnectCancel-Slack"
-						className={styles.modalBtn}
+						trackingId="IntegrationDisconnectCancel-Zapier"
+						kind="secondary"
+						size="medium"
+						emphasis="medium"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(true)
@@ -49,34 +62,35 @@ const ZapierIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-Slack"
-						className={styles.modalBtn}
-						type="primary"
-						danger
+						trackingId="IntegrationDisconnectSave-Zapier"
+						kind="danger"
+						size="medium"
+						emphasis="high"
+						iconLeft={<IconSolidLogout />}
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeZapierIntegrationFromProject()
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect Zapier
 					</Button>
-				</footer>
-			</>
+				</Box>
+			</Stack>
 		)
 	}
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
+		<Stack gap="16" cssClass={styles.container}>
+			<Text color="moderate" size="small">
 				Connect Highlight with Zapier to use alerts as triggers for your
 				Zaps.
-			</p>
-			<p className={styles.modalSubTitle}>
-				In order to connect, you'll need to create a Zap in Zapier and
-				when prompted, enter the access token from the textbox below.
-			</p>
+			</Text>
+			<Text color="moderate" size="small">
+				In order to connect, you&apos;ll need to create a Zap in Zapier
+				and, when prompted, enter the access token from the textbox
+				below.
+			</Text>
 			<CodeBlock
 				style={lightTheme}
 				showLineNumbers={false}
@@ -84,10 +98,17 @@ const ZapierIntegrationConfig: React.FC<
 				language="text"
 				numberOfLines={2}
 			/>
-			<footer>
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="flex-end"
+				gap="8"
+			>
 				<Button
 					trackingId="IntegrationConfigurationCancel-Zapier"
-					className={styles.modalBtn}
+					kind="secondary"
+					size="medium"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)
@@ -97,16 +118,22 @@ const ZapierIntegrationConfig: React.FC<
 				</Button>
 				<Button
 					trackingId="IntegrationConfigurationSave-Zapier"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href="https://zapier.com/app/zaps" // TODO: change to Highlight Zap URL
+					kind="primary"
+					size="medium"
+					emphasis="high"
+					iconLeft={<IconSolidLightningBolt />}
+					onClick={() => {
+						window.open(
+							'https://zapier.com/app/zaps',
+							'_blank',
+							'noreferrer',
+						)
+					}}
 				>
-					<Sparkles2Icon className={styles.modalBtnIcon} /> Create a
-					Zap
+					Create a Zap
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 
