@@ -1,5 +1,5 @@
 import Alert from '@components/Alert/Alert'
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import Input from '@components/Input/Input'
 import Space from '@components/Space/Space'
