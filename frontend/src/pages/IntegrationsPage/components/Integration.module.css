@@ -1,26 +1,91 @@
 .integration {
-	& .logo {
-		border-radius: 50%;
-		height: var(--size-xxLarge);
-		width: var(--size-xxLarge);
-	}
+	position: relative;
+	overflow: hidden;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 
-	& .header {
-		align-items: flex-start;
-		display: flex;
-		justify-content: space-between;
-		padding-bottom: var(--size-small);
-	}
+.integration:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 
-	& .connectButton {
-		text-transform: uppercase;
-	}
+.integration:active {
+	transform: translateY(0);
+}
 
-	& .title {
-		margin-bottom: var(--size-small) !important;
-	}
+.header {
+	align-items: flex-start;
+	display: flex;
+	justify-content: space-between;
+	padding-bottom: var(--size-small);
+}
 
-	& .description {
-		margin-bottom: 0 !important;
-	}
+.logo {
+	border-radius: 50%;
+	height: var(--size-xxLarge);
+	width: var(--size-xxLarge);
+	object-fit: contain;
+	background: var(--color-gray-100);
+	padding: 2px;
+}
+
+.controls {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 4px;
+	flex-shrink: 0;
+}
+
+.content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-xSmall);
+}
+
+.badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: var(--color-green);
+	background: rgba(52, 199, 89, 0.1);
+	padding: 2px 8px;
+	border-radius: 99px;
+	margin-bottom: 4px;
+}
+
+.title {
+	font-size: var(--size-medium);
+	font-weight: 600;
+	color: var(--text-primary);
+	margin: 0 0 var(--size-xSmall) 0 !important;
+	line-height: 1.3;
+}
+
+.description {
+	font-size: var(--size-small);
+	color: var(--color-gray-500);
+	margin: 0 0 var(--size-small) 0 !important;
+	line-height: 1.5;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.docsLink {
+	font-size: var(--size-small);
+	color: var(--color-purple);
+	text-decoration: none;
+	font-weight: 500;
+	transition: opacity 0.15s;
+}
+
+.docsLink:hover {
+	opacity: 0.8;
+	text-decoration: underline;
 }
