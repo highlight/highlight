@@ -3,11 +3,10 @@ import Select from '@components/Select/Select'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
-import { Form, Stack } from '@highlight-run/ui/components'
+import { Box, Form, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
 
-import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
@@ -62,7 +61,7 @@ export const ExcludedUsersForm = () => {
 	}
 
 	return (
-		<BorderBox>
+		<Box border="dividerWeak" borderRadius="8" px="8" py="12">
 			<Form>
 				<Stack gap="8">
 					<BoxLabel
@@ -131,6 +130,6 @@ export const ExcludedUsersForm = () => {
 					{invalidExcludedUsers.length > 0 && <div></div>}
 				</Stack>
 			</Form>
-		</BorderBox>
+		</Box>
 	)
 }
