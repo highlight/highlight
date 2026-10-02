@@ -13,7 +13,6 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui/components'
-import { Divider } from 'antd'
 import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -640,7 +639,7 @@ export const AlertForm: React.FC = () => {
 										/>
 									</LabeledRow>
 								</SidebarSection>
-								<Divider className="m-0" />
+								<Box borderBottom="dividerWeak" />
 								<SidebarSection>
 									<Box cssClass={style.editorSection}>
 										<Box cssClass={style.editorHeader}>
@@ -718,7 +717,7 @@ export const AlertForm: React.FC = () => {
 															</Callout>
 														)}
 												</SidebarSection>
-												<Divider className="m-0" />
+												<Box borderBottom="dividerWeak" />
 												<SidebarSection>
 													{productType ===
 													ProductType.Events ? (
@@ -774,9 +773,10 @@ export const AlertForm: React.FC = () => {
 													(!isSessionAlert &&
 														!isErrorAlert)) && (
 													<>
-														<Box px="12">
-															<Divider className="m-0" />
-														</Box>
+														<Box
+															borderBottom="dividerWeak"
+															mx="12"
+														/>
 														<SidebarSection>
 															<LabeledRow
 																label="Function"
@@ -850,7 +850,7 @@ export const AlertForm: React.FC = () => {
 										)}
 									</Box>
 								</SidebarSection>
-								<Divider className="m-0" />
+								<Box borderBottom="dividerWeak" />
 								<SidebarSection>
 									<LabeledRow
 										label="Alert threshold type"
@@ -970,7 +970,7 @@ export const AlertForm: React.FC = () => {
 										</>
 									)}
 								</SidebarSection>
-								<Divider className="m-0" />
+								<Box borderBottom="dividerWeak" />
 								<SidebarSection>
 									<DestinationInput
 										initialDestinations={

@@ -1,8 +1,7 @@
 import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
-import { Stack } from '@highlight-run/ui/components'
-import { Text } from 'recharts'
+import { Stack, Text } from '@highlight-run/ui/components'
 
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
@@ -49,13 +48,13 @@ export const ErrorFiltersForm = () => {
 							</Text>
 						}
 						onChange={(patterns: string[]) => {
-							patterns.filter(isValidRegex)
+							const validPatterns = patterns.filter(isValidRegex)
 							setAllProjectSettings((currentProjectSettings) =>
 								currentProjectSettings?.projectSettings
 									? {
 											projectSettings: {
 												...currentProjectSettings.projectSettings,
-												error_filters: patterns,
+												error_filters: validPatterns,
 											},
 										}
 									: currentProjectSettings,

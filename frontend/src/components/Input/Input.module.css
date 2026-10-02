@@ -1,105 +1,74 @@
 .input {
-	background: var(--color-gray-200) !important;
-	border: 1px solid transparent !important;
-	border-radius: var(--border-radius) !important;
-	color: var(--text-primary) !important;
-	font-size: 16px !important;
-	line-height: initial !important;
-	padding: var(--size-xSmall) var(--size-small) !important;
+	background: var(--color-gray-200);
+	border: 1px solid transparent;
+	border-radius: var(--border-radius);
+	color: var(--text-primary);
+	font-size: 16px;
+	line-height: initial;
+	padding: var(--size-xSmall) var(--size-small);
+	width: 100%;
+	outline: none;
+	transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 
-	&:global(.ant-input-lg) {
-		padding: var(--size-xSmall) var(--size-small) !important;
+	&::placeholder {
+		color: var(--color-gray-500);
 	}
 
-	:global(.ant-input-sm) {
-		padding: var(--size-xxSmall) var(--size-xxSmall) !important;
-	}
-	:global(.ant-input-sm) ~ :global(.ant-input-suffix svg) {
-		height: var(--size-small) !important;
-		width: var(--size-small) !important;
+	&:hover {
+		border-color: var(--color-purple);
 	}
 
-	&:global(.ant-input-group-wrapper) {
-		align-items: center;
-		display: flex;
-		overflow: hidden !important;
-		padding: 0 !important;
-		transition: all 0.3s;
-		:global(.ant-input:hover),
-		:global(.ant-input:focus),
-		:global(.ant-input) {
-			border-color: transparent !important;
-			box-shadow: none !important;
-			color: var(--text-primary) !important;
-			font-size: 16px !important;
-			height: 100%;
-			line-height: initial !important;
-			padding: 10px !important;
-		}
-
-		:global(.ant-input-group-addon) {
-			background: transparent !important;
-			border-color: transparent !important;
-		}
-
-		:global(.ant-input-wrapper.ant-input-group) {
-			height: 100%;
-			overflow: hidden;
-		}
-
-		&:focus,
-		&:active,
-		&:focus-within {
-			background: var(--color-primary-background) !important;
-			border-color: var(--color-purple) !important;
-			box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important;
-
-			:global(.ant-input) {
-				background: var(--color-primary-background) !important;
-			}
-		}
+	&:focus {
+		background: var(--color-primary-background);
+		border-color: var(--color-purple);
+		box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2);
 	}
 
-	&:global(.ant-input-affix-wrapper),
-	:global(.ant-input) {
-		background: var(--color-gray-200) !important;
-		color: var(--text-primary) !important;
+	&:disabled {
+		background: var(--color-gray-200);
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}
+
+/* Wrapper for inputs with prefix/suffix adornments */
+.wrapper {
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+	background: var(--color-gray-200);
+	border: 1px solid transparent;
+	border-radius: var(--border-radius);
+	transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+
+	&:focus-within {
+		background: var(--color-primary-background);
+		border-color: var(--color-purple);
+		box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2);
 	}
 
-	:global(.ant-input-clear-icon) {
-		color: var(--color-gray-500) !important;
+	&:hover:not(:focus-within) {
+		border-color: var(--color-purple);
 	}
+}
 
-	&:global(.ant-input-affix-wrapper-sm) {
-		padding: 0 var(--size-xSmall) !important;
+.innerInput {
+	flex: 1;
+	background: transparent;
+	border: none;
+	outline: none;
+	color: var(--text-primary);
+	font-size: 16px;
+	padding: var(--size-xSmall) var(--size-small);
+
+	&::placeholder {
+		color: var(--color-gray-500);
 	}
+}
 
-	&:global(:not(.ant-input-affix-wrapper-disabled)) {
-		:global(.ant-input) {
-			background: var(--color-gray-200) !important;
-
-			&::placeholder {
-				color: var(--color-gray-500) !important;
-			}
-		}
-
-		&:focus,
-		&:global(.ant-input-affix-wrapper-focused) {
-			background: var(--color-primary-background) !important;
-			border-color: var(--color-purple) !important;
-			box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important;
-
-			:global(.ant-input) {
-				background: var(--color-primary-background) !important;
-			}
-		}
-
-		&:hover {
-			border-color: var(--color-purple) !important;
-		}
-	}
-
-	&:global(.ant-input-affix-wrapper-disabled) {
-		background: var(--color-gray-200) !important;
-	}
+.adornment {
+	display: flex;
+	align-items: center;
+	padding: 0 var(--size-xSmall);
+	color: var(--color-gray-500);
 }

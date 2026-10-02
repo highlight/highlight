@@ -1,4 +1,4 @@
-import { Dropdown, Skeleton } from 'antd'
+import { Box, Menu, Stack, Text } from '@highlight-run/ui/components'
 import { FiLogOut } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 
@@ -15,65 +15,21 @@ interface Props {
 export const UserDropdown = ({ border, workspaceId }: Props) => {
 	const { admin, signOut } = useAuthContext()
 
-	const menu = (
-		<div className={styles.dropdownMenu}>
-			<div className={styles.dropdownInner}>
-				{!admin ? (
-					<Skeleton />
-				) : (
-					<>
-						<div className={styles.userInfoWrapper}>
-							<div className={styles.avatarWrapper}>
-								<AdminAvatar
-									adminInfo={{
-										name: admin?.name,
-										email: admin?.email,
-										photo_url: admin?.photo_url ?? '',
-									}}
-									size={40}
-								/>
-							</div>
-							<div className={styles.userCopy}>
-								<h4 className={styles.dropdownName}>
-									{admin?.name}
-								</h4>
-								<p className={styles.dropdownEmail}>
-									{admin?.email}
-								</p>
-							</div>
-						</div>
-						{workspaceId && (
-							<Link
-								className={styles.dropdownMyAccount}
-								to={`/w/${workspaceId}/account`}
-							>
-								My Account
-							</Link>
-						)}
-						<div
-							className={styles.dropdownLogout}
-							onClick={async () => {
-								try {
-									signOut()
-								} catch (e) {
-									console.log(e)
-								}
-							}}
-						>
-							<span className={styles.dropdownLogoutText}>
-								Logout
-							</span>
-							<FiLogOut className={styles.logoutIcon} />
-						</div>
-					</>
-				)}
-			</div>
-		</div>
-	)
+	if (!admin) {
+		return <Box p="8">loading</Box>
+	}
+
 	return (
-		<Dropdown overlay={menu} placement="bottomRight" trigger={['click']}>
-			<div className={styles.accountIconWrapper}>
-				{admin ? (
+		<Menu>
+			<Menu.Button
+				style={{
+					padding: 0,
+					height: 'auto',
+					background: 'transparent',
+					border: 'none',
+				}}
+			>
+				<div className={styles.accountIconWrapper}>
 					<AdminAvatar
 						adminInfo={{
 							name: admin?.name,
@@ -83,10 +39,58 @@ export const UserDropdown = ({ border, workspaceId }: Props) => {
 						size={35}
 						border={border}
 					/>
-				) : (
-					<p>loading</p>
+				</div>
+			</Menu.Button>
+			<Menu.List>
+				<Box p="12">
+					<Stack direction="row" gap="12" align="center">
+						<AdminAvatar
+							adminInfo={{
+								name: admin?.name,
+								email: admin?.email,
+								photo_url: admin?.photo_url ?? '',
+							}}
+							size={40}
+						/>
+						<Stack gap="0">
+							<Text weight="bold" color="default">
+								{admin?.name}
+							</Text>
+							<Text size="small" color="weak">
+								{admin?.email}
+							</Text>
+						</Stack>
+					</Stack>
+				</Box>
+				<Menu.Divider />
+				{workspaceId && (
+					<Link
+						style={{ textDecoration: 'none' }}
+						to={`/w/${workspaceId}/account`}
+					>
+						<Menu.Item>My Account</Menu.Item>
+					</Link>
 				)}
-			</div>
-		</Dropdown>
+				<Menu.Item
+					onClick={async () => {
+						try {
+							signOut()
+						} catch (e) {
+							console.log(e)
+						}
+					}}
+				>
+					<Box
+						display="flex"
+						alignItems="center"
+						justifyContent="space-between"
+						width="full"
+					>
+						Logout
+						<FiLogOut />
+					</Box>
+				</Menu.Item>
+			</Menu.List>
+		</Menu>
 	)
 }

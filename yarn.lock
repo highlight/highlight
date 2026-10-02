@@ -1028,10 +1028,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ariakit/core@npm:0.4.20":
+  version: 0.4.20
+  resolution: "@ariakit/core@npm:0.4.20"
+  checksum: 10/d751a64582ab8fd4ffc812c24050080341193a479344f5ba04120af556e819a6b0147c16d28cbc55d140dcc90e61715cf50f62cb7445074515b6f2fdcc6591f1
+  languageName: node
+  linkType: hard
+
 "@ariakit/core@npm:0.4.5":
   version: 0.4.5
   resolution: "@ariakit/core@npm:0.4.5"
   checksum: 10/9feeeef854fd69902845e8ae1dfe297e42fe88d9d6ff001f296b7cb5bf94a46b8c9ba973b45afe5306a5c8e6cc67bbce57ba715b30659769c427e0fe244c95d7
+  languageName: node
+  linkType: hard
+
+"@ariakit/react-core@npm:0.4.26":
+  version: 0.4.26
+  resolution: "@ariakit/react-core@npm:0.4.26"
+  dependencies:
+    "@ariakit/core": "npm:0.4.20"
+    "@floating-ui/dom": "npm:^1.0.0"
+    use-sync-external-store: "npm:^1.6.0"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/a3fce55804b59fec9f15714213e03bd2237553e9b6175a0293826c14f24032dc36298be88fe35f2015c4a6af680ec388b10819bb0e7b41fbbaa0400b7c29acf7
   languageName: node
   linkType: hard
 
@@ -1046,6 +1067,18 @@ __metadata:
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
   checksum: 10/9e2ad03ca9c1fbe7e56762243c8e4825a555ad8453f8e8f73b7f84e1acd6b8580550e0b7c9d69293539dc6ee92c87b10bdca9490bf9442a1247913d5ddb1af6a
+  languageName: node
+  linkType: hard
+
+"@ariakit/react@npm:^0.4.19":
+  version: 0.4.26
+  resolution: "@ariakit/react@npm:0.4.26"
+  dependencies:
+    "@ariakit/react-core": "npm:0.4.26"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/55d27f349287aaa0484507c1d953e8c22cd13eb9f88c6d26ae196fe8e8ef4309c4bc2ea5f7af70e02fabf5c220b6542562bf4e5b1b397d7a6f7058a75f5a05ab
   languageName: node
   linkType: hard
 
@@ -10183,6 +10216,7 @@ __metadata:
   dependencies:
     "@ant-design/icons": "npm:^4.7.0"
     "@apollo/client": "npm:3.7.17"
+    "@ariakit/react": "npm:^0.4.19"
     "@babel/core": "npm:^7.19.0"
     "@codemirror/autocomplete": "npm:^6.18.4"
     "@codemirror/commands": "npm:^6.8.0"
@@ -63652,6 +63686,15 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10/08bf581a8a2effaefc355e9d18ed025d436230f4cc973db2f593166df357cf63e47b9097b6e5089b594758bde322e1737754ad64905e030d70f8ff7ee671fd01
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "use-sync-external-store@npm:1.6.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/b40ad2847ba220695bff2d4ba4f4d60391c0fb4fb012faa7a4c18eb38b69181936f5edc55a522c4d20a788d1a879b73c3810952c9d0fd128d01cb3f22042c09e
   languageName: node
   linkType: hard
 

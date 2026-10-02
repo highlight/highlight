@@ -2,6 +2,7 @@ import { Button } from '@components/Button'
 import {
 	Box,
 	ButtonIcon,
+	ComboboxSelect,
 	Form,
 	IconSolidBeaker,
 	IconSolidInformationCircle,
@@ -14,7 +15,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -217,25 +217,21 @@ export const GitHubEnhancementSettingsForm: React.FC<
 						name="githubRepo"
 					>
 						<Box display="flex" alignItems="center" gap="8">
-							<Select
+							<ComboboxSelect
 								aria-label="GitHub repository"
-								className={styles.repoSelect}
 								placeholder="Search repos..."
-								onSelect={(repo: string) =>
+								onChange={(repo: string) =>
 									formStore.setValue(
 										formStore.names.githubRepo,
 										repo,
 									)
 								}
-								value={formState.values.githubRepo
-									?.split('/')
-									.pop()}
-								options={githubOptions}
+								value={formState.values.githubRepo || ''}
+								options={githubOptions.map((o) => ({
+									key: o.value,
+									render: o.label,
+								}))}
 								disabled={disabled || testLoading}
-								notFoundContent={<span>No repos found</span>}
-								optionFilterProp="label"
-								filterOption
-								showSearch
 							/>
 							<ButtonIcon
 								kind="secondary"

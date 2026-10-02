@@ -170,6 +170,7 @@ const ProjectSettings = () => {
 												Session replay
 											</Text>
 											<Button
+												htmlType="submit"
 												onClick={onSubmit(
 													'session replay',
 												)}
@@ -209,6 +210,7 @@ const ProjectSettings = () => {
 												Error monitoring
 											</Text>
 											<Button
+												htmlType="submit"
 												onClick={onSubmit(
 													'error monitoring',
 												)}

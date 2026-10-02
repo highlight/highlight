@@ -1,41 +1,55 @@
 .popConfirmContainer {
+	background-color: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	box-shadow: var(--box-shadow);
+	max-width: 300px;
+	padding: var(--size-medium);
 	z-index: 999999999;
 
-	:global(.ant-popover-message-title) {
-		max-width: 300px;
-		padding-left: 0 !important;
-	}
-
-	:global(.ant-popover-inner-content) {
-		padding-bottom: var(--size-medium) !important;
-	}
-
-	:global(.ant-btn) {
-		height: unset !important;
-		padding-bottom: 8px !important;
-		padding-top: 8px !important;
-	}
-
-	:global(.ant-popover-inner) {
-		background-color: var(--color-primary-background);
-		border: 1px solid var(--color-gray-300);
-		border-radius: var(--border-radius);
-		box-shadow: var(--box-shadow);
+	& h4 {
+		margin: 0 0 var(--size-xSmall);
 	}
 
 	& .description {
-		color: var(--color-gray-500) !important;
-		line-height: 1.5 !important;
-		margin-bottom: 0 !important;
-		margin-top: var(--size-xSmall) !important;
+		color: var(--color-gray-500);
+		line-height: 1.5;
+		margin-bottom: var(--size-medium);
+		margin-top: var(--size-xSmall);
 	}
+}
 
-	:global(.ant-popover-buttons button) {
-		margin-left: var(--size-medium) !important;
+.buttons {
+	display: flex;
+	gap: var(--size-medium);
+	justify-content: flex-end;
+}
+
+.cancelButton,
+.okButton {
+	border-radius: var(--button-border-radius, var(--border-radius));
+	cursor: pointer;
+	font-family: var(--body-font-family);
+	font-size: 14px;
+	padding: var(--size-xSmall) var(--size-medium);
+}
+
+.cancelButton {
+	background: transparent;
+	border: 1px solid var(--color-gray-300);
+	color: var(--text-primary);
+
+	&:hover {
+		background: var(--color-gray-100);
 	}
+}
 
-	:global(.ant-btn) {
-		border-radius: var(--button-border-radius) !important;
-		padding: var(--size-xSmall) var(--size-medium) !important;
+.okButton {
+	background: var(--color-primary);
+	border: 1px solid var(--color-primary);
+	color: var(--color-white);
+
+	&:hover {
+		opacity: 0.9;
 	}
 }
