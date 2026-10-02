@@ -51,7 +51,7 @@ const ApplicationRouter: React.FC = () => {
 						/>
 						<Route path="connect/*" element={<ConnectRouter />} />
 						<Route
-							path="integrations/*"
+							path="integrations/:integration_type?"
 							element={<IntegrationsPage />}
 						/>
 						<Route
