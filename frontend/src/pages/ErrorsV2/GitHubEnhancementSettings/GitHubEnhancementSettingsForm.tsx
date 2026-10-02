@@ -14,7 +14,7 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
+import { Select as UiSelect } from '@highlight-run/ui/components'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'

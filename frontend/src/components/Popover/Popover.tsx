@@ -1,28 +1,24 @@
-import {
-	Popover as AntDesignPopover,
-	PopoverProps as AntDesignPopoverProps,
-} from 'antd'
+import { Popover as UiPopover } from '@highlight-run/ui/components'
+import * as Ariakit from '@ariakit/react'
 import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Popover.module.css'
 
-export type PopoverProps = Pick<
-	AntDesignPopoverProps,
-	| 'arrowContent'
-	| 'showArrow'
-	| 'content'
-	| 'title'
-	| 'trigger'
-	| 'defaultVisible'
-	| 'onVisibleChange'
-	| 'placement'
-	| 'align'
-	| 'visible'
-	| 'destroyTooltipOnHide'
-	| 'getPopupContainer'
-	| 'overlayClassName'
-> & {
+export type PopoverProps = {
+	arrowContent?: React.ReactNode
+	showArrow?: boolean
+	content?: React.ReactNode | (() => React.ReactNode)
+	title?: React.ReactNode | (() => React.ReactNode)
+	trigger?: 'hover' | 'focus' | 'click' | 'contextMenu'
+	defaultVisible?: boolean
+	onVisibleChange?: (visible: boolean) => void
+	placement?: string
+	align?: object
+	visible?: boolean
+	destroyTooltipOnHide?: boolean
+	getPopupContainer?: (triggerNode: HTMLElement) => HTMLElement
+	overlayClassName?: string
 	isList?: boolean
 	popoverClassName?: string
 	large?: boolean
@@ -32,7 +28,7 @@ export type PopoverProps = Pick<
 }
 
 /**
- * A proxy for Ant Design's popover. This component should be used instead of directly using Ant Design's.
+ * A proxy for the UI package's popover. This component should be used instead of directly using the UI package's.
  */
 const Popover: React.FC<React.PropsWithChildren<PopoverProps>> = ({
 	children,
@@ -43,13 +39,25 @@ const Popover: React.FC<React.PropsWithChildren<PopoverProps>> = ({
 	large = false,
 	onMouseEnter,
 	onMouseLeave,
+	content,
+	visible,
+	onVisibleChange,
+	trigger = 'hover',
 	...props
 }) => {
 	return (
-		<AntDesignPopover
-			overlayClassName={clsx(styles.popover, popoverClassName)}
-			{...props}
-			content={
+		<UiPopover
+			placement="bottom"
+		>
+			<UiPopover.BoxTrigger
+				className={popoverClassName}
+			>
+				{children as React.ReactNode}
+			</UiPopover.BoxTrigger>
+			<Ariakit.Popover
+				className={clsx(styles.popover, popoverClassName)}
+				portal
+			>
 				<div
 					className={clsx(
 						{
@@ -63,15 +71,13 @@ const Popover: React.FC<React.PropsWithChildren<PopoverProps>> = ({
 				>
 					{typeof title === 'function' ? title() : title}
 					<div className={styles.content}>
-						{typeof props.content === 'function'
-							? props.content()
-							: props.content}
+						{typeof content === 'function'
+							? content()
+							: content}
 					</div>
 				</div>
-			}
-		>
-			{children}
-		</AntDesignPopover>
+			</Ariakit.Popover>
+		</UiPopover>
 	)
 }
 

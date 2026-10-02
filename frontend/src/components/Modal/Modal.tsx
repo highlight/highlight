@@ -1,26 +1,23 @@
-// eslint-disable-next-line no-restricted-imports
+import { Modal as UiModal } from '@highlight-run/ui/components'
 import SvgCloseIcon from '@icons/CloseIcon'
-import { Modal as AntDesignModal, ModalProps } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Modal.module.css'
 
-type Props = Pick<
-	ModalProps,
-	| 'width'
-	| 'onCancel'
-	| 'visible'
-	| 'style'
-	| 'forceRender'
-	| 'modalRender'
-	| 'destroyOnClose'
-	| 'centered'
-	| 'mask'
-	| 'maskStyle'
-	| 'getContainer'
-	| 'className'
-> & {
+type Props = {
+	width?: number
+	onCancel?: (e: React.MouseEvent<HTMLElement>) => void
+	visible?: boolean
+	style?: React.CSSProperties
+	forceRender?: boolean
+	modalRender?: (node: React.ReactNode) => React.ReactNode
+	destroyOnClose?: boolean
+	centered?: boolean
+	mask?: boolean
+	maskStyle?: React.CSSProperties
+	getContainer?: string | HTMLElement | (() => HTMLElement)
+	className?: string
 	title?: React.ReactNode
 	minimal?: boolean
 	minimalPaddingSize?: string
@@ -32,8 +29,23 @@ const Modal: React.FC<React.PropsWithChildren<Props>> = ({
 	title,
 	minimal,
 	minimalPaddingSize = 'var(--size-xSmall)',
-	...props
+	visible,
+	onCancel,
+	width = 520,
+	centered,
+	destroyOnClose,
+	mask = true,
+	maskStyle,
+	style,
+	forceRender,
+	modalRender,
+	getContainer,
+	...rest
 }) => {
+	if (!visible) {
+		return null
+	}
+
 	const bodyStyle: React.CSSProperties = minimal
 		? {
 				paddingTop: minimalPaddingSize,
@@ -43,25 +55,43 @@ const Modal: React.FC<React.PropsWithChildren<Props>> = ({
 			}
 		: {}
 
-	return (
-		<AntDesignModal
-			footer={null}
-			{...props}
-			closeIcon={
-				!minimal ? <SvgCloseIcon height="18px" width="18px" /> : null
-			}
-			className={clsx(styles.modal, className)}
-			wrapClassName={styles.modalWrap}
-			closable={!minimal}
-			bodyStyle={bodyStyle}
-			maskClosable
-		>
-			{/* adding margin right to make room for the close button */}
+	let content = (
+		<>
 			{title && (
-				<h3 className={minimal ? 'm-0' : 'mb-4 mr-8'}>{title}</h3>
+				<UiModal.Header>
+					<h3
+						className={
+							minimal ? 'm-0' : 'mb-4 mr-8'
+						}
+					>
+						{title}
+					</h3>
+				</UiModal.Header>
 			)}
-			<main className={styles.modalContent}>{children}</main>
-		</AntDesignModal>
+			<UiModal.Body>
+				<main
+					className={styles.modalContent}
+					style={bodyStyle}
+				>
+					{children}
+				</main>
+			</UiModal.Body>
+		</>
+	)
+
+	if (modalRender) {
+		content = modalRender(content) as React.ReactElement
+	}
+
+	return (
+		<UiModal
+			open={visible}
+			onClose={onCancel ? () => onCancel({} as React.MouseEvent<HTMLElement>) : undefined}
+			width={width}
+			className={clsx(styles.modal, className)}
+		>
+			{content}
+		</UiModal>
 	)
 }
 

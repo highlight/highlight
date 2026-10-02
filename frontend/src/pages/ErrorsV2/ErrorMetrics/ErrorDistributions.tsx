@@ -8,7 +8,7 @@ import {
 } from '@graph/schemas'
 import { colors } from '@highlight-run/ui/colors'
 import { Badge, Box, Stack, Text } from '@highlight-run/ui/components'
-import { Progress } from 'antd'
+import { Box } from '@highlight-run/ui/components'
 import React, { useEffect, useState } from 'react'
 
 type Props = {
@@ -151,14 +151,7 @@ const Buckets: React.FC<
 								</Text>
 							</Box>
 						</Box>
-						<Progress
-							percent={Math.floor(bucket.percent * 100)}
-							showInfo={false}
-							strokeColor={colors.n8}
-							trailColor={colors.n4}
-							strokeWidth={4}
-							status="normal"
-						/>
+						<Box style={{ height: 4, backgroundColor: colors.n4, borderRadius: 2, width: "100%" }}><Box style={{ height: "100%", width: `${Math.floor(bucket.percent * 100)}%`, backgroundColor: colors.n8, borderRadius: 2 }} /></Box>
 					</Box>
 				)
 			})}

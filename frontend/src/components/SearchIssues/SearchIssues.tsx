@@ -1,5 +1,4 @@
-import { Form } from '@highlight-run/ui/components'
-import { Select } from 'antd'
+import { Form, Select as UiSelect, SelectOption } from '@highlight-run/ui/components'
 import React, { useState } from 'react'
 
 import { useSearchIssuesLazyQuery } from '@/graph/generated/hooks'
@@ -8,6 +7,7 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { IssueTrackerIntegration } from '@/pages/IntegrationsPage/IssueTrackerIntegrations'
 
 import styles from './SearchIssues.module.css'
+
 export interface SearchOption {
 	value: string
 	label: string
@@ -51,43 +51,58 @@ export const SearchIssues = ({
 			})
 	}, [searchIssues, project_id, debouncedQuery, integration])
 
-	const options = React.useMemo(() => {
+	const options: SelectOption[] = React.useMemo(() => {
 		return (
 			data?.search_issues.map((s) => ({
-				id: s.id,
-				url: s.issue_url,
+				name: s.title,
 				value: s.issue_url,
-				label: s.title,
 			})) || []
 		)
-	}, [data]) as SearchOption[]
+	}, [data])
 
 	return (
 		<Form.NamedSection label="Link an issue" name="issue_id">
-			<Select
-				className={styles.select}
-				// this mode allows using the select component as a single searchable input
-				// @ts-ignore
-				placeholder="Search Issues"
-				autoFocus
-				size="middle"
-				// @ts-ignore
-				onSelect={(newValue: string) => {
-					const option = options.find((o) => o.value === newValue)
+			<UiSelect
+				value={selectedOption?.value}
+				options={options}
+				onValueChange={(newValue) => {
+					const option = data?.search_issues.find(
+						(s) => s.issue_url === (typeof newValue === 'string' ? newValue : newValue?.value),
+					)
 					if (option) {
-						onSelect(option)
-						setSelectOption(option)
+						const searchOption: SearchOption = {
+							id: option.id,
+							url: option.issue_url,
+							value: option.issue_url,
+							label: option.title,
+						}
+						onSelect(searchOption)
+						setSelectOption(searchOption)
 					}
 				}}
-				defaultValue={selectedOption as unknown as SearchOption}
-				options={options}
-				notFoundContent={<span>`No issues found`</span>}
-				filterOption={false}
+				filterable
+				onSearchValueChange={setQuery}
 				loading={loading}
-				onSearch={setQuery}
-				showSearch
-				showArrow={loading}
-			/>
+				resultsLoading={loading}
+			>
+				<UiSelect.SelectTrigger className={styles.select}>
+					Search Issues
+				</UiSelect.SelectTrigger>
+				<UiSelect.Popover>
+					{options.length === 0 ? (
+						<span>No issues found</span>
+					) : (
+						options.map((option) => (
+							<UiSelect.Option
+								key={option.value}
+								value={option.value}
+							>
+								{option.name}
+							</UiSelect.Option>
+						))
+					)}
+				</UiSelect.Popover>
+			</UiSelect>
 		</Form.NamedSection>
 	)
 }

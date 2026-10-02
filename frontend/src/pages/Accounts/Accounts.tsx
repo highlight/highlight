@@ -10,7 +10,7 @@ import {
 } from '@graph/hooks'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
-import { Table } from 'antd'
+import Table from '@components/Table/Table'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
