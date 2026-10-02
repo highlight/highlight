@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
@@ -81,6 +81,8 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					<Button
 						trackingId="IntegrationDisconnectCancel-Discord"
 						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(true)
@@ -91,8 +93,7 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					<Button
 						trackingId="IntegrationDisconnectSave-Discord"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -116,6 +117,8 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 				<Button
 					trackingId="IntegrationConfigurationCancel-Discord"
 					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)
@@ -126,9 +129,15 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 				<Button
 					trackingId="IntegrationConfigurationSave-Discord"
 					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href={getDiscordOauthUrl(project_id!)}
+					kind="primary"
+					emphasis="high"
+					onClick={() => {
+						window.open(
+							getDiscordOauthUrl(project_id!),
+							'_blank',
+							'noreferrer',
+						)
+					}}
 				>
 					<span className={styles.modalBtnText}>
 						<Sparkles2Icon className={styles.modalBtnIcon} />
