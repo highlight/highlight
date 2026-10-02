@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -36,6 +36,8 @@ const JiraIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				<Button
 					trackingId="IntegrationConfigurationCancel-Jira"
 					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)
@@ -46,8 +48,11 @@ const JiraIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				<Button
 					trackingId="IntegrationConfigurationSave-Jira"
 					className={styles.modalBtn}
-					type="primary"
-					href={authUrl}
+					kind="primary"
+					emphasis="high"
+					onClick={() => {
+						window.location.assign(authUrl)
+					}}
 				>
 					<AppsIcon className={styles.modalBtnIcon} /> Connect
 					Highlight with Jira
@@ -72,6 +77,8 @@ const JiraIntegrationDisconnect: React.FC<
 				<Button
 					trackingId="IntegrationDisconnectCancel-Jira"
 					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(true)
@@ -82,8 +89,7 @@ const JiraIntegrationDisconnect: React.FC<
 				<Button
 					trackingId="IntegrationDisconnectSave-Jira"
 					className={styles.modalBtn}
-					type="primary"
-					danger
+					kind="danger"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)
