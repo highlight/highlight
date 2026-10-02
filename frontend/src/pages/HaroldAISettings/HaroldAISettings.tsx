@@ -9,7 +9,6 @@ import {
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 
-import BorderBox from '@/components/BorderBox/BorderBox'
 import { Button } from '@/components/Button'
 import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
 import {
@@ -53,12 +52,14 @@ export const HaroldAISettings = () => {
 	const [editWorkspaceSettings] = useEditWorkspaceSettingsMutation({
 		refetchQueries: [namedOperations.Query.GetWorkspaceSettings],
 	})
+
 	const { data, loading } = useGetWorkspaceSettingsQuery({
 		variables: { workspace_id: String(currentWorkspace?.id) },
 		skip: !currentWorkspace?.id,
 	})
 
 	const { checkPolicyAccess } = useAuthorization()
+
 	const canEdit = checkPolicyAccess({
 		policyName: POLICY_NAMES.HaroldSettingsUpdate,
 	})
@@ -67,18 +68,17 @@ export const HaroldAISettings = () => {
 		if (!currentWorkspace?.id) {
 			return
 		}
+
 		editWorkspaceSettings({
 			variables: {
 				...data?.workspaceSettings,
-				workspace_id: currentWorkspace?.id,
+				workspace_id: currentWorkspace.id,
 				[setting.key]: isOptIn,
 			},
 		})
 			.then(() => {
 				toast.success(
-					`${isOptIn ? 'Enabled' : 'Disabled'} Harold for your ${
-						setting.feature
-					}.`,
+					`${isOptIn ? 'Enabled' : 'Disabled'} Harold for your ${setting.feature}.`,
 				)
 			})
 			.catch((reason: any) => {
@@ -87,67 +87,76 @@ export const HaroldAISettings = () => {
 	}
 
 	return (
-		<Box>
-			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
-				<Stack gap="24" direction="column">
-					<Stack gap="16" direction="column">
-						<Heading mt="16" level="h4">
-							Harold AI
-						</Heading>
-						<Text weight="medium" size="small" color="default">
-							Highlight's Harold is an AI assistant helping you
-							better understand the context around your data.
-							Harold is based on OpenAI GPT-3.5.
-						</Text>
-					</Stack>
-					<BorderBox>
-						<Box pt="4">
-							<Stack gap="12" direction="column" pb="12">
-								<Text weight="bold" size="small" color="strong">
-									Learn more about Highlight's AI
-								</Text>
-								<Text color="moderate">
-									Curious about how we use OpenAI's GPT-3.5 to
-									power our AI services? Read the blog post!
-								</Text>
-							</Stack>
-							<Button
-								kind="secondary"
-								emphasis="high"
-								iconRight={<IconSolidExternalLink size={14} />}
-								onClick={() => {
-									window.open(
-										'https://highlight.io/blog/introducing-harold',
-										'_blank',
-									)
-								}}
-								trackingId="settings_ai-learn-more"
-							>
-								Read the blog post
-							</Button>
-						</Box>
-					</BorderBox>
-					<Stack gap="12" direction="column" paddingTop="24">
-						<Text weight="bold" size="small" color="default">
-							Harold Features
-						</Text>
-						{AI_FEATURES.map((c) => (
-							<BorderBox key={c.key}>
-								{ToggleRow(
-									c.label,
-									c.info,
-									data?.workspaceSettings?.[c.key] ?? false,
-									handleSwitch(c),
-									loading || !canEdit,
-									canEdit
-										? ''
-										: 'Please contact your admin to update',
-								)}
-							</BorderBox>
-						))}
-					</Stack>
+		<Box style={{ maxWidth: 560 }} my="40" mx="auto">
+			<Stack gap="24" direction="column">
+				<Stack gap="16" direction="column">
+					<Heading mt="16" level="h4">
+						Harold AI
+					</Heading>
+
+					<Text weight="medium" size="small" color="default">
+						Highlight&apos;s Harold is an AI assistant helping you better
+						understand the context around your data. Harold is based on OpenAI
+						GPT-3.5.
+					</Text>
 				</Stack>
-			</Box>
+
+				<Box border="secondary" borderRadius="6" p="16">
+					<Box pt="4">
+						<Stack gap="12" direction="column" pb="12">
+							<Text weight="bold" size="small" color="strong">
+								Learn more about Highlight&apos;s AI
+							</Text>
+
+							<Text color="moderate">
+								Curious about how we use OpenAI&apos;s GPT-3.5 to power our AI
+								services? Read the blog post!
+							</Text>
+						</Stack>
+
+						<Button
+							kind="secondary"
+							emphasis="high"
+							iconRight={<IconSolidExternalLink size={14} />}
+							onClick={() => {
+								window.open(
+									'https://highlight.io/blog/introducing-harold',
+									'_blank',
+								)
+							}}
+							trackingId="settings_ai-learn-more"
+						>
+							Read the blog post
+						</Button>
+					</Box>
+				</Box>
+
+				<Stack gap="12" direction="column" paddingTop="24">
+					<Text weight="bold" size="small" color="default">
+						Harold Features
+					</Text>
+
+					{AI_FEATURES.map((setting) => (
+						<Box
+							key={setting.key}
+							border="secondary"
+							borderRadius="6"
+							p="12"
+						>
+							{ToggleRow(
+								setting.label,
+								setting.info,
+								data?.workspaceSettings?.[setting.key] ?? false,
+								handleSwitch(setting),
+								loading || !canEdit,
+								canEdit ? '' : 'Please contact your admin to update',
+							)}
+						</Box>
+					))}
+				</Stack>
+			</Stack>
 		</Box>
 	)
 }
+
+export default HaroldAISettings
