@@ -150,9 +150,14 @@ export type SelectProps<T = any> = Omit<
 	customFilterable?: boolean
 	loading?: SelectProviderProps['loading']
 	resultsLoading?: boolean
+	notFoundContent?: React.ReactNode
 	trigger?: React.ComponentType
 	options?: SelectProviderProps['options']
 	placeholder?: string
+	renderOption?: (
+		option: SelectOption,
+		searchValue: string,
+	) => React.ReactNode
 	store?: Ariakit.SelectProviderProps['store']
 	value?: T
 	renderValue?: (
@@ -173,6 +178,8 @@ export const Select = <T,>({
 	customFilterable,
 	loading,
 	resultsLoading,
+	notFoundContent,
+	renderOption,
 	store,
 	value: valueProp,
 	options: optionsProp,
@@ -348,7 +355,18 @@ export const Select = <T,>({
 									</Text>
 								</Ariakit.ComboboxItem>
 							)}
+							{searchValue &&
+								!matches.length &&
+								notFoundContent && (
+									<Box px="4" py="4">
+										{notFoundContent}
+									</Box>
+								)}
 							{matches.map((option) => {
+								const renderedOption =
+									renderOption?.(option, searchValue) ??
+									option.name
+
 								return (
 									<Option
 										key={option.value}
@@ -356,7 +374,7 @@ export const Select = <T,>({
 										render={<Ariakit.ComboboxItem />}
 										onClick={() => setSearchValue('')}
 									>
-										{option.name}
+										{renderedOption}
 									</Option>
 								)
 							})}

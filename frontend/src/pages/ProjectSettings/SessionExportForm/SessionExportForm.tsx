@@ -1,6 +1,6 @@
 import BorderBox from '@components/BorderBox/BorderBox'
 import BoxLabel from '@components/BoxLabel/BoxLabel'
-import { IconAnimatedLoading, LoadingBar } from '@components/Loading/Loading'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
 import { useGetSessionExportsQuery } from '@graph/hooks'
 import {
 	Badge,
@@ -41,7 +41,16 @@ export const SessionExportForm = () => {
 	}, [location.hash])
 
 	if (loading) {
-		return <LoadingBar />
+		return (
+			<Box
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				py="12"
+			>
+				<IconAnimatedLoading />
+			</Box>
+		)
 	}
 
 	const gridColumns = ['120px', '120px', '1fr', '124px']

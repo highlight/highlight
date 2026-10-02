@@ -1,4 +1,5 @@
-import { LoadingBar } from '@components/Loading/Loading'
+import { Box } from '@highlight-run/ui/components'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
 import { useEffect, useState } from 'react'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
@@ -23,7 +24,16 @@ export const FilterExtensionForm = () => {
 	}, [data?.projectSettings?.filter_chrome_extension, loading])
 
 	if (loading) {
-		return <LoadingBar />
+		return (
+			<Box
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				py="12"
+			>
+				<IconAnimatedLoading />
+			</Box>
+		)
 	}
 
 	const categories = [

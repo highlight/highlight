@@ -1,15 +1,12 @@
-import Input from '@components/Input/Input'
-import { Tooltip } from '@highlight-run/ui/components'
 import { toast } from '@components/Toaster'
 import { useEditProjectMutation, useEditWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
+import { Form, Stack, Tooltip } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import React, { useState } from 'react'
 
 import commonStyles from '../../../Common.module.css'
-import Button from '../../../components/Button/Button/Button'
-import { CircularSpinner } from '../../../components/Loading/Loading'
-import styles from './FieldsForm.module.css'
+import { Button } from '../../../components/Button'
 
 type Props = {
 	defaultName?: string | null
@@ -40,6 +37,7 @@ export const FieldsForm: React.FC<Props> = ({
 
 	const [editWorkspace, { loading: editWorkspaceLoading }] =
 		useEditWorkspaceMutation()
+	const loading = editProjectLoading || editWorkspaceLoading
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
@@ -67,36 +65,29 @@ export const FieldsForm: React.FC<Props> = ({
 
 	return (
 		<form onSubmit={onSubmit} key={project_id}>
-			<div className={styles.fieldRow}>
-				<label className={styles.fieldKey}>Name</label>
-				<Input
+			<Stack gap="16">
+				<Form.Input
 					name="name"
+					label="Name"
 					value={name}
 					onChange={(e) => {
 						setName(e.target.value)
 					}}
 					disabled={formDisabled}
 				/>
-			</div>
-			{isWorkspace ? null : (
-				<>
-					{' '}
-					<div className={styles.fieldRow}>
-						<label className={styles.fieldKey}>Billing Email</label>
-						<Input
-							placeholder="Billing Email"
-							type="email"
-							name="email"
-							value={email}
-							onChange={(e) => {
-								setEmail(e.target.value)
-							}}
-							disabled={formDisabled}
-						/>
-					</div>
-				</>
-			)}
-			<div className={styles.fieldRow}>
+				{isWorkspace ? null : (
+					<Form.Input
+						name="email"
+						label="Billing Email"
+						placeholder="Billing Email"
+						type="email"
+						value={email}
+						onChange={(e) => {
+							setEmail(e.target.value)
+						}}
+						disabled={formDisabled}
+					/>
+				)}
 				<Tooltip
 					disabled={!formDisabled}
 					trigger={
@@ -104,28 +95,20 @@ export const FieldsForm: React.FC<Props> = ({
 							trackingId={`${
 								isWorkspace ? 'Workspace' : 'Project'
 							}Update`}
-							htmlType="submit"
-							type="primary"
+							type="submit"
+							kind="primary"
 							className={commonStyles.submitButton}
 							disabled={formDisabled}
+							loading={loading}
 						>
-							{editProjectLoading || editWorkspaceLoading ? (
-								<CircularSpinner
-									style={{
-										fontSize: 18,
-										color: 'var(--text-primary-inverted)',
-									}}
-								/>
-							) : (
-								'Save changes'
-							)}
+							Save changes
 						</Button>
 					}
 				>
 					You do not have permission to edit these settings. Please
 					contact your workspace admin.
 				</Tooltip>
-			</div>
+			</Stack>
 		</form>
 	)
 }

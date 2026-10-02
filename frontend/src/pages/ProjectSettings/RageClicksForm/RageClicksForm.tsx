@@ -1,12 +1,30 @@
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import { LoadingBar } from '@components/Loading/Loading'
-import { Box, Form, Stack } from '@highlight-run/ui/components'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
+import {
+	Box,
+	Form,
+	IconSolidInformationCircle,
+	Stack,
+	Tooltip,
+} from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
+
+const RAGE_CLICK_WINDOW_TOOLTIP =
+	'The maximum time allowed between clicks in a rage click event'
+const RAGE_CLICK_RADIUS_TOOLTIP =
+	'The maximum distance allowed between clicks in a rage click event'
+const RAGE_CLICK_COUNT_TOOLTIP =
+	'The minimum number of clicks needed to be considered a rage click event'
+
+const RAGE_CLICK_SETTINGS = {
+	window: 'rage_click_window_seconds',
+	radius: 'rage_click_radius_pixels',
+	count: 'rage_click_count',
+} as const
 
 export const RageClicksForm = () => {
 	const { project_id } = useParams<{
@@ -22,6 +40,22 @@ export const RageClicksForm = () => {
 		loading,
 		setAllProjectSettings,
 	} = useProjectSettingsContext()
+
+	const updateRageClickSetting = (
+		key: (typeof RAGE_CLICK_SETTINGS)[keyof typeof RAGE_CLICK_SETTINGS],
+		value: number,
+	) => {
+		setAllProjectSettings((currentProjectSettings) =>
+			currentProjectSettings?.projectSettings
+				? {
+						projectSettings: {
+							...currentProjectSettings.projectSettings,
+							[key]: value,
+						},
+					}
+				: currentProjectSettings,
+		)
+	}
 
 	useEffect(() => {
 		if (!loading) {
@@ -41,7 +75,16 @@ export const RageClicksForm = () => {
 	])
 
 	if (loading) {
-		return <LoadingBar />
+		return (
+			<Box
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				py="12"
+			>
+				<IconAnimatedLoading />
+			</Box>
+		)
 	}
 
 	return (
@@ -60,25 +103,21 @@ export const RageClicksForm = () => {
 							type="number"
 							value={rageClickWindowSeconds}
 							labelTag={
-								<InfoTooltip
-									title="The maximum time allowed between clicks in a rage click event"
-									size="small"
-								/>
+								<Tooltip
+									trigger={
+										<IconSolidInformationCircle size={12} />
+									}
+									renderInLine
+								>
+									{RAGE_CLICK_WINDOW_TOOLTIP}
+								</Tooltip>
 							}
 							onChange={(e) => {
 								const val = Number(e.target.value)
 								setRageClickWindowSeconds(val)
-								setAllProjectSettings(
-									(currentProjectSettings) =>
-										currentProjectSettings?.projectSettings
-											? {
-													projectSettings: {
-														...currentProjectSettings.projectSettings,
-														rage_click_window_seconds:
-															val,
-													},
-												}
-											: currentProjectSettings,
+								updateRageClickSetting(
+									RAGE_CLICK_SETTINGS.window,
+									val,
 								)
 							}}
 							min={1}
@@ -86,10 +125,14 @@ export const RageClicksForm = () => {
 						<Form.Input
 							label="Radius (pixels)"
 							labelTag={
-								<InfoTooltip
-									title="The maximum distance allowed between clicks in a rage click event"
-									size="small"
-								/>
+								<Tooltip
+									trigger={
+										<IconSolidInformationCircle size={12} />
+									}
+									renderInLine
+								>
+									{RAGE_CLICK_RADIUS_TOOLTIP}
+								</Tooltip>
 							}
 							name="rage_click_radius_pixels"
 							type="number"
@@ -97,17 +140,9 @@ export const RageClicksForm = () => {
 							onChange={(e) => {
 								const val = Number(e.target.value)
 								setRageClickRadiusPixels(val)
-								setAllProjectSettings(
-									(currentProjectSettings) =>
-										currentProjectSettings?.projectSettings
-											? {
-													projectSettings: {
-														...currentProjectSettings.projectSettings,
-														rage_click_radius_pixels:
-															val,
-													},
-												}
-											: currentProjectSettings,
+								updateRageClickSetting(
+									RAGE_CLICK_SETTINGS.radius,
+									val,
 								)
 							}}
 							min={1}
@@ -116,26 +151,23 @@ export const RageClicksForm = () => {
 							name="rage_click_minimum_clicks"
 							label="Minimum clicks"
 							labelTag={
-								<InfoTooltip
-									title="The minimum number of clicks needed to be considered a rage click event"
-									size="small"
-								/>
+								<Tooltip
+									trigger={
+										<IconSolidInformationCircle size={12} />
+									}
+									renderInLine
+								>
+									{RAGE_CLICK_COUNT_TOOLTIP}
+								</Tooltip>
 							}
 							type="number"
 							value={rageClickCount}
 							onChange={(e) => {
 								const val = Number(e.target.value)
 								setRageClickCount(val)
-								setAllProjectSettings(
-									(currentProjectSettings) =>
-										currentProjectSettings?.projectSettings
-											? {
-													projectSettings: {
-														...currentProjectSettings.projectSettings,
-														rage_click_count: val,
-													},
-												}
-											: currentProjectSettings,
+								updateRageClickSetting(
+									RAGE_CLICK_SETTINGS.count,
+									val,
 								)
 							}}
 							min={1}

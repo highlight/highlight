@@ -1,7 +1,5 @@
 import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
-import Modal from '@components/Modal/Modal'
-import ModalBody from '@components/ModalBody/ModalBody'
 import {
 	Box,
 	ButtonIcon,
@@ -9,17 +7,17 @@ import {
 	IconSolidInformationCircle,
 	IconSolidQuestionMarkCircle,
 	IconSolidTrash,
-	IconSolidX,
+	Modal,
+	Select,
 	Text,
 	TextLink,
 	Tooltip,
+	type SelectOption,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
-
 import * as styles from './GitHubSettingsModal.css'
 
 type Props = {
@@ -55,51 +53,20 @@ export const GitHubSettingsModal = ({
 	}
 
 	return (
-		<Modal
-			onCancel={closeModal}
-			visible={!!service}
-			minimal
-			minimalPaddingSize="0"
-			width="360px"
-			title={
-				<Box
-					display="flex"
-					alignItems="center"
-					userSelect="none"
-					px="8"
-					py="4"
-					bb="secondary"
-					justifyContent="space-between"
-				>
-					<Text size="xxSmall" color="n11" weight="medium">
-						GitHub settings for {service.name} service
-					</Text>
-					<ButtonIcon
-						kind="secondary"
-						emphasis="none"
-						size="xSmall"
-						onClick={closeModal}
-						icon={
-							<IconSolidX
-								size={14}
-								color={
-									vars.theme.interactive.fill.secondary
-										.content.text
-								}
-							/>
-						}
-					/>
-				</Box>
-			}
-		>
-			<ModalBody>
+		<Modal open={!!service} onClose={closeModal} width={360}>
+			<Modal.Header>
+				<Text size="xxSmall" color="n11" weight="medium">
+					GitHub settings for {service.name} service
+				</Text>
+			</Modal.Header>
+			<Modal.Body>
 				<GithubSettingsForm
 					service={service}
 					githubRepos={githubRepos}
 					handleSubmit={handleSubmit}
 					handleCancel={closeModal}
 				/>
-			</ModalBody>
+			</Modal.Body>
 		</Modal>
 	)
 }
@@ -120,8 +87,7 @@ const GithubSettingsForm = ({
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				id: repo.key,
-				label: repo.name.split('/').pop(),
+				name: repo.name.split('/').pop() ?? repo.name,
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -144,7 +110,13 @@ const GithubSettingsForm = ({
 		: `https://github.com/${formState.values.githubRepo}/blob/HEAD/README.md`
 
 	return (
-		<Form store={formStore} onSubmit={() => handleSubmit(formState.values)}>
+		<Form
+			store={formStore}
+			onSubmit={(e) => {
+				e.preventDefault()
+				handleSubmit(formState.values)
+			}}
+		>
 			<Box px="12" py="8" gap="12" display="flex" flexDirection="column">
 				<Form.NamedSection
 					label="Select GitHub repository"
@@ -153,22 +125,24 @@ const GithubSettingsForm = ({
 					<Box display="flex" alignItems="center" gap="8">
 						<Select
 							aria-label="GitHub repository"
-							className={styles.repoSelect}
 							placeholder="Search repos..."
-							onSelect={(repo: string) =>
+							filterable
+							options={githubOptions}
+							notFoundContent={
+								<Text
+									size="small"
+									color="secondaryContentOnEnabled"
+								>
+									No repos found
+								</Text>
+							}
+							value={formState.values.githubRepo || undefined}
+							onValueChange={(repo: SelectOption) =>
 								formStore.setValue(
 									formStore.names.githubRepo,
-									repo,
+									String(repo.value),
 								)
 							}
-							value={formState.values.githubRepo
-								?.split('/')
-								.pop()}
-							options={githubOptions}
-							notFoundContent={<span>No repos found</span>}
-							optionFilterProp="label"
-							filterOption
-							showSearch
 						/>
 						<ButtonIcon
 							kind="secondary"

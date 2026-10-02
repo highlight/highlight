@@ -1,14 +1,19 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { toast } from '@components/Toaster'
-import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	useGetWorkspaceAdminsQuery,
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Box, Select, Text } from '@highlight-run/ui/components'
+import {
+	Box,
+	IconSolidCheckCircle,
+	Select,
+	SwitchButton,
+	Text,
+	Tooltip,
+} from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import React, { useState } from 'react'
 
 import { getEmailDomain } from '@/util/email'
@@ -61,13 +66,17 @@ export const AutoJoinForm: React.FC = () => {
 		}
 	}
 
-	const handleCheckboxChange = (event: CheckboxChangeEvent) => {
-		const checked = event.target.checked
-		if (checked) {
-			onChangeMsg([adminsEmailDomain], 'Successfully enabled auto-join!')
-		} else {
-			onChangeMsg([], 'Successfully disabled auto-join!')
+	const handleAutoJoinToggle = () => {
+		if (loading || !adminsEmailDomain) {
+			return
 		}
+
+		if (autoJoinDomains.length > 0) {
+			onChangeMsg([], 'Successfully disabled auto-join!')
+			return
+		}
+
+		onChangeMsg([adminsEmailDomain], 'Successfully enabled auto-join!')
 	}
 
 	const handleSelectChange = (domains: { name: string; value: string }[]) => {
@@ -79,29 +88,34 @@ export const AutoJoinForm: React.FC = () => {
 
 	return (
 		<Tooltip
-			title="Automatically share the workspace with all users on this domain."
-			align={{ offset: [0, 6] }}
-			mouseEnterDelay={0}
-		>
-			<div className={styles.container}>
-				<Box display="flex" alignItems="center" gap="8" p="0" m="0">
-					<Checkbox
-						checked={autoJoinDomains.length > 0}
-						onChange={handleCheckboxChange}
+			trigger={
+				<div className={styles.container}>
+					<Box display="flex" alignItems="center" gap="8" p="0" m="0">
+						<SwitchButton
+							type="button"
+							size="xxSmall"
+							iconLeft={<IconSolidCheckCircle size={12} />}
+							checked={autoJoinDomains.length > 0}
+							disabled={loading || !adminsEmailDomain}
+							onChange={handleAutoJoinToggle}
+						/>
+						<Text>Auto-approved email domains</Text>
+					</Box>
+					<Select
+						creatable
+						filterable
+						displayMode="tags"
+						loading={loading}
+						disabled={loading}
+						placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
+						value={autoJoinDomains}
+						onValueChange={handleSelectChange}
+						options={adminDomains}
 					/>
-					<Text>Auto-approved email domains</Text>
-				</Box>
-				<Select
-					creatable
-					filterable
-					displayMode="tags"
-					loading={loading}
-					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
-					value={autoJoinDomains}
-					onValueChange={handleSelectChange}
-					options={adminDomains}
-				/>
-			</div>
+				</div>
+			}
+		>
+			Automatically share the workspace with all users on this domain.
 		</Tooltip>
 	)
 }
