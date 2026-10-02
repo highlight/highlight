@@ -218,7 +218,6 @@ export const SessionViewportMetadata = () => {
 			{viewport?.width && viewport?.height && (
 				<Badge
 					iconStart={<IconSolidTemplate color={colors.n9} />}
-					size="medium"
 					variant="gray"
 					shape="basic"
 					label={`${viewport?.width}x${viewport?.height}`}
@@ -227,7 +226,6 @@ export const SessionViewportMetadata = () => {
 			)}
 			<Badge
 				variant="gray"
-				size="medium"
 				iconStart={
 					session.privacy_setting === 'strict' ||
 					session?.enable_strict_privacy ? (

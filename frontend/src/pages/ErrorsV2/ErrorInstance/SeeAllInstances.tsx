@@ -27,7 +27,6 @@ export const SeeAllInstances = ({ data }: Props) => {
 			<Tag
 				kind="secondary"
 				emphasis="medium"
-				size="medium"
 				shape="basic"
 				iconLeft={<IconSolidArrowSmLeft />}
 				disabled={!isLoggedIn || !errorGroupSecureID}

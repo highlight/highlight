@@ -284,7 +284,6 @@ export const ToolbarControlBar = () => {
 								<Tag
 									kind="secondary"
 									shape="rounded"
-									size="medium"
 									emphasis="low"
 									onClick={() => {
 										setPlayerSpeedIdx(playerSpeedIdx + 1)

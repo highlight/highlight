@@ -33,7 +33,6 @@ export const RelatedTrace: React.FC<Props> = ({ data }) => {
 			}}
 			kind="secondary"
 			emphasis="high"
-			size="medium"
 			shape="basic"
 			disabled={!isLoggedIn || !traceId}
 			iconLeft={<IconSolidSparkles size={11} />}

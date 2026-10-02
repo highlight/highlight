@@ -203,7 +203,6 @@ const UsageCard = ({
 							delayed
 							trigger={
 								<Badge
-									size="medium"
 									shape="basic"
 									kind="primary"
 									variant="gray"
@@ -232,7 +231,6 @@ const UsageCard = ({
 						delayed
 						trigger={
 							<Badge
-								size="medium"
 								shape="basic"
 								kind="secondary"
 								label={RETENTION_PERIOD_LABELS[retentionPeriod]}
@@ -257,7 +255,6 @@ const UsageCard = ({
 							delayed
 							trigger={
 								<Badge
-									size="medium"
 									shape="basic"
 									kind="secondary"
 									label={`Billing Limit: ${

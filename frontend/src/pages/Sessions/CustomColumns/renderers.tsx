@@ -52,13 +52,12 @@ const ColumnWrapper: React.FC<ColumnWrapperProps> = ({
 					<Badge
 						variant="outlineGray"
 						shape="basic"
-						size="medium"
 						iconStart={<IconSolidMenuAlt_2 size="12" />}
 					/>
 					<span>{children}</span>
 				</Stack>
 				<Table.Discoverable>
-					<Badge variant="outlineGray" label="Open" size="medium" />
+					<Badge variant="outlineGray" label="Open" />
 				</Table.Discoverable>
 			</Box>
 		</Table.Cell>

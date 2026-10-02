@@ -10,7 +10,6 @@ import {
 } from '@graph/hooks'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
-import { Table } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -194,6 +193,104 @@ type Row = {
 	last_active?: any
 }
 
+type SimpleTableProps = {
+	columns: Array<{
+		title: string
+		dataIndex: string
+		render?: (value: any, record: any) => React.ReactNode
+		sorter?: (a: any, b: any) => number
+	}>
+	dataSource?: Array<{ [key: string]: any }>
+	onRowClick?: (record: any) => void
+}
+
+const SimpleTable: React.FC<SimpleTableProps> = ({
+	columns,
+	dataSource,
+	onRowClick,
+}) => {
+	const [sortKey, setSortKey] = React.useState<string | null>(null)
+	const [sortAsc, setSortAsc] = React.useState(true)
+
+	const handleSort = (col: SimpleTableProps['columns'][0]) => {
+		if (!col.sorter) return
+		if (sortKey === col.dataIndex) {
+			setSortAsc(!sortAsc)
+		} else {
+			setSortKey(col.dataIndex)
+			setSortAsc(true)
+		}
+	}
+
+	const sortedData = React.useMemo(() => {
+		if (!dataSource) return []
+		if (!sortKey) return dataSource
+		const col = columns.find((c) => c.dataIndex === sortKey)
+		if (!col?.sorter) return dataSource
+		const sorted = [...dataSource].sort(col.sorter)
+		return sortAsc ? sorted : sorted.reverse()
+	}, [dataSource, sortKey, sortAsc, columns])
+
+	return (
+		<table
+			style={{
+				width: '100%',
+				borderCollapse: 'collapse',
+				fontSize: 12,
+			}}
+		>
+			<thead>
+				<tr>
+					{columns.map((col) => (
+						<th
+							key={col.dataIndex}
+							onClick={() => handleSort(col)}
+							style={{
+								cursor: col.sorter ? 'pointer' : 'default',
+								textAlign: 'left',
+								padding: '4px 8px',
+								borderBottom: '1px solid #eee',
+								whiteSpace: 'nowrap',
+								userSelect: 'none',
+							}}
+						>
+							{col.title}
+							{sortKey === col.dataIndex
+								? sortAsc
+									? ' ↑'
+									: ' ↓'
+								: ''}
+						</th>
+					))}
+				</tr>
+			</thead>
+			<tbody>
+				{sortedData.map((row, i) => (
+					<tr
+						key={row.key ?? i}
+						onClick={() => onRowClick?.(row)}
+						style={{ cursor: onRowClick ? 'pointer' : 'default' }}
+					>
+						{columns.map((col) => (
+							<td
+								key={col.dataIndex}
+								style={{
+									padding: '4px 8px',
+									borderBottom: '1px solid #f5f5f5',
+								}}
+							>
+								{col.render
+									? col.render(row[col.dataIndex], row)
+									: row[col.dataIndex]}
+							</td>
+						))}
+					</tr>
+				))}
+			</tbody>
+		</table>
+	)
+}
+
 export const AccountsPage = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const { isHighlightAdmin } = useAuthContext()
@@ -282,10 +379,7 @@ export const Account = () => {
 						<Legend />
 						<Bar dataKey="amt" fill="#8884d8" />
 					</BarChart>
-					<Table
-						pagination={false}
-						sticky={true}
-						size="small"
+					<SimpleTable
 						columns={[
 							{
 								title: 'ID',
@@ -390,18 +484,11 @@ export const Accounts = () => {
 			{loading ? (
 				'loading...'
 			) : (
-				<Table
-					pagination={false}
-					sticky={true}
-					onRow={(record) => {
-						return {
-							onClick: () => {
-								navigate(`/accounts/${record.id}`)
-							},
-						}
-					}}
-					size="small"
+				<SimpleTable
 					columns={COLUMNS}
+					onRowClick={(record) => {
+						navigate(`/accounts/${record.id}`)
+					}}
 					dataSource={
 						accountDataLocal.map((a: any, i: any) => {
 							return {

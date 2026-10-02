@@ -32,7 +32,7 @@ export const IntegrationCta: React.FC = () => {
 				<Stack direction="row" justify="space-between" align="center">
 					<Stack gap="12" direction="column" paddingBottom="6">
 						<Box mt="6">
-							<Text weight="bold" size="medium">
+							<Text weight="bold">
 								Error monitoring for your backend?
 							</Text>
 						</Box>

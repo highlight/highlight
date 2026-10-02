@@ -169,7 +169,7 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 		<>
 			{!verificationId ? (
 				<form onSubmit={handleSubmit}>
-					<Space size="medium" direction="vertical">
+					<Space direction="vertical">
 						<p>
 							Add an additional layer of security for your account
 							by enabling SMS-based two-factor authentication.
@@ -273,7 +273,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 			<p>Enter the code sent to your phone to verify your device.</p>
 
 			<form onSubmit={handleCodeSubmit}>
-				<Space direction="vertical" size="medium">
+				<Space direction="vertical">
 					<Input
 						value={verificationCode}
 						onChange={(e) => setVerificationCode(e.target.value)}
@@ -296,7 +296,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 
 const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
 	return (
-		<Space direction="vertical" size="medium">
+		<Space direction="vertical">
 			<p>
 				You are enrolled in two-factor authentication with{' '}
 				{

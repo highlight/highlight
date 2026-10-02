@@ -15,7 +15,8 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
+// eslint-disable-next-line no-restricted-imports
+import Select from '@components/Select/Select'
 import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
@@ -121,7 +122,7 @@ const GithubSettingsForm = ({
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
 				id: repo.key,
-				label: repo.name.split('/').pop(),
+				displayValue: repo.name.split('/').pop(),
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -173,7 +174,6 @@ const GithubSettingsForm = ({
 						<ButtonIcon
 							kind="secondary"
 							emphasis="medium"
-							size="medium"
 							disabled={!formState.values.githubRepo}
 							onClick={() =>
 								formStore.setValue(
@@ -294,7 +294,6 @@ const GithubSettingsForm = ({
 						to="https://www.highlight.io/docs/general/product-features/error-monitoring/enhancing-errors-with-github#link-your-service-to-a-github-repo"
 						trackingId="enhance-stack-traces-docs"
 						emphasis="low"
-						size="medium"
 						target="_blank"
 						iconLeft={
 							<IconSolidQuestionMarkCircle
@@ -314,7 +313,6 @@ const GithubSettingsForm = ({
 						<Button
 							kind="secondary"
 							trackingId="cancel-service-github-settings"
-							size="medium"
 							emphasis="medium"
 							onClick={handleCancel}
 						>
@@ -324,7 +322,6 @@ const GithubSettingsForm = ({
 							type="submit"
 							kind="primary"
 							trackingId="update-service-github-settings"
-							size="medium"
 						>
 							Save
 						</Button>

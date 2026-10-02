@@ -48,7 +48,6 @@ export const RelatedSession = ({ data }: Props) => {
 			}}
 			kind="secondary"
 			emphasis="high"
-			size="medium"
 			shape="basic"
 			disabled={!isLoggedIn || !session}
 			iconLeft={<IconSolidPlayCircle size={11} />}

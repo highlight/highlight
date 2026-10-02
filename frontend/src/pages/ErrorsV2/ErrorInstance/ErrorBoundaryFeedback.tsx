@@ -46,7 +46,6 @@ const SessionFeedback = ({
 		<Tag
 			kind="secondary"
 			emphasis="low"
-			size="medium"
 			shape="basic"
 			disabled={!isLoggedIn || sessionLink === ''}
 			iconRight={<IconSolidArrowCircleRight />}

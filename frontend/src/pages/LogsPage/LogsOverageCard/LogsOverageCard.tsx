@@ -55,11 +55,7 @@ export const LogsOverageCard = () => {
 					<Stack direction="column" gap="12" my="6">
 						<Box alignItems="flex-start" display="flex">
 							<Box>
-								<Text
-									color="strong"
-									weight="bold"
-									size="medium"
-								>
+								<Text color="strong" weight="bold">
 									Logs overage!
 								</Text>
 							</Box>
@@ -115,11 +111,7 @@ const BillingIssueCard: React.FC<{ blocked?: boolean }> = ({ blocked }) => {
 					<Stack direction="column" gap="12" my="6">
 						<Box alignItems="flex-start" display="flex">
 							<Box>
-								<Text
-									color="strong"
-									weight="bold"
-									size="medium"
-								>
+								<Text color="strong" weight="bold">
 									{blocked
 										? 'Billing issues are blocking data ingest!'
 										: 'Billing issues may block data ingest.'}

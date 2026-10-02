@@ -1540,7 +1540,6 @@ const Graph = ({
 			>
 				{!loading && called && (
 					<Badge
-						size="medium"
 						shape="basic"
 						variant="gray"
 						label="No data found"
@@ -1693,7 +1692,6 @@ const Graph = ({
 						cssClass={style.loadingOverlay}
 					>
 						<Badge
-							size="medium"
 							shape="basic"
 							variant="gray"
 							label="Loading"

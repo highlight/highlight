@@ -23,9 +23,7 @@ export const NoTracesFound = ({
 					{!integrated ? (
 						<>
 							<Stack gap="12" my="6">
-								<Text weight="bold" size="medium">
-									Set up traces
-								</Text>
+								<Text weight="bold">Set up traces</Text>
 								<Text color="moderate">
 									No traces found. Have you finished setting
 									up tracing in your app yet?
@@ -45,9 +43,7 @@ export const NoTracesFound = ({
 					) : (
 						<>
 							<Stack gap="12" my="6">
-								<Text weight="bold" size="medium">
-									No traces found
-								</Text>
+								<Text weight="bold">No traces found</Text>
 								<Text color="moderate">
 									{hasQuery ? (
 										<>

@@ -141,12 +141,7 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 						</Box>
 					}
 				/>
-				<Tag
-					kind="secondary"
-					size="medium"
-					emphasis="high"
-					shape="basic"
-				>
+				<Tag kind="secondary" emphasis="high" shape="basic">
 					<Text>
 						{showPlayerAbsoluteTime
 							? playerTimeToSessionAbsoluteTime({

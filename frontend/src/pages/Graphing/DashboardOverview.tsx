@@ -305,7 +305,6 @@ const DashboardRow = ({
 				{hover && (
 					<Menu>
 						<Menu.Button
-							size="medium"
 							emphasis="low"
 							kind="secondary"
 							iconLeft={<IconSolidDotsHorizontal />}

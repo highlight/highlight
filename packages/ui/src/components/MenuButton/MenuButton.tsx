@@ -49,7 +49,6 @@ export const MenuButton: React.FC<Props> = ({ ...props }) => {
 							{o.variants ? (
 								<Box display="flex" alignItems="center">
 									<Badge
-										size="medium"
 										label={o.render?.toString()}
 										{...o.variants}
 									/>

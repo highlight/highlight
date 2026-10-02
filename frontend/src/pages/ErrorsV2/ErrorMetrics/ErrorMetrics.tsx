@@ -62,7 +62,6 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 						presets={EXTENDED_TIME_PRESETS}
 						minDate={presetStartDate(EXTENDED_TIME_PRESETS[6])}
 						kind="secondary"
-						size="medium"
 						emphasis="low"
 					/>
 				</div>

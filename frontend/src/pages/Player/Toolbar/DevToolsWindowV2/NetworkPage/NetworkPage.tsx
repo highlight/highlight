@@ -457,7 +457,6 @@ const ResourceRow = ({
 					shape="basic"
 					emphasis="low"
 					kind="secondary"
-					size="medium"
 					onClick={(event) => {
 						event.stopPropagation() // prevent panel from closing when clicking a resource
 						setTime(resource.relativeStartTime)
