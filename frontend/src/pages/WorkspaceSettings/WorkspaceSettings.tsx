@@ -1,4 +1,4 @@
-import Alert from '@components/Alert/Alert'
+import CustomAlert from '@components/CustomAlert/CustomAlert'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import { AdminRole } from '@graph/schemas'
 import { Box } from '@highlight-run/ui/components'
@@ -43,12 +43,12 @@ const WorkspaceSettings = () => {
 						<Authorization
 							allowedRoles={[AdminRole.Admin]}
 							forbiddenFallback={
-								<Alert
+								<CustomAlert
 									trackingId="AdminNoAccessToAutoJoinDomains"
 									type="info"
 									message="You don't have access to auto-access domains."
 									description={`You don't have permission to configure auto-access domains. Please contact a workspace admin to make changes.`}
-								/>
+								</CustomAlert>
 							}
 						>
 							<AutoJoinForm />
