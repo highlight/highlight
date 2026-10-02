@@ -3,10 +3,10 @@ import React, { useEffect } from 'react'
 
 import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
-import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
 import { toast } from '@components/Toaster'
 import { IntegrationProjectMappingInput, IntegrationType } from '@graph/schemas'
+import { Select, type SelectOption } from '@highlight-run/ui/components'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
@@ -191,15 +191,13 @@ export const HeightIntegrationSettings: React.FC<
 			if (!!p) {
 				highlightProjects.push({
 					...p,
-					onUpdateProjectLink: (label: string) => {
-						const match = settings.height_workspaces.find(
-							(w) => w.name === label,
-						)
+					onUpdateProjectLink: (workspace?: SelectOption) => {
+						const workspaceId = workspace?.value
 
-						if (match === undefined) {
+						if (workspaceId === undefined) {
 							projectMapDelete(p.id)
 						} else {
-							projectMapSet(p.id, match.id)
+							projectMapSet(p.id, String(workspaceId))
 						}
 					},
 				})
@@ -209,9 +207,8 @@ export const HeightIntegrationSettings: React.FC<
 
 	const selectOptions =
 		settings.height_workspaces.map((w) => ({
-			id: w.id,
-			value: w.name,
-			displayValue: w.name,
+			name: w.name,
+			value: w.id,
 		})) || []
 
 	const tableColumns = [
@@ -250,20 +247,21 @@ export const HeightIntegrationSettings: React.FC<
 				const selectedWorkspace = settings.height_workspaces.find(
 					(w) => w.id === heightWorkspaceId,
 				)
-				const value = {
-					id: selectedWorkspace?.id,
-					value: selectedWorkspace?.id,
-					label: selectedWorkspace?.name,
-				}
+				const value = selectedWorkspace
+					? {
+							name: selectedWorkspace.name,
+							value: selectedWorkspace.id,
+						}
+					: undefined
 				return (
 					<div className={styles.select}>
 						<Select
 							className="w-full"
 							value={value}
-							onChange={row.onUpdateProjectLink}
+							onValueChange={row.onUpdateProjectLink}
 							options={selectOptions}
 							placeholder="Height workspace"
-							allowClear
+							clearable
 						/>
 					</div>
 				)
