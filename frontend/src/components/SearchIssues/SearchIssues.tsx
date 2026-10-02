@@ -1,5 +1,4 @@
 import { Form } from '@highlight-run/ui/components'
-import { Select } from 'antd'
 import React, { useState } from 'react'
 
 import { useSearchIssuesLazyQuery } from '@/graph/generated/hooks'
@@ -8,6 +7,7 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { IssueTrackerIntegration } from '@/pages/IntegrationsPage/IssueTrackerIntegrations'
 
 import styles from './SearchIssues.module.css'
+
 export interface SearchOption {
 	value: string
 	label: string
@@ -28,12 +28,7 @@ export const SearchIssues = ({
 }: SearchIssuesProps) => {
 	const [selectedOption, setSelectOption] = React.useState<
 		SearchOption | undefined
-	>({
-		label: '',
-		value: '',
-		id: '',
-		url: '',
-	})
+	>({ label: '', value: '', id: '', url: '' })
 	const [query, setQuery] = useState<string>('')
 
 	const debouncedQuery = useDebouncedValue(query) || ''
@@ -64,29 +59,38 @@ export const SearchIssues = ({
 
 	return (
 		<Form.NamedSection label="Link an issue" name="issue_id">
-			<Select
+			<select
 				className={styles.select}
-				// this mode allows using the select component as a single searchable input
-				// @ts-ignore
-				placeholder="Search Issues"
 				autoFocus
-				size="middle"
-				// @ts-ignore
-				onSelect={(newValue: string) => {
-					const option = options.find((o) => o.value === newValue)
+				value={selectedOption?.value || ''}
+				onChange={(e) => {
+					const option = options.find((o) => o.value === e.target.value)
 					if (option) {
 						onSelect(option)
 						setSelectOption(option)
 					}
 				}}
-				defaultValue={selectedOption as unknown as SearchOption}
-				options={options}
-				notFoundContent={<span>`No issues found`</span>}
-				filterOption={false}
-				loading={loading}
-				onSearch={setQuery}
-				showSearch
-				showArrow={loading}
+			>
+				<option value="" disabled>
+					Search Issues
+				</option>
+				{loading && (
+					<option disabled>Loading...</option>
+				)}
+				{!loading && options.length === 0 && debouncedQuery && (
+					<option disabled>No issues found</option>
+				)}
+				{options.map((o) => (
+					<option key={o.id} value={o.value}>
+						{o.label}
+					</option>
+				))}
+			</select>
+			<input
+				className={styles.select}
+				placeholder="Search Issues"
+				value={query}
+				onChange={(e) => setQuery(e.target.value)}
 			/>
 		</Form.NamedSection>
 	)
