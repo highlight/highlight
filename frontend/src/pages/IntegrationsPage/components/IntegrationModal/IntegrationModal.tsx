@@ -1,7 +1,5 @@
-import Modal from '@components/Modal/Modal'
+import { Modal, Text } from '@highlight-run/ui/components'
 import React from 'react'
-
-import styles from './IntegrationModal.module.css'
 
 interface Props {
 	title: string
@@ -19,15 +17,13 @@ export const IntegrationModal = ({
 	visible,
 }: Props) => {
 	return (
-		<Modal
-			title={title}
-			visible={visible}
-			className={styles.modal}
-			width={width}
-			onCancel={onCancel}
-			destroyOnClose
-		>
-			{configurationPage()}
+		<Modal open={visible} onClose={onCancel} width={width}>
+			<Modal.Header>
+				<Text size="xxSmall" color="n11" weight="medium">
+					{title}
+				</Text>
+			</Modal.Header>
+			<Modal.Body>{configurationPage()}</Modal.Body>
 		</Modal>
 	)
 }

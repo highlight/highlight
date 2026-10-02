@@ -1,5 +1,4 @@
 import { AdminAvatar } from '@components/Avatar/Avatar'
-import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import PopConfirm from '@components/PopConfirm/PopConfirm'
 import Table from '@components/Table/Table'
@@ -9,7 +8,8 @@ import {
 	useGetWorkspacePendingInvitesQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Box } from '@highlight-run/ui/components'
+import { Box, ButtonIcon } from '@highlight-run/ui/components'
+import analytics from '@util/analytics'
 import SvgTrashIconSolid from '@icons/TrashIconSolid'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
@@ -161,13 +161,13 @@ const TABLE_COLUMNS = [
 					}}
 					okButtonProps={{ danger: true }}
 				>
-					<Button
+					<ButtonIcon
 						className={styles.removeTeamMemberButton}
-						trackingId="DeleteInvite"
-						iconButton
-					>
-						<SvgTrashIconSolid />
-					</Button>
+						onClick={() => {
+							analytics.track('Button-DeleteInvite')
+						}}
+						icon={<SvgTrashIconSolid />}
+					/>
 				</PopConfirm>
 			)
 		},

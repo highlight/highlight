@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Box, Button, Stack, Text } from '@highlight-run/ui/components'
 import { toast } from '@components/Toaster'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
@@ -8,10 +8,9 @@ import {
 } from '@pages/IntegrationsPage/components/Integration'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import { CodeBlock } from '@/pages/Connect/CodeBlock'
+import analytics from '@util/analytics'
 import React, { useEffect } from 'react'
 import { coy as lightTheme } from 'react-syntax-highlighter/dist/esm/styles/prism'
-
-import styles from './ZapierIntegrationConfig.module.css'
 
 const ZapierIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
@@ -32,16 +31,25 @@ const ZapierIntegrationConfig: React.FC<
 
 	if (action === IntegrationAction.Disconnect) {
 		return (
-			<>
-				<p className={styles.modalSubTitle}>
-					Disconnecting Zapier from Highlight will cause your Zaps to
-					stop working.
-				</p>
-				<footer>
+			<Stack gap="12">
+				<Box py="8">
+					<Text color="moderate">
+						Disconnecting Zapier from Highlight will cause your
+						Zaps to stop working.
+					</Text>
+				</Box>
+				<Box
+					display="flex"
+					justifyContent="flex-end"
+					gap="8"
+					paddingTop="16"
+					borderTop="secondary"
+				>
 					<Button
-						trackingId="IntegrationDisconnectCancel-Slack"
-						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
+							analytics.track('IntegrationDisconnectCancel-Zapier')
 							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
@@ -49,34 +57,38 @@ const ZapierIntegrationConfig: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-Slack"
-						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
+						emphasis="high"
+						iconLeft={<PlugIcon />}
 						onClick={() => {
+							analytics.track('IntegrationDisconnectSave-Zapier')
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeZapierIntegrationFromProject()
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect Zapier
 					</Button>
-				</footer>
-			</>
+				</Box>
+			</Stack>
 		)
 	}
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
-				Connect Highlight with Zapier to use alerts as triggers for your
-				Zaps.
-			</p>
-			<p className={styles.modalSubTitle}>
-				In order to connect, you'll need to create a Zap in Zapier and
-				when prompted, enter the access token from the textbox below.
-			</p>
+		<Stack gap="12">
+			<Box py="8">
+				<Stack gap="8">
+					<Text color="moderate">
+						Connect Highlight with Zapier to use alerts as triggers
+						for your Zaps.
+					</Text>
+					<Text color="moderate">
+						In order to connect, you'll need to create a Zap in
+						Zapier and when prompted, enter the access token from
+						the textbox below.
+					</Text>
+				</Stack>
+			</Box>
 			<CodeBlock
 				style={lightTheme}
 				showLineNumbers={false}
@@ -84,11 +96,18 @@ const ZapierIntegrationConfig: React.FC<
 				language="text"
 				numberOfLines={2}
 			/>
-			<footer>
+			<Box
+				display="flex"
+				justifyContent="flex-end"
+				gap="8"
+				paddingTop="16"
+				borderTop="secondary"
+			>
 				<Button
-					trackingId="IntegrationConfigurationCancel-Zapier"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track('IntegrationConfigurationCancel-Zapier')
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
@@ -96,17 +115,18 @@ const ZapierIntegrationConfig: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Zapier"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href="https://zapier.com/app/zaps" // TODO: change to Highlight Zap URL
+					kind="primary"
+					emphasis="high"
+					iconLeft={<Sparkles2Icon />}
+					onClick={() => {
+						analytics.track('IntegrationConfigurationSave-Zapier')
+						window.open('https://zapier.com/app/zaps', '_blank')
+					}}
 				>
-					<Sparkles2Icon className={styles.modalBtnIcon} /> Create a
-					Zap
+					Create a Zap
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 

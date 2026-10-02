@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Box, Button, Stack, Text } from '@highlight-run/ui/components'
 import { toast } from '@components/Toaster'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
@@ -7,11 +7,10 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
+import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import React, { useEffect } from 'react'
-
-import styles from './DiscordIntegrationConfig.module.css'
 
 const DISCORD_CLIENT_ID = import.meta.env.DISCORD_CLIENT_ID
 
@@ -72,16 +71,19 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 
 	if (action === IntegrationAction.Disconnect) {
 		return (
-			<>
-				<p className={styles.modalSubTitle}>
+			<Stack gap="12">
+				<Text color="moderate">
 					Disconnecting Discord from Highlight will prevent alerts
 					from notifying Discord channels.
-				</p>
-				<footer>
+				</Text>
+				<Box display="flex" justifyContent="flex-end" gap="8">
 					<Button
-						trackingId="IntegrationDisconnectCancel-Discord"
-						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
+							analytics.track(
+								'IntegrationDisconnectCancel-Discord',
+							)
 							setModalOpen(false)
 							setIntegrationEnabled(true)
 						}}
@@ -89,34 +91,34 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-Discord"
-						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
+						emphasis="high"
+						iconLeft={<PlugIcon />}
 						onClick={() => {
+							analytics.track('IntegrationDisconnectSave-Discord')
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeDiscordIntegrationFromProject()
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect Discord
 					</Button>
-				</footer>
-			</>
+				</Box>
+			</Stack>
 		)
 	}
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
+		<Stack gap="12">
+			<Text color="moderate">
 				Connect Discord to your Highlight workspace to setup alerts.
-			</p>
-			<footer>
+			</Text>
+			<Box display="flex" justifyContent="flex-end" gap="8">
 				<Button
-					trackingId="IntegrationConfigurationCancel-Discord"
-					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
+						analytics.track('IntegrationConfigurationCancel-Discord')
 						setModalOpen(false)
 						setIntegrationEnabled(false)
 					}}
@@ -124,22 +126,20 @@ const DiscordIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Discord"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href={getDiscordOauthUrl(project_id!)}
+					kind="primary"
+					emphasis="high"
+					iconLeft={<Sparkles2Icon />}
+					onClick={() => {
+						analytics.track('IntegrationConfigurationSave-Discord')
+					window.open(getDiscordOauthUrl(project_id!), '_blank')
+					}}
 				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span className="mt-1">
-							Connect Highlight with Discord
-						</span>
-					</span>
+					Connect Highlight with Discord
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 
 export default DiscordIntegrationConfig
+
