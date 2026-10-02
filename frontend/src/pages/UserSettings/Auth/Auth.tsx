@@ -1,9 +1,9 @@
 import Alert from '@components/Alert/Alert'
 import Button from '@components/Button/Button/Button'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
-import Input from '@components/Input/Input'
 import Space from '@components/Space/Space'
 import { toast } from '@components/Toaster'
+import { Form } from '@highlight-run/ui/components'
 import { auth } from '@util/auth'
 import firebase from 'firebase/compat/app'
 import moment from 'moment'
@@ -168,14 +168,15 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 	return (
 		<>
 			{!verificationId ? (
-				<form onSubmit={handleSubmit}>
+				<Form onSubmit={handleSubmit}>
 					<Space size="medium" direction="vertical">
 						<p>
 							Add an additional layer of security for your account
 							by enabling SMS-based two-factor authentication.
 						</p>
 
-						<Input
+						<Form.Input
+							name="phoneNumber"
 							value={phoneNumber}
 							onChange={(e) => setPhoneNumber(e.target.value)}
 							placeholder="+1 123-456-7890"
@@ -191,7 +192,7 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 							Setup 2FA
 						</Button>
 					</Space>
-				</form>
+				</Form>
 			) : (
 				<VerifyPhone
 					phoneNumber={phoneNumber}
@@ -272,9 +273,10 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 
 			<p>Enter the code sent to your phone to verify your device.</p>
 
-			<form onSubmit={handleCodeSubmit}>
+			<Form onSubmit={handleCodeSubmit}>
 				<Space direction="vertical" size="medium">
-					<Input
+					<Form.Input
+						name="verificationCode"
 						value={verificationCode}
 						onChange={(e) => setVerificationCode(e.target.value)}
 						placeholder="Verification code"
@@ -289,7 +291,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 						Submit
 					</Button>
 				</Space>
-			</form>
+			</Form>
 		</>
 	)
 }
