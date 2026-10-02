@@ -1,17 +1,17 @@
-import { Input as AntDesignInput, InputProps } from 'antd'
 import clsx from 'clsx'
+import React from 'react'
 
 import styles from './Input.module.css'
 
-type Props = InputProps & {
-	ref?: any
+type Props = React.InputHTMLAttributes<HTMLInputElement> & {
+	ref?: React.Ref<HTMLInputElement>
 }
 
-const Input = (props: Props) => {
+const Input = ({ className, ...props }: Props) => {
 	return (
-		<AntDesignInput
+		<input
 			{...props}
-			className={clsx(props.className, styles.input)}
+			className={clsx(className, styles.input)}
 		/>
 	)
 }
