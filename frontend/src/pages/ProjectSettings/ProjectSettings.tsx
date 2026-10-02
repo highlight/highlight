@@ -16,7 +16,6 @@ import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 
-import BorderBox from '@/components/BorderBox/BorderBox'
 import { Button } from '@/components/Button'
 import {
 	CircularSpinner,
@@ -226,13 +225,13 @@ const ProjectSettings = () => {
 												)}
 											</Button>
 										</Box>
-										<BorderBox>
-											<Stack gap="8">
-												<ErrorSettingsForm />
-												<Box borderTop="dividerWeak" />
-												<ErrorFiltersForm />
-											</Stack>
-										</BorderBox>
+										<Box border="dividerWeak" borderRadius="6" p="12">
+	<Stack gap="8">
+		<ErrorSettingsForm />
+		<Box borderTop="dividerWeak" />
+		<ErrorFiltersForm />
+	</Stack>
+</Box>
 										<FilterExtensionForm />
 										<SourcemapSettings />
 										<AutoresolveStaleErrorsForm />
