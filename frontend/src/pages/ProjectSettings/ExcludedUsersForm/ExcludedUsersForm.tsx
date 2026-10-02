@@ -1,9 +1,7 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
-import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
-import { Form, Stack } from '@highlight-run/ui/components'
+import { Form, Select, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
 
@@ -11,11 +9,12 @@ import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
+type ExcludedUserOption = string | { value: string | number }
+
 export const ExcludedUsersForm = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const [identifierQuery, setIdentifierQuery] = useState('')
 	const [invalidExcludedUsers, setInvalidExcludedUsers] = useState<string[]>(
 		[],
 	)
@@ -45,21 +44,17 @@ export const ExcludedUsersForm = () => {
 		? []
 		: (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
 				(suggestion) => ({
+					name: suggestion,
 					value: suggestion,
-					displayValue: (
-						<TextHighlighter
-							searchWords={[identifierQuery]}
-							textToHighlight={suggestion}
-						/>
-					),
-					id: suggestion,
 				}),
 			)
 
 	const handleIdentifierSearch = (query = '') => {
-		setIdentifierQuery(query)
 		refetchIdentifierSuggestions({ query, project_id })
 	}
+
+	const getExcludedUserValue = (option: ExcludedUserOption) =>
+		typeof option === 'string' ? option : String(option.value)
 
 	return (
 		<BorderBox>
@@ -77,15 +72,22 @@ export const ExcludedUsersForm = () => {
 						name="Filtered users"
 					>
 						<Select
-							mode="tags"
+							aria-label="Filtered users"
+							creatable
+							filterable
+							displayMode="tags"
 							placeholder=".*@yourdomain.com"
-							value={
-								data?.projectSettings?.excluded_users ||
-								undefined
-							}
-							onSearch={handleIdentifierSearch}
+							value={data?.projectSettings?.excluded_users || []}
+							onSearchValueChange={handleIdentifierSearch}
 							options={identifierSuggestions}
-							onChange={(excluded: string[]) => {
+							resultsLoading={identifierSuggestionsLoading}
+							onValueChange={(
+								selectedExcludedUsers: ExcludedUserOption[],
+							) => {
+								const excluded =
+									selectedExcludedUsers.map(
+										getExcludedUserValue,
+									)
 								const validRegexes: string[] = []
 								const invalidRegexes: string[] = []
 								excluded.forEach((expression) => {
