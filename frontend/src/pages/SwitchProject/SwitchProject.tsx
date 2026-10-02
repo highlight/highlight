@@ -1,11 +1,11 @@
 import Button from '@components/Button/Button/Button'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
-import Select from '@components/Select/Select'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspaceQuery } from '@graph/hooks'
+import { Select, type SelectOption } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -33,8 +33,7 @@ const SwitchProject = () => {
 	const projectOptions = (data?.workspace?.projects || [])?.map(
 		(projects) => ({
 			value: projects?.id || '',
-			displayValue: projects?.name || '',
-			id: projects?.id || '',
+			name: projects?.name || '',
 		}),
 	)
 
@@ -44,7 +43,7 @@ const SwitchProject = () => {
 	}
 
 	const currentProject = projectOptions?.find(
-		(project) => project.id === selectedProject,
+		(project) => project.value === selectedProject,
 	)
 
 	if (shouldRedirect) {
@@ -70,10 +69,10 @@ const SwitchProject = () => {
 					<Select
 						className={styles.fullWidth}
 						options={projectOptions}
-						onChange={(projectId) => {
-							setSelectedProject(projectId)
+						onValueChange={(project: SelectOption) => {
+							setSelectedProject(String(project.value))
 						}}
-						value={currentProject?.id}
+						value={currentProject}
 						placeholder="Enter a Project"
 					/>
 					<Button
