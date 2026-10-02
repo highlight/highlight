@@ -114,144 +114,190 @@ const ProjectSettings = () => {
 				<title>Project Settings</title>
 			</Helmet>
 
-			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
-				<Heading mt="16" level="h4">
-					Project Settings
-				</Heading>
-				<Box mt="24">
-					<ProjectSettingsContextProvider
-						value={{
-							allProjectSettings,
-							setAllProjectSettings,
-							loading,
-						}}
-					>
-						<Tabs<ProjectSettingsTabs>
-							selectedId={
-								params.tab ?? ProjectSettingsTabs.Sessions
-							}
-							onChange={(id) => {
-								navigate(`/${project_id}/settings/${id}`)
+			<Box style={{ maxWidth: 800 }} my="40" mx="auto">
+				<Stack gap="32">
+					<Heading level="h2">Project Settings</Heading>
+					<Box>
+						<ProjectSettingsContextProvider
+							value={{
+								allProjectSettings,
+								setAllProjectSettings,
+								loading,
 							}}
 						>
-							<Tabs.List>
-								<Tabs.Tab id={ProjectSettingsTabs.General}>
-									General
-								</Tabs.Tab>
-								<Tabs.Tab id={ProjectSettingsTabs.Sessions}>
-									Session replay
-								</Tabs.Tab>
-								<Tabs.Tab id={ProjectSettingsTabs.Errors}>
-									Error monitoring
-								</Tabs.Tab>
-								<Tabs.Tab id={ProjectSettingsTabs.Services}>
-									Services
-								</Tabs.Tab>
-								<Tabs.Tab id={ProjectSettingsTabs.Filters}>
-									Filters
-								</Tabs.Tab>
-								<Tabs.Tab id={ProjectSettingsTabs.Streams}>
-									Streams
-								</Tabs.Tab>
-							</Tabs.List>
-							<Box mt="24">
-								<Tabs.Panel id={ProjectSettingsTabs.General}>
-									<DangerForm />
-								</Tabs.Panel>
-								<Tabs.Panel id={ProjectSettingsTabs.Sessions}>
-									<Stack>
-										<Box
-											display="flex"
-											gap="8"
-											justifyContent="space-between"
-											alignItems="center"
-										>
-											<Text size="large" weight="bold">
-												Session replay
-											</Text>
-											<Button
-												onClick={onSubmit(
-													'session replay',
-												)}
-												trackingId="ProjectSettingsUpdate"
+							<Tabs<ProjectSettingsTabs>
+								selectedId={
+									params.tab ?? ProjectSettingsTabs.Sessions
+								}
+								onChange={(id) => {
+									navigate(`/${project_id}/settings/${id}`)
+								}}
+							>
+								<Tabs.List>
+									<Tabs.Tab id={ProjectSettingsTabs.General}>
+										General
+									</Tabs.Tab>
+									<Tabs.Tab id={ProjectSettingsTabs.Sessions}>
+										Session replay
+									</Tabs.Tab>
+									<Tabs.Tab id={ProjectSettingsTabs.Errors}>
+										Error monitoring
+									</Tabs.Tab>
+									<Tabs.Tab id={ProjectSettingsTabs.Services}>
+										Services
+									</Tabs.Tab>
+									<Tabs.Tab id={ProjectSettingsTabs.Filters}>
+										Filters
+									</Tabs.Tab>
+									<Tabs.Tab id={ProjectSettingsTabs.Streams}>
+										Streams
+									</Tabs.Tab>
+								</Tabs.List>
+								<Box mt="32">
+									<Tabs.Panel
+										id={ProjectSettingsTabs.General}
+									>
+										<DangerForm />
+									</Tabs.Panel>
+									<Tabs.Panel
+										id={ProjectSettingsTabs.Sessions}
+									>
+										<Stack gap="16">
+											<Box
+												display="flex"
+												gap="8"
+												justifyContent="space-between"
+												alignItems="center"
 											>
-												{editProjectSettingsLoading ? (
-													<CircularSpinner
-														style={{
-															fontSize: 18,
-															color: 'var(--text-primary-inverted)',
-														}}
-													/>
-												) : (
-													'Save changes'
-												)}
-											</Button>
-										</Box>
-										<ExcludedUsersForm />
-										<SessionFiltersCallout />
-										<RageClicksForm />
-										{workspaceSettingsData
-											?.workspaceSettings
-											?.enable_session_export ? (
-											<SessionExportForm />
-										) : null}
-									</Stack>
-								</Tabs.Panel>
-								<Tabs.Panel id={ProjectSettingsTabs.Errors}>
-									<Stack>
-										<Box
-											display="flex"
-											gap="8"
-											justifyContent="space-between"
-											alignItems="center"
-										>
-											<Text size="large" weight="bold">
-												Error monitoring
-											</Text>
-											<Button
-												onClick={onSubmit(
-													'error monitoring',
-												)}
-												trackingId="ProjectSettingsUpdate"
-											>
-												{editProjectSettingsLoading ? (
-													<CircularSpinner
-														style={{
-															fontSize: 18,
-															color: 'var(--text-primary-inverted)',
-														}}
-													/>
-												) : (
-													'Save changes'
-												)}
-											</Button>
-										</Box>
-										<BorderBox>
-											<Stack gap="8">
-												<ErrorSettingsForm />
-												<Box borderTop="dividerWeak" />
-												<ErrorFiltersForm />
+												<Heading level="h4">
+													Session replay
+												</Heading>
+												<Button
+													onClick={onSubmit(
+														'session replay',
+													)}
+													trackingId="ProjectSettingsUpdate"
+												>
+													{editProjectSettingsLoading ? (
+														<CircularSpinner
+															style={{
+																fontSize: 18,
+																color: 'var(--text-primary-inverted)',
+															}}
+														/>
+													) : (
+														'Save changes'
+													)}
+												</Button>
+											</Box>
+											<Stack gap="16">
+												<ExcludedUsersForm />
+												<SessionFiltersCallout />
+												<RageClicksForm />
+												{workspaceSettingsData
+													?.workspaceSettings
+													?.enable_session_export ? (
+													<SessionExportForm />
+												) : null}
 											</Stack>
-										</BorderBox>
-										<FilterExtensionForm />
-										<SourcemapSettings />
-										<AutoresolveStaleErrorsForm />
-									</Stack>
-								</Tabs.Panel>
-								<Tabs.Panel id={ProjectSettingsTabs.Services}>
-									<ServicesTable />
-								</Tabs.Panel>
-								<Tabs.Panel id={ProjectSettingsTabs.Filters}>
-									<ProjectFilters />
-								</Tabs.Panel>
-								<Tabs.Panel id={ProjectSettingsTabs.Streams}>
-									<StreamsSettings />
-								</Tabs.Panel>
-							</Box>
-						</Tabs>
-					</ProjectSettingsContextProvider>
-				</Box>
+										</Stack>
+									</Tabs.Panel>
+									<Tabs.Panel
+										id={ProjectSettingsTabs.Errors}
+									>
+										<Stack gap="16">
+											<Box
+												display="flex"
+												gap="8"
+												justifyContent="space-between"
+												alignItems="center"
+											>
+												<Heading level="h4">
+													Error monitoring
+												</Heading>
+												<Button
+													onClick={onSubmit(
+														'error monitoring',
+													)}
+													trackingId="ProjectSettingsUpdate"
+												>
+													{editProjectSettingsLoading ? (
+														<CircularSpinner
+															style={{
+																fontSize: 18,
+																color: 'var(--text-primary-inverted)',
+															}}
+														/>
+													) : (
+														'Save changes'
+													)}
+												</Button>
+											</Box>
+											<Stack gap="16">
+												<Box
+													background="white"
+													border="dividerWeak"
+													borderRadius="8"
+												>
+													<Stack gap="0">
+														<Box p="24">
+															<ErrorSettingsForm />
+														</Box>
+														<Box borderTop="dividerWeak" />
+														<Box p="24">
+															<ErrorFiltersForm />
+														</Box>
+													</Stack>
+												</Box>
+												<FilterExtensionForm />
+												<SourcemapSettings />
+												<AutoresolveStaleErrorsForm />
+											</Stack>
+										</Stack>
+									</Tabs.Panel>
+									<Tabs.Panel
+										id={ProjectSettingsTabs.Services}
+									>
+										<Box
+											background="white"
+											border="dividerWeak"
+											borderRadius="8"
+											p="24"
+										>
+											<ServicesTable />
+										</Box>
+									</Tabs.Panel>
+									<Tabs.Panel
+										id={ProjectSettingsTabs.Filters}
+									>
+										<Box
+											background="white"
+											border="dividerWeak"
+											borderRadius="8"
+											p="24"
+										>
+											<ProjectFilters />
+										</Box>
+									</Tabs.Panel>
+									<Tabs.Panel
+										id={ProjectSettingsTabs.Streams}
+									>
+										<Box
+											background="white"
+											border="dividerWeak"
+											borderRadius="8"
+											p="24"
+										>
+											<StreamsSettings />
+										</Box>
+									</Tabs.Panel>
+								</Box>
+							</Tabs>
+						</ProjectSettingsContextProvider>
+					</Box>
+				</Stack>
 			</Box>
+
 		</>
 	)
 }

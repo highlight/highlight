@@ -1,4 +1,3 @@
-import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import {
 	useEditServiceGithubSettingsMutation,
@@ -8,6 +7,7 @@ import { namedOperations } from '@graph/operations'
 import {
 	Badge,
 	Box,
+	Heading,
 	IconSolidCheveronDown,
 	IconSolidCubeTransparent,
 	IconSolidExternalLink,
@@ -25,7 +25,9 @@ import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
 import { capitalize, debounce } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
 
+import { Button } from '@/components/Button'
 import { Service, ServiceStatus } from '@/graph/generated/schemas'
+import { LoadingBar } from '@/components/Loading/Loading'
 
 import {
 	GithubSettingsFormValues,
@@ -146,7 +148,14 @@ export const ServicesTable: React.FC = () => {
 					justifyContent="space-between"
 					width="full"
 				>
-					<Box>{service.name}</Box>
+					<Box
+						style={{
+							fontFamily: 'var(--family-monospace)',
+							fontSize: 'var(--size-xSmall)',
+						}}
+					>
+						{service.name}
+					</Box>
 					{service.githubRepoPath && (
 						<Table.Discoverable>
 							<a
@@ -218,7 +227,7 @@ export const ServicesTable: React.FC = () => {
 						<Tooltip trigger={renderBadge()}>
 							<Box style={{ maxWidth: 250 }} p="8">
 								{service.errorDetails?.map((error) => (
-									<Text key={error} color="bad">
+									<Text key={error} color="bad" size="small">
 										{error}
 									</Text>
 								))}
@@ -238,7 +247,9 @@ export const ServicesTable: React.FC = () => {
 		if (loading) {
 			return (
 				<Table.FullRow>
-					<LoadingBox />
+					<Box p="24" width="full">
+						<LoadingBar width="100%" />
+					</Box>
 				</Table.FullRow>
 			)
 		}
@@ -246,9 +257,11 @@ export const ServicesTable: React.FC = () => {
 		if (error?.message) {
 			return (
 				<Table.FullRow>
-					<Text size="small" color="bad">
-						{error.message}
-					</Text>
+					<Box p="24">
+						<Text size="small" color="bad">
+							{error.message}
+						</Text>
+					</Box>
 				</Table.FullRow>
 			)
 		}
@@ -256,9 +269,11 @@ export const ServicesTable: React.FC = () => {
 		if (!data?.services?.edges.length) {
 			return (
 				<Table.FullRow>
-					<Text size="small" color="weak">
-						No services found
-					</Text>
+					<Box p="24">
+						<Text size="small" color="weak">
+							No services found
+						</Text>
+					</Box>
 				</Table.FullRow>
 			)
 		}
@@ -291,104 +306,101 @@ export const ServicesTable: React.FC = () => {
 	return (
 		<Box>
 			<Stack
-				mb="16"
 				direction="row"
 				justifyContent="space-between"
 				alignItems="center"
+				gap="16"
 			>
-				<Text size="medium" weight="medium" color="default">
-					Services
-				</Text>
+				<Heading level="h4">Services</Heading>
 				{!isIntegrated && (
 					<Button
 						kind="secondary"
 						emphasis="medium"
 						trackingId="services-integrate-github"
 						onClick={() => setIntegrationModalVisible(true)}
+						size="small"
 					>
 						Configure GitHub integration
 					</Button>
 				)}
 			</Stack>
-			<Stack direction="column" gap="4" align="center" paddingRight="4">
-				<Table>
-					<Table.Search handleChange={handleQueryChange} />
-					<Table.Head>
-						<Table.Row gridColumns={gridColumns}>
-							{columns.map((column) => (
-								<Table.Header key={column.name}>
-									{column.name}
-								</Table.Header>
-							))}
-						</Table.Row>
-					</Table.Head>
-					<Table.Body>{renderTableContent()}</Table.Body>
-				</Table>
+			<Table>
+				<Table.Search handleChange={handleQueryChange} />
+				<Table.Head>
+					<Table.Row gridColumns={gridColumns}>
+						{columns.map((column) => (
+							<Table.Header key={column.name}>
+								{column.name}
+							</Table.Header>
+						))}
+					</Table.Row>
+				</Table.Head>
+				<Table.Body>{renderTableContent()}</Table.Body>
+			</Table>
+			<Stack
+				direction="row"
+				justifyContent="space-between"
+				alignItems="center"
+				width="full"
+				mt="12"
+			>
+				<Box display="flex" width="full">
+					<Text size="xSmall" color="weak" weight="regular">
+						{resultLength}
+						{estimatedResults && '+'}
+						{resultLength === 1 ? ' result' : ' results'}
+					</Text>
+				</Box>
 				<Stack
 					direction="row"
-					justifyContent="space-between"
-					alignItems="center"
+					justifyContent="flex-end"
 					width="full"
-					mt="8"
+					gap="6"
 				>
-					<Box display="flex" width="full">
-						<Text size="small" color="weak" weight="regular">
-							{resultLength}
-							{estimatedResults && '+'}
-							{resultLength === 1 ? ' result' : ' results'}
-						</Text>
-					</Box>
-					<Stack
-						direction="row"
-						justifyContent="flex-end"
-						width="full"
-						gap="6"
+					<Button
+						kind="secondary"
+						emphasis="medium"
+						trackingId="services-previous-page"
+						disabled={!data?.services?.pageInfo?.hasPreviousPage}
+						onClick={handlePreviousPage}
+						size="small"
 					>
-						<Button
-							kind="secondary"
-							emphasis="medium"
-							trackingId="services-previous-page"
-							disabled={
-								!data?.services?.pageInfo?.hasPreviousPage
-							}
-							onClick={handlePreviousPage}
-						>
-							Previous
-						</Button>
-						<Button
-							kind="secondary"
-							emphasis="medium"
-							trackingId="services-next-page"
-							disabled={!data?.services?.pageInfo?.hasNextPage}
-							onClick={handleNextPage}
-						>
-							Next
-						</Button>
-					</Stack>
+						Previous
+					</Button>
+					<Button
+						kind="secondary"
+						emphasis="medium"
+						trackingId="services-next-page"
+						disabled={!data?.services?.pageInfo?.hasNextPage}
+						onClick={handleNextPage}
+						size="small"
+					>
+						Next
+					</Button>
 				</Stack>
-				{!isIntegrated && (
-					<IntegrationModal
-						title="Configuring GitHub Integration"
-						visible={integrationModalVisible}
-						onCancel={closeModal}
-						configurationPage={() =>
-							configurationPage({
-								setModalOpen: closeModal,
-								setIntegrationEnabled: () => {},
-								action: IntegrationAction.Setup,
-							})
-						}
-					/>
-				)}
-				{selectedService && (
-					<GitHubSettingsModal
-						githubRepos={githubData?.github_repos || []}
-						service={selectedService}
-						closeModal={closeModal}
-						handleSave={updateServiceSettings}
-					/>
-				)}
 			</Stack>
+			{!isIntegrated && (
+				<IntegrationModal
+					title="Configuring GitHub Integration"
+					visible={integrationModalVisible}
+					onCancel={closeModal}
+					configurationPage={() =>
+						configurationPage({
+							setModalOpen: closeModal,
+							setIntegrationEnabled: () => {},
+							action: IntegrationAction.Setup,
+						})
+					}
+				/>
+			)}
+			{selectedService && (
+				<GitHubSettingsModal
+					githubRepos={githubData?.github_repos || []}
+					service={selectedService}
+					closeModal={closeModal}
+					handleSave={updateServiceSettings}
+				/>
+			)}
 		</Box>
 	)
 }

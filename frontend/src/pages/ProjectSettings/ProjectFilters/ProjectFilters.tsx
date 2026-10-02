@@ -1,5 +1,4 @@
 import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
-import { Button } from '@components/Button'
 import { SearchForm } from '@components/Search/SearchForm/SearchForm'
 import {
 	useEditProjectSettingsMutation,
@@ -34,9 +33,10 @@ import { useProjectId } from '@hooks/useProjectId'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { upperFirst } from 'lodash'
 import moment from 'moment'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { Button } from '@/components/Button'
 import { SearchContext } from '@/components/Search/SearchContext'
 
 const DATE_RANGE_PRESETS = [DEFAULT_TIME_PRESETS[1], DEFAULT_TIME_PRESETS[3]]
@@ -95,15 +95,15 @@ const Header: React.FC<{
 
 export const ProjectFilters: React.FC = () => {
 	return (
-		<Stack width="full">
+		<Stack width="full" gap="32">
 			<ProjectProductFilters view product={ProductType.Sessions} />
-			<Box my="20" borderBottom="dividerWeak" />
+			<Box borderTop="dividerWeak" style={{ marginLeft: -24, marginRight: -24 }} />
 			<ProjectProductFilters view product={ProductType.Errors} />
-			<Box my="20" borderBottom="dividerWeak" />
+			<Box borderTop="dividerWeak" style={{ marginLeft: -24, marginRight: -24 }} />
 			<ProjectProductFilters view product={ProductType.Logs} />
-			<Box my="20" borderBottom="dividerWeak" />
+			<Box borderTop="dividerWeak" style={{ marginLeft: -24, marginRight: -24 }} />
 			<ProjectProductFilters view product={ProductType.Traces} />
-			<Box my="20" borderBottom="dividerWeak" />
+			<Box borderTop="dividerWeak" style={{ marginLeft: -24, marginRight: -24 }} />
 			<ProjectProductFilters view product={ProductType.Metrics} />
 		</Stack>
 	)
@@ -218,6 +218,56 @@ export const ProjectProductFilters: React.FC<{
 
 	React.useEffect(resetConfig, [resetConfig])
 
+	const isDirty = useMemo(() => {
+		const c = {
+			exclusion_query:
+				data?.projectSettings?.sampling[
+					`${product
+						.toLowerCase()
+						.slice(0, -1)}_exclusion_query` as keyof Pick<
+						Sampling,
+						| 'session_exclusion_query'
+						| 'error_exclusion_query'
+						| 'log_exclusion_query'
+						| 'trace_exclusion_query'
+						| 'metric_exclusion_query'
+					>
+				],
+			sampling_rate:
+				data?.projectSettings?.sampling[
+					`${product
+						.toLowerCase()
+						.slice(0, -1)}_sampling_rate` as keyof Pick<
+						Sampling,
+						| 'session_sampling_rate'
+						| 'error_sampling_rate'
+						| 'log_sampling_rate'
+						| 'trace_sampling_rate'
+						| 'metric_sampling_rate'
+					>
+				],
+			minute_rate_limit:
+				data?.projectSettings?.sampling[
+					`${product
+						.toLowerCase()
+						.slice(0, -1)}_minute_rate_limit` as keyof Pick<
+						Sampling,
+						| 'session_minute_rate_limit'
+						| 'error_minute_rate_limit'
+						| 'log_minute_rate_limit'
+						| 'trace_minute_rate_limit'
+						| 'metric_minute_rate_limit'
+					>
+				],
+		}
+		const currentValues = formStore.getState().values
+		return (
+			currentValues.exclusionQuery !== (c.exclusion_query ?? null) ||
+			currentValues.samplingPercent !== 100 * (c.sampling_rate ?? 1) ||
+			currentValues.minuteRateLimit !== (c.minute_rate_limit ?? null)
+		)
+	}, [data?.projectSettings?.sampling, formStore, product])
+
 	if (!product || loading) {
 		return null
 	}
@@ -259,12 +309,12 @@ export const ProjectProductFilters: React.FC<{
 	)
 
 	const save = (
-		<Box display="flex" alignItems="center" gap="6">
+		<Box display="flex" alignItems="center" gap="8">
 			<Button
 				trackingId={`project-filters-${product}-discard`}
 				kind="secondary"
 				size="small"
-				emphasis="low"
+				emphasis="medium"
 				onClick={resetConfig}
 			>
 				Discard changes
@@ -291,27 +341,29 @@ export const ProjectProductFilters: React.FC<{
 			{view ? null : (
 				<Header product={product} title={`${label} filters`} />
 			)}
-			<Box display="flex" flexDirection="column" gap="6">
+			<Box display="flex" flexDirection="column" gap="12">
 				<Box
 					display="flex"
 					justifyContent="space-between"
 					alignItems="center"
 					width="full"
 				>
-					<>
-						<Text>{label} filters</Text>
-						{view ? null : (
-							<FilterPaywall
-								setting="enable_ingest_filtering"
-								product={product}
-							>
-								{save}
-							</FilterPaywall>
-						)}
-					</>
+					<Box display="flex" alignItems="center" gap="8">
+						<Text size="large" weight="bold">
+							{label} filters
+						</Text>
+					</Box>
+					{(isDirty || !view) && (
+						<FilterPaywall
+							setting="enable_ingest_filtering"
+							product={product}
+						>
+							{save}
+						</FilterPaywall>
+					)}
 				</Box>
-				<Stack gap="6" py="6">
-					<Box display="flex" width="full" gap="6">
+				<Stack gap="12">
+					<Box display="flex" width="full" gap="8" alignItems="center">
 						<Box width="full" style={{ minHeight: 20 }}>
 							<SearchContext
 								initialQuery={query}
@@ -335,7 +387,7 @@ export const ProjectProductFilters: React.FC<{
 								/>
 							</SearchContext>
 						</Box>
-						{view ? (
+						{view && !isDirty ? (
 							<FilterPaywall
 								setting="enable_ingest_filtering"
 								product={product}
@@ -370,7 +422,7 @@ export const ProjectProductFilters: React.FC<{
 					justifyContent="space-between"
 					width="full"
 				>
-					<Text weight="medium" size="xSmall" color="weak">
+					<Text weight="medium" size="xSmall" color="moderate">
 						{label}s
 					</Text>
 					<DateRangePicker
@@ -390,83 +442,89 @@ export const ProjectProductFilters: React.FC<{
 						noCustom
 						minDate={moment().subtract(30, 'days').toDate()}
 						kind="secondary"
-						size="medium"
+						size="small"
 						emphasis="low"
 					/>
 				</Box>
 				<Form store={formStore}>
 					<Box display="flex" width="full">
 						{view ? null : (
-							<Stack display="flex" width="full" gap="8">
-								<EnterpriseFeatureButton
-									setting="enable_ingest_sampling"
-									name="Ingestion Sampling"
-									fn={async () => {}}
-									variant="basic"
-								>
-									<Box display="flex" width="full" gap="8">
+							<Stack display="flex" width="full" gap="12">
+								<Box width="full">
+									<EnterpriseFeatureButton
+										setting="enable_ingest_sampling"
+										name="Ingestion Sampling"
+										fn={async () => {}}
+										variant="basic"
+									>
 										<Box
-											width="full"
 											display="flex"
-											flexDirection="column"
-											gap="4"
-										>
-											<Form.Label
-												label="Sampling %"
-												name={
-													formStore.names
-														.samplingPercent
-												}
-											/>
-											<Form.Input
-												disabled={!canEditSampling}
-												name={
-													formStore.names
-														.samplingPercent
-												}
-												type="number"
-											/>
-										</Box>
-										<Box
 											width="full"
-											display="flex"
-											flexDirection="column"
-											gap="4"
+											gap="12"
 										>
-											<Form.Label
-												label="Max ingest per minute"
-												name={
-													formStore.names
-														.minuteRateLimit
-												}
-											/>
-											<Form.Input
-												disabled={!canEditSampling}
-												name={
-													formStore.names
-														.minuteRateLimit
-												}
-												type="number"
-											/>
+											<Box
+												flexGrow={1}
+												display="flex"
+												flexDirection="column"
+												gap="4"
+											>
+												<Form.Label
+													label="Sampling %"
+													name={
+														formStore.names
+															.samplingPercent
+													}
+												/>
+												<Form.Input
+													disabled={!canEditSampling}
+													name={
+														formStore.names
+															.samplingPercent
+													}
+													type="number"
+												/>
+											</Box>
+											<Box
+												flexGrow={1}
+												display="flex"
+												flexDirection="column"
+												gap="4"
+											>
+												<Form.Label
+													label="Max ingest per minute"
+													name={
+														formStore.names
+															.minuteRateLimit
+													}
+												/>
+												<Form.Input
+													disabled={!canEditSampling}
+													name={
+														formStore.names
+															.minuteRateLimit
+													}
+													type="number"
+												/>
+											</Box>
 										</Box>
-									</Box>
-								</EnterpriseFeatureButton>
+									</EnterpriseFeatureButton>
+								</Box>
 								<Callout>
 									<Box
 										display="flex"
 										flexDirection="column"
-										gap="12"
-										py="6"
+										gap="8"
+										py="4"
 									>
-										<Text color="moderate">
+										<Text color="moderate" size="small">
 											1. Filters will drop data matching
 											the condition.
 										</Text>
-										<Text color="moderate">
+										<Text color="moderate" size="small">
 											2. Sampling % will determine the
 											percentage of data to ingest.
 										</Text>
-										<Text color="moderate">
+										<Text color="moderate" size="small">
 											3. Minute rate limit will drop a
 											spike of data exceeding the
 											per-minute value.
