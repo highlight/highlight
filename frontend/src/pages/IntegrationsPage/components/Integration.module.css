@@ -1,26 +1,111 @@
 .integration {
-	& .logo {
-		border-radius: 50%;
-		height: var(--size-xxLarge);
-		width: var(--size-xxLarge);
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	transition: box-shadow 0.15s ease, transform 0.15s ease;
+
+	&:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+	}
+
+	& .cardInner {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		padding: var(--size-large);
+		gap: var(--size-medium);
 	}
 
 	& .header {
-		align-items: flex-start;
 		display: flex;
+		align-items: flex-start;
 		justify-content: space-between;
-		padding-bottom: var(--size-small);
+		gap: var(--size-small);
+	}
+
+	& .logoWrapper {
+		position: relative;
+		flex-shrink: 0;
+	}
+
+	& .logo {
+		border-radius: 10px;
+		height: 40px;
+		width: 40px;
+		object-fit: contain;
+		background: var(--color-white);
+		border: 1px solid var(--color-gray-200);
+		padding: 4px;
+	}
+
+	& .logoRounded {
+		border-radius: 50%;
+	}
+
+	& .connectedBadge {
+		position: absolute;
+		bottom: -3px;
+		right: -3px;
+		width: 14px;
+		height: 14px;
+		background: #22c55e;
+		border-radius: 50%;
+		border: 2px solid var(--color-background);
+	}
+
+	& .controls {
+		display: flex;
+		align-items: center;
+		gap: var(--size-xSmall);
+		flex-shrink: 0;
+	}
+
+	& .body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-xSmall);
+		flex: 1;
+	}
+
+	& .title {
+		font-size: 14px;
+		font-weight: 600;
+		margin: 0 !important;
+		color: var(--color-text-primary);
+	}
+
+	& .description {
+		font-size: 12px;
+		line-height: 1.5;
+		color: var(--color-text-secondary);
+		margin: 0 !important;
+	}
+
+	& .footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding-top: var(--size-small);
+		border-top: 1px solid var(--color-divider);
+		margin-top: auto;
+	}
+
+	& .docsLink {
+		font-size: 12px;
+		color: var(--color-purple-400);
+		text-decoration: none;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		transition: color 0.1s ease;
+
+		&:hover {
+			color: var(--color-purple-500);
+		}
 	}
 
 	& .connectButton {
 		text-transform: uppercase;
-	}
-
-	& .title {
-		margin-bottom: var(--size-small) !important;
-	}
-
-	& .description {
-		margin-bottom: 0 !important;
 	}
 }
