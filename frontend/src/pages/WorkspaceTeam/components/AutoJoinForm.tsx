@@ -8,7 +8,6 @@ import {
 import { namedOperations } from '@graph/operations'
 import { Box, Select, Text } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import React, { useState } from 'react'
 
 import { getEmailDomain } from '@/util/email'
@@ -61,7 +60,7 @@ export const AutoJoinForm: React.FC = () => {
 		}
 	}
 
-	const handleCheckboxChange = (event: CheckboxChangeEvent) => {
+	const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const checked = event.target.checked
 		if (checked) {
 			onChangeMsg([adminsEmailDomain], 'Successfully enabled auto-join!')
@@ -85,7 +84,8 @@ export const AutoJoinForm: React.FC = () => {
 		>
 			<div className={styles.container}>
 				<Box display="flex" alignItems="center" gap="8" p="0" m="0">
-					<Checkbox
+					<input
+						type="checkbox"
 						checked={autoJoinDomains.length > 0}
 						onChange={handleCheckboxChange}
 					/>

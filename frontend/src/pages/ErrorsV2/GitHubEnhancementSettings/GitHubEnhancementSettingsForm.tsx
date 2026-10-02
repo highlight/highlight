@@ -2,6 +2,7 @@ import { Button } from '@components/Button'
 import {
 	Box,
 	ButtonIcon,
+	ComboboxSelect,
 	Form,
 	IconSolidBeaker,
 	IconSolidInformationCircle,
@@ -14,7 +15,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -49,6 +49,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 		useState<ErrorObjectFragment>(errorObject)
 	const [testLoading, setTestLoading] = useState(false)
 	const [failedEnhancement, setFailedEnhancement] = useState(false)
+	const [repoQuery, setRepoQuery] = useState('')
 	const [testErrorEnhancement] = useTestErrorEnhancementMutation()
 	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
 
@@ -64,14 +65,19 @@ export const GitHubEnhancementSettingsForm: React.FC<
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				id: repo.key,
-				label: repo.name.split('/').pop(),
-				value: repo.repo_id.replace(
-					'https://api.github.com/repos/',
-					'',
-				),
+				key: repo.repo_id.replace('https://api.github.com/repos/', ''),
+				render: repo.name.split('/').pop() ?? repo.name,
 			})),
 		[githubRepos],
+	)
+	const filteredGithubOptions = useMemo(
+		() =>
+			githubOptions.filter((repo) =>
+				`${repo.key} ${repo.render}`
+					.toLowerCase()
+					.includes(repoQuery.toLowerCase()),
+			),
+		[githubOptions, repoQuery],
 	)
 
 	useEffect(() => {
@@ -217,25 +223,31 @@ export const GitHubEnhancementSettingsForm: React.FC<
 						name="githubRepo"
 					>
 						<Box display="flex" alignItems="center" gap="8">
-							<Select
-								aria-label="GitHub repository"
-								className={styles.repoSelect}
-								placeholder="Search repos..."
-								onSelect={(repo: string) =>
+							<ComboboxSelect
+								label="GitHub repository"
+								queryPlaceholder="Search repos..."
+								value={formState.values.githubRepo ?? undefined}
+								valueRender={
+									formState.values.githubRepo
+										?.split('/')
+										.pop() ?? undefined
+								}
+								options={filteredGithubOptions}
+								onChangeQuery={setRepoQuery}
+								onClose={() => setRepoQuery('')}
+								onChange={(repo: string) =>
 									formStore.setValue(
 										formStore.names.githubRepo,
 										repo,
 									)
 								}
-								value={formState.values.githubRepo
-									?.split('/')
-									.pop()}
-								options={githubOptions}
 								disabled={disabled || testLoading}
-								notFoundContent={<span>No repos found</span>}
-								optionFilterProp="label"
-								filterOption
-								showSearch
+								emptyStateRender={
+									<Text size="xSmall" color="weak">
+										No repos found
+									</Text>
+								}
+								wrapperCssClass={styles.repoSelect}
 							/>
 							<ButtonIcon
 								kind="secondary"
