@@ -6,13 +6,10 @@ import {
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Box, Select, Text } from '@highlight-run/ui/components'
+import { Box, Select, SwitchButton, Text } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import React, { useState } from 'react'
-
 import { getEmailDomain } from '@/util/email'
-
 import styles from './AutoJoinForm.module.css'
 
 export const AutoJoinForm: React.FC = () => {
@@ -30,7 +27,6 @@ export const AutoJoinForm: React.FC = () => {
 			const emailOrigins = d.workspace?.allowed_auto_join_email_origins
 				? JSON.parse(d.workspace.allowed_auto_join_email_origins)
 				: []
-
 			const allowedDomains = d.admins.reduce((acc: string[], wa) => {
 				const adminDomain = getEmailDomain(wa.admin?.email)
 				if (adminDomain.length && !acc.includes(adminDomain)) {
@@ -38,7 +34,6 @@ export const AutoJoinForm: React.FC = () => {
 				}
 				return acc
 			}, [])
-
 			setAutoJoinDomains(emailOrigins)
 			setAdminDomains(allowedDomains)
 		},
@@ -47,7 +42,6 @@ export const AutoJoinForm: React.FC = () => {
 	const onChangeMsg = (domains: string[], msg: string) => {
 		setAutoJoinDomains(domains)
 		setAdminDomains(adminDomains)
-
 		if (workspace_id) {
 			updateAllowedEmailOrigins({
 				variables: {
@@ -61,8 +55,7 @@ export const AutoJoinForm: React.FC = () => {
 		}
 	}
 
-	const handleCheckboxChange = (event: CheckboxChangeEvent) => {
-		const checked = event.target.checked
+	const handleCheckboxChange = (checked: boolean) => {
 		if (checked) {
 			onChangeMsg([adminsEmailDomain], 'Successfully enabled auto-join!')
 		} else {
@@ -85,7 +78,7 @@ export const AutoJoinForm: React.FC = () => {
 		>
 			<div className={styles.container}>
 				<Box display="flex" alignItems="center" gap="8" p="0" m="0">
-					<Checkbox
+					<SwitchButton
 						checked={autoJoinDomains.length > 0}
 						onChange={handleCheckboxChange}
 					/>
@@ -96,7 +89,7 @@ export const AutoJoinForm: React.FC = () => {
 					filterable
 					displayMode="tags"
 					loading={loading}
-					placeholder={`${adminsEmailDomain}, acme.corp, piedpiper.com`}
+					placeholder={${adminsEmailDomain}, acme.corp, piedpiper.com}
 					value={autoJoinDomains}
 					onValueChange={handleSelectChange}
 					options={adminDomains}
