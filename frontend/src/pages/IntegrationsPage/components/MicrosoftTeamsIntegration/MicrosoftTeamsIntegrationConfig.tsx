@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -31,6 +31,8 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectCancel-MicrosoftTeams"
 						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(true)
@@ -41,8 +43,7 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectSave-MicrosoftTeams"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -69,6 +70,8 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationCancel-MicrosoftTeams"
 					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)
@@ -79,8 +82,11 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationSave-MicrosoftTeams"
 					className={styles.modalBtn}
-					type="primary"
-					href={microsoftTeamsAuthUrl}
+					kind="primary"
+					emphasis="high"
+					onClick={() => {
+						window.location.assign(microsoftTeamsAuthUrl)
+					}}
 				>
 					<AppsIcon className={styles.modalBtnIcon} /> Connect
 					Highlight with Microsoft Teams
