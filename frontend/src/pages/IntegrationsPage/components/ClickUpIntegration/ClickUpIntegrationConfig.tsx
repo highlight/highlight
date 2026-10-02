@@ -3,10 +3,10 @@ import React, { useEffect } from 'react'
 
 import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
-import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
 import { toast } from '@components/Toaster'
 import { ClickUpProjectMappingInput } from '@graph/schemas'
+import { Select, type SelectOption } from '@highlight-run/ui/components'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
@@ -195,13 +195,11 @@ export const ClickUpIntegrationSettings: React.FC<
 			if (!!p) {
 				highlightProjects.push({
 					...p,
-					onUpdateProjectLink: (label: string) => {
-						const match = allSpaces.find((s) => s.label === label)
-
-						if (match === undefined) {
+					onUpdateProjectLink: (clickUpSpaceId?: string) => {
+						if (!clickUpSpaceId) {
 							projectMapDelete(p.id)
 						} else {
-							projectMapSet(p.id, match.id)
+							projectMapSet(p.id, clickUpSpaceId)
 						}
 					},
 				})
@@ -211,9 +209,8 @@ export const ClickUpIntegrationSettings: React.FC<
 
 	const selectOptions =
 		allSpaces.map((p) => ({
-			id: p.id,
-			value: p.label,
-			displayValue: p.label,
+			name: p.label,
+			value: p.id,
 		})) || []
 
 	const tableColumns = [
@@ -249,16 +246,22 @@ export const ClickUpIntegrationSettings: React.FC<
 			width: '55%',
 			render: (_: string, row: any) => {
 				const clickUpSpaceId = projectMap.get(row.id)
-				const opts = allSpaces.find((s) => s.id === clickUpSpaceId)
 				return (
 					<div className={styles.select}>
 						<Select
 							className="w-full"
-							value={opts}
-							onChange={row.onUpdateProjectLink}
+							value={clickUpSpaceId}
+							onValueChange={(option?: SelectOption) =>
+								row.onUpdateProjectLink(
+									option?.value
+										? String(option.value)
+										: undefined,
+								)
+							}
 							options={selectOptions}
 							placeholder="ClickUp space"
-							allowClear
+							clearable
+							filterable
 						/>
 					</div>
 				)
