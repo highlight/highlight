@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import PlugIcon from '@icons/PlugIcon'
 import Sparkles2Icon from '@icons/Sparkles2Icon'
@@ -41,6 +41,8 @@ const ZapierIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectCancel-Slack"
 						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(true)
@@ -51,8 +53,7 @@ const ZapierIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectSave-Slack"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -88,6 +89,8 @@ const ZapierIntegrationConfig: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationCancel-Zapier"
 					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)
@@ -98,9 +101,15 @@ const ZapierIntegrationConfig: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationSave-Zapier"
 					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href="https://zapier.com/app/zaps" // TODO: change to Highlight Zap URL
+					kind="primary"
+					emphasis="high"
+					onClick={() => {
+						window.open(
+							'https://zapier.com/app/zaps',
+							'_blank',
+							'noreferrer',
+						)
+					}}
 				>
 					<Sparkles2Icon className={styles.modalBtnIcon} /> Create a
 					Zap
