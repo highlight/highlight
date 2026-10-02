@@ -1,40 +1,34 @@
-import {
-	Tooltip as AntDesignTooltip,
-	TooltipProps as AntDesignTooltipProps,
-} from 'antd'
+import { Tooltip as HighlightTooltip } from '@highlight-run/ui/components'
 import React from 'react'
 
-import styles from './Tooltip.module.css'
-
-type TooltipProps = Pick<
-	AntDesignTooltipProps,
-	| 'title'
-	| 'placement'
-	| 'align'
-	| 'arrowPointAtCenter'
-	| 'overlayStyle'
-	| 'mouseEnterDelay'
->
+type TooltipProps = {
+	title?: React.ReactNode
+	placement?: string
+	align?: unknown
+	arrowPointAtCenter?: boolean
+	overlayStyle?: React.CSSProperties
+	mouseEnterDelay?: number
+}
 
 /**
- * Deprecated: use the UI package's tooltip instead of this tooltip
- * A proxy for Ant Design's tooltip. This component should be used instead of directly using Ant Design's.
+ * A proxy that wraps @highlight-run/ui Tooltip with the legacy antd-style API.
+ * Accepts `title` (tooltip content) and `children` (trigger element).
  */
 const Tooltip: React.FC<React.PropsWithChildren<TooltipProps>> = ({
 	children,
-	mouseEnterDelay = 0.5,
-	...props
+	title,
 }) => {
+	if (!title) {
+		return <>{children}</>
+	}
+
 	return (
-		<AntDesignTooltip
-			{...props}
-			mouseEnterDelay={mouseEnterDelay}
-			overlayClassName={styles.tooltipOverlay}
-			title={props.title}
-			destroyTooltipOnHide
+		<HighlightTooltip
+			trigger={<span>{children}</span>}
+			delayed
 		>
-			{children}
-		</AntDesignTooltip>
+			{title}
+		</HighlightTooltip>
 	)
 }
 
