@@ -6,9 +6,14 @@ import {
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Box, Select, Text } from '@highlight-run/ui/components'
+import {
+	Box,
+	IconSolidCheck,
+	Select,
+	Text,
+} from '@highlight-run/ui/components'
+import { vars } from '@highlight-run/ui/vars'
 import { useParams } from '@util/react-router/useParams'
-import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import React, { useState } from 'react'
 
 import { getEmailDomain } from '@/util/email'
@@ -61,9 +66,10 @@ export const AutoJoinForm: React.FC = () => {
 		}
 	}
 
-	const handleCheckboxChange = (event: CheckboxChangeEvent) => {
-		const checked = event.target.checked
-		if (checked) {
+	const isChecked = autoJoinDomains.length > 0
+
+	const handleCheckboxChange = () => {
+		if (!isChecked) {
 			onChangeMsg([adminsEmailDomain], 'Successfully enabled auto-join!')
 		} else {
 			onChangeMsg([], 'Successfully disabled auto-join!')
@@ -85,10 +91,34 @@ export const AutoJoinForm: React.FC = () => {
 		>
 			<div className={styles.container}>
 				<Box display="flex" alignItems="center" gap="8" p="0" m="0">
-					<Checkbox
-						checked={autoJoinDomains.length > 0}
-						onChange={handleCheckboxChange}
-					/>
+					<Box
+						as="button"
+						type="button"
+						onClick={handleCheckboxChange}
+						display="flex"
+						alignItems="center"
+						justifyContent="center"
+						style={{
+							width: 16,
+							height: 16,
+							borderRadius: 4,
+							border: `1px solid ${vars.theme.interactive.outline.secondary.enabled}`,
+							backgroundColor: isChecked
+								? vars.theme.interactive.fill.primary.enabled
+								: 'transparent',
+							cursor: 'pointer',
+							padding: 0,
+						}}
+						aria-checked={isChecked}
+						role="checkbox"
+					>
+						{isChecked && (
+							<IconSolidCheck
+								size={12}
+								color={vars.theme.static.surface.default}
+							/>
+						)}
+					</Box>
 					<Text>Auto-approved email domains</Text>
 				</Box>
 				<Select
