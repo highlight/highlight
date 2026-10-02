@@ -1,6 +1,7 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
-import Input from '@components/Input/Input'
+import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
+import { Form } from '@highlight-run/ui/components'
 import { useDeleteProjectMutation, useGetProjectQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { FieldsForm } from '@pages/WorkspaceSettings/FieldsForm/FieldsForm'
@@ -12,7 +13,6 @@ import { useAuthContext } from '@/authentication/AuthContext'
 import { AdminRole } from '@/graph/generated/schemas'
 
 import commonStyles from '../../../Common.module.css'
-import Button from '../../../components/Button/Button/Button'
 import styles from './DangerForm.module.css'
 
 export const DangerForm = () => {
@@ -52,7 +52,7 @@ export const DangerForm = () => {
 				<FieldsBox id="danger">
 					<h3>Danger Zone</h3>
 
-					<form onSubmit={onSubmit}>
+					<Form onSubmit={onSubmit}>
 						{loading ? (
 							<LoadingBox />
 						) : (
@@ -63,7 +63,7 @@ export const DangerForm = () => {
 									{`${data?.project?.name}`}' to confirm.
 								</p>
 								<div className={styles.dangerRow}>
-									<Input
+									<Form.Input
 										placeholder={`${data?.project?.name}`}
 										name="text"
 										value={confirmationText}
@@ -73,8 +73,7 @@ export const DangerForm = () => {
 									/>
 									<Button
 										trackingId="DeleteProject"
-										danger
-										type="primary"
+										kind="danger"
 										className={clsx(
 											commonStyles.submitButton,
 											styles.deleteButton,
@@ -83,7 +82,7 @@ export const DangerForm = () => {
 											confirmationText !==
 											data?.project?.name
 										}
-										htmlType="submit"
+										type="submit"
 										loading={deleteLoading}
 									>
 										Delete
@@ -91,7 +90,7 @@ export const DangerForm = () => {
 								</div>
 							</>
 						)}
-					</form>
+					</Form>
 				</FieldsBox>
 			)}
 		</>
