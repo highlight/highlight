@@ -7,7 +7,7 @@ import { useParams } from '@util/react-router/useParams'
 import React, { useState } from 'react'
 
 import commonStyles from '../../../Common.module.css'
-import Button from '../../../components/Button/Button/Button'
+import { Button } from '../../../components/Button'
 import { CircularSpinner } from '../../../components/Loading/Loading'
 import styles from './FieldsForm.module.css'
 
@@ -104,8 +104,9 @@ export const FieldsForm: React.FC<Props> = ({
 							trackingId={`${
 								isWorkspace ? 'Workspace' : 'Project'
 							}Update`}
-							htmlType="submit"
-							type="primary"
+							type="submit"
+							kind="primary"
+							emphasis="high"
 							className={commonStyles.submitButton}
 							disabled={formDisabled}
 						>
