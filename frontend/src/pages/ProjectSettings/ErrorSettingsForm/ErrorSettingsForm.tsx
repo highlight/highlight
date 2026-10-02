@@ -1,10 +1,17 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
-import { Stack } from '@highlight-run/ui/components'
+import { Select, Stack } from '@highlight-run/ui/components'
+import type { SelectOption } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
+
+type SelectStringValue = SelectOption | string | number
+
+const toStringValues = (values: SelectStringValue[]) =>
+	values.map((value) =>
+		typeof value === 'object' ? String(value.value) : String(value),
+	)
 
 export const ErrorSettingsForm = () => {
 	const { project_id } = useParams<{
@@ -20,6 +27,8 @@ export const ErrorSettingsForm = () => {
 		return <LoadingBar />
 	}
 
+	const paths = data?.projectSettings?.error_json_paths || []
+
 	return (
 		<form key={project_id}>
 			<Stack gap="8">
@@ -28,10 +37,15 @@ export const ErrorSettingsForm = () => {
 					info="Enter JSON expressions to use for grouping your errors."
 				/>
 				<Select
-					mode="tags"
+					creatable
+					filterable
+					displayMode="tags"
 					placeholder="$.context.messages[0]"
-					value={data?.projectSettings?.error_json_paths || []}
-					onChange={(paths: string[]) => {
+					options={paths}
+					value={paths}
+					onValueChange={(selectedPaths: SelectStringValue[]) => {
+						const paths = toStringValues(selectedPaths)
+
 						setAllProjectSettings((currentProjectSettings) =>
 							currentProjectSettings?.projectSettings
 								? {
