@@ -1,4 +1,21 @@
 .integration {
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95));
+	border: 1px solid rgba(148, 163, 184, 0.18);
+	border-radius: 22px;
+	box-shadow: 0 18px 35px rgba(15, 23, 42, 0.06);
+	min-height: 220px;
+	transition:
+		transform 0.18s ease,
+		box-shadow 0.18s ease,
+		border-color 0.18s ease;
+
+	&:hover {
+		border-color: rgba(59, 130, 246, 0.28);
+		box-shadow: 0 22px 40px rgba(30, 41, 59, 0.1);
+		transform: translateY(-2px);
+	}
+
 	& .logo {
 		border-radius: 50%;
 		height: var(--size-xxLarge);
@@ -9,7 +26,7 @@
 		align-items: flex-start;
 		display: flex;
 		justify-content: space-between;
-		padding-bottom: var(--size-small);
+		padding-bottom: var(--size-medium);
 	}
 
 	& .connectButton {
@@ -17,10 +34,13 @@
 	}
 
 	& .title {
+		font-size: 22px;
 		margin-bottom: var(--size-small) !important;
 	}
 
 	& .description {
+		color: var(--text-secondary);
+		line-height: 1.5;
 		margin-bottom: 0 !important;
 	}
 }
