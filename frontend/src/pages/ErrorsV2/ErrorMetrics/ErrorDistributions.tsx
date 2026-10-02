@@ -8,7 +8,6 @@ import {
 } from '@graph/schemas'
 import { colors } from '@highlight-run/ui/colors'
 import { Badge, Box, Stack, Text } from '@highlight-run/ui/components'
-import { Progress } from 'antd'
 import React, { useEffect, useState } from 'react'
 
 type Props = {
@@ -159,6 +158,20 @@ const Buckets: React.FC<
 							strokeWidth={4}
 							status="normal"
 						/>
+					</Box>
+				)
+			})}
+		</Box>
+	)
+}
+
+export { ErrorDistributions }
+Math.floor(
+										bucket.percent * 100,
+									)}%`,
+								}}
+							/>
+						</Box>
 					</Box>
 				)
 			})}
