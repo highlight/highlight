@@ -6,7 +6,7 @@ import { useDiscordIntegration } from '@pages/IntegrationsPage/components/Discor
 import {
 	IntegrationAction,
 	IntegrationConfigProps,
-} from '@pages/IntegrationsPage/components/Integration'
+} from '@pages/IntegrationsPage/components/IntegrationTypes'
 import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import React, { useEffect } from 'react'

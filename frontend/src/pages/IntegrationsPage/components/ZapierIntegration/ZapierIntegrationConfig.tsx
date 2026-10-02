@@ -5,7 +5,7 @@ import Sparkles2Icon from '@icons/Sparkles2Icon'
 import {
 	IntegrationAction,
 	IntegrationConfigProps,
-} from '@pages/IntegrationsPage/components/Integration'
+} from '@pages/IntegrationsPage/components/IntegrationTypes'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import { CodeBlock } from '@/pages/Connect/CodeBlock'
 import React, { useEffect } from 'react'
