@@ -77,6 +77,65 @@ export class HighlightLogger
 	}
 }
 
+// GraphQL requests run through a different execution context than REST.
+// We resolve GqlExecutionContext lazily so consumers who don't use GraphQL
+// don't need @nestjs/graphql installed (avoids a hard peer-dependency conflict
+// on NestJS 10, where @nestjs/graphql@11+ requires NestJS 11).
+function getGraphQLContext(context: ExecutionContext): {
+	req: any
+	info: any
+} | null {
+	try {
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		const { GqlExecutionContext } = require('@nestjs/graphql')
+		const gqlCtx = GqlExecutionContext.create(context)
+		const req = gqlCtx.getContext()?.req
+		if (req) {
+			return { req, info: gqlCtx.getInfo() }
+		}
+	} catch {
+		// @nestjs/graphql not installed — not a GraphQL request
+	}
+	return null
+}
+
+function describeContext(context: ExecutionContext): {
+	name: string
+	headers: Record<string, any>
+	attributes: Record<string, any>
+} {
+	const gql = getGraphQLContext(context)
+	if (gql) {
+		const op: any = gql.info
+		const operationName =
+			op?.operationName || op?.fieldName || 'graphql'
+		const operationType = op?.operation?.operation || 'query'
+		return {
+			name: `graphql.${operationType} ${operationName}`,
+			headers: gql.req.headers || {},
+			attributes: {
+				'graphql.operation.name': operationName,
+				'graphql.operation.type': operationType,
+				'http.method': (gql.req.method as string) || 'POST',
+				'http.url': (gql.req.url as string) || '',
+			},
+		}
+	}
+
+	const ctx = context.switchToHttp()
+	const request = ctx.getRequest()
+	const method: string = request.method
+	const url: string = request.url
+	return {
+		name: `${method} ${url}`,
+		headers: request.headers || {},
+		attributes: {
+			'http.method': method,
+			'http.url': url,
+		},
+	}
+}
+
 @Injectable()
 export class HighlightInterceptor
 	implements NestInterceptor, OnApplicationShutdown
@@ -95,17 +154,13 @@ export class HighlightInterceptor
 	}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-		const ctx = context.switchToHttp()
-		const request = ctx.getRequest()
+		const { name, headers, attributes } = describeContext(context)
 
 		const { span: requestSpan, ctx: spanCtx } = NodeH.startWithHeaders(
-			`${request.method} ${request.url}`,
-			request.headers,
+			name,
+			headers,
 			{
-				attributes: {
-					'http.method': request.method,
-					'http.url': request.url,
-				},
+				attributes,
 			},
 		)
 		const fn = api.context.bind(spanCtx, () =>
