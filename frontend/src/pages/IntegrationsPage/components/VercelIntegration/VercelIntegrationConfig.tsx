@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import Card from '@components/Card/Card'
 import Input from '@components/Input/Input'
 import Select from '@components/Select/Select'
@@ -82,21 +82,19 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				>
 					Cancel
 				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-Vercel"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href="https://vercel.com/integrations/highlight/new"
-					rel="noreferrer"
-				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span style={{ marginTop: 4 }}>
-							Connect Highlight with Vercel
+				<a href="https://vercel.com/integrations/highlight/new" target="_blank" rel="noreferrer">
+					<Button
+						trackingId="IntegrationConfigurationSave-Vercel"
+						className={styles.modalBtn}
+					>
+						<span className={styles.modalBtnText}>
+							<Sparkles2Icon className={styles.modalBtnIcon} />
+							<span style={{ marginTop: 4 }}>
+								Connect Highlight with Vercel
+							</span>
 						</span>
-					</span>
-				</Button>
+					</Button>
+				</a>
 			</footer>
 		</>
 	)
@@ -128,8 +126,7 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 				<Button
 					trackingId="IntegrationDisconnectSave-Slack"
 					className={styles.modalBtn}
-					type="primary"
-					danger
+					kind="danger"
 					onClick={() => {
 						removeVercelIntegrationFromProject()
 							.then(() => {
@@ -338,7 +335,6 @@ export const VercelIntegrationSettings: React.FC<
 								<div className="h-8 w-8">
 									<Button
 										className="rounded-lg"
-										iconButton
 										trackingId="IntegrationConfiguration-Vercel-DeleteNewProject"
 										onClick={() => {
 											onProjectDelete(row.id)
@@ -475,8 +471,6 @@ export const VercelIntegrationSettings: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationSave-Vercel"
 					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
 					onClick={onSave}
 					disabled={
 						projectMappings.length === 0 || // If no project mappings

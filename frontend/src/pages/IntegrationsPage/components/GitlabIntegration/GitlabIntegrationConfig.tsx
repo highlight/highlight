@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -43,15 +43,15 @@ const GitlabIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				>
 					Cancel
 				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-GitLab"
-					className={styles.modalBtn}
-					type="primary"
-					href={authUrl}
-				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with GitLab
-				</Button>
+				<a href={authUrl}>
+					<Button
+						trackingId="IntegrationConfigurationSave-GitLab"
+						className={styles.modalBtn}
+					>
+						<AppsIcon className={styles.modalBtnIcon} /> Connect
+						Highlight with GitLab
+					</Button>
+				</a>
 			</footer>
 		</>
 	)
@@ -82,8 +82,7 @@ const GitlabIntegrationDisconnect: React.FC<
 				<Button
 					trackingId="IntegrationDisconnectSave-GitLab"
 					className={styles.modalBtn}
-					type="primary"
-					danger
+					kind="danger"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)

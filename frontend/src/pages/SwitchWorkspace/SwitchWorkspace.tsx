@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import { CircularSpinner, LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
@@ -155,7 +155,6 @@ const SwitchWorkspace = () => {
 					/>
 					<Button
 						trackingId="SubmitWorkspaceSwitchForm"
-						type="primary"
 						className={styles.button}
 						block
 						htmlType="submit"

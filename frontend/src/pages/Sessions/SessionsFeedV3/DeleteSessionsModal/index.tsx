@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import Input from '@components/Input/Input'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
@@ -89,8 +89,7 @@ const DeleteSessionsModal = ({
 						/>
 						<Button
 							trackingId="ConfirmDeleteSessions"
-							danger
-							type="primary"
+							kind="danger"
 							disabled={confirmationText !== DELETE_SESSIONS_TEXT}
 							onClick={onFinish}
 						>

@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import Card from '@components/Card/Card'
 import LoadingBox from '@components/LoadingBox'
 import Switch from '@components/Switch/Switch'
@@ -147,7 +147,6 @@ const Integration = ({
 							<div className="flex h-[18px] w-full justify-end">
 								<Button
 									trackingId="IntegrationSettings"
-									iconButton
 									onClick={() => {
 										setShowUpdateSettings(true)
 									}}

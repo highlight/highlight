@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import Card from '@components/Card/Card'
 import Select from '@components/Select/Select'
 import Table from '@components/Table/Table'
@@ -84,26 +84,28 @@ const HeightIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				>
 					Cancel
 				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-Height"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
+				<a
 					href={`https://height.app/oauth/authorization?client_id=${HEIGHT_CLIENT_ID}&redirect_uri=${redirectUri}&access_types=appWorkspace&scope=api&state=${btoaSafe(
 						JSON.stringify({
 							project_id: project_id,
 							workspace_id: currentWorkspace?.id,
 						}),
 					)}`}
+					target="_blank"
 					rel="noreferrer"
 				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span style={{ marginTop: 4 }}>
-							Connect Highlight with Height
+					<Button
+						trackingId="IntegrationConfigurationSave-Height"
+						className={styles.modalBtn}
+					>
+						<span className={styles.modalBtnText}>
+							<Sparkles2Icon className={styles.modalBtnIcon} />
+							<span style={{ marginTop: 4 }}>
+								Connect Highlight with Height
+							</span>
 						</span>
-					</span>
-				</Button>
+					</Button>
+				</a>
 			</footer>
 		</>
 	)
@@ -135,8 +137,7 @@ const HeightIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 				<Button
 					trackingId="IntegrationDisconnectSave-Height"
 					className={styles.modalBtn}
-					type="primary"
-					danger
+					kind="danger"
 					onClick={() => {
 						removeIntegration()
 							.then(() => {
@@ -327,8 +328,6 @@ export const HeightIntegrationSettings: React.FC<
 				<Button
 					trackingId="IntegrationConfigurationSave-Height"
 					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
 					onClick={onSave}
 				>
 					<span className={styles.modalBtnText}>

@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -41,8 +41,7 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectSave-MicrosoftTeams"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -76,15 +75,15 @@ const MicrosoftTeamsIntegrationConfig: React.FC<
 				>
 					Cancel
 				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-MicrosoftTeams"
-					className={styles.modalBtn}
-					type="primary"
-					href={microsoftTeamsAuthUrl}
-				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Microsoft Teams
-				</Button>
+				<a href={microsoftTeamsAuthUrl}>
+					<Button
+						trackingId="IntegrationConfigurationSave-MicrosoftTeams"
+						className={styles.modalBtn}
+					>
+						<AppsIcon className={styles.modalBtnIcon} /> Connect
+						Highlight with Microsoft Teams
+					</Button>
+				</a>
 			</footer>
 		</>
 	)

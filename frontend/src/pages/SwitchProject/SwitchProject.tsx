@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import Select from '@components/Select/Select'
 import {
@@ -78,7 +78,6 @@ const SwitchProject = () => {
 					/>
 					<Button
 						trackingId="SubmitProjectSwitchForm"
-						type="primary"
 						className={styles.button}
 						block
 						htmlType="submit"

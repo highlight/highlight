@@ -1,5 +1,5 @@
 import Alert from '@components/Alert/Alert'
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import Input from '@components/Input/Input'
 import Space from '@components/Space/Space'
@@ -95,7 +95,7 @@ const Login: React.FC<Props> = () => {
 
 			<Button
 				trackingId="logInAgainFor2fa"
-				type="primary"
+
 				onClick={() => {
 					signOut()
 				}}
@@ -183,7 +183,7 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 						/>
 
 						<Button
-							type="primary"
+			
 							htmlType="submit"
 							trackingId="setup2fa"
 							loading={loading}
@@ -281,7 +281,7 @@ export const VerifyPhone: React.FC<VerifyPhoneProps> = ({
 					/>
 
 					<Button
-						type="primary"
+		
 						htmlType="submit"
 						trackingId="setup2fa"
 						loading={loading}
@@ -308,7 +308,7 @@ const Enrolled: React.FC<Props> = ({ setError, setStatus }) => {
 
 			<Button
 				trackingId="remove2fa"
-				type="primary"
+
 				onClick={async () => {
 					const currentFactor =
 						firebaseAuth.currentUser?.multiFactor.enrolledFactors[0]
