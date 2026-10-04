@@ -1,5 +1,5 @@
 import { Box, Form, Stack } from '@highlight-run/ui/components'
-import { Divider } from 'antd'
+import { Divider } from '@components/Divider/Divider'
 import React, { useMemo } from 'react'
 
 import { OptionDropdown } from '@/pages/Graphing/OptionDropdown'

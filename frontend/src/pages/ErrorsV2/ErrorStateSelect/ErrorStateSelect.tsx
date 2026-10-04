@@ -13,7 +13,7 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
-import { DatePicker } from 'antd'
+import { DatePicker } from '@components/DatePicker/DatePicker'
 import moment from 'moment'
 import React, { useCallback, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'

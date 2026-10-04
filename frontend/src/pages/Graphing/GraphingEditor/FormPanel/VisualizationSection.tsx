@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Input, Select, Text } from '@highlight-run/ui/components'
-import { Divider } from 'antd'
+import { Divider } from '@components/Divider/Divider'
 
 import { useProjectId } from '@/hooks/useProjectId'
 import { useGraphingEditorContext } from '@/pages/Graphing/GraphingEditor/GraphingEditorContext'
