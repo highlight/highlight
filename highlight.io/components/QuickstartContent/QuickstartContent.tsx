@@ -110,6 +110,7 @@ import { JStRPCReorganizedContent } from './server/js/trpc'
 import { JSPinoHTTPJSONLogReorganizedContent } from './server/js/pino'
 import { JSWinstonHTTPJSONLogReorganizedContent } from './server/js/winston'
 import { JSManualTracesReorganizedContent } from './server/js/manual'
+import { JSSvelteKitContent } from './server/js/sveltekit'
 import { PHPOtherReorganizedContent } from './server/php/other'
 import { PythonAWSReorganizedContext } from './server/python/aws'
 import { PythonAzureReorganizedContext } from './server/python/azure'
@@ -208,6 +209,7 @@ export enum QuickStartType {
 	JSNestjs = 'nestjs',
 	JSWinston = 'winston',
 	JSPino = 'pino',
+	JSSveltekit = 'sveltekit',
 	JStRPC = 'trpc',
 	HTTPOTLP = 'curl',
 	Syslog = 'syslog',
@@ -461,6 +463,7 @@ export const quickStartContent = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+			[QuickStartType.JSSveltekit]: JSSvelteKitContent,
 		},
 		php: {
 			title: 'PHP',
@@ -606,6 +609,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
+			[QuickStartType.JSSveltekit]: JSSvelteKitContent,
 		},
 	},
 	php: {
