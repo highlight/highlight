@@ -147,7 +147,7 @@ export const JsonViewerValue: React.FC<{
 					</Text>
 				</Box>
 				<Box cssClass={styles.attributeActions}>
-					{!!query && !!setQuery && (
+					{query !== undefined && !!setQuery && (
 						<Box>
 							<Tooltip
 								trigger={
