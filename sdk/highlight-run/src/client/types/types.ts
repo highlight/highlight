@@ -1,4 +1,4 @@
-import type { Context, Span, SpanOptions } from '@opentelemetry/api'
+import type { Context, Span, SpanOptions, Tracer } from '@opentelemetry/api'
 import {
 	ConsoleMethods,
 	DebugOptions,
@@ -380,24 +380,15 @@ export declare interface HighlightPublicInterface {
 		): ReturnType<F>
 	}
 	/**
-	 * Starts a new span for tracing in Highlight. The span will be ended when the
-	 * `end()` is called on the span. It returns whatever is returned from the
-	 * callback function.
+	 * Starts a new span for tracing in Highlight without making it active in context.
+	 * The span must be manually ended when `end()` is called on the span.
+	 * Aligns with OpenTelemetry's `tracer.startSpan`.
 	 *
 	 * @example
 	 * ```typescript
-	 * H.startManualSpan('span-name', options, (span) => {
-	 *   span.addEvent('event-name', { key: 'value' })
-	 *   span.setAttribute('key', 'value')
-	 *   await someAsyncFunction()
-	 *   span.end()
-	 * })
-	 * ```
-	 *
-	 * @example
-	 * ```typescript
-	 * const span = H.startManualSpan('span-name', (s) => s)
+	 * const span = H.startManualSpan('span-name', options)
 	 * span.addEvent('event-name', { key: 'value' })
+	 * span.setAttribute('key', 'value')
 	 * await someAsyncFunction()
 	 * span.end()
 	 * ```
@@ -405,25 +396,8 @@ export declare interface HighlightPublicInterface {
 	 * @param name The name of the span.
 	 * @param options Options for the span.
 	 * @param context The context for the span.
-	 * @param fn The function to run in the span.
 	 */
-	startManualSpan: {
-		<F extends (span: Span) => ReturnType<F>>(
-			name: string,
-			fn: F,
-		): ReturnType<F>
-		<F extends (span: Span) => ReturnType<F>>(
-			name: string,
-			options: SpanOptions,
-			fn: F,
-		): ReturnType<F>
-		<F extends (span: Span) => ReturnType<F>>(
-			name: string,
-			options: SpanOptions,
-			context: Context,
-			fn: F,
-		): ReturnType<F>
-	}
+	startManualSpan: Tracer['startSpan']
 	/**
 	 * Calling this method will report an error in Highlight and map it to the current session being recorded.
 	 * A common use case for `H.error` is calling it right outside of an error boundary.
