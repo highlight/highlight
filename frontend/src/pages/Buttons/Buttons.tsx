@@ -327,21 +327,19 @@ export const Buttons = () => {
 								console.log('::: addToPendingTransfers', json)
 							}
 
-							await H.startManualSpan(
-								'Submit Deposit',
-								async (span) => {
-									const context = span.spanContext()
-									console.log('::: context', context)
-									currentPromise = true
-										? handleDeposit()
-										: Promise.resolve()
+							const span = H.startManualSpan('Submit Deposit')
+							try {
+								const context = span.spanContext()
+								console.log('::: context', context)
+								currentPromise = true
+									? handleDeposit()
+									: Promise.resolve()
 
-									await currentPromise.finally(() => {
-										console.log('::: span.end')
-										span.end()
-									})
-								},
-							)
+								await currentPromise
+							} finally {
+								console.log('::: span.end')
+								span.end()
+							}
 						}}
 					>
 						Multiple API Calls
@@ -389,22 +387,23 @@ export const Buttons = () => {
 					</button>
 					<button
 						className={commonStyles.submitButton}
-						onClick={async () => {
-							await H.startManualSpan(
+						onClick={() => {
+							const span = H.startManualSpan(
 								'client-highlight-error',
-								async (span) => {
-									span?.setAttribute('test', 'f00')
-									span?.recordException(
-										new Error(
-											'this is a highlight tracer error',
-										),
-									)
-									span?.end()
-								},
 							)
+							try {
+								span.setAttribute('test', 'f00')
+								span.recordException(
+									new Error(
+										'this is a highlight tracer error',
+									),
+								)
+							} finally {
+								span.end()
+							}
 						}}
 					>
-						H.startActiveSpan().recordException()
+						H.startManualSpan().recordException()
 					</button>
 					<button
 						className={commonStyles.submitButton}

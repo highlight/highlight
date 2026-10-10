@@ -1,4 +1,5 @@
 import { expect, vi } from 'vitest'
+import { ROOT_CONTEXT } from '@opentelemetry/api'
 import {
 	setSessionData,
 	setSessionSecureID,
@@ -157,7 +158,7 @@ describe('should work outside of the browser in unit test', () => {
 	})
 
 	describe('startManualSpan', () => {
-		it('it returns the value of the callback', () =>
+		it('returns a Span directly and allows manual span.end() lifecycle', () =>
 			new Promise(async (done) => {
 				highlight.init(1)
 
@@ -167,21 +168,65 @@ describe('should work outside of the browser in unit test', () => {
 					expect(tracer).toBeDefined()
 				})
 
-				vi.spyOn(tracer, 'startActiveSpan')
+				vi.spyOn(tracer, 'startSpan')
 
-				const value = highlight.startManualSpan('test', (span) => {
-					span.end()
-					return 'test'
-				})
-				expect(value).toBe('test')
-
-				expect(tracer.startActiveSpan).toHaveBeenCalledWith(
-					'test',
-					expect.any(Function),
+				const span = highlight.startManualSpan('test-direct')
+				expect(tracer.startSpan).toHaveBeenCalledWith(
+					'test-direct',
+					undefined,
+					undefined,
 				)
+				expect(span).toBeDefined()
+				expect(typeof span.end).toBe('function')
+				expect(typeof span.setAttribute).toBe('function')
+
+				span.setAttribute('test.key', 'test.value')
+				span.end()
 
 				done(true)
 			}))
+
+		it('forwards options and context to tracer.startSpan', () =>
+			new Promise(async (done) => {
+				highlight.init(1)
+
+				let tracer: any
+				await vi.waitFor(() => {
+					tracer = otel.getTracer()
+					expect(tracer).toBeDefined()
+				})
+
+				vi.spyOn(tracer, 'startSpan')
+
+				const options = { attributes: { 'app.operation': 'manual' } }
+				const mockContext = ROOT_CONTEXT
+
+				const span = highlight.startManualSpan(
+					'test-options',
+					options,
+					mockContext,
+				)
+				expect(tracer.startSpan).toHaveBeenCalledWith(
+					'test-options',
+					options,
+					mockContext,
+				)
+				expect(span).toBeDefined()
+				span.end()
+
+				done(true)
+			}))
+
+		it('returns a no-op span before SDK initialization without throwing', () => {
+			const span = highlight.startManualSpan('pre-init-direct')
+			expect(span).toBeDefined()
+			expect(typeof span.end).toBe('function')
+			expect(() => {
+				span.setAttribute('test.key', 'test.value')
+				span.addEvent('test.event')
+				span.end()
+			}).not.toThrow()
+		})
 	})
 })
 
