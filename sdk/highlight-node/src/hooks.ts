@@ -46,22 +46,6 @@ type ConsoleFn = (...data: any) => void
 let consoleHooked = false
 
 export function safeStringify(obj: any): string {
-	function replacer(input: any, depth?: number): any {
-		if ((depth ?? 0) > MAX_RECURSION) {
-			throw new Error('max recursion exceeded')
-		}
-		if (input && typeof input === 'object') {
-			for (let k in input) {
-				if (typeof input[k] === 'object') {
-					replacer(input[k], (depth ?? 0) + 1)
-				} else if (!canStringify(input[k])) {
-					input[k] = input[k].toString()
-				}
-			}
-		}
-		return input
-	}
-
 	function canStringify(value: any): boolean {
 		try {
 			JSON.stringify(value)
@@ -71,10 +55,31 @@ export function safeStringify(obj: any): string {
 		}
 	}
 
+	function replacer(input: any, depth?: number): any {
+		if ((depth ?? 0) > MAX_RECURSION) {
+			throw new Error('max recursion exceeded')
+		}
+		if (Array.isArray(input)) {
+			return input.map((item) => replacer(item, (depth ?? 0) + 1))
+		}
+		if (input && typeof input === 'object') {
+			const result: { [key: string]: any } = {}
+			for (let k in input) {
+				result[k] = replacer(input[k], (depth ?? 0) + 1)
+			}
+			return result
+		}
+		// primitive: convert to string if not JSON-serialisable (e.g. BigInt, Symbol)
+		if (!canStringify(input)) {
+			return String(input)
+		}
+		return input
+	}
+
 	try {
 		return JSON.stringify(replacer(obj))
 	} catch (e) {
-		return obj.toString()
+		return String(obj)
 	}
 }
 
