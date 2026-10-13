@@ -5,7 +5,9 @@ import ModalBody from '@components/ModalBody/ModalBody'
 import {
 	Box,
 	ButtonIcon,
+	ComboboxSelect,
 	Form,
+	IconSolidCheveronDown,
 	IconSolidInformationCircle,
 	IconSolidQuestionMarkCircle,
 	IconSolidTrash,
@@ -15,8 +17,7 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
 
@@ -117,17 +118,30 @@ const GithubSettingsForm = ({
 	handleSubmit,
 	handleCancel,
 }: GithubSettingsFormProps) => {
+	const [query, setQuery] = useState('')
+
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				id: repo.key,
-				label: repo.name.split('/').pop(),
-				value: repo.repo_id.replace(
+				key: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
 				),
+				render: repo.name.split('/').pop() || repo.name,
 			})),
 		[githubRepos],
+	)
+
+	const filteredGithubOptions = useMemo(
+		() =>
+			githubOptions.filter((option) => {
+				const normalizedQuery = query.toLowerCase()
+				return (
+					option.render.toString().toLowerCase().includes(normalizedQuery) ||
+					option.key.toLowerCase().includes(normalizedQuery)
+				)
+			}),
+		[githubOptions, query],
 	)
 
 	const formStore = Form.useStore<GithubSettingsFormValues>({
@@ -138,6 +152,8 @@ const GithubSettingsForm = ({
 		},
 	})
 	const formState = formStore.useState()
+
+	const selectedGithubRepoName = formState.values.githubRepo?.split('/').pop()
 
 	const exampleLink = formState.values.githubPrefix
 		? `https://github.com/${formState.values.githubRepo}/blob/HEAD${formState.values.githubPrefix}/README.md`
@@ -151,24 +167,29 @@ const GithubSettingsForm = ({
 					name="githubRepo"
 				>
 					<Box display="flex" alignItems="center" gap="8">
-						<Select
-							aria-label="GitHub repository"
-							className={styles.repoSelect}
-							placeholder="Search repos..."
-							onSelect={(repo: string) =>
+						<ComboboxSelect
+							label="GitHub repository"
+							value={formState.values.githubRepo || undefined}
+							valueRender={
+								<Box display="flex" alignItems="center" gap="4">
+									<Text size="xSmall" color="secondaryContentText" lines="1">
+										{selectedGithubRepoName || 'Search repos...'}
+									</Text>
+									<IconSolidCheveronDown size={12} />
+								</Box>
+							}
+							options={filteredGithubOptions}
+							onChange={(repo: string) =>
 								formStore.setValue(
 									formStore.names.githubRepo,
-									repo,
+									repo || null,
 								)
 							}
-							value={formState.values.githubRepo
-								?.split('/')
-								.pop()}
-							options={githubOptions}
-							notFoundContent={<span>No repos found</span>}
-							optionFilterProp="label"
-							filterOption
-							showSearch
+							onChangeQuery={setQuery}
+							queryPlaceholder="Search repos..."
+							onClose={() => setQuery('')}
+							cssClass={styles.repoSelect}
+							emptyStateRender={<span>No repos found</span>}
 						/>
 						<ButtonIcon
 							kind="secondary"
