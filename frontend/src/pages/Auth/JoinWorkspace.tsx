@@ -1,5 +1,5 @@
 import { toast } from '@components/Toaster'
-import { Form, Stack, Text } from '@highlight-run/ui/components'
+import { Form, Stack, Text, Menu } from '@highlight-run/ui/components'
 import useLocalStorage from '@rehooks/local-storage'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -20,7 +20,6 @@ import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
 import { getEmailDomain } from '@/util/email'
 import { showSupportMessage } from '@/util/window'
 
-import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
 
 export const DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY =
@@ -96,65 +95,36 @@ export const JoinWorkspace = () => {
 					<Stack gap="16" direction="column">
 						{noJoinableWorkspaces ? (
 							<Stack>
-								<Text>
-									Creating new workspaces is disabled.{' '}
-									<a href="https://highlight.io/blog/launchdarkly-migration">
-										Learn more on our blog.
-									</a>
-								</Text>
-								<Text>
-									If you are trying to join an existing
-									workspace, please ask your admin for an
-									invite link.
-								</Text>
+								<Text>Creating new workspaces is disabled.</Text>
 							</Stack>
 						) : (
 							<>
 								<Stack>
 									<Text>
-										Creating new workspaces is disabled.{' '}
-										<a href="https://highlight.io/blog/launchdarkly-migration">
-											Learn more on our blog.
-										</a>
-									</Text>
-									<Text>
 										Based on your <b>@{emailDomain}</b>{' '}
-										email address you are able to join the
-										following workspaces.
+										email address you are able to join.
 									</Text>
 								</Stack>
-
-								<select
-									className={styles.select}
-									onChange={(e) => {
-										const selectedWorkspace =
-											data?.joinable_workspaces?.find(
-												(workspace) =>
-													workspace?.id ===
-													e.target.value,
-											)
-
-										formStore.setValue(
-											formStore.names.workspaceId,
-											selectedWorkspace?.id,
-										)
-									}}
-								>
-									<option value="" disabled>
-										Select a workspace
-									</option>
-
-									{data?.joinable_workspaces?.map(
-										(workspace) => (
-											<option
+								<Menu>
+									<Menu.Button>
+										{data?.joinable_workspaces?.find(w => w?.id === workspaceId)?.name || 'Select a workspace'}
+									</Menu.Button>
+									<Menu.List>
+										{data?.joinable_workspaces?.map((workspace) => (
+											<Menu.Item
 												key={workspace?.id}
-												value={workspace?.id}
+												onClick={() => {
+													formStore.setValue(
+														formStore.names.workspaceId,
+														workspace?.id,
+													)
+												}}
 											>
 												{workspace?.name}
-											</option>
-										),
-									)}
-								</select>
+											</Menu.Item>
+										))}
+									</Menu.List>
+								</Menu>
 							</>
 						)}
 					</Stack>
@@ -164,7 +134,6 @@ export const JoinWorkspace = () => {
 						type="submit"
 						kind="primary"
 						disabled={!workspaceId}
-						onClick={() => null}
 						trackingId="join-workspace_submit"
 						loading={joinLoading}
 					>
