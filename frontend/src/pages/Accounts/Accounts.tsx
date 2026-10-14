@@ -3,7 +3,7 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { USD } from '@dinero.js/currencies'
+import { USD } from 'dinero.js/currencies'
 import {
 	useGetAccountDetailsQuery,
 	useGetAccountsLazyQuery,
