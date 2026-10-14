@@ -1,6 +1,6 @@
 import { QuickStartStep } from '../../QuickstartContent'
 
-export const setupFrontendSnippet: string = `<script src="https://unpkg.com/highlight.run"></script>
+export const setupFrontendSnippet: string = `<script src="https://unpkg.com/highlight.run@9.14.0"></script>
     <script>
         H.init('<YOUR_PROJECT_ID>', {
             serviceName: 'highlight-dot-net-frontend',
