@@ -73,7 +73,7 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 			return `Highlight Comment: ${session?.identifier}'s session`
 		}
 		if (session?.fingerprint) {
-			return `Highlight Comment: session with device ID ${session?.fingerprint}`
+			return `Highlight Comment: session with fingerprint ${session?.fingerprint}`
 		}
 		return `Highlight Comment for a session`
 	}, [session])
