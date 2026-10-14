@@ -26,6 +26,14 @@ slug: python
       <p>The id of your project from app.highlight.io/setup</p>
     </aside>
     <aside className="parameter">
+      <h5>otlp_endpoint<code>string</code> <code>optional</code></h5>
+      <p>The URL of the OTLP collector endpoint.</p>
+    </aside>
+    <aside className="parameter">
+      <h5>otlp_transport<code>string</code> <code>optional</code></h5>
+      <p>The transport for the OTLP collector endpoint, either <code>highlight_io.OTLPTransport.GRPC</code> or <code>highlight_io.OTLPTransport.HTTP</code>.</p>
+    </aside>
+    <aside className="parameter">
       <h5>integrations<code>List[Integration]</code> <code>optional</code></h5>
       <p>A list of integration instances.</p>
       <article className="innerParameterContainer">
