@@ -117,14 +117,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 		{
 			title: 'Report unexpected errors in `handleError`.',
 			content:
-				'SvelteKit invokes `handleError` for unexpected failures in loads/endpoints/rendering. Parse session context from headers, then report with `H.consumeError` on a dedicated error span (`H.startWithHeaders`) so it does not end the active request span before `resolve` finishes setting HTTP attributes. Return SvelteKit\'s safe `message` to the client — never the raw exception string.',
+				'SvelteKit invokes `handleError` for unexpected failures in loads/endpoints/rendering. Parse session context from headers, then report with `H.consumeError` on a dedicated error span. Call `H.startWithHeaders(\'sveltekit.error\', {})` with an empty carrier so the error span stays a child of the active request span — passing the raw request headers would re-extract an incoming `traceparent` and attach the error as a sibling of the request. Return SvelteKit\'s safe `message` to the client — never the raw exception string.',
 			code: [
 				{
 					text: `export const handleError: HandleServerError = async ({ error, event, status, message }) => {
 	if (!building) {
 		const headers = highlightHeaders(event.request)
 		const { secureSessionId, requestId } = H.parseHeaders(headers)
-		const { span } = H.startWithHeaders('sveltekit.error', headers)
+		const { span } = H.startWithHeaders('sveltekit.error', {})
 		H.consumeError(error as Error, secureSessionId, requestId, undefined, {
 			span,
 		})
