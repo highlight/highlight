@@ -3,10 +3,14 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
+	{
+			...setupBackendSnippet,
+			content: `The next step is instrumenting your SvelteKit server hooks to tie backend logs, errors, and traces to your frontend sessions. Follow the [SvelteKit server instrumentation guide](${siteUrl('/docs/getting-started/server/js/sveltekit')}) for full setup instructions.`,
+		},
 	verifySnippet,
 } from './shared-snippets'
 
+import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts
@@ -79,6 +83,9 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			...setupBackendSnippet,
+			content: `The next step is instrumenting your SvelteKit server hooks to tie backend logs, errors, and traces to your frontend sessions. Follow the [SvelteKit server instrumentation guide](${siteUrl('/docs/getting-started/server/js/sveltekit')}) for full setup instructions.`,
+		},
 	],
 }
