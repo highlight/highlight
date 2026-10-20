@@ -1,8 +1,8 @@
-FROM --platform=$BUILDPLATFORM node:lts-alpine AS frontend-build
+FROM --platform=$BUILDPLATFORM node:24-alpine AS frontend-build
 
 RUN wget -q -t3 'https://packages.doppler.com/public/cli/rsa.8004D9FF50437357.key' -O /etc/apk/keys/cli@doppler-8004D9FF50437357.rsa.pub && \
     echo 'https://packages.doppler.com/public/cli/alpine/any-version/main' | tee -a /etc/apk/repositories && \
-    apk update && apk add --no-cache build-base chromium curl doppler python3
+    apk update && apk upgrade --no-cache ca-certificates && apk add --no-cache build-base chromium curl doppler python3
 
 WORKDIR /highlight
 COPY .npmignore .prettierrc .prettierignore graphql.config.js tsconfig.json turbo.json .yarnrc.yml package.json yarn.lock ./
