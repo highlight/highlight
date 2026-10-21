@@ -99,7 +99,7 @@ jobs:
             - name: Setup Node.js environment
               uses: buildjet/setup-node@v4
               with:
-                  node-version: lts/*
+                  node-version: lts/24.*
                   cache: 'yarn'
 
             - name: Install poetry
