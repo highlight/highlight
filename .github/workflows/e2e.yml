@@ -22,7 +22,7 @@ jobs:
             - name: Setup Node.js environment
               uses: buildjet/setup-node@v4
               with:
-                  node-version: lts/*
+                  node-version: 24.x
                   cache: 'yarn'
 
             - name: Setup Golang environment
@@ -173,7 +173,7 @@ jobs:
             - name: Setup Node.js environment
               uses: buildjet/setup-node@v4
               with:
-                  node-version: lts/*
+                  node-version: 24.x
                   cache: 'yarn'
 
             - name: Setup Golang environment
