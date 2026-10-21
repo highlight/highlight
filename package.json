@@ -1,5 +1,8 @@
 {
 	"name": "highlight",
+	"engines": {
+		"node": "24.x"
+	},
 	"private": true,
 	"version": "1.0.0",
 	"repository": "git@github.com:highlight-run/highlight.git",
