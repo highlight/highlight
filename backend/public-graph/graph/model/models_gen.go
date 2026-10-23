@@ -144,14 +144,14 @@ type SpanSamplingConfig struct {
 }
 
 type StackFrameInput struct {
-	FunctionName *string `json:"functionName,omitempty"`
-	Args         []any   `json:"args,omitempty"`
-	FileName     *string `json:"fileName,omitempty"`
-	LineNumber   *int    `json:"lineNumber,omitempty"`
-	ColumnNumber *int    `json:"columnNumber,omitempty"`
-	IsEval       *bool   `json:"isEval,omitempty"`
-	IsNative     *bool   `json:"isNative,omitempty"`
-	Source       *string `json:"source,omitempty"`
+	FunctionName *string       `json:"functionName,omitempty"`
+	Args         []interface{} `json:"args,omitempty"`
+	FileName     *string       `json:"fileName,omitempty"`
+	LineNumber   *int          `json:"lineNumber,omitempty"`
+	ColumnNumber *int          `json:"columnNumber,omitempty"`
+	IsEval       *bool         `json:"isEval,omitempty"`
+	IsNative     *bool         `json:"isNative,omitempty"`
+	Source       *string       `json:"source,omitempty"`
 }
 
 type PublicGraphError string

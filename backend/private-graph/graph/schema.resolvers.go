@@ -4852,7 +4852,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 }
 
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]any, error) {
+func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, err
@@ -4893,7 +4893,7 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 }
 
 // WebsocketEvents is the resolver for the websocket_events field.
-func (r *queryResolver) WebsocketEvents(ctx context.Context, sessionSecureID string) ([]any, error) {
+func (r *queryResolver) WebsocketEvents(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, err
@@ -5385,7 +5385,7 @@ func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*
 }
 
 // Resources is the resolver for the resources field.
-func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) ([]any, error) {
+func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
 		return nil, err
@@ -9504,7 +9504,7 @@ func (r *serviceResolver) ErrorDetails(ctx context.Context, obj *model.Service) 
 }
 
 // UserObject is the resolver for the user_object field.
-func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (any, error) {
+func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
 	return obj.UserObject, nil
 }
 
@@ -9705,7 +9705,7 @@ func (r *sessionCommentResolver) Type(ctx context.Context, obj *model.SessionCom
 }
 
 // Metadata is the resolver for the metadata field.
-func (r *sessionCommentResolver) Metadata(ctx context.Context, obj *model.SessionComment) (any, error) {
+func (r *sessionCommentResolver) Metadata(ctx context.Context, obj *model.SessionComment) (interface{}, error) {
 	return obj.Metadata, nil
 }
 
@@ -9798,7 +9798,7 @@ func (r *systemConfigurationResolver) MigrationAllowlist(ctx context.Context, ob
 }
 
 // Data is the resolver for the data field.
-func (r *timelineIndicatorEventResolver) Data(ctx context.Context, obj *model.TimelineIndicatorEvent) (any, error) {
+func (r *timelineIndicatorEventResolver) Data(ctx context.Context, obj *model.TimelineIndicatorEvent) (interface{}, error) {
 	return obj.Data, nil
 }
 

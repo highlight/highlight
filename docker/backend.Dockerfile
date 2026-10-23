@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:alpine AS backend-build
+FROM --platform=$BUILDPLATFORM golang:1.27.3-alpine AS backend-build
 
 RUN apk update && apk add --no-cache build-base
 

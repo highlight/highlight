@@ -520,7 +520,7 @@ func areErrorGroupsEqual(a *model.ErrorGroup, b *model.ErrorGroup) (bool, []stri
 
 	aReflection := reflect.ValueOf(a)
 	// Check if the passed interface is a pointer
-	if aReflection.Type().Kind() != reflect.Ptr {
+	if aReflection.Type().Kind() != reflect.Pointer {
 		return false, nil, e.New("`a` is not a pointer")
 	}
 	// 'dereference' with Elem() and get the field by name
@@ -530,7 +530,7 @@ func areErrorGroupsEqual(a *model.ErrorGroup, b *model.ErrorGroup) (bool, []stri
 
 	bReflection := reflect.ValueOf(b)
 	// Check if the passed interface is a pointer
-	if bReflection.Type().Kind() != reflect.Ptr {
+	if bReflection.Type().Kind() != reflect.Pointer {
 		return false, nil, e.New("`b` is not a pointer")
 	}
 	// 'dereference' with Elem() and get the field by name
