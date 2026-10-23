@@ -943,27 +943,44 @@ export const useFunnelData = (
 		const buckets: {
 			[key: number]: { value: number; percent: number }
 		} = {}
-		let groups = new Set<string>(
-			results[0].metrics.buckets.map((b) => b.group[0]),
-		)
+		let groupValues = new Map<string, number>()
 		results.forEach((r, idx) => {
 			if (r?.metrics?.buckets) {
-				const resultGroups = new Set<string>(
-					r.metrics.buckets.map((b) => b.group[0]),
-				)
+				const stepGroupTotals = new Map<string, number>()
 				r.metrics.buckets.forEach((b) => {
 					const group = b?.group[0]
-					const prev = buckets[idx - 1]?.value ?? 0
-					const stepValue = groups.has(group)
-						? (b?.metric_value ?? 0)
-						: 0
-					const value = (buckets[idx]?.value ?? 0) + stepValue
-					buckets[idx] = {
-						value,
-						percent: prev > 0 ? value / prev : 1,
+					if (group === undefined) {
+						return
+					}
+					const metricValue = b?.metric_value ?? 0
+					stepGroupTotals.set(
+						group,
+						(stepGroupTotals.get(group) ?? 0) + metricValue,
+					)
+				})
+
+				const nextGroupValues = new Map<string, number>()
+				let value = 0
+				stepGroupTotals.forEach((stepValue, group) => {
+					if (idx === 0) {
+						nextGroupValues.set(group, stepValue)
+						value += stepValue
+					} else if (groupValues.has(group)) {
+						const cappedValue = Math.min(
+							stepValue,
+							groupValues.get(group) ?? 0,
+						)
+						nextGroupValues.set(group, cappedValue)
+						value += cappedValue
 					}
 				})
-				groups = groups.intersection(resultGroups)
+
+				const prev = buckets[idx - 1]?.value ?? 0
+				buckets[idx] = {
+					value,
+					percent: idx === 0 ? 1 : prev > 0 ? value / prev : 0,
+				}
+				groupValues = nextGroupValues
 			}
 		})
 
