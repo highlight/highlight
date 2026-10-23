@@ -1,15 +1,15 @@
 {
-	"name": "@highlight-run/component-preview",
-	"private": true,
-	"packageManager": "yarn@4.0.2",
-	"scripts": {
-		"dev": "ladle serve"
-	},
-	"dependencies": {
-		"@highlight-run/react": "workspace:*",
-		"@ladle/react": "^4.1.2"
-	},
-	"devDependencies": {
-		"typescript": "^4.9.5"
-	}
+  "name": "@highlight-run/component-preview",
+  "private": true,
+  "packageManager": "yarn@4.0.2",
+  "scripts": {
+    "dev": "node init && ladle serve"
+  },
+  "dependencies": {
+    "@highlight-run/react": "workspace:*",
+    "@ladle/react": "^4.1.2"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.5"
+  }
 }

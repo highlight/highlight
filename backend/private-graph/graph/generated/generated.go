@@ -1949,10 +1949,10 @@ type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
 	AccountDetails(ctx context.Context, workspaceID int) (*model.AccountDetails, error)
 	Session(ctx context.Context, secureID string) (*model1.Session, error)
-	Events(ctx context.Context, sessionSecureID string) ([]any, error)
+	Events(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	SessionIntervals(ctx context.Context, sessionSecureID string) ([]*model1.SessionInterval, error)
 	TimelineIndicatorEvents(ctx context.Context, sessionSecureID string) ([]*model1.TimelineIndicatorEvent, error)
-	WebsocketEvents(ctx context.Context, sessionSecureID string) ([]any, error)
+	WebsocketEvents(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	RageClicks(ctx context.Context, sessionSecureID string) ([]*model1.RageClickEvent, error)
 	RageClicksForProject(ctx context.Context, projectID int, lookbackDays float64) ([]*model.RageClickEventForProject, error)
 	ErrorGroupsClickhouse(ctx context.Context, projectID int, count int, query model.ClickhouseQuery, page *int) (*model1.ErrorResults, error)
@@ -1966,7 +1966,7 @@ type QueryResolver interface {
 	ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int, params *model.QueryInput) (*model1.ErrorInstance, error)
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
 	Errors(ctx context.Context, sessionSecureID string) ([]*model1.ErrorObject, error)
-	Resources(ctx context.Context, sessionSecureID string) ([]any, error)
+	Resources(ctx context.Context, sessionSecureID string) ([]interface{}, error)
 	WebVitals(ctx context.Context, sessionSecureID string) (*model.MetricsBuckets, error)
 	SessionComments(ctx context.Context, sessionSecureID string) ([]*model1.SessionComment, error)
 	SessionCommentTagsForProject(ctx context.Context, projectID int) ([]*model1.SessionCommentTag, error)
@@ -2122,7 +2122,7 @@ type ServiceResolver interface {
 	ErrorDetails(ctx context.Context, obj *model1.Service) ([]string, error)
 }
 type SessionResolver interface {
-	UserObject(ctx context.Context, obj *model1.Session) (any, error)
+	UserObject(ctx context.Context, obj *model1.Session) (interface{}, error)
 
 	DirectDownloadURL(ctx context.Context, obj *model1.Session) (*string, error)
 	ResourcesURL(ctx context.Context, obj *model1.Session) (*string, error)
@@ -2150,7 +2150,7 @@ type SessionCommentResolver interface {
 	Author(ctx context.Context, obj *model1.SessionComment) (*model.SanitizedAdmin, error)
 
 	Type(ctx context.Context, obj *model1.SessionComment) (model.SessionCommentType, error)
-	Metadata(ctx context.Context, obj *model1.SessionComment) (any, error)
+	Metadata(ctx context.Context, obj *model1.SessionComment) (interface{}, error)
 	Tags(ctx context.Context, obj *model1.SessionComment) ([]*string, error)
 }
 type SubscriptionResolver interface {
@@ -2160,7 +2160,7 @@ type SystemConfigurationResolver interface {
 	MigrationAllowlist(ctx context.Context, obj *model1.SystemConfiguration) ([]int64, error)
 }
 type TimelineIndicatorEventResolver interface {
-	Data(ctx context.Context, obj *model1.TimelineIndicatorEvent) (any, error)
+	Data(ctx context.Context, obj *model1.TimelineIndicatorEvent) (interface{}, error)
 }
 type VisualizationResolver interface {
 	UpdatedByAdmin(ctx context.Context, obj *model1.Visualization) (*model.SanitizedAdmin, error)
@@ -67541,7 +67541,7 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]any)
+	res := resTmp.([]interface{})
 	fc.Result = res
 	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
 }
@@ -67727,7 +67727,7 @@ func (ec *executionContext) _Query_websocket_events(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]any)
+	res := resTmp.([]interface{})
 	fc.Result = res
 	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
 }
@@ -68760,7 +68760,7 @@ func (ec *executionContext) _Query_resources(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]any)
+	res := resTmp.([]interface{})
 	fc.Result = res
 	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
 }
@@ -121685,7 +121685,7 @@ func (ec *executionContext) marshalOAny2interface(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalOAny2ᚕinterface(ctx context.Context, v any) ([]any, error) {
+func (ec *executionContext) unmarshalOAny2ᚕinterface(ctx context.Context, v any) ([]interface{}, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -121703,7 +121703,7 @@ func (ec *executionContext) unmarshalOAny2ᚕinterface(ctx context.Context, v an
 	return res, nil
 }
 
-func (ec *executionContext) marshalOAny2ᚕinterface(ctx context.Context, sel ast.SelectionSet, v []any) graphql.Marshaler {
+func (ec *executionContext) marshalOAny2ᚕinterface(ctx context.Context, sel ast.SelectionSet, v []interface{}) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

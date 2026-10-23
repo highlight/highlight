@@ -1,51 +1,51 @@
 {
-	"name": "@highlight-run/remix",
-	"version": "2.0.89",
-	"description": "Client for interfacing with Highlight in Remix",
-	"packageManager": "yarn@4.0.2",
-	"author": "",
-	"license": "Apache-2.0",
-	"files": [
-		"dist",
-		"client.d.ts",
-		"report-dialog.d.ts",
-		"server.d.ts"
-	],
-	"exports": {
-		"./server": {
-			"types": "./dist/server.d.ts",
-			"import": "./dist/server.mjs",
-			"require": "./dist/server.js"
-		},
-		"./client": {
-			"types": "./dist/client.d.ts",
-			"import": "./dist/client.mjs",
-			"require": "./dist/client.js"
-		},
-		"./report-dialog": {
-			"types": "./dist/report-dialog.d.ts",
-			"import": "./dist/report-dialog.mjs",
-			"require": "./dist/report-dialog.js"
-		}
-	},
-	"scripts": {
-		"typegen": "tsup --dts-only",
-		"dev": "tsup --watch",
-		"build": "tsup"
-	},
-	"peerDependencies": {
-		"react": ">=18"
-	},
-	"dependencies": {
-		"@highlight-run/node": "workspace:*",
-		"@highlight-run/react": "workspace:*",
-		"@opentelemetry/instrumentation": ">=0.53.0",
-		"highlight.run": "workspace:*",
-		"js-cookie": "^3.0.5"
-	},
-	"devDependencies": {
-		"@remix-run/react": "^2.10.0",
-		"tsup": "^8.3.6",
-		"typescript": "^5.1.6"
-	}
+  "name": "@highlight-run/remix",
+  "version": "2.0.89",
+  "description": "Client for interfacing with Highlight in Remix",
+  "packageManager": "yarn@4.0.2",
+  "author": "",
+  "license": "Apache-2.0",
+  "files": [
+    "dist",
+    "client.d.ts",
+    "report-dialog.d.ts",
+    "server.d.ts"
+  ],
+  "exports": {
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.mjs",
+      "require": "./dist/client.js"
+    },
+    "./report-dialog": {
+      "types": "./dist/report-dialog.d.ts",
+      "import": "./dist/report-dialog.mjs",
+      "require": "./dist/report-dialog.js"
+    }
+  },
+  "scripts": {
+    "typegen": "tsup --dts-only",
+    "dev": "node init && tsup --watch",
+    "build": "node init && tsup"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "dependencies": {
+    "@highlight-run/node": "workspace:*",
+    "@highlight-run/react": "workspace:*",
+    "@opentelemetry/instrumentation": ">=0.53.0",
+    "highlight.run": "workspace:*",
+    "js-cookie": "^3.0.5"
+  },
+  "devDependencies": {
+    "@remix-run/react": "^2.10.0",
+    "tsup": "^8.3.6",
+    "typescript": "^5.1.6"
+  }
 }

@@ -23,7 +23,7 @@
   },
   "scripts": {
     "typegen": "tsup --dts-only",
-    "build": "tsup"
+    "build": "node init && tsup"
   },
   "installConfig": {
     "hoistingLimits": "workspaces"

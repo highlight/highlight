@@ -1,24 +1,27 @@
-# options for analysis running
-run:
-    timeout: 2m
-
-# output configuration options
-output:
-    # sorts results by: filepath, line and column
-    sort-results: true
-
+version: "2"
 linters:
-    # enable all linters
-    enable:
-        - errcheck
-        - gosimple
-        - govet
-        - ineffassign
-        - staticcheck
-        - typecheck
-        - unused
-
-# all available settings of specific linters
-linters-settings:
+  settings:
     staticcheck:
-        checks: ['all']
+      checks:
+        - all
+        # v1 ran only staticcheck (SA) and gosimple (S); v2 folds in stylecheck and quickfix.
+        - -ST*
+        - -QF*
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

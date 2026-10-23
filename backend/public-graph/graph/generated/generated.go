@@ -74,8 +74,8 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddSessionFeedback    func(childComplexity int, sessionSecureID string, userName *string, userEmail *string, verbatim string, timestamp time.Time) int
-		AddSessionProperties  func(childComplexity int, sessionSecureID string, propertiesObject any) int
-		IdentifySession       func(childComplexity int, sessionSecureID string, userIdentifier string, userObject any) int
+		AddSessionProperties  func(childComplexity int, sessionSecureID string, propertiesObject interface{}) int
+		IdentifySession       func(childComplexity int, sessionSecureID string, userIdentifier string, userObject interface{}) int
 		InitializeSession     func(childComplexity int, sessionSecureID string, sessionKey *string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool, privacySetting *string) int
 		MarkBackendSetup      func(childComplexity int, projectID *string, sessionSecureID *string, typeArg *string) int
 		PushBackendPayload    func(childComplexity int, projectID *string, errors []*model.BackendErrorObjectInput) int
@@ -117,18 +117,18 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	InitializeSession(ctx context.Context, sessionSecureID string, sessionKey *string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool, privacySetting *string) (*model.InitializeSessionResponse, error)
-	IdentifySession(ctx context.Context, sessionSecureID string, userIdentifier string, userObject any) (string, error)
-	AddSessionProperties(ctx context.Context, sessionSecureID string, propertiesObject any) (string, error)
+	IdentifySession(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}) (string, error)
+	AddSessionProperties(ctx context.Context, sessionSecureID string, propertiesObject interface{}) (string, error)
 	PushPayload(ctx context.Context, sessionSecureID string, payloadID *int, events model.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string) (int, error)
-	PushPayloadCompressed(ctx context.Context, sessionSecureID string, payloadID int, data string) (any, error)
-	PushSessionEvents(ctx context.Context, sessionSecureID string, payloadID int64, data string) (any, error)
-	PushBackendPayload(ctx context.Context, projectID *string, errors []*model.BackendErrorObjectInput) (any, error)
+	PushPayloadCompressed(ctx context.Context, sessionSecureID string, payloadID int, data string) (interface{}, error)
+	PushSessionEvents(ctx context.Context, sessionSecureID string, payloadID int64, data string) (interface{}, error)
+	PushBackendPayload(ctx context.Context, projectID *string, errors []*model.BackendErrorObjectInput) (interface{}, error)
 	PushMetrics(ctx context.Context, metrics []*model.MetricInput) (int, error)
-	MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg *string) (any, error)
+	MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg *string) (interface{}, error)
 	AddSessionFeedback(ctx context.Context, sessionSecureID string, userName *string, userEmail *string, verbatim string, timestamp time.Time) (string, error)
 }
 type QueryResolver interface {
-	Ignore(ctx context.Context, id int) (any, error)
+	Ignore(ctx context.Context, id int) (interface{}, error)
 	Sampling(ctx context.Context, organizationVerboseID string) (*model.SamplingConfig, error)
 }
 type SessionResolver interface {
@@ -253,7 +253,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddSessionProperties(childComplexity, args["session_secure_id"].(string), args["properties_object"].(any)), true
+		return e.complexity.Mutation.AddSessionProperties(childComplexity, args["session_secure_id"].(string), args["properties_object"].(interface{})), true
 
 	case "Mutation.identifySession":
 		if e.complexity.Mutation.IdentifySession == nil {
@@ -265,7 +265,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.IdentifySession(childComplexity, args["session_secure_id"].(string), args["user_identifier"].(string), args["user_object"].(any)), true
+		return e.complexity.Mutation.IdentifySession(childComplexity, args["session_secure_id"].(string), args["user_identifier"].(string), args["user_object"].(interface{})), true
 
 	case "Mutation.initializeSession":
 		if e.complexity.Mutation.InitializeSession == nil {
@@ -7997,7 +7997,7 @@ func (ec *executionContext) marshalOAny2interface(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) unmarshalOAny2ᚕinterface(ctx context.Context, v any) ([]any, error) {
+func (ec *executionContext) unmarshalOAny2ᚕinterface(ctx context.Context, v any) ([]interface{}, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -8015,7 +8015,7 @@ func (ec *executionContext) unmarshalOAny2ᚕinterface(ctx context.Context, v an
 	return res, nil
 }
 
-func (ec *executionContext) marshalOAny2ᚕinterface(ctx context.Context, sel ast.SelectionSet, v []any) graphql.Marshaler {
+func (ec *executionContext) marshalOAny2ᚕinterface(ctx context.Context, sel ast.SelectionSet, v []interface{}) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

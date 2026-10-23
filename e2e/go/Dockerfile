@@ -1,7 +1,7 @@
 ARG IMAGE_BASE_NAME="ghcr.io/highlight/e2e:latest"
 FROM ${IMAGE_BASE_NAME}
 
-ARG GO_VERSION=1.23.1
+ARG GO_VERSION=1.27.3
 
 WORKDIR /opt/go
 RUN wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz

@@ -161,7 +161,7 @@ func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 				t.Fatalf("error result invalid, expected? %t but saw %s", v.errorExpected, err)
 			}
 			if err == nil && *adminID != 1 {
-				t.Fatalf("received invalid admin ID %d", adminID)
+				t.Fatalf("received invalid admin ID %d", *adminID)
 			}
 		})
 	}

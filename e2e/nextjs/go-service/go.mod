@@ -1,6 +1,6 @@
 module github.com/deltaespilon/distributed-tracing
 
-go 1.23.1
+go 1.27.3
 
 require (
 	github.com/go-chi/chi/v5 v5.0.12
