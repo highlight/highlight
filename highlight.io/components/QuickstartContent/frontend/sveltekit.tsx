@@ -3,7 +3,6 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
@@ -30,6 +29,34 @@ H.init('<YOUR_PROJECT_ID>', {
 	},
 });
 ...
+`
+
+const svelteKitBackendSnippet = `// src/hooks.server.ts
+import { H } from '@highlight-run/node'
+import type { Handle, HandleServerError } from '@sveltejs/kit'
+
+H.init({
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'sveltekit-server',
+	environment: 'production',
+})
+
+export const handle: Handle = async ({ event, resolve }) => {
+	const headers = Object.fromEntries(event.request.headers)
+
+	return H.runWithHeaders('sveltekit-request', headers, async () => {
+		return resolve(event)
+	})
+}
+
+export const handleError: HandleServerError = ({ error, event }) => {
+	const headers = Object.fromEntries(event.request.headers)
+	const parsed = H.parseHeaders(headers)
+	const reportedError =
+		error instanceof Error ? error : new Error(String(error))
+
+	H.consumeError(reportedError, parsed.secureSessionId, parsed.requestId)
+}
 `
 
 export const SvelteKitContent: QuickStartContent = {
@@ -79,6 +106,41 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Install the Node.js SDK for your SvelteKit server.',
+			content:
+				'Install `@highlight-run/node` so your SvelteKit server hooks can report backend errors and traces.',
+			code: [
+				{
+					key: 'yarn',
+					text: `# with yarn
+yarn add @highlight-run/node`,
+					language: 'bash',
+				},
+				{
+					key: 'pnpm',
+					text: `# with pnpm
+pnpm add @highlight-run/node`,
+					language: 'bash',
+				},
+				{
+					key: 'npm',
+					text: `# with npm
+npm install @highlight-run/node`,
+					language: 'bash',
+				},
+			],
+		},
+		{
+			title: 'Instrument your SvelteKit server hooks.',
+			content:
+				'Initialize the Highlight Node.js SDK in `src/hooks.server.ts`, then wrap SvelteKit requests with `H.runWithHeaders()` so backend traces and errors are linked to frontend sessions.',
+			code: [
+				{
+					text: svelteKitBackendSnippet,
+					language: 'ts',
+				},
+			],
+		},
 	],
 }
