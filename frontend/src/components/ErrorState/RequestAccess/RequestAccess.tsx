@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { toast } from '@components/Toaster'
 import { useRequestAccessMutation } from '@graph/hooks'
 import { useParams } from '@util/react-router/useParams'
@@ -12,10 +12,11 @@ const RequestAccess = () => {
 	const [sentAccessRequest, setSentAccessRequest] = useState(false)
 	return (
 		<Button
-			small
 			trackingId="ErrorStateRequestAccess"
+			size="small"
+			kind="primary"
+			emphasis="high"
 			disabled={sentAccessRequest}
-			type="primary"
 			onClick={async () => {
 				try {
 					await requestAccess({
