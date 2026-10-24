@@ -2,13 +2,12 @@ import Card from '@components/Card/Card'
 import CopyText from '@components/CopyText/CopyText'
 import Input from '@components/Input/Input'
 import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable'
-import Select from '@components/Select/Select'
 import {
 	useGetProjectQuery,
 	useGetSourcemapFilesLazyQuery,
 	useGetSourcemapVersionsQuery,
 } from '@graph/hooks'
-import { Box, Stack } from '@highlight-run/ui/components'
+import { Box, Select, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { debounce } from 'lodash'
 import React, { useEffect } from 'react'
@@ -78,6 +77,10 @@ const SourcemapSettings = () => {
 	const visibleFileKeys = query.length
 		? fileKeys.filter((key) => key && key.indexOf(query) > -1)
 		: fileKeys
+	const versionOptions = versions.map((version) => ({
+		name: version,
+		value: version,
+	}))
 
 	const filterResults = debounce((query: string) => {
 		setQuery(query)
@@ -128,16 +131,13 @@ const SourcemapSettings = () => {
 										aria-label="Sourcemap app version"
 										className={styles.versionSelect}
 										placeholder="Select a version of your app"
-										options={versions.map((v) => ({
-											id: v,
-											value: v,
-											displayValue: v,
-										}))}
-										onChange={setSelectedVersion}
+										options={versionOptions}
+										onValueChange={(version) => {
+											setSelectedVersion(
+												version.value.toString(),
+											)
+										}}
 										value={selectedVersion}
-										notFoundContent={
-											<p>No sourcemaps found</p>
-										}
 									/>
 								</div>
 							)}
