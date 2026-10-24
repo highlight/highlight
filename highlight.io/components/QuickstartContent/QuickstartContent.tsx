@@ -108,6 +108,7 @@ import { JSNodeReorganizedContent } from './server/js/nodejs'
 import { JSNestReorganizedContent } from './server/js/nestjs'
 import { JStRPCReorganizedContent } from './server/js/trpc'
 import { JSPinoHTTPJSONLogReorganizedContent } from './server/js/pino'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { JSWinstonHTTPJSONLogReorganizedContent } from './server/js/winston'
 import { JSManualTracesReorganizedContent } from './server/js/manual'
 import { PHPOtherReorganizedContent } from './server/php/other'
@@ -456,6 +457,7 @@ export const quickStartContent = {
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
@@ -601,6 +603,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
