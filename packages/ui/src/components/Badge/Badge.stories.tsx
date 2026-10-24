@@ -12,13 +12,13 @@ export const Sizes = () => {
 		<>
 			<Badge size="small" label="Small" />
 			<br />
-			<Badge size="medium" label="Medium" />
+			<Badge label="Medium" />
 			<br />
 			<Badge size="large" label="Large" />
 			<br />
 			<Badge shape="rounded" size="small" label="Small" />
 			<br />
-			<Badge shape="rounded" size="medium" label="Medium" />
+			<Badge shape="rounded" label="Medium" />
 			<br />
 			<Badge shape="rounded" size="large" label="Large" />
 		</>

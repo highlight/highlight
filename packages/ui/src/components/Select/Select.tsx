@@ -854,7 +854,6 @@ const SelectTag: React.FC<{ children: string; value: string | number }> = ({
 			cursor="pointer"
 			shape="basic"
 			variant="white"
-			size="medium"
 			label={name}
 			iconEnd={<IconSolidX />}
 			onMouseDown={(e) => {

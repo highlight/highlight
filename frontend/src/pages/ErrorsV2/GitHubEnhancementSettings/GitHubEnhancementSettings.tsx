@@ -143,17 +143,12 @@ export const GitHubEnhancementSettings: React.FC<Props> = ({
 								{step.completed ? (
 									<Badge
 										variant="green"
-										size="medium"
 										iconStart={
 											<IconSolidCheckCircle size={12} />
 										}
 									/>
 								) : (
-									<Badge
-										variant="gray"
-										label={step.step}
-										size="medium"
-									/>
+									<Badge variant="gray" label={step.step} />
 								)}
 							</Box>
 							<Stack

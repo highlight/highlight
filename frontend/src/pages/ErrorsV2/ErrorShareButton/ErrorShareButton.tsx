@@ -93,7 +93,6 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 					<Tag
 						shape="basic"
 						kind="secondary"
-						size="medium"
 						iconLeft={<IconSolidLink size={12} />}
 						onClick={() => {
 							copyToClipboard(window.location.href, {
@@ -107,7 +106,6 @@ const ErrorShareButton = ({ errorGroup }: Props) => {
 						shape="basic"
 						kind="secondary"
 						emphasis="low"
-						size="medium"
 						iconLeft={<IconSolidQuestionMarkCircle size={12} />}
 						onClick={() => {
 							window.open(

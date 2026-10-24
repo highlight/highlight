@@ -155,7 +155,6 @@ export const NewConnectPage = () => {
 									<Badge
 										variant="outlineGray"
 										label="Highlight.io"
-										size="medium"
 										iconStart={
 											<IconSolidDiscord
 												fill={ICON_FILL}
@@ -177,7 +176,6 @@ export const NewConnectPage = () => {
 									<Badge
 										variant="outlineGray"
 										label="Full Documentation"
-										size="medium"
 										iconStart={
 											<IconSolidBookOpen
 												fill={ICON_FILL}

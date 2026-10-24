@@ -127,7 +127,6 @@ export const KeyFilter: React.FC<Props> = ({
 					trigger={
 						<Tag
 							kind="secondary"
-							size="medium"
 							shape="basic"
 							emphasis="low"
 							iconRight={<IconSolidInformationCircle />}

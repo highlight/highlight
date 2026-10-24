@@ -51,7 +51,7 @@ export function ErrorTags() {
 				<Badge
 					iconStart={<IconSolidLightningBolt />}
 					variant="purple"
-					size="medium"
+
 					// className={styles.headerIcon}
 				/>
 				<Text cssClass={styles.headerText}>

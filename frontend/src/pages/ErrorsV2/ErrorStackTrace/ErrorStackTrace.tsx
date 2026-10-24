@@ -445,7 +445,6 @@ const SourcemapError: React.FC<{
 					kind="secondary"
 					shape="basic"
 					iconLeft={<IconSolidExclamation size={12} />}
-					size="medium"
 				>
 					Stacktrace Issue
 				</Popover.TagTrigger>

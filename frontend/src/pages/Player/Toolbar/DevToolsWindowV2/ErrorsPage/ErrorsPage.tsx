@@ -309,7 +309,6 @@ const ErrorRow = React.memo(
 							shape="basic"
 							emphasis="low"
 							kind="secondary"
-							size="medium"
 							onClick={(event) => {
 								setTime(timestamp)
 								event.stopPropagation() /* Prevents opening of right panel by parent row's onClick handler */

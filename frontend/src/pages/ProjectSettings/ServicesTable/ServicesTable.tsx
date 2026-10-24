@@ -158,7 +158,6 @@ export const ServicesTable: React.FC = () => {
 								<Badge
 									variant="outlineGray"
 									label="Open in GitHub"
-									size="medium"
 									iconEnd={<IconSolidExternalLink />}
 								/>
 							</a>
@@ -191,7 +190,6 @@ export const ServicesTable: React.FC = () => {
 							iconEnd={<IconSolidCheveronDown size={12} />}
 							label={repoName || 'None'}
 							gap="4"
-							size="medium"
 						/>
 					</Button>
 				)
@@ -206,7 +204,6 @@ export const ServicesTable: React.FC = () => {
 					<Badge
 						variant={determineStatusVariant(service.status)}
 						label={capitalize(service.status)}
-						size="medium"
 					/>
 				)
 
@@ -296,7 +293,7 @@ export const ServicesTable: React.FC = () => {
 				justifyContent="space-between"
 				alignItems="center"
 			>
-				<Text size="medium" weight="medium" color="default">
+				<Text weight="medium" color="default">
 					Services
 				</Text>
 				{!isIntegrated && (

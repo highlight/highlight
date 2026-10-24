@@ -77,11 +77,7 @@ const Header: React.FC<{
 								{breadcrumb.label}
 							</Tag>
 						) : (
-							<Badge
-								kind="white"
-								label={breadcrumb.label}
-								size="medium"
-							/>
+							<Badge kind="white" label={breadcrumb.label} />
 						)}
 					</Stack>
 				))}
@@ -390,7 +386,6 @@ export const ProjectProductFilters: React.FC<{
 						noCustom
 						minDate={moment().subtract(30, 'days').toDate()}
 						kind="secondary"
-						size="medium"
 						emphasis="low"
 					/>
 				</Box>

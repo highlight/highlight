@@ -529,7 +529,6 @@ const AlertRow = ({
 								trigger={
 									<Tag
 										kind="secondary"
-										size="medium"
 										shape="basic"
 										emphasis="low"
 										iconRight={
@@ -544,7 +543,6 @@ const AlertRow = ({
 						<Box display="flex" gap="8" flexShrink={0}>
 							<Tag
 								kind="primary"
-								size="medium"
 								shape="basic"
 								emphasis="low"
 								iconRight={<IconSolidCheveronRight />}
@@ -590,7 +588,6 @@ const AlertRow = ({
 										<Tag
 											key={channel.webhook_channel_id}
 											kind="secondary"
-											size="medium"
 											shape="basic"
 											emphasis="medium"
 											disabled={record.disabled}
@@ -607,7 +604,6 @@ const AlertRow = ({
 										<Tag
 											key={channel.id}
 											kind="secondary"
-											size="medium"
 											shape="basic"
 											emphasis="medium"
 											disabled={record.disabled}
@@ -633,7 +629,6 @@ const AlertRow = ({
 										<Tag
 											key={channel.id}
 											kind="secondary"
-											size="medium"
 											shape="basic"
 											emphasis="medium"
 											disabled={record.disabled}
@@ -659,7 +654,6 @@ const AlertRow = ({
 										<Tag
 											key={email}
 											kind="secondary"
-											size="medium"
 											shape="basic"
 											emphasis="medium"
 											disabled={record.disabled}
@@ -675,7 +669,6 @@ const AlertRow = ({
 									).length > 0 && (
 										<Tag
 											kind="secondary"
-											size="medium"
 											shape="basic"
 											emphasis="medium"
 											disabled={record.disabled}
@@ -689,7 +682,6 @@ const AlertRow = ({
 							) : (
 								<Tag
 									kind="secondary"
-									size="medium"
 									shape="basic"
 									emphasis="medium"
 									disabled={record.disabled}

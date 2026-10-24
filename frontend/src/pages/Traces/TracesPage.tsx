@@ -428,7 +428,6 @@ export const TracesPage: React.FC = () => {
 										) : (
 											<>
 												<Badge
-													size="medium"
 													shape="basic"
 													variant="outlineGray"
 													label={`
