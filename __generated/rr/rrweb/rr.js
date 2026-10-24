@@ -13845,10 +13845,29 @@ var CanvasManager = class {
       }
       const width = canvas.width * scale;
       const height = canvas.height * scale;
-      const bitmap = await createImageBitmap(canvas, {
-        resizeWidth: width,
-        resizeHeight: height
-      });
+      let bitmap;
+      if (scale !== 1) {
+        const tempCanvas = typeof OffscreenCanvas !== "undefined"
+          ? new OffscreenCanvas(width, height)
+          : document.createElement("canvas");
+        if (tempCanvas instanceof HTMLCanvasElement) {
+          tempCanvas.width = width;
+          tempCanvas.height = height;
+        }
+        const tempCtx = tempCanvas.getContext("2d");
+        if (tempCtx) {
+          tempCtx.imageSmoothingEnabled = true;
+          tempCtx.drawImage(canvas, 0, 0, width, height);
+          bitmap = await createImageBitmap(tempCanvas);
+        } else {
+          bitmap = await createImageBitmap(canvas, {
+            resizeWidth: width,
+            resizeHeight: height
+          });
+        }
+      } else {
+        bitmap = await createImageBitmap(canvas);
+      }
       this.debug(canvas, "created image bitmap", {
         width: bitmap.width,
         height: bitmap.height
