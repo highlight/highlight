@@ -1,4 +1,3 @@
-import Select from '@components/Select/Select'
 import {
 	Box,
 	IconSolidDiscord,
@@ -8,7 +7,9 @@ import {
 	IconSolidPlus,
 	IconSolidSlack,
 	Menu,
+	Select,
 } from '@highlight-run/ui/components'
+import type { SelectOption } from '@highlight-run/ui/components'
 import * as React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -22,8 +23,6 @@ import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadO
 import { useAlertsContext } from '@/pages/Alerts/AlertsContext/AlertsContext'
 import { LabeledRow } from '@/pages/Graphing/LabeledRow'
 
-import * as styles from './styles.css'
-
 type Channel = {
 	id: AlertDestinationType
 	label: string
@@ -31,9 +30,9 @@ type Channel = {
 	enabled?: boolean
 }
 
-type ChannelOption = {
-	label: string
-	value: string
+type ChannelOption = SelectOption & {
+	id?: string
+	displayValue?: string
 }
 
 const DESTINATION_CHANNELS: Channel[] = [
@@ -107,35 +106,45 @@ export const DestinationInput: React.FC<Props> = ({
 				case AlertDestinationType.Slack:
 					selectedChannels[AlertDestinationType.Slack] = true
 					slackChannels.push({
-						label: destination.type_name,
+						displayValue: destination.type_name,
+						id: destination.type_id,
+						name: destination.type_name,
 						value: destination.type_id,
 					})
 					break
 				case AlertDestinationType.Discord:
 					selectedChannels[AlertDestinationType.Discord] = true
 					discordChannels.push({
-						label: destination.type_name,
+						displayValue: destination.type_name,
+						id: destination.type_id,
+						name: destination.type_name,
 						value: destination.type_id,
 					})
 					break
 				case AlertDestinationType.MicrosoftTeams:
 					selectedChannels[AlertDestinationType.MicrosoftTeams] = true
 					teamsChannels.push({
-						label: destination.type_name,
+						displayValue: destination.type_name,
+						id: destination.type_id,
+						name: destination.type_name,
 						value: destination.type_id,
 					})
 					break
 				case AlertDestinationType.Email:
 					selectedChannels[AlertDestinationType.Email] = true
 					emails.push({
-						label: destination.type_name,
+						displayValue: destination.type_name,
+						id: destination.type_id,
+						name: destination.type_name,
 						value: destination.type_id,
 					})
 					break
 				case AlertDestinationType.Webhook:
 					selectedChannels[AlertDestinationType.Webhook] = true
 					webhooks.push({
-						label: destination.type_name,
+						displayValue: destination.type_name,
+						id: destination.type_id,
+						name: destination.type_name,
 						value: destination.type_id,
 					})
 					break
@@ -204,6 +213,7 @@ export const DestinationInput: React.FC<Props> = ({
 				({ webhook_channel, webhook_channel_id }) => ({
 					id: webhook_channel_id!,
 					displayValue: webhook_channel!,
+					name: webhook_channel!,
 					value: webhook_channel_id!,
 				}),
 			),
@@ -216,6 +226,7 @@ export const DestinationInput: React.FC<Props> = ({
 				({ name, id }) => ({
 					id,
 					displayValue: name,
+					name,
 					value: id,
 				}),
 			),
@@ -228,6 +239,7 @@ export const DestinationInput: React.FC<Props> = ({
 				({ name, id }) => ({
 					id,
 					displayValue: name,
+					name,
 					value: id,
 				}),
 			),
@@ -239,6 +251,7 @@ export const DestinationInput: React.FC<Props> = ({
 			(alertsPayload?.admins ?? []).map((wa) => ({
 				id: wa.admin!.email,
 				displayValue: wa.admin!.email,
+				name: wa.admin!.email,
 				value: wa.admin!.email,
 			})),
 		[alertsPayload?.admins],
@@ -255,13 +268,16 @@ export const DestinationInput: React.FC<Props> = ({
 						aria-label="Slack channels to notify"
 						placeholder="Select Slack channels"
 						options={slackChannels}
-						optionFilterProp="label"
+						filterable
+						displayMode="tags"
+						checkType="checkbox"
 						onFocus={syncSlack}
-						onSearch={(value) => {
-							setSlackSearchQuery(value)
-						}}
-						onChange={setSelectedSlackChannels}
-						notFoundContent={
+						onSearchValueChange={setSlackSearchQuery}
+						onValueChange={setSelectedSlackChannels}
+						value={selectedSlackChannels}
+					/>
+					{slackChannels.length === 0 && (
+						<Box mt="4">
 							<SlackLoadOrConnect
 								isLoading={slackLoading}
 								searchQuery={slackSearchQuery}
@@ -271,12 +287,8 @@ export const DestinationInput: React.FC<Props> = ({
 									false
 								}
 							/>
-						}
-						className={styles.selectContainer}
-						mode="multiple"
-						labelInValue
-						value={selectedSlackChannels}
-					/>
+						</Box>
+					)}
 				</LabeledRow>
 			)}
 			{selectedChannelIds.includes(AlertDestinationType.Discord) && (
@@ -288,22 +300,19 @@ export const DestinationInput: React.FC<Props> = ({
 						aria-label="Discord channels to notify"
 						placeholder="Select Discord channels"
 						options={discordChannels}
-						optionFilterProp="label"
-						onChange={setSelectedDiscordChannels}
-						notFoundContent={
-							discordChannels.length === 0 ? (
-								<Link to="/integrations">
-									Connect Highlight with Discord
-								</Link>
-							) : (
-								'Discord channel not found'
-							)
-						}
-						className={styles.selectContainer}
-						mode="multiple"
-						labelInValue
+						filterable
+						displayMode="tags"
+						checkType="checkbox"
+						onValueChange={setSelectedDiscordChannels}
 						value={selectedDiscordChannels}
 					/>
+					{discordChannels.length === 0 && (
+						<Box mt="4">
+							<Link to="/integrations">
+								Connect Highlight with Discord
+							</Link>
+						</Box>
+					)}
 				</LabeledRow>
 			)}
 			{selectedChannelIds.includes(
@@ -317,22 +326,19 @@ export const DestinationInput: React.FC<Props> = ({
 						aria-label="Microsoft Teams channels to notify"
 						placeholder="Select Microsoft Teams channels"
 						options={microsoftTeamsChannels}
-						optionFilterProp="label"
-						onChange={setSelectedTeamsChannels}
-						notFoundContent={
-							microsoftTeamsChannels.length === 0 ? (
-								<Link to="/integrations">
-									Connect Highlight with Microsoft Teams
-								</Link>
-							) : (
-								'Microsoft Teams channel not found'
-							)
-						}
-						className={styles.selectContainer}
-						mode="multiple"
-						labelInValue
+						filterable
+						displayMode="tags"
+						checkType="checkbox"
+						onValueChange={setSelectedTeamsChannels}
 						value={selectedTeamsChannels}
 					/>
+					{microsoftTeamsChannels.length === 0 && (
+						<Box mt="4">
+							<Link to="/integrations">
+								Connect Highlight with Microsoft Teams
+							</Link>
+						</Box>
+					)}
 				</LabeledRow>
 			)}
 			{selectedChannelIds.includes(AlertDestinationType.Email) && (
@@ -344,11 +350,11 @@ export const DestinationInput: React.FC<Props> = ({
 						aria-label="Emails to notify"
 						placeholder="Select emails"
 						options={emails}
-						onChange={setSelectedEmails}
-						notFoundContent={<p>No email suggestions</p>}
-						className={styles.selectContainer}
-						mode="tags"
-						labelInValue
+						filterable
+						creatable
+						displayMode="tags"
+						checkType="checkbox"
+						onValueChange={setSelectedEmails}
 						value={selectedEmails}
 					/>
 				</LabeledRow>
@@ -361,11 +367,11 @@ export const DestinationInput: React.FC<Props> = ({
 					<Select
 						aria-label="Webhooks to notify"
 						placeholder="Enter webhook addresses"
-						onChange={setSelectedWebhooks}
-						notFoundContent={null}
-						className={styles.selectContainer}
-						mode="tags"
-						labelInValue
+						filterable
+						creatable
+						displayMode="tags"
+						checkType="checkbox"
+						onValueChange={setSelectedWebhooks}
 						value={selectedWebhooks}
 					/>
 				</LabeledRow>
@@ -401,7 +407,7 @@ const convertOptionsToDestinations = (
 ) => {
 	return options.map((v: ChannelOption) => ({
 		destination_type: destinationType,
-		type_name: v.label ?? v.value,
-		type_id: v.value,
+		type_name: v.name ?? String(v.value),
+		type_id: String(v.value),
 	}))
 }
