@@ -6,9 +6,8 @@ import {
 	useUpdateAllowedEmailOriginsMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
-import { Box, Select, Text } from '@highlight-run/ui/components'
+import { Select, Text } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import React, { useState } from 'react'
 
 import { getEmailDomain } from '@/util/email'
@@ -61,7 +60,9 @@ export const AutoJoinForm: React.FC = () => {
 		}
 	}
 
-	const handleCheckboxChange = (event: CheckboxChangeEvent) => {
+	const handleCheckboxChange = (
+		event: React.ChangeEvent<HTMLInputElement>,
+	) => {
 		const checked = event.target.checked
 		if (checked) {
 			onChangeMsg([adminsEmailDomain], 'Successfully enabled auto-join!')
@@ -84,13 +85,16 @@ export const AutoJoinForm: React.FC = () => {
 			mouseEnterDelay={0}
 		>
 			<div className={styles.container}>
-				<Box display="flex" alignItems="center" gap="8" p="0" m="0">
-					<Checkbox
+				<label className={styles.checkboxRow}>
+					<input
+						aria-label="Enable auto-approved email domains"
 						checked={autoJoinDomains.length > 0}
+						className={styles.checkbox}
 						onChange={handleCheckboxChange}
+						type="checkbox"
 					/>
 					<Text>Auto-approved email domains</Text>
-				</Box>
+				</label>
 				<Select
 					creatable
 					filterable
