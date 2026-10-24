@@ -1,13 +1,40 @@
 import {
+	backendInstrumentationLink,
 	configureSourcemapsCI,
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
 import { QuickStartContent } from '../QuickstartContent'
+
+const svelteKitPackageInstallSnippet = {
+	...packageInstallSnippet,
+	title: 'Install the npm packages & SDKs.',
+	content:
+		'Install the `highlight.run` client package and `@highlight-run/node` server package.',
+	code: [
+		{
+			key: 'yarn',
+			text: `# with yarn
+yarn add highlight.run @highlight-run/node`,
+			language: 'bash',
+		},
+		{
+			key: 'pnpm',
+			text: `# with pnpm
+pnpm add highlight.run @highlight-run/node`,
+			language: 'bash',
+		},
+		{
+			key: 'npm',
+			text: `# with npm
+npm install highlight.run @highlight-run/node`,
+			language: 'bash',
+		},
+	],
+}
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts
 ...
@@ -32,6 +59,55 @@ H.init('<YOUR_PROJECT_ID>', {
 ...
 `
 
+const svelteKitBackendInstrumentationCodeSnippet = `// hooks.server.ts
+import { H } from '@highlight-run/node';
+import type { Handle, HandleServerError } from '@sveltejs/kit';
+
+if (!H.isInitialized()) {
+	H.init({
+		projectID: '<YOUR_PROJECT_ID>',
+		serviceName: 'my-sveltekit-backend',
+		environment: 'production',
+	});
+}
+
+export const handle: Handle = async ({ event, resolve }) => {
+	return H.runWithHeaders(
+		'sveltekit-request',
+		Object.fromEntries(event.request.headers),
+		() => resolve(event),
+	);
+};
+
+export const handleError: HandleServerError = ({ error, event }) => {
+	const parsed = H.parseHeaders(Object.fromEntries(event.request.headers));
+
+	if (error instanceof Error) {
+		H.consumeError(error, parsed?.secureSessionId, parsed?.requestId);
+	} else {
+		H.consumeError(
+			new Error(String(error)),
+			parsed?.secureSessionId,
+			parsed?.requestId,
+		);
+	}
+};
+`
+
+const svelteKitBackendInstrumentationSnippet = {
+	title: 'Instrument your SvelteKit backend.',
+	content:
+		'Create or update `hooks.server.ts` to initialize `@highlight-run/node`, preserve request context, and report unexpected server errors. If you already export a `handle` hook, wrap your existing logic with `H.runWithHeaders`. The `tracingOrigins` and `networkRecording` client options above send the `x-highlight-request` header, and the server hook uses that header to associate backend errors with frontend sessions. For more details, read the [backend instrumentation](' +
+		backendInstrumentationLink +
+		') section.',
+	code: [
+		{
+			language: 'ts',
+			text: svelteKitBackendInstrumentationCodeSnippet,
+		},
+	],
+}
+
 export const SvelteKitContent: QuickStartContent = {
 	title: 'SvelteKit',
 	subtitle:
@@ -39,7 +115,7 @@ export const SvelteKitContent: QuickStartContent = {
 	logoKey: 'sveltekit',
 	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
 	entries: [
-		packageInstallSnippet,
+		svelteKitPackageInstallSnippet,
 		{
 			...initializeSnippet,
 			content:
@@ -79,6 +155,6 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		svelteKitBackendInstrumentationSnippet,
 	],
 }
