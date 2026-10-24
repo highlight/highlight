@@ -1,5 +1,5 @@
-import { LoadingBar } from '@components/Loading/Loading'
 import { Box, Callout, Form, Label, Stack } from '@highlight-run/ui/components'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
 import { useEffect, useState } from 'react'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
@@ -43,7 +43,16 @@ export const AutoresolveStaleErrorsForm = () => {
 	}, [data?.projectSettings?.autoResolveStaleErrorsDayInterval, loading])
 
 	if (loading) {
-		return <LoadingBar />
+		return (
+			<Box
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				py="12"
+			>
+				<IconAnimatedLoading />
+			</Box>
+		)
 	}
 
 	const categories = [

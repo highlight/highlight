@@ -19,14 +19,26 @@
 		margin-bottom: 0 !important;
 	}
 
-	:global(.ant-input-affix-wrapper) {
-		width: 150px;
-	}
-
 	& .versionSelect {
 		margin-bottom: var(--size-medium);
 		width: 100%;
 	}
+}
+
+.searchField {
+	width: 150px;
+}
+
+.searchInput {
+	padding-right: var(--size-xl);
+	width: 100%;
+}
+
+.clearSearchButton {
+	position: absolute;
+	right: var(--size-xxSmall);
+	top: 50%;
+	transform: translateY(-50%);
 }
 
 .listRow {

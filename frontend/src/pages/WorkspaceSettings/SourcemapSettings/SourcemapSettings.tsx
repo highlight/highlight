@@ -1,17 +1,23 @@
 import Card from '@components/Card/Card'
 import CopyText from '@components/CopyText/CopyText'
-import Input from '@components/Input/Input'
 import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable'
-import Select from '@components/Select/Select'
 import {
 	useGetProjectQuery,
 	useGetSourcemapFilesLazyQuery,
 	useGetSourcemapVersionsQuery,
 } from '@graph/hooks'
-import { Box, Stack } from '@highlight-run/ui/components'
+import {
+	Box,
+	ButtonIcon,
+	Form,
+	IconSolidXCircle,
+	Select,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { debounce } from 'lodash'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
@@ -79,125 +85,183 @@ const SourcemapSettings = () => {
 		? fileKeys.filter((key) => key && key.indexOf(query) > -1)
 		: fileKeys
 
-	const filterResults = debounce((query: string) => {
-		setQuery(query)
-	}, 300)
+	const filterResults = useMemo(
+		() =>
+			debounce((nextQuery: string) => {
+				setQuery(nextQuery)
+			}, 300),
+		[],
+	)
+
+	useEffect(() => {
+		return () => {
+			filterResults.cancel()
+		}
+	}, [filterResults])
+
+	const clearSearch = () => {
+		filterResults.cancel()
+		setQuery('')
+	}
 
 	return (
-		<BorderBox>
-			<Stack gap="8">
-				{projectData?.project?.secret && (
-					<Stack gap="8">
-						<BoxLabel
-							label="Sourcemaps"
-							info={
-								<>
-									Sourcemaps can be used to undo JavaScript
-									minification in your error traces. You can
-									learn more about them in{' '}
-									<a
-										href="https://docs.highlight.run/sourcemaps"
-										target="_blank"
-										rel="noreferrer"
-									>
-										our sourcemap docs
-									</a>
-									. Use the API key below to upload your
-									sourcemaps to Highlight.
-								</>
+		<Form onSubmit={(e) => e.preventDefault()}>
+			<BorderBox>
+				<Stack gap="8">
+					{projectData?.project?.secret && (
+						<Stack gap="8">
+							<BoxLabel
+								label="Sourcemaps"
+								info={
+									<>
+										Sourcemaps can be used to undo
+										JavaScript minification in your error
+										traces. You can learn more about them in{' '}
+										<a
+											href="https://docs.highlight.run/sourcemaps"
+											target="_blank"
+											rel="noreferrer"
+										>
+											our sourcemap docs
+										</a>
+										. Use the API key below to upload your
+										sourcemaps to Highlight.
+									</>
+								}
+							/>
+							<CopyText
+								text={projectData.project.secret}
+								onCopyTooltipText="API key copied to your clipboard!"
+							/>
+						</Stack>
+					)}
+
+					<Box borderTop="dividerWeak" />
+
+					<BoxLabel info="Below is a list of sourcemap files we have for your project." />
+
+					<Card
+						className={styles.list}
+						title={
+							<div className={styles.listHeader}>
+								{versions.length > 1 && (
+									<div>
+										<Select
+											aria-label="Sourcemap app version"
+											className={styles.versionSelect}
+											placeholder="Select a version of your app"
+											filterable
+											notFoundContent={
+												<Text
+													size="small"
+													color="secondaryContentOnEnabled"
+												>
+													No sourcemaps found
+												</Text>
+											}
+											options={versions.map((v) => ({
+												name: v,
+												value: v,
+											}))}
+											onValueChange={(version) =>
+												setSelectedVersion(
+													String(version.value),
+												)
+											}
+											value={selectedVersion}
+										/>
+									</div>
+								)}
+								<Box
+									display="flex"
+									alignItems="center"
+									position="relative"
+									cssClass={styles.searchField}
+								>
+									<Form.Input
+										name="sourcemap-search"
+										label=""
+										placeholder="Search for a file"
+										size="small"
+										value={query}
+										onChange={(e) =>
+											filterResults(e.target.value)
+										}
+										disabled={versionsLoading || loading}
+										cssClass={styles.searchInput}
+									/>
+									{query.length > 0 &&
+										!versionsLoading &&
+										!loading && (
+											<ButtonIcon
+												aria-label="Clear search"
+												kind="secondary"
+												emphasis="low"
+												size="xSmall"
+												cssClass={
+													styles.clearSearchButton
+												}
+												icon={
+													<IconSolidXCircle
+														size={12}
+													/>
+												}
+												onClick={clearSearch}
+											/>
+										)}
+								</Box>
+							</div>
+						}
+					>
+						<ProgressBarTable
+							loading={loading}
+							columns={[
+								{
+									title: 'Sourcemap',
+									dataIndex: 'key',
+									key: 'key',
+									width: '100%',
+									render: (key) => (
+										<div className={styles.listRow}>
+											{key}
+										</div>
+									),
+								},
+							]}
+							data={visibleFileKeys?.map((file) => ({
+								key: file,
+								file: file,
+							}))}
+							onClickHandler={() => {}}
+							noDataMessage={
+								query ? (
+									<p>No sourcemap files match your search.</p>
+								) : needToSelectVersion ? (
+									<p>
+										We have sourcemaps for multiple versions
+										of your app. Please select a version to
+										see your sourcemaps.
+									</p>
+								) : (
+									<p>
+										We don't have any sourcemap files for
+										your project. Once you upload some you
+										will be able to view them here.
+									</p>
+								)
+							}
+							noDataTitle={
+								query.length
+									? 'Nothing to see here'
+									: needToSelectVersion
+										? 'Select a version'
+										: 'No sourcemap data yet 😔'
 							}
 						/>
-						<CopyText
-							text={projectData.project.secret}
-							onCopyTooltipText="API key copied to your clipboard!"
-						/>
-					</Stack>
-				)}
-
-				<Box borderTop="dividerWeak" />
-
-				<BoxLabel info="Below is a list of sourcemap files we have for your project." />
-
-				<Card
-					className={styles.list}
-					title={
-						<div className={styles.listHeader}>
-							{versions.length > 1 && (
-								<div>
-									<Select
-										aria-label="Sourcemap app version"
-										className={styles.versionSelect}
-										placeholder="Select a version of your app"
-										options={versions.map((v) => ({
-											id: v,
-											value: v,
-											displayValue: v,
-										}))}
-										onChange={setSelectedVersion}
-										value={selectedVersion}
-										notFoundContent={
-											<p>No sourcemaps found</p>
-										}
-									/>
-								</div>
-							)}
-							<Input
-								allowClear
-								style={{ width: '100%' }}
-								placeholder="Search for a file"
-								onChange={(e) => filterResults(e.target.value)}
-								size="small"
-								disabled={versionsLoading || loading}
-							/>
-						</div>
-					}
-				>
-					<ProgressBarTable
-						loading={loading}
-						columns={[
-							{
-								title: 'Sourcemap',
-								dataIndex: 'key',
-								key: 'key',
-								width: '100%',
-								render: (key) => (
-									<div className={styles.listRow}>{key}</div>
-								),
-							},
-						]}
-						data={visibleFileKeys?.map((file) => ({
-							key: file,
-							file: file,
-						}))}
-						onClickHandler={() => {}}
-						noDataMessage={
-							query ? (
-								<p>No sourcemap files match your search.</p>
-							) : needToSelectVersion ? (
-								<p>
-									We have sourcemaps for multiple versions of
-									your app. Please select a version to see
-									your sourcemaps.
-								</p>
-							) : (
-								<p>
-									We don't have any sourcemap files for your
-									project. Once you upload some you will be
-									able to view them here.
-								</p>
-							)
-						}
-						noDataTitle={
-							query.length
-								? 'Nothing to see here'
-								: needToSelectVersion
-									? 'Select a version'
-									: 'No sourcemap data yet 😔'
-						}
-					/>
-				</Card>
-			</Stack>
-		</BorderBox>
+					</Card>
+				</Stack>
+			</BorderBox>
+		</Form>
 	)
 }
 

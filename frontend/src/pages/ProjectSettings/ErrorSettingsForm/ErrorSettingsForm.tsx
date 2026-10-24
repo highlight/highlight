@@ -1,6 +1,5 @@
-import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
-import { Stack } from '@highlight-run/ui/components'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
+import { Box, Select, SelectOption, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
@@ -17,7 +16,16 @@ export const ErrorSettingsForm = () => {
 	} = useProjectSettingsContext()
 
 	if (loading) {
-		return <LoadingBar />
+		return (
+			<Box
+				display="flex"
+				justifyContent="center"
+				alignItems="center"
+				py="12"
+			>
+				<IconAnimatedLoading />
+			</Box>
+		)
 	}
 
 	return (
@@ -28,16 +36,21 @@ export const ErrorSettingsForm = () => {
 					info="Enter JSON expressions to use for grouping your errors."
 				/>
 				<Select
-					mode="tags"
+					creatable
+					customFilterable
+					displayMode="tags"
 					placeholder="$.context.messages[0]"
+					options={[]}
 					value={data?.projectSettings?.error_json_paths || []}
-					onChange={(paths: string[]) => {
+					onValueChange={(paths: SelectOption[]) => {
 						setAllProjectSettings((currentProjectSettings) =>
 							currentProjectSettings?.projectSettings
 								? {
 										projectSettings: {
 											...currentProjectSettings.projectSettings,
-											error_json_paths: paths,
+											error_json_paths: paths.map(
+												(path) => String(path.value),
+											),
 										},
 									}
 								: currentProjectSettings,

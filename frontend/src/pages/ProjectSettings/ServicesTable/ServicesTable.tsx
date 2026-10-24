@@ -1,5 +1,5 @@
 import { Button } from '@components/Button'
-import LoadingBox from '@components/LoadingBox'
+import { IconAnimatedLoading } from '@components/Loading/Loading'
 import {
 	useEditServiceGithubSettingsMutation,
 	useGetServicesQuery,
@@ -238,7 +238,15 @@ export const ServicesTable: React.FC = () => {
 		if (loading) {
 			return (
 				<Table.FullRow>
-					<LoadingBox />
+					<Box
+						display="flex"
+						justifyContent="center"
+						alignItems="center"
+						py="12"
+						width="full"
+					>
+						<IconAnimatedLoading />
+					</Box>
 				</Table.FullRow>
 			)
 		}
