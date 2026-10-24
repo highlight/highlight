@@ -1,9 +1,39 @@
+.pageHeader {
+	align-items: flex-start;
+	display: flex;
+	gap: var(--size-large);
+	justify-content: space-between;
+	margin-bottom: var(--size-large);
+}
+
+.integrationCount {
+	background: var(--color-neutral-100);
+	border: 1px solid var(--color-neutral-200);
+	border-radius: var(--size-small);
+	color: var(--color-neutral-500);
+	font-size: 13px;
+	font-weight: 500;
+	padding: 6px 10px;
+	white-space: nowrap;
+}
+
 .integrationsContainer {
 	display: grid;
-	grid-gap: var(--size-large);
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: var(--size-large);
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
+
 .modalBtn {
 	padding-bottom: 4px !important;
 	padding-top: 4px !important;
+}
+
+@media (max-width: 768px) {
+	.pageHeader {
+		flex-direction: column;
+	}
+
+	.integrationCount {
+		width: fit-content;
+	}
 }
