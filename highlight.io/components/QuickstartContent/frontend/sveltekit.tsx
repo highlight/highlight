@@ -3,7 +3,6 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
@@ -30,6 +29,36 @@ H.init('<YOUR_PROJECT_ID>', {
 	},
 });
 ...
+`
+
+const svelteKitServerInitCodeSnippet = `// hooks.server.ts
+import type { Handle, HandleServerError } from '@sveltejs/kit'
+import { H } from '@highlight-run/node'
+
+H.init({
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'my-sveltekit-backend',
+	environment: 'production',
+})
+
+export const handle: Handle = async ({ event, resolve }) => {
+	const headers = Object.fromEntries(event.request.headers)
+
+	return H.runWithHeaders(
+		\`\${event.request.method} \${event.url.pathname}\`,
+		headers,
+		async () => resolve(event),
+	)
+}
+
+export const handleError: HandleServerError = async ({ error, event }) => {
+	const parsed = H.parseHeaders(Object.fromEntries(event.request.headers))
+	const normalizedError =
+		error instanceof Error ? error : new Error(String(error))
+
+	H.consumeError(normalizedError, parsed.secureSessionId, parsed.requestId)
+	await H.flush()
+}
 `
 
 export const SvelteKitContent: QuickStartContent = {
@@ -76,9 +105,37 @@ export default config;`,
 				},
 			],
 		},
+		{
+			title: 'Instrument your SvelteKit backend.',
+			content:
+				'Install `@highlight-run/node` and initialize it from `hooks.server.ts` to capture server-side errors, logs, and request traces. The `tracingOrigins` option configured in `hooks.client.ts` forwards Highlight request headers, and `H.runWithHeaders` uses those headers to associate backend errors with the frontend session.',
+			code: [
+				{
+					key: 'yarn',
+					text: `# with yarn
+yarn add @highlight-run/node`,
+					language: 'bash',
+				},
+				{
+					key: 'pnpm',
+					text: `# with pnpm
+pnpm add @highlight-run/node`,
+					language: 'bash',
+				},
+				{
+					key: 'npm',
+					text: `# with npm
+npm install @highlight-run/node`,
+					language: 'bash',
+				},
+				{
+					text: svelteKitServerInitCodeSnippet,
+					language: 'ts',
+				},
+			],
+		},
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
 	],
 }
