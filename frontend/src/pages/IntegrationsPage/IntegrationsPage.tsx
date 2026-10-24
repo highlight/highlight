@@ -26,6 +26,7 @@ import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/Micros
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import styles from './IntegrationsPage.module.css'
+import { partitionIntegrations } from './utils'
 
 const IntegrationsPage = () => {
 	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
@@ -181,6 +182,18 @@ const IntegrationsPage = () => {
 
 	useEffect(() => analytics.page('Integrations'), [])
 
+	const { connected, available } = partitionIntegrations(integrations)
+
+	const renderIntegration = (integration: (typeof integrations)[number]) => (
+		<Integration
+			integration={integration}
+			key={integration.key}
+			showModalDefault={popUpModal === integration.key}
+			showSettingsDefault={configureIntegration === integration.key}
+			loading={loading}
+		/>
+	)
+
 	return (
 		<>
 			<Helmet>
@@ -192,19 +205,24 @@ const IntegrationsPage = () => {
 					Supercharge your workflows and attach Highlight with the
 					tools you use everyday.
 				</p>
-				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) => (
-						<Integration
-							integration={integration}
-							key={integration.key}
-							showModalDefault={popUpModal === integration.key}
-							showSettingsDefault={
-								configureIntegration === integration.key
-							}
-							loading={loading}
-						/>
-					))}
-				</div>
+				{loading || connected.length === 0 ? (
+					<div className={styles.integrationsContainer}>
+						{integrations.map(renderIntegration)}
+					</div>
+				) : (
+					<>
+						<h3 className={styles.sectionTitle}>Connected</h3>
+						<div className={styles.integrationsContainer}>
+							{connected.map(renderIntegration)}
+						</div>
+						<h3 className={styles.sectionTitle}>
+							All integrations
+						</h3>
+						<div className={styles.integrationsContainer}>
+							{available.map(renderIntegration)}
+						</div>
+					</>
+				)}
 			</LeadAlignLayout>
 		</>
 	)
