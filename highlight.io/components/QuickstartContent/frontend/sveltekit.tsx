@@ -3,11 +3,42 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
+import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
+
+const GUIDE_URL = siteUrl(
+	'/docs/getting-started/fullstack-frameworks/sveltekit',
+)
+
+const svelteKitServerCodeSnippet = `// src/hooks.server.ts
+import { H } from '@highlight-run/node'
+import type { Handle, HandleServerError } from '@sveltejs/kit'
+import { HIGHLIGHT_PROJECT_ID } from '$env/static/private'
+
+H.init({
+	projectID: HIGHLIGHT_PROJECT_ID,
+	serviceName: 'my-sveltekit-backend',
+})
+
+export const handleError: HandleServerError = ({ error, event }) => {
+	const { secureSessionId, requestId } = H.parseHeaders(event.request.headers)
+
+	if (error instanceof Error) {
+		H.consumeError(error, secureSessionId, requestId)
+	}
+}
+
+export const handle: Handle = async ({ event, resolve }) => {
+	return H.runWithHeaders(
+		\`\${event.request.method} \${event.url.pathname}\`,
+		event.request.headers,
+		async () => resolve(event),
+	)
+}
+`
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts
 ...
@@ -77,8 +108,22 @@ export default config;`,
 			],
 		},
 		identifySnippet,
+		{
+			title: 'Initialize the server SDK.',
+			content:
+				'SvelteKit runs its server on Node.js, so you can instrument the backend with the `@highlight-run/node` SDK from your `src/hooks.server.ts` file. Install it with `yarn add @highlight-run/node`, initialize Highlight, report uncaught errors from the `handleError` hook, and wrap requests with `H.runWithHeaders` in the `handle` hook so backend errors and traces are tied to the frontend session that caused them.',
+			code: [
+				{
+					text: svelteKitServerCodeSnippet,
+					language: 'js',
+				},
+			],
+		},
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'More SvelteKit features?',
+			content: `See our [fullstack SvelteKit guide](${GUIDE_URL}) for more information on how to use Highlight with SvelteKit.`,
+		},
 	],
 }
