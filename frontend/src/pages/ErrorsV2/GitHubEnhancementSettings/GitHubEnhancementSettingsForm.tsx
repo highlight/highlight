@@ -12,9 +12,9 @@ import {
 	Stack,
 	Text,
 	Tooltip,
+	Select,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 
 import LoadingBox from '@/components/LoadingBox'
@@ -65,7 +65,7 @@ export const GitHubEnhancementSettingsForm: React.FC<
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
 				id: repo.key,
-				label: repo.name.split('/').pop(),
+				name: repo.name.split('/').pop(),
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -219,23 +219,18 @@ export const GitHubEnhancementSettingsForm: React.FC<
 						<Box display="flex" alignItems="center" gap="8">
 							<Select
 								aria-label="GitHub repository"
-								className={styles.repoSelect}
+								cssClass={styles.repoSelect}
 								placeholder="Search repos..."
-								onSelect={(repo: string) =>
+								onValueChange={(repo: string) =>
 									formStore.setValue(
 										formStore.names.githubRepo,
 										repo,
 									)
 								}
-								value={formState.values.githubRepo
-									?.split('/')
-									.pop()}
+								value={formState.values.githubRepo ?? ''}
 								options={githubOptions}
 								disabled={disabled || testLoading}
-								notFoundContent={<span>No repos found</span>}
-								optionFilterProp="label"
-								filterOption
-								showSearch
+								filterable
 							/>
 							<ButtonIcon
 								kind="secondary"
