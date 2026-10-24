@@ -8,7 +8,8 @@ import {
 import { namedOperations } from '@graph/operations'
 import { Box, Select, Text } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
-import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
+import { Checkbox, useCheckboxStore } from '@ariakit/react'
+type CheckboxChangeEvent = { target: { checked: boolean } }
 import React, { useState } from 'react'
 
 import { getEmailDomain } from '@/util/email'

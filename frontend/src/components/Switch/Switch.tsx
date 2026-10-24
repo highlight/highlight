@@ -1,15 +1,17 @@
-// eslint-disable-next-line no-restricted-imports
+import { Checkbox, useCheckboxStore } from '@ariakit/react'
 import analytics from '@util/analytics'
-import { Switch as AntDesignSwitch, SwitchProps } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Switch.module.css'
 
-type Props = Pick<
-	SwitchProps,
-	'checked' | 'onChange' | 'loading' | 'className' | 'size' | 'disabled'
-> & {
+type Props = {
+	checked?: boolean
+	onChange?: (checked: boolean, event: React.ChangeEvent<HTMLInputElement>) => void
+	loading?: boolean
+	className?: string
+	size?: 'small' | 'default'
+	disabled?: boolean
 	label?: string | React.ReactNode
 	/** Renders the label before the switch. */
 	labelFirst?: boolean
@@ -32,6 +34,18 @@ const Switch = ({
 	size = 'small',
 	...props
 }: Props) => {
+	const checkbox = useCheckboxStore({
+		checked: props.checked,
+		setValue: (value) => {
+			if (props.onChange && !props.disabled && !props.loading) {
+				analytics.track(`Switch-${trackingId}`, {
+					checked: !!value,
+				})
+				props.onChange(!!value, {} as React.ChangeEvent<HTMLInputElement>)
+			}
+		},
+	})
+
 	const labelToRender = !!label ? <span>{label}</span> : null
 	return (
 		<label
@@ -44,20 +58,14 @@ const Switch = ({
 			})}
 		>
 			{labelFirst && labelToRender}
-			<AntDesignSwitch
-				{...props}
-				size={size}
+			<Checkbox
+				store={checkbox}
 				className={clsx(styles.switchStyles, {
+					[styles.checked]: props.checked,
 					[styles.red]: props.red,
+					[styles.small]: size === 'small',
 				})}
-				onChange={(checked, event) => {
-					if (props.onChange) {
-						analytics.track(`Switch-${trackingId}`, {
-							checked,
-						})
-						props.onChange(checked, event)
-					}
-				}}
+				disabled={props.disabled || props.loading}
 			/>
 			{!labelFirst && labelToRender}
 		</label>

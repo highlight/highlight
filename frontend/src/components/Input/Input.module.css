@@ -1,105 +1,69 @@
+.inputWrapper {
+	align-items: center;
+	background: var(--color-gray-200);
+	border: 1px solid transparent;
+	border-radius: var(--border-radius);
+	display: flex;
+	overflow: hidden;
+	padding: 0;
+	transition: all 0.3s;
+
+	&:focus-within {
+		background: var(--color-primary-background);
+		border-color: var(--color-purple);
+		box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2);
+	}
+
+	&:hover:not(:focus-within) {
+		border-color: var(--color-purple);
+	}
+
+	&.small {
+		padding: 0 var(--size-xxSmall);
+	}
+
+	&.large {
+		padding: var(--size-xSmall) var(--size-small);
+	}
+}
+
 .input {
-	background: var(--color-gray-200) !important;
-	border: 1px solid transparent !important;
-	border-radius: var(--border-radius) !important;
-	color: var(--text-primary) !important;
-	font-size: 16px !important;
-	line-height: initial !important;
-	padding: var(--size-xSmall) var(--size-small) !important;
+	background: transparent;
+	border: none;
+	color: var(--text-primary);
+	flex: 1;
+	font-size: 16px;
+	line-height: initial;
+	outline: none;
+	padding: var(--size-xSmall) var(--size-small);
+	width: 100%;
 
-	&:global(.ant-input-lg) {
-		padding: var(--size-xSmall) var(--size-small) !important;
+	&::placeholder {
+		color: var(--color-gray-500);
 	}
 
-	:global(.ant-input-sm) {
-		padding: var(--size-xxSmall) var(--size-xxSmall) !important;
+	&:disabled {
+		cursor: not-allowed;
+		opacity: 0.5;
 	}
-	:global(.ant-input-sm) ~ :global(.ant-input-suffix svg) {
-		height: var(--size-small) !important;
-		width: var(--size-small) !important;
-	}
+}
 
-	&:global(.ant-input-group-wrapper) {
-		align-items: center;
-		display: flex;
-		overflow: hidden !important;
-		padding: 0 !important;
-		transition: all 0.3s;
-		:global(.ant-input:hover),
-		:global(.ant-input:focus),
-		:global(.ant-input) {
-			border-color: transparent !important;
-			box-shadow: none !important;
-			color: var(--text-primary) !important;
-			font-size: 16px !important;
-			height: 100%;
-			line-height: initial !important;
-			padding: 10px !important;
-		}
+.addon {
+	background: transparent;
+	color: var(--text-primary);
+}
 
-		:global(.ant-input-group-addon) {
-			background: transparent !important;
-			border-color: transparent !important;
-		}
+.affix {
+	color: var(--color-gray-500);
+	display: inline-flex;
+	padding: 0 var(--size-xxSmall);
+}
 
-		:global(.ant-input-wrapper.ant-input-group) {
-			height: 100%;
-			overflow: hidden;
-		}
-
-		&:focus,
-		&:active,
-		&:focus-within {
-			background: var(--color-primary-background) !important;
-			border-color: var(--color-purple) !important;
-			box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important;
-
-			:global(.ant-input) {
-				background: var(--color-primary-background) !important;
-			}
-		}
-	}
-
-	&:global(.ant-input-affix-wrapper),
-	:global(.ant-input) {
-		background: var(--color-gray-200) !important;
-		color: var(--text-primary) !important;
-	}
-
-	:global(.ant-input-clear-icon) {
-		color: var(--color-gray-500) !important;
-	}
-
-	&:global(.ant-input-affix-wrapper-sm) {
-		padding: 0 var(--size-xSmall) !important;
-	}
-
-	&:global(:not(.ant-input-affix-wrapper-disabled)) {
-		:global(.ant-input) {
-			background: var(--color-gray-200) !important;
-
-			&::placeholder {
-				color: var(--color-gray-500) !important;
-			}
-		}
-
-		&:focus,
-		&:global(.ant-input-affix-wrapper-focused) {
-			background: var(--color-primary-background) !important;
-			border-color: var(--color-purple) !important;
-			box-shadow: 0 0 0 4px rgba(var(--color-purple-rgb), 0.2) !important;
-
-			:global(.ant-input) {
-				background: var(--color-primary-background) !important;
-			}
-		}
-
-		&:hover {
-			border-color: var(--color-purple) !important;
-		}
-	}
-
-	&:global(.ant-input-affix-wrapper-disabled) {
-		background: var(--color-gray-200) !important;
-	}
+.clearButton {
+	background: none;
+	border: none;
+	color: var(--color-gray-500);
+	cursor: pointer;
+	font-size: 16px;
+	padding: 0 var(--size-xxSmall);
 }

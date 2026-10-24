@@ -1,40 +1,39 @@
 import {
-	Tooltip as AntDesignTooltip,
-	TooltipProps as AntDesignTooltipProps,
-} from 'antd'
+	Tooltip as UiTooltip,
+	TooltipContent,
+} from '@highlight-run/ui/components'
 import React from 'react'
 
-import styles from './Tooltip.module.css'
-
-type TooltipProps = Pick<
-	AntDesignTooltipProps,
-	| 'title'
-	| 'placement'
-	| 'align'
-	| 'arrowPointAtCenter'
-	| 'overlayStyle'
-	| 'mouseEnterDelay'
->
+type TooltipProps = {
+	title?: React.ReactNode
+	placement?: 'top' | 'bottom' | 'left' | 'right'
+	mouseEnterDelay?: number
+	arrowPointAtCenter?: boolean
+	align?: { offset?: [number, number] }
+	overlayStyle?: React.CSSProperties
+}
 
 /**
- * Deprecated: use the UI package's tooltip instead of this tooltip
- * A proxy for Ant Design's tooltip. This component should be used instead of directly using Ant Design's.
+ * A proxy for the UI package's tooltip. This component should be used instead of directly using the UI package's.
  */
 const Tooltip: React.FC<React.PropsWithChildren<TooltipProps>> = ({
 	children,
+	title,
 	mouseEnterDelay = 0.5,
+	placement,
 	...props
 }) => {
+	if (title == undefined || title === '') {
+		return <>{children}</>
+	}
+
 	return (
-		<AntDesignTooltip
-			{...props}
-			mouseEnterDelay={mouseEnterDelay}
-			overlayClassName={styles.tooltipOverlay}
-			title={props.title}
-			destroyTooltipOnHide
+		<UiTooltip
+			trigger={children as React.ReactNode}
+			delayed={mouseEnterDelay > 0}
 		>
-			{children}
-		</AntDesignTooltip>
+			<TooltipContent>{title}</TooltipContent>
+		</UiTooltip>
 	)
 }
 
