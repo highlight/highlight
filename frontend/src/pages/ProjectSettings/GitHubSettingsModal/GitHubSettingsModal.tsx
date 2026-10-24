@@ -15,7 +15,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
@@ -40,7 +39,7 @@ export const GitHubSettingsModal = ({
 	githubRepos,
 	handleSave,
 	closeModal,
-}: Props) => {
+	}: Props) => {
 	const handleSubmit = (formValues: GithubSettingsFormValues) => {
 		const submittedValues = formValues.githubRepo
 			? formValues
@@ -121,7 +120,7 @@ const GithubSettingsForm = ({
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
 				id: repo.key,
-				label: repo.name.split('/').pop(),
+				name: repo.name.split('/').pop() || '',
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -151,24 +150,13 @@ const GithubSettingsForm = ({
 					name="githubRepo"
 				>
 					<Box display="flex" alignItems="center" gap="8">
-						<Select
+						<Form.Select
+							name={formStore.names.githubRepo}
 							aria-label="GitHub repository"
 							className={styles.repoSelect}
 							placeholder="Search repos..."
-							onSelect={(repo: string) =>
-								formStore.setValue(
-									formStore.names.githubRepo,
-									repo,
-								)
-							}
-							value={formState.values.githubRepo
-								?.split('/')
-								.pop()}
 							options={githubOptions}
-							notFoundContent={<span>No repos found</span>}
-							optionFilterProp="label"
-							filterOption
-							showSearch
+							filterable
 						/>
 						<ButtonIcon
 							kind="secondary"
