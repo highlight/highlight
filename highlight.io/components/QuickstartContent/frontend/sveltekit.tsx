@@ -8,6 +8,7 @@ import {
 } from './shared-snippets'
 
 import { QuickStartContent } from '../QuickstartContent'
+import { siteUrl } from '../../../utils/urls'
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts
 ...
@@ -79,6 +80,13 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			...setupBackendSnippet,
+			content: `Instrument your SvelteKit Node server next so server errors, logs, and traces link to browser sessions. Follow the [SvelteKit server quickstart](${siteUrl(
+				'/docs/getting-started/server/js/sveltekit',
+			)}) (or the [fullstack SvelteKit walkthrough](${siteUrl(
+				'/docs/getting-started/fullstack-frameworks/sveltekit',
+			)})).`,
+		},
 	],
 }
