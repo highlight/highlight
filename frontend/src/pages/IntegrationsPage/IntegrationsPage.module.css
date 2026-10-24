@@ -1,9 +1,49 @@
-.integrationsContainer {
-	display: grid;
-	grid-gap: var(--size-large);
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-}
-.modalBtn {
-	padding-bottom: 4px !important;
-	padding-top: 4px !important;
-}
+     1|.pageHeader {
+     2|	display: flex;
+     3|	align-items: center;
+     4|	justify-content: space-between;
+     5|	margin-bottom: var(--size-large);
+     6|}
+     7|
+     8|.pageTitle {
+     9|	font-size: var(--size-large);
+    10|	font-weight: 600;
+    11|	color: var(--text-primary);
+    12|	margin: 0;
+    13|}
+    14|
+    15|.searchInput {
+    16|	padding: var(--size-xSmall) var(--size-small);
+    17|	border: 1px solid var(--color-gray-300);
+    18|	border-radius: var(--border-radius);
+    19|	background: var(--color-primary-background);
+    20|	color: var(--text-primary);
+    21|	font-size: var(--size-small);
+    22|	width: 240px;
+    23|	transition: border-color 0.2s, box-shadow 0.2s;
+    24|}
+    25|
+    26|.searchInput:focus {
+    27|	outline: none;
+    28|	border-color: var(--color-purple);
+    29|	box-shadow: 0 0 0 3px rgba(108, 95, 199, 0.15);
+    30|}
+    31|
+    32|.searchInput::placeholder {
+    33|	color: var(--color-gray-400);
+    34|}
+    35|
+    36|.integrationsContainer {
+    37|	display: grid;
+    38|	grid-gap: var(--size-medium);
+    39|	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    40|}
+    41|
+    42|.emptyState {
+    43|	grid-column: 1 / -1;
+    44|	text-align: center;
+    45|	padding: var(--size-xxLarge) 0;
+    46|	color: var(--color-gray-500);
+    47|	font-size: var(--size-medium);
+    48|}
+    49|
