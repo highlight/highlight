@@ -3,7 +3,6 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
@@ -31,6 +30,41 @@ H.init('<YOUR_PROJECT_ID>', {
 });
 ...
 `
+
+const svelteKitBackendInstallSnippet = `# with yarn
+yarn add @highlight-run/node
+
+# with pnpm
+pnpm add @highlight-run/node
+
+# with npm
+npm install @highlight-run/node`
+
+const svelteKitBackendInitSnippet = `// hooks.server.ts
+import { H } from '@highlight-run/node'
+import type { Handle, HandleServerError } from '@sveltejs/kit'
+
+H.init({
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'my-sveltekit-backend',
+	serviceVersion: 'git-sha',
+})
+
+export const handle: Handle = async ({ event, resolve }) => {
+	return H.runWithHeaders(event.request.headers, async () => {
+		return resolve(event)
+	})
+}
+
+export const handleError: HandleServerError = async ({ error, event }) => {
+	const parsed = H.parseHeaders(event.request.headers)
+
+	H.consumeError(error, parsed?.secureSessionId, parsed?.requestId)
+
+	return {
+		message: 'Internal Error',
+	}
+}`
 
 export const SvelteKitContent: QuickStartContent = {
 	title: 'SvelteKit',
@@ -79,6 +113,27 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Install the backend SDK.',
+			content:
+				'To capture backend logs, errors, and traces from SvelteKit server hooks, install the Node.js SDK alongside the browser SDK.',
+			code: [
+				{
+					text: svelteKitBackendInstallSnippet,
+					language: 'bash',
+				},
+			],
+		},
+		{
+			title: 'Initialize the SDK in your backend.',
+			content:
+				'Initialize Highlight in `hooks.server.ts`, wrap the SvelteKit `handle` hook with `H.runWithHeaders` to propagate the `x-highlight-request` header, and export `handleError` so uncaught server errors are linked back to the originating session.',
+			code: [
+				{
+					text: svelteKitBackendInitSnippet,
+					language: 'ts',
+				},
+			],
+		},
 	],
 }
