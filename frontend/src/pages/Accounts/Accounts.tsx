@@ -390,37 +390,43 @@ export const Accounts = () => {
 			{loading ? (
 				'loading...'
 			) : (
-				<Table
-					pagination={false}
-					sticky={true}
-					onRow={(record) => {
-						return {
-							onClick: () => {
-								navigate(`/accounts/${record.id}`)
-							},
-						}
-					}}
-					size="small"
-					columns={COLUMNS}
-					dataSource={
-						accountDataLocal.map((a: any, i: any) => {
-							return {
-								key: i,
-								email: a?.email,
-								id: a?.id,
-								member_count: a?.member_count,
-								member_limit: a?.member_limit,
-								name: a?.name,
-								plan_tier: a?.plan_tier,
-								paid_prev: a?.paid_prev,
-								paid_prev_prev: a?.paid_prev_prev,
-								session_count_cur: a?.session_count_cur,
-								view_count_cur: a?.view_count_cur,
-								session_count_prev: a?.session_count_prev,
-								view_count_prev: a?.view_count_prev,
-								session_count_prev_prev:
-									a?.session_count_prev_prev,
-								session_limit: a?.session_limit,
+				<Table>
+					<Table.Head>
+						<Table.Row>
+							{COLUMNS.map((column) => (
+								<Table.Header key={column.title}>
+									{column.title}
+								</Table.Header>
+							))}
+						</Table.Row>
+					</Table.Head>
+					<Table.Body>
+						{accountDataLocal.map((account: any, index: number) => (
+							<Table.Row
+								key={index}
+								onClick={() => navigate(`/accounts/${account.id}`)}
+							>
+								{COLUMNS.map((column) => (
+									<Table.Cell key={column.dataIndex}>
+										{column.render
+											? column.render(
+													account[column.dataIndex],
+													account,
+											  )
+											: account[column.dataIndex]}
+									</Table.Cell>
+								))}
+							</Table.Row>
+						))}
+					</Table.Body>
+				</Table>
+			)}
+		</div>
+	)
+}
+
+export default Accounts
+							session_limit: a?.session_limit,
 								stripe_customer_id: a?.stripe_customer_id,
 								subscription_start: a?.subscription_start,
 							}
