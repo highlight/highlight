@@ -1,5 +1,5 @@
 import Button from '@components/Button/Button/Button'
-import { Form } from '@highlight-run/ui/components'
+import { Form, Select } from '@highlight-run/ui/components'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
 import {
@@ -11,7 +11,11 @@ import React from 'react'
 
 import styles from './HerokuIntegration.module.css'
 import { useHerokuIntegration } from './utils'
-import Select from '@components/Select/Select'
+
+type TokenOption = string | { value: string | number }
+
+const getTokenValue = (option: TokenOption) =>
+	typeof option === 'string' ? option : String(option.value)
 
 const HerokuIntegration: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
@@ -86,13 +90,18 @@ const HerokuIntegration: React.FC<
 				>
 					<Select
 						aria-label="Log Drain Token(s)"
+						creatable
+						filterable
+						displayMode="tags"
 						placeholder="d.9173ea1f-6f14-4976-9cf0-deadbeef1234"
-						onChange={(values: any): any =>
-							formStore.setValue(formStore.names.tokens, values)
-						}
+						onValueChange={(values: TokenOption[]) => {
+							formStore.setValue(
+								formStore.names.tokens,
+								values.map(getTokenValue),
+							)
+						}}
 						className={styles.selectContainer}
-						mode="tags"
-						value={formStore.getValue(formStore.names.tokens)}
+						value={tokens}
 					/>
 				</Form.NamedSection>
 			</Form>
