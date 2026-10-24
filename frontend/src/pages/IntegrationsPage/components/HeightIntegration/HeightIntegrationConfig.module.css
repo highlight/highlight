@@ -21,9 +21,7 @@
 }
 
 .select {
-	:global(.ant-select-selection-item-content) {
-		max-width: 150px;
-	}
+	display: block;
 }
 
 .projectInput {
