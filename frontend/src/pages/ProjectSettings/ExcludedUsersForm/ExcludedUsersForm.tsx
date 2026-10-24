@@ -1,9 +1,8 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
-import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
-import { Form, Stack } from '@highlight-run/ui/components'
+import { Form, Select, Stack } from '@highlight-run/ui/components'
+import type { SelectOption } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
 
@@ -15,7 +14,6 @@ export const ExcludedUsersForm = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const [identifierQuery, setIdentifierQuery] = useState('')
 	const [invalidExcludedUsers, setInvalidExcludedUsers] = useState<string[]>(
 		[],
 	)
@@ -46,18 +44,11 @@ export const ExcludedUsersForm = () => {
 		: (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
 				(suggestion) => ({
 					value: suggestion,
-					displayValue: (
-						<TextHighlighter
-							searchWords={[identifierQuery]}
-							textToHighlight={suggestion}
-						/>
-					),
-					id: suggestion,
+					name: suggestion,
 				}),
 			)
 
 	const handleIdentifierSearch = (query = '') => {
-		setIdentifierQuery(query)
 		refetchIdentifierSuggestions({ query, project_id })
 	}
 
@@ -77,15 +68,21 @@ export const ExcludedUsersForm = () => {
 						name="Filtered users"
 					>
 						<Select
-							mode="tags"
+							creatable
+							displayMode="tags"
+							filterable
 							placeholder=".*@yourdomain.com"
 							value={
 								data?.projectSettings?.excluded_users ||
 								undefined
 							}
-							onSearch={handleIdentifierSearch}
+							onSearchValueChange={handleIdentifierSearch}
 							options={identifierSuggestions}
-							onChange={(excluded: string[]) => {
+							resultsLoading={identifierSuggestionsLoading}
+							onValueChange={(options: SelectOption[]) => {
+								const excluded = options.map((option) =>
+									String(option.value),
+								)
 								const validRegexes: string[] = []
 								const invalidRegexes: string[] = []
 								excluded.forEach((expression) => {
