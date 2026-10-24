@@ -54,7 +54,7 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { titleCaseString } from '@util/string'
-import { Divider } from 'antd'
+
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
@@ -561,7 +561,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 																		)
 																	},
 																)}
-														<Divider className="mb-0 mt-1" />
+														<Box borderTop="dividerWeak" my="2" />
 														<Link
 															to="/new"
 															state={{
