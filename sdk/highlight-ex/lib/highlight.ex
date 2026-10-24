@@ -16,7 +16,6 @@ defmodule Highlight do
     ```
   """
   require OpenTelemetry.Tracer, as: Tracer
-  require Logger
 
   defmodule Config do
     @enforce_keys [:project_id]
@@ -28,20 +27,42 @@ defmodule Highlight do
   end
 
   @doc """
-  Initialize the Highlight SDK with the given configuration.
-  This sets up Elixir for automatic log collection.
+  Initialize the Highlight SDK with the given configuration and options.
+  This sets up Elixir for automatic log collection and telemetry instrumentation.
+
+  ## Options
+    - `:live_view` - boolean, automatically attaches Phoenix LiveView error telemetry handlers (default: `false`)
 
   ## Examples
 
     iex> Highlight.init()
+    iex> Highlight.init(%Highlight.Config{project_id: "your_project_id"}, live_view: true)
   """
   def init() do
+    init(nil, [])
+  end
+
+  def init(opts) when is_list(opts) do
+    init(nil, opts)
+  end
+
+  def init(config) do
+    init(config, [])
+  end
+
+  def init(config, opts) when is_list(opts) do
     :telemetry.attach(
       "highlight-logger",
       [:logger, :message],
       &Highlight.handle_logger_event/4,
       nil
     )
+
+    if Keyword.get(opts, :live_view, false) do
+      Highlight.LiveView.attach(config)
+    end
+
+    :ok
   end
 
   def handle_logger_event(_event_name, measurements, metadata, _config) do
@@ -95,22 +116,32 @@ defmodule Highlight do
     end
   end
 
-  defp base_attributes(config) do
+  @doc """
+  Alias for `record_exception/4` complying with the Highlight unified SDK specification.
+  """
+  def recordException(e, config, session_id \\ nil, request_id \\ nil) do
+    record_exception(e, config, session_id, request_id)
+  end
+
+  @doc false
+  def base_attributes(nil), do: []
+
+  def base_attributes(config) do
     [
       {:"highlight.project_id", config.project_id},
       {:"telemetry.sdk.language", "erlang"},
       {:"telemetry.sdk.name", "opentelemetry"},
       {:"telemetry.sdk.version", "1.4.0"}
     ] ++
-      if config.service_name do
-        [{:"service.name", config.service_name}]
-      else
-        []
-      end ++
-      if config.service_version do
-        [{:"service.version", config.service_version}]
-      else
-        []
-      end
+      (if config.service_name do
+         [{:"service.name", config.service_name}]
+       else
+         []
+       end) ++
+      (if config.service_version do
+         [{:"service.version", config.service_version}]
+       else
+         []
+       end)
   end
 end

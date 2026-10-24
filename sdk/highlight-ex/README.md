@@ -61,3 +61,38 @@ iex -S mix
 ```
 
 This is useful for testing the library interactively.
+
+## Usage
+
+### Manual Exception Recording
+
+```elixir
+config = %Highlight.Config{
+  project_id: "your_project_id",
+  service_name: "your_service_name",
+  service_version: "1.0.0"
+}
+
+try do
+  # Code that may raise an error
+rescue
+  e ->
+    Highlight.recordException(e, config, "session_id", "request_id")
+end
+```
+
+### Phoenix LiveView Instrumentation
+
+To automatically track unhandled exceptions across Phoenix LiveView lifecycle hooks (`mount`, `handle_event`, `handle_params`):
+
+```elixir
+# In your application start or telemetry setup:
+config = %Highlight.Config{project_id: "your_project_id"}
+Highlight.init(config, live_view: true)
+```
+
+Or manually attach the LiveView telemetry handler:
+
+```elixir
+Highlight.LiveView.attach(config)
+```
