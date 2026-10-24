@@ -9,50 +9,49 @@ import firebase from 'firebase/compat/app'
 import React, { useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 
-import { SignInRedirect } from '@/pages/Auth/SignInRedirect'
+import { SignInRedirect } from '@pages/Auth/SignInRedirect'
 
 import * as styles from './AuthRouter.css'
-import { AUTH_MODE } from '@/constants'
+import { AUTH_MODE } from '@components/constants'
 
 export const SIGN_IN_ROUTE = '/sign_in'
 export const SIGN_UP_ROUTE = '/sign_up'
 
 export const AuthRouter: React.FC = () => {
-	const { isAuthLoading } = useAuthContext()
+    const { isAuthLoading } = useAuthContext()
 
-	const [resolver, setResolver] =
-		useState<firebase.auth.MultiFactorResolver>()
+    const [resolver, setResolver] = useState<firebase.auth.MultiFactorResolver>()
 
-	if (isAuthLoading) {
-		return null
-	}
+    if (isAuthLoading) {
+        return null
+    }
 
-	return (
-		<Landing>
-			<Box cssClass={styles.container}>
-				<Routes>
-					<Route
-						path={SIGN_IN_ROUTE}
-						element={<SignIn setResolver={setResolver} />}
-					/>
-					<Route
-						path={SIGN_UP_ROUTE}
-						element={
-							AUTH_MODE !== 'firebase' ? (
-								<SignIn setResolver={setResolver} />
-							) : (
-								<SignUp />
-							)
-						}
-					/>
-					<Route
-						path="/multi_factor"
-						element={<MultiFactor resolver={resolver} />}
-					/>
-					<Route path="/reset_password" element={<ResetPassword />} />
-					<Route path="/*" element={<SignInRedirect />} />
-				</Routes>
-			</Box>
-		</Landing>
-	)
+    return (
+        <Landing>
+            <Box className={styles.container}>
+                <Routes>
+                    <Route
+                        path={SIGN_IN_ROUTE}
+                        element={<SignIn setResolver={setResolver} />}
+                    />
+                    <Route
+                        path={SIGN_UP_ROUTE}
+                        element={
+                            AUTH_MODE !== 'firebase' ? (
+                                <SignIn setResolver={setResolver} />
+                            ) : (
+                                <SignUp />
+                            )
+                        }
+                    />
+                    <Route
+                        path="/multi_factor"
+                        element={<MultiFactor resolver={resolver} />}
+                    />
+                    <Route path="/reset_password" element={<ResetPassword />} />
+                    <Route path="/*" element={<SignInRedirect />} />
+                </Routes>
+            </Box>
+        </Landing>
+    )
 }
