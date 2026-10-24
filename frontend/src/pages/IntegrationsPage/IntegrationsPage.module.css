@@ -1,8 +1,160 @@
+/* 2-column layout: list panel + detail panel */
+.pageContainer {
+	display: flex;
+	flex-direction: row;
+	height: 100%;
+	min-height: 0;
+	overflow: hidden;
+}
+
+/* ── Middle column: integrations list ── */
+.listPanel {
+	width: 168px;
+	flex-shrink: 0;
+	border-right: 1px solid var(--color-n3);
+	overflow-y: auto;
+	padding: var(--size-small) 0;
+}
+
+.listSection {
+	padding: var(--size-small) 0;
+}
+
+.listSectionLabel {
+	padding: 4px var(--size-medium) 6px;
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	color: var(--color-n9);
+	text-transform: uppercase;
+}
+
+.integrationItem {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px var(--size-medium);
+	border-radius: 6px;
+	margin: 0 4px;
+	cursor: pointer;
+	transition: background-color 0.12s ease;
+}
+
+.integrationItem:hover {
+	background-color: var(--color-n3);
+}
+
+.activeIntegrationItem {
+	background-color: var(--color-p9);
+	color: var(--color-white);
+}
+
+/* Override Text color for active item */
+.activeIntegrationItem span {
+	color: var(--color-white) !important;
+}
+
+.integrationIcon {
+	width: 18px;
+	height: 18px;
+	border-radius: 4px;
+	flex-shrink: 0;
+	object-fit: contain;
+}
+
+.noIconBorder {
+	border-radius: 0;
+}
+
+/* ── Right column: detail panel ── */
+.detailPanel {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+	min-width: 0;
+}
+
+/* Top bar: "Vercel" label left, "Open Vercel ↗" right */
+.detailTopBar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px var(--size-large);
+	border-bottom: 1px solid var(--color-n3);
+	min-height: 36px;
+}
+
+.openLink {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	text-decoration: none;
+	color: var(--color-n12);
+}
+
+.openLink:hover span {
+	text-decoration: underline;
+}
+
+/* Header: logo + name row + Disconnect */
+.detailHeader {
+	padding: var(--size-large);
+	border-bottom: 1px solid var(--color-n3);
+}
+
+/* Tab bar */
+.tabs {
+	display: flex;
+	gap: 0;
+	border-bottom: 1px solid var(--color-n3);
+	padding: 0 var(--size-large);
+}
+
+.tab {
+	padding: 10px 4px;
+	margin-right: var(--size-large);
+	font-size: 13px;
+	font-weight: 400;
+	color: var(--color-n9);
+	background: none;
+	border: none;
+	border-bottom: 2px solid transparent;
+	cursor: pointer;
+	transition: color 0.12s ease, border-color 0.12s ease;
+}
+
+.tab:hover {
+	color: var(--color-n12);
+}
+
+.activeTab {
+	color: var(--color-n12);
+	font-weight: 500;
+	border-bottom-color: var(--color-p9);
+}
+
+/* Tab content area */
+.tabContent {
+	flex: 1;
+	padding: var(--size-large);
+}
+
+.descriptionArea {
+	max-width: 480px;
+}
+
+.configureArea {
+	max-width: 600px;
+}
+
+/* Legacy grid (kept for any fallback) */
 .integrationsContainer {
 	display: grid;
 	grid-gap: var(--size-large);
 	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
+
 .modalBtn {
 	padding-bottom: 4px !important;
 	padding-top: 4px !important;
