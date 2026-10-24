@@ -79,6 +79,10 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			...setupBackendSnippet,
+			content:
+				'The next step is instrumenting your SvelteKit backend (`src/hooks.server.ts`) to tie server logs, errors, and traces to your frontend sessions. Follow our [SvelteKit backend instrumentation guide](/docs/getting-started/server/js/sveltekit) for full instructions.',
+		},
 	],
 }
