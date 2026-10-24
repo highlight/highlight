@@ -1,8 +1,6 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
-import { Stack } from '@highlight-run/ui/components'
-import { Text } from 'recharts'
+import { Box, Select, SelectOption, Stack } from '@highlight-run/ui/components'
 
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
@@ -38,30 +36,33 @@ export const ErrorFiltersForm = () => {
 					info="Enter regular expression patterns to filter out newly created errors. Any error filtered out will not count towards your billing quota."
 				/>
 				<div className={styles.inputAndButtonRow}>
-					<Select
-						className={styles.input}
-						mode="tags"
-						placeholder="TypeError: Failed to fetch"
-						value={data?.projectSettings?.error_filters || []}
-						notFoundContent={
-							<Text>
-								Provide a regex pattern to filter out errors.
-							</Text>
-						}
-						onChange={(patterns: string[]) => {
-							patterns.filter(isValidRegex)
-							setAllProjectSettings((currentProjectSettings) =>
-								currentProjectSettings?.projectSettings
-									? {
-											projectSettings: {
-												...currentProjectSettings.projectSettings,
-												error_filters: patterns,
-											},
-										}
-									: currentProjectSettings,
-							)
-						}}
-					/>
+					<Box width="full">
+						<Select
+							creatable
+							filterable
+							displayMode="tags"
+							placeholder="TypeError: Failed to fetch"
+							value={data?.projectSettings?.error_filters || []}
+							onValueChange={(patterns: SelectOption[]) => {
+								const values = patterns.map((pattern) =>
+									String(pattern.value),
+								)
+
+								values.filter(isValidRegex)
+								setAllProjectSettings(
+									(currentProjectSettings) =>
+										currentProjectSettings?.projectSettings
+											? {
+													projectSettings: {
+														...currentProjectSettings.projectSettings,
+														error_filters: values,
+													},
+												}
+											: currentProjectSettings,
+								)
+							}}
+						/>
+					</Box>
 				</div>
 			</Stack>
 		</form>
