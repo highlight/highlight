@@ -1,9 +1,13 @@
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard'
-import Input from '@components/Input/Input'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
-import { Badge, Box } from '@highlight-run/ui/components'
-import SvgSearchIcon from '@icons/SearchIcon'
+import {
+	Badge,
+	Box,
+	IconSolidSearch,
+	IconSolidX,
+	Input,
+} from '@highlight-run/ui/components'
 import { PLAYER_SKIP_DURATION } from '@pages/Player/utils/PlayerHooks'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
@@ -153,18 +157,32 @@ const KeyboardShortcutsEducation = () => {
 							className={clsx(styles.elevatedCard)}
 						>
 							<main className={styles.container}>
-								<Input
-									placeholder="Search"
-									suffix={
-										<SvgSearchIcon
-											className={styles.searchIcon}
-										/>
-									}
-									onChange={(e) => {
-										setSearchQuery(e.target.value)
-									}}
-									allowClear
-								/>
+								<div className={styles.searchInputContainer}>
+									<IconSolidSearch
+										className={styles.searchIcon}
+									/>
+									<Input
+										name="keyboard-shortcuts-search"
+										placeholder="Search"
+										value={searchQuery}
+										onChange={(e) => {
+											setSearchQuery(e.target.value)
+										}}
+										cssClass={styles.searchInput}
+									/>
+									{searchQuery && (
+										<button
+											type="button"
+											aria-label="Clear keyboard shortcut search"
+											className={styles.clearSearchButton}
+											onClick={() => {
+												setSearchQuery('')
+											}}
+										>
+											<IconSolidX size={14} />
+										</button>
+									)}
+								</div>
 
 								{!isOnSessionPlayerPage && hasNoSearchHits && (
 									<section>
