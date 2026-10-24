@@ -1,9 +1,10 @@
-import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import LoadingBox from '@components/LoadingBox'
 import Switch from '@components/Switch/Switch'
+import { ButtonIcon } from '@highlight-run/ui/components'
 import SettingsIcon from '@icons/SettingsIcon'
 import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
+import analytics from '@util/analytics'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
@@ -145,16 +146,19 @@ const Integration = ({
 						)}
 						{hasSettings && (
 							<div className="flex h-[18px] w-full justify-end">
-								<Button
-									trackingId="IntegrationSettings"
-									iconButton
+								<ButtonIcon
 									onClick={() => {
+										analytics.track(
+											'Button-IntegrationSettings',
+										)
 										setShowUpdateSettings(true)
 									}}
 									disabled={!integrationEnabled}
-								>
-									<SettingsIcon />
-								</Button>
+									icon={<SettingsIcon />}
+									kind="secondary"
+									emphasis="low"
+									size="xSmall"
+								/>
 							</div>
 						)}
 					</div>
