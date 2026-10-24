@@ -139,27 +139,31 @@ const IntegrationsPage = () => {
 			} else {
 				return true
 			}
-		}).map((inter) => ({
-			...inter,
-			defaultEnable:
-				(inter.key === 'slack' && isSlackConnectedToWorkspace) ||
-				(inter.key === 'linear' && isLinearIntegratedWithProject) ||
-				(inter.key === 'zapier' && isZapierIntegratedWithProject) ||
-				(inter.key === 'clearbit' &&
-					isClearbitIntegratedWithWorkspace) ||
-				(inter.key === 'vercel' && isVercelIntegratedWithProject) ||
-				(inter.key === 'discord' && isDiscordIntegratedWithProject) ||
-				(inter.key === 'github' && isGitHubIntegratedWithProject) ||
-				(inter.key === 'clickup' && isClickUpIntegratedWithProject) ||
-				(inter.key === 'height' && isHeightIntegratedWithProject) ||
-				(inter.key === 'jira' && isJiraIntegratedWithProject) ||
-				(inter.key === 'microsoft_teams' &&
-					isMicrosoftTeamsConnectedToWorkspace) ||
-				(inter.key === 'gitlab' && isGitlabIntegratedWithProject) ||
-				(inter.key === 'heroku' && isHerokuConnectedToWorkspace) ||
-				(inter.key === 'cloudflare' &&
-					isCloudflareConnectedToWorkspace),
-		}))
+		})
+			.map((inter) => ({
+				...inter,
+				defaultEnable:
+					(inter.key === 'slack' && isSlackConnectedToWorkspace) ||
+					(inter.key === 'linear' && isLinearIntegratedWithProject) ||
+					(inter.key === 'zapier' && isZapierIntegratedWithProject) ||
+					(inter.key === 'clearbit' &&
+						isClearbitIntegratedWithWorkspace) ||
+					(inter.key === 'vercel' && isVercelIntegratedWithProject) ||
+					(inter.key === 'discord' &&
+						isDiscordIntegratedWithProject) ||
+					(inter.key === 'github' && isGitHubIntegratedWithProject) ||
+					(inter.key === 'clickup' &&
+						isClickUpIntegratedWithProject) ||
+					(inter.key === 'height' && isHeightIntegratedWithProject) ||
+					(inter.key === 'jira' && isJiraIntegratedWithProject) ||
+					(inter.key === 'microsoft_teams' &&
+						isMicrosoftTeamsConnectedToWorkspace) ||
+					(inter.key === 'gitlab' && isGitlabIntegratedWithProject) ||
+					(inter.key === 'heroku' && isHerokuConnectedToWorkspace) ||
+					(inter.key === 'cloudflare' &&
+						isCloudflareConnectedToWorkspace),
+			}))
+			.sort((a, b) => Number(b.defaultEnable) - Number(a.defaultEnable))
 	}, [
 		currentWorkspace?.id,
 		isHighlightAdmin,
@@ -181,17 +185,33 @@ const IntegrationsPage = () => {
 
 	useEffect(() => analytics.page('Integrations'), [])
 
+	const connectedCount = integrations.filter(
+		(integration) => integration.defaultEnable,
+	).length
+
 	return (
 		<>
 			<Helmet>
 				<title>Integrations</title>
 			</Helmet>
 			<LeadAlignLayout>
-				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
-					Supercharge your workflows and attach Highlight with the
-					tools you use everyday.
-				</p>
+				<div className={styles.pageHeader}>
+					<div>
+						<h2 className={styles.title}>Integrations</h2>
+						<p className={layoutStyles.subTitle}>
+							Supercharge your workflows by connecting Highlight
+							with the tools you use every day.
+						</p>
+					</div>
+					<div className={styles.metrics}>
+						<span className={styles.metricChip}>
+							{connectedCount} connected
+						</span>
+						<span className={styles.metricChipMuted}>
+							{integrations.length} available
+						</span>
+					</div>
+				</div>
 				<div className={styles.integrationsContainer}>
 					{integrations.map((integration) => (
 						<Integration
