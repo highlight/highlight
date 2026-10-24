@@ -53,12 +53,15 @@ export enum NewIntegrationIssueType {
 	LinkIssue = 'link_issue',
 }
 
+export type IntegrationCategory = 'Issue Tracker' | 'Communication' | 'Deployment' | 'Data' | 'Automation'
+
 export interface Integration {
 	key: string
 	name: string
 	externalLink?: string
 	configurationPath: string
 	description: string
+	category: IntegrationCategory
 	defaultEnable?: boolean
 	icon: string
 	noRoundedIcon?: boolean
@@ -75,6 +78,7 @@ export interface Integration {
 }
 
 export const SLACK_INTEGRATION: Integration = {
+	category: 'Communication',
 	key: 'slack',
 	name: 'Slack',
 	configurationPath: 'slack',
@@ -86,6 +90,7 @@ export const SLACK_INTEGRATION: Integration = {
 }
 
 export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
+	category: 'Communication',
 	key: 'microsoft_teams',
 	name: 'Microsoft Teams',
 	configurationPath: 'microsoft_teams',
@@ -96,6 +101,7 @@ export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
 }
 
 export const HEROKU_INTEGRATION: Integration = {
+	category: 'Deployment',
 	key: 'heroku',
 	name: 'Heroku',
 	configurationPath: 'heroku',
@@ -106,6 +112,7 @@ export const HEROKU_INTEGRATION: Integration = {
 }
 
 export const CLOUDFLARE_INTEGRATION: Integration = {
+	category: 'Deployment',
 	key: 'cloudflare',
 	name: 'Cloudflare',
 	configurationPath: 'cloudflare',
@@ -117,6 +124,7 @@ export const CLOUDFLARE_INTEGRATION: Integration = {
 }
 
 export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
+	category: 'Issue Tracker',
 	key: 'linear',
 	name: 'Linear',
 	configurationPath: 'linear',
@@ -131,6 +139,7 @@ export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
 }
 
 export const JIRA_INTEGRATION: IssueTrackerIntegration = {
+	category: 'Issue Tracker',
 	key: 'jira',
 	name: 'Jira',
 	configurationPath: 'jira',
@@ -145,6 +154,7 @@ export const JIRA_INTEGRATION: IssueTrackerIntegration = {
 }
 
 export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
+	category: 'Issue Tracker',
 	key: 'gitlab',
 	name: 'GitLab',
 	configurationPath: 'gitlab',
@@ -159,6 +169,7 @@ export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
 }
 
 export const ZAPIER_INTEGRATION: Integration = {
+	category: 'Automation',
 	key: 'zapier',
 	name: 'Zapier',
 	configurationPath: 'zapier',
@@ -170,6 +181,7 @@ export const ZAPIER_INTEGRATION: Integration = {
 }
 
 export const CLEARBIT_INTEGRATION: Integration = {
+	category: 'Data',
 	key: 'clearbit',
 	name: 'Clearbit',
 	configurationPath: 'clearbit',
@@ -180,6 +192,7 @@ export const CLEARBIT_INTEGRATION: Integration = {
 }
 
 export const VERCEL_INTEGRATION: Integration = {
+	category: 'Deployment',
 	key: 'vercel',
 	name: 'Vercel',
 	configurationPath: 'vercel',
@@ -192,6 +205,7 @@ export const VERCEL_INTEGRATION: Integration = {
 }
 
 export const DISCORD_INTEGRATION: Integration = {
+	category: 'Communication',
 	key: 'discord',
 	name: 'Discord',
 	configurationPath: 'discord',
@@ -202,6 +216,7 @@ export const DISCORD_INTEGRATION: Integration = {
 }
 
 export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
+	category: 'Issue Tracker',
 	key: 'clickup',
 	name: 'ClickUp',
 	configurationPath: 'clickup',
@@ -217,6 +232,7 @@ export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
 }
 
 export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
+	category: 'Issue Tracker',
 	key: 'height',
 	name: 'Height',
 	configurationPath: 'height',
@@ -232,6 +248,7 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 }
 
 export const GITHUB_INTEGRATION: IssueTrackerIntegration = {
+	category: 'Issue Tracker',
 	key: 'github',
 	name: 'GitHub',
 	configurationPath: 'github',

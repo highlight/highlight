@@ -1,9 +1,62 @@
-.integrationsContainer {
+.integrationsGrid {
 	display: grid;
-	grid-gap: var(--size-large);
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	grid-gap: var(--size-medium);
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
+
+.searchWrapper {
+	max-width: 400px;
+	background: var(--color-white);
+	transition: border-color 0.2s ease;
+}
+
+.searchWrapper:focus-within {
+	border-color: var(--color-purple-400);
+}
+
+.searchInput {
+	width: 100%;
+	border: none;
+	outline: none;
+	background: transparent;
+	font-size: 14px;
+	color: var(--color-gray-700);
+	flex: 1;
+}
+
+.searchInput::placeholder {
+	color: var(--color-gray-400);
+}
+
+.categoryTab {
+	transition: all 0.15s ease;
+	border: 1px solid var(--color-gray-300);
+	background: var(--color-white);
+	color: var(--color-gray-600);
+}
+
+.categoryTab:hover {
+	background: var(--color-gray-50);
+}
+
+.categoryTabActive {
+	background: var(--color-purple-100);
+	border-color: var(--color-purple-400);
+}
+
 .modalBtn {
 	padding-bottom: 4px !important;
 	padding-top: 4px !important;
+}
+
+@media (min-width: 1024px) {
+	.integrationsGrid {
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	}
+}
+
+@media (min-width: 1280px) {
+	.integrationsGrid {
+		grid-template-columns: repeat(3, 1fr);
+	}
 }
