@@ -131,5 +131,8 @@ export const verifySnippet: QuickStartStep = {
 
 export const setupBackendSnippet: QuickStartStep = {
 	title: 'Instrument your backend.',
-	content: `The next step is instrumenting your backend to tie logs/errors to your frontend sessions. Read more about this in our [backend instrumentation](${backendInstrumentationLink}) section.`,
+	content: `The next step is instrumenting your backend to tie logs/errors to your frontend sessions. Read more about this in our [backend instrumentation](${backendInstrumentationLink}) section.
+
+If you're using a fullstack framework (like SvelteKit), make sure you initialize the Highlight Node SDK on the server and wrap your server-side request handling with \`H.runWithHeaders\` so we can connect backend traces/errors to the originating frontend session.
+`,
 }
