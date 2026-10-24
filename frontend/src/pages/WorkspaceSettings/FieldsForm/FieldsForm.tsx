@@ -1,8 +1,7 @@
-import Input from '@components/Input/Input'
-import { Tooltip } from '@highlight-run/ui/components'
 import { toast } from '@components/Toaster'
 import { useEditProjectMutation, useEditWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
+import { Input, Tooltip } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import React, { useState } from 'react'
 
