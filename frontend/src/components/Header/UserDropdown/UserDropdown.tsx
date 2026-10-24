@@ -1,4 +1,4 @@
-import { Dropdown, Skeleton } from 'antd'
+import { Menu } from '@highlight-run/ui/components'
 import { FiLogOut } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 
@@ -15,11 +15,32 @@ interface Props {
 export const UserDropdown = ({ border, workspaceId }: Props) => {
 	const { admin, signOut } = useAuthContext()
 
-	const menu = (
-		<div className={styles.dropdownMenu}>
-			<div className={styles.dropdownInner}>
+	return (
+		<Menu placement="bottom-end">
+			<Menu.Button
+				emphasis="low"
+				kind="secondary"
+				cssClass={styles.accountIconWrapper}
+			>
+				{admin ? (
+					<AdminAvatar
+						adminInfo={{
+							name: admin?.name,
+							email: admin?.email,
+							photo_url: admin?.photo_url ?? '',
+						}}
+						size={35}
+						border={border}
+					/>
+				) : (
+					<p>loading</p>
+				)}
+			</Menu.Button>
+			<Menu.List>
 				{!admin ? (
-					<Skeleton />
+					<Menu.Item>
+						<span>Loading...</span>
+					</Menu.Item>
 				) : (
 					<>
 						<div className={styles.userInfoWrapper}>
@@ -43,15 +64,16 @@ export const UserDropdown = ({ border, workspaceId }: Props) => {
 							</div>
 						</div>
 						{workspaceId && (
-							<Link
-								className={styles.dropdownMyAccount}
-								to={`/w/${workspaceId}/account`}
-							>
-								My Account
-							</Link>
+							<Menu.Item>
+								<Link
+									className={styles.dropdownMyAccount}
+									to={`/w/${workspaceId}/account`}
+								>
+									My Account
+								</Link>
+							</Menu.Item>
 						)}
-						<div
-							className={styles.dropdownLogout}
+						<Menu.Item
 							onClick={async () => {
 								try {
 									signOut()
@@ -60,33 +82,16 @@ export const UserDropdown = ({ border, workspaceId }: Props) => {
 								}
 							}}
 						>
-							<span className={styles.dropdownLogoutText}>
-								Logout
-							</span>
-							<FiLogOut className={styles.logoutIcon} />
-						</div>
+							<div className={styles.dropdownLogout}>
+								<span className={styles.dropdownLogoutText}>
+									Logout
+								</span>
+								<FiLogOut className={styles.logoutIcon} />
+							</div>
+						</Menu.Item>
 					</>
 				)}
-			</div>
-		</div>
-	)
-	return (
-		<Dropdown overlay={menu} placement="bottomRight" trigger={['click']}>
-			<div className={styles.accountIconWrapper}>
-				{admin ? (
-					<AdminAvatar
-						adminInfo={{
-							name: admin?.name,
-							email: admin?.email,
-							photo_url: admin?.photo_url ?? '',
-						}}
-						size={35}
-						border={border}
-					/>
-				) : (
-					<p>loading</p>
-				)}
-			</div>
-		</Dropdown>
+			</Menu.List>
+		</Menu>
 	)
 }
