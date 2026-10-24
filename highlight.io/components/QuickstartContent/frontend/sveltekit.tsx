@@ -1,9 +1,9 @@
 import {
+	backendInstrumentationLink,
 	configureSourcemapsCI,
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
@@ -32,14 +32,34 @@ H.init('<YOUR_PROJECT_ID>', {
 ...
 `
 
+const svelteKitBackendCodeSnippet = `// hooks.server.ts
+import type { Handle, HandleServerError } from '@sveltejs/kit'
+import { H } from '@highlight-run/node'
+
+H.init('<YOUR_PROJECT_ID>', {
+	serviceName: 'sveltekit-backend',
+	environment: 'production',
+})
+
+export const handle: Handle = async ({ event, resolve }) => {
+	return H.runWithHeaders('sveltekit-request', event.request.headers, async () => {
+		return resolve(event)
+	})
+}
+
+export const handleError: HandleServerError = ({ error }) => {
+	H.consumeError(error)
+}
+`
+
 export const SvelteKitContent: QuickStartContent = {
 	title: 'SvelteKit',
 	subtitle:
 		'Learn how to set up highlight.io with your SvelteKit application.',
 	logoKey: 'sveltekit',
 	products: ['Sessions', 'Errors', 'Logs', 'Traces'],
-	entries: [
-		packageInstallSnippet,
+		entries: [
+			packageInstallSnippet,
 		{
 			...initializeSnippet,
 			content:
@@ -76,9 +96,21 @@ export default config;`,
 				},
 			],
 		},
-		identifySnippet,
-		verifySnippet,
-		configureSourcemapsCI(),
-		setupBackendSnippet,
-	],
+			identifySnippet,
+			verifySnippet,
+			configureSourcemapsCI(),
+			{
+				title: 'Instrument SvelteKit backend requests.',
+				content:
+					'Start a Node SDK context in `hooks.server.ts` so server errors, logs, and traces are mapped to frontend sessions. See the full [backend instrumentation guide](' +
+					backendInstrumentationLink +
+					') for advanced server setup options.',
+				code: [
+					{
+						language: 'ts',
+						text: svelteKitBackendCodeSnippet,
+					},
+				],
+			},
+		],
 }
