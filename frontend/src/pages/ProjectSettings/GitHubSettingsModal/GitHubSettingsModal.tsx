@@ -15,7 +15,7 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
+import Select from '@components/Select/Select'
 import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
@@ -121,7 +121,7 @@ const GithubSettingsForm = ({
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
 				id: repo.key,
-				label: repo.name.split('/').pop(),
+				displayValue: repo.name.split('/').pop(),
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -166,7 +166,7 @@ const GithubSettingsForm = ({
 								.pop()}
 							options={githubOptions}
 							notFoundContent={<span>No repos found</span>}
-							optionFilterProp="label"
+							optionFilterProp="displayValue"
 							filterOption
 							showSearch
 						/>
