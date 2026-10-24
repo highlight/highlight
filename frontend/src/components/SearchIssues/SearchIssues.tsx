@@ -1,5 +1,4 @@
-import { Form } from '@highlight-run/ui/components'
-import { Select } from 'antd'
+import { ComboboxSelect, Form, Text } from '@highlight-run/ui/components'
 import React, { useState } from 'react'
 
 import { useSearchIssuesLazyQuery } from '@/graph/generated/hooks'
@@ -7,7 +6,6 @@ import { IntegrationType } from '@/graph/generated/schemas'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { IssueTrackerIntegration } from '@/pages/IntegrationsPage/IssueTrackerIntegrations'
 
-import styles from './SearchIssues.module.css'
 export interface SearchOption {
 	value: string
 	label: string
@@ -26,14 +24,9 @@ export const SearchIssues = ({
 	integration,
 	project_id,
 }: SearchIssuesProps) => {
-	const [selectedOption, setSelectOption] = React.useState<
-		SearchOption | undefined
-	>({
-		label: '',
-		value: '',
-		id: '',
-		url: '',
-	})
+	const [selectedValue, setSelectedValue] = useState<string | undefined>(
+		undefined,
+	)
 	const [query, setQuery] = useState<string>('')
 
 	const debouncedQuery = useDebouncedValue(query) || ''
@@ -62,31 +55,32 @@ export const SearchIssues = ({
 		)
 	}, [data]) as SearchOption[]
 
+	const comboboxOptions = React.useMemo(
+		() =>
+			options.map((o) => ({
+				key: o.value,
+				render: <Text size="small">{o.label}</Text>,
+			})),
+		[options],
+	)
+
 	return (
 		<Form.NamedSection label="Link an issue" name="issue_id">
-			<Select
-				className={styles.select}
-				// this mode allows using the select component as a single searchable input
-				// @ts-ignore
-				placeholder="Search Issues"
-				autoFocus
-				size="middle"
-				// @ts-ignore
-				onSelect={(newValue: string) => {
+			<ComboboxSelect
+				label="Search Issues"
+				value={selectedValue}
+				options={comboboxOptions}
+				onChange={(newValue: string) => {
 					const option = options.find((o) => o.value === newValue)
 					if (option) {
 						onSelect(option)
-						setSelectOption(option)
+						setSelectedValue(option.value)
 					}
 				}}
-				defaultValue={selectedOption as unknown as SearchOption}
-				options={options}
-				notFoundContent={<span>`No issues found`</span>}
-				filterOption={false}
-				loading={loading}
-				onSearch={setQuery}
-				showSearch
-				showArrow={loading}
+				onChangeQuery={setQuery}
+				queryPlaceholder="Search Issues"
+				loadingRender={loading ? <Text>Loading...</Text> : undefined}
+				emptyStateRender={<Text>No issues found</Text>}
 			/>
 		</Form.NamedSection>
 	)
