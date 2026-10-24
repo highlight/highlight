@@ -1,13 +1,10 @@
-import Input from '@components/Input/Input'
-import { Tooltip } from '@highlight-run/ui/components'
 import { toast } from '@components/Toaster'
 import { useEditProjectMutation, useEditWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
+import { Box, Button, Form, Tooltip } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import React, { useState } from 'react'
 
-import commonStyles from '../../../Common.module.css'
-import Button from '../../../components/Button/Button/Button'
 import { CircularSpinner } from '../../../components/Loading/Loading'
 import styles from './FieldsForm.module.css'
 
@@ -67,23 +64,22 @@ export const FieldsForm: React.FC<Props> = ({
 
 	return (
 		<form onSubmit={onSubmit} key={project_id}>
-			<div className={styles.fieldRow}>
-				<label className={styles.fieldKey}>Name</label>
-				<Input
-					name="name"
-					value={name}
-					onChange={(e) => {
-						setName(e.target.value)
-					}}
-					disabled={formDisabled}
-				/>
-			</div>
-			{isWorkspace ? null : (
-				<>
-					{' '}
+			<Box display="flex" flexDirection="column" gap="12">
+				<div className={styles.fieldRow}>
+					<label className={styles.fieldKey}>Name</label>
+					<Form.Input
+						name="name"
+						value={name}
+						onChange={(e) => {
+							setName(e.target.value)
+						}}
+						disabled={formDisabled}
+					/>
+				</div>
+				{isWorkspace ? null : (
 					<div className={styles.fieldRow}>
 						<label className={styles.fieldKey}>Billing Email</label>
-						<Input
+						<Form.Input
 							placeholder="Billing Email"
 							type="email"
 							name="email"
@@ -94,38 +90,37 @@ export const FieldsForm: React.FC<Props> = ({
 							disabled={formDisabled}
 						/>
 					</div>
-				</>
-			)}
-			<div className={styles.fieldRow}>
-				<Tooltip
-					disabled={!formDisabled}
-					trigger={
-						<Button
-							trackingId={`${
-								isWorkspace ? 'Workspace' : 'Project'
-							}Update`}
-							htmlType="submit"
-							type="primary"
-							className={commonStyles.submitButton}
-							disabled={formDisabled}
-						>
-							{editProjectLoading || editWorkspaceLoading ? (
-								<CircularSpinner
-									style={{
-										fontSize: 18,
-										color: 'var(--text-primary-inverted)',
-									}}
-								/>
-							) : (
-								'Save changes'
-							)}
-						</Button>
-					}
-				>
-					You do not have permission to edit these settings. Please
-					contact your workspace admin.
-				</Tooltip>
-			</div>
+				)}
+				<div className={styles.fieldRow}>
+					<Tooltip
+						disabled={!formDisabled}
+						trigger={
+							<Button
+								trackingId={`${
+									isWorkspace ? 'Workspace' : 'Project'
+								}Update`}
+								type="submit"
+								kind="primary"
+								disabled={formDisabled}
+							>
+								{editProjectLoading || editWorkspaceLoading ? (
+									<CircularSpinner
+										style={{
+											fontSize: 18,
+											color: 'var(--text-primary-inverted)',
+										}}
+									/>
+								) : (
+									'Save changes'
+								)}
+							</Button>
+						}
+					>
+						You do not have permission to edit these settings. Please
+						contact your workspace admin.
+					</Tooltip>
+				</div>
+			</Box>
 		</form>
 	)
 }
