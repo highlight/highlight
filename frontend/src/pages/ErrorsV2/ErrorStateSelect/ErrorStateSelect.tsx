@@ -13,7 +13,6 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui/components'
-import { DatePicker } from 'antd'
 import moment from 'moment'
 import React, { useCallback, useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -47,7 +46,6 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	snoozedUntil,
 	state: initialErrorState,
 }) => {
-	const menuRef = React.useRef<HTMLDivElement | null>(null)
 	const menu = Menu.useContext()!
 	const mState = menu.getState()
 	const [menuState, setMenuState] = React.useState<MenuState>(
@@ -299,22 +297,15 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 							))}
 							<Menu.Divider />
 							<Menu.Item onClick={(e) => e.preventDefault()}>
-								<div ref={menuRef} />
-								<DatePicker
-									getPopupContainer={() =>
-										menuRef?.current || document.body
-									}
-									format="YYYY-MM-DD hh:mm"
-									showTime={{ format: 'hh:mm' }}
-									showNow={false}
-									placement="bottomRight"
-									placeholder="Select day and time"
+								<input
+									type="datetime-local"
 									className={styles.datepicker}
-									onChange={(datetime) => {
-										if (datetime) {
+									min={moment().format('YYYY-MM-DDTHH:mm')}
+									onChange={(e) => {
+										if (e.target.value) {
 											handleChange(
 												initialErrorState,
-												datetime.format(),
+												moment(e.target.value).format(),
 											).then(() => {
 												menu.setOpen(false)
 											})

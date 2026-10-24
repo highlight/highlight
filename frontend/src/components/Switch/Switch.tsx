@@ -1,15 +1,20 @@
 // eslint-disable-next-line no-restricted-imports
 import analytics from '@util/analytics'
-import { Switch as AntDesignSwitch, SwitchProps } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
 
 import styles from './Switch.module.css'
 
-type Props = Pick<
-	SwitchProps,
-	'checked' | 'onChange' | 'loading' | 'className' | 'size' | 'disabled'
-> & {
+type Props = {
+	checked?: boolean
+	onChange?: (
+		checked: boolean,
+		event: React.ChangeEvent<HTMLInputElement>,
+	) => void
+	loading?: boolean
+	className?: string
+	size?: 'small' | 'default'
+	disabled?: boolean
 	label?: string | React.ReactNode
 	/** Renders the label before the switch. */
 	labelFirst?: boolean
@@ -30,6 +35,8 @@ const Switch = ({
 	className,
 	trackingId,
 	size = 'small',
+	loading,
+	red,
 	...props
 }: Props) => {
 	const labelToRender = !!label ? <span>{label}</span> : null
@@ -40,22 +47,26 @@ const Switch = ({
 				[styles.spaceBetween]: justifySpaceBetween,
 				[styles.noMarginAroundSwitch]: noMarginAroundSwitch,
 				[styles.setMarginForAnimation]: setMarginForAnimation,
-				[styles.red]: props.red,
+				[styles.red]: red,
 			})}
 		>
 			{labelFirst && labelToRender}
-			<AntDesignSwitch
+			<input
+				type="checkbox"
+				role="switch"
 				{...props}
-				size={size}
-				className={clsx(styles.switchStyles, {
-					[styles.red]: props.red,
+				disabled={props.disabled || loading}
+				className={clsx(styles.switchInput, {
+					[styles.large]: size === 'default',
+					[styles.red]: red,
+					[styles.loading]: loading,
 				})}
-				onChange={(checked, event) => {
+				onChange={(event) => {
 					if (props.onChange) {
 						analytics.track(`Switch-${trackingId}`, {
-							checked,
+							checked: event.target.checked,
 						})
-						props.onChange(checked, event)
+						props.onChange(event.target.checked, event)
 					}
 				}}
 			/>

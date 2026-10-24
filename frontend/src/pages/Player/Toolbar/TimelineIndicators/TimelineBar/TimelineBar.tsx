@@ -7,7 +7,6 @@ import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import { serializeErrorIdentifier } from '@util/error'
 import { clamp } from '@util/numbers'
-import { TooltipPlacement } from 'antd/es/tooltip'
 import clsx from 'clsx'
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 
@@ -18,6 +17,9 @@ import {
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
 
 import styles from './TimelineBar.module.css'
+
+/** Matches shared Popover placement strings used for this tooltip. */
+type TimelinePopoverPlacement = 'top' | 'topLeft' | 'topRight'
 
 interface IBar {
 	bucket: EventBucket
@@ -124,7 +126,7 @@ const TimelineIndicatorsBar = ({
 		if (!viewportDiv || !viewportBbox) {
 			return {
 				rightOffset: 0,
-				placement: 'top' as TooltipPlacement,
+				placement: 'top' as TimelinePopoverPlacement,
 			}
 		}
 		const { scrollWidth, scrollLeft } = viewportDiv
@@ -144,7 +146,7 @@ const TimelineIndicatorsBar = ({
 		// move by the 8th of the bar width
 		let offset = (scrollWidth * (width / 100)) / 8
 
-		let placement: TooltipPlacement = 'top'
+		let placement: TimelinePopoverPlacement = 'top'
 		if (relPos === 2) {
 			placement = 'topRight'
 		} else if (relPos === 1) {

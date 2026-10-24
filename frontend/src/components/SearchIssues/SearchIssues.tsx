@@ -1,5 +1,4 @@
-import { Form } from '@highlight-run/ui/components'
-import { Select } from 'antd'
+import { ComboboxSelect, Form } from '@highlight-run/ui/components'
 import React, { useState } from 'react'
 
 import { useSearchIssuesLazyQuery } from '@/graph/generated/hooks'
@@ -62,31 +61,30 @@ export const SearchIssues = ({
 		)
 	}, [data]) as SearchOption[]
 
+	const comboboxOptions = React.useMemo(
+		() => options.map((o) => ({ key: o.value, render: o.label })),
+		[options],
+	)
+
 	return (
 		<Form.NamedSection label="Link an issue" name="issue_id">
-			<Select
-				className={styles.select}
-				// this mode allows using the select component as a single searchable input
-				// @ts-ignore
-				placeholder="Search Issues"
-				autoFocus
-				size="middle"
-				// @ts-ignore
-				onSelect={(newValue: string) => {
-					const option = options.find((o) => o.value === newValue)
+			<ComboboxSelect
+				label="Search Issues"
+				queryPlaceholder="Search Issues"
+				value={selectedOption?.value}
+				options={comboboxOptions}
+				onChange={(value: string) => {
+					const option = options.find((o) => o.value === value)
 					if (option) {
 						onSelect(option)
 						setSelectOption(option)
 					}
 				}}
-				defaultValue={selectedOption as unknown as SearchOption}
-				options={options}
-				notFoundContent={<span>`No issues found`</span>}
-				filterOption={false}
+				onQueryChange={setQuery}
 				loading={loading}
-				onSearch={setQuery}
-				showSearch
-				showArrow={loading}
+				emptyStateRender={<span>No issues found</span>}
+				cssClass={styles.select}
+				autoFocus
 			/>
 		</Form.NamedSection>
 	)

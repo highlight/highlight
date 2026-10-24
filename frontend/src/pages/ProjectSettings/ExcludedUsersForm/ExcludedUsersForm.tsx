@@ -85,10 +85,27 @@ export const ExcludedUsersForm = () => {
 							}
 							onSearch={handleIdentifierSearch}
 							options={identifierSuggestions}
-							onChange={(excluded: string[]) => {
+							onChange={(excluded: unknown) => {
+								const excludedValues: string[] = (
+									Array.isArray(excluded) ? excluded : []
+								).map((item) => {
+									if (typeof item === 'string') {
+										return item
+									}
+									if (
+										item &&
+										typeof item === 'object' &&
+										'value' in item &&
+										typeof (item as { value: unknown })
+											.value === 'string'
+									) {
+										return (item as { value: string }).value
+									}
+									return String(item)
+								})
 								const validRegexes: string[] = []
 								const invalidRegexes: string[] = []
-								excluded.forEach((expression) => {
+								excludedValues.forEach((expression) => {
 									try {
 										new RegExp(expression)
 										validRegexes.push(expression)
@@ -97,16 +114,18 @@ export const ExcludedUsersForm = () => {
 									}
 								})
 								if (
-									excluded.length > 0 &&
+									excludedValues.length > 0 &&
 									invalidRegexes.length > 0 &&
-									excluded[excluded.length - 1] ===
+									excludedValues[excludedValues.length - 1] ===
 										invalidRegexes[
 											invalidRegexes.length - 1
 										]
 								) {
 									toast.error(
 										"'" +
-											excluded[excluded.length - 1] +
+											excludedValues[
+												excludedValues.length - 1
+											] +
 											"' is not a valid regular expression",
 										{ duration: 5000 },
 									)
