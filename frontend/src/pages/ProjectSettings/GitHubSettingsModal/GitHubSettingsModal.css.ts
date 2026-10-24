@@ -5,6 +5,15 @@ export const repoSelect = style({
 	width: '100%',
 })
 
+export const repoSelectWrapper = style({
+	flex: 1,
+	minWidth: 0,
+})
+
+export const repoSelectPopover = style({
+	width: 268,
+})
+
 export const example = style({
 	background: vars.color.n5,
 	border: `${vars.theme.interactive.outline.secondary.enabled} solid 1px`,
