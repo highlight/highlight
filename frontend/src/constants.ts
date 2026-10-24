@@ -7,7 +7,8 @@ export const FRONTEND_URI =
 	import.meta.env.REACT_APP_FRONTEND_URI ||
 	window.location.protocol + '//' + window.location.host
 export const AUTH_MODE =
-	import.meta.env.REACT_APP_AUTH_MODE.toString().toLowerCase() as
+	(import.meta.env.REACT_APP_AUTH_MODE?.toString() ?? 'password')
+		.toLowerCase() as
 		| 'simple'
 		| 'password'
 		| 'oauth'

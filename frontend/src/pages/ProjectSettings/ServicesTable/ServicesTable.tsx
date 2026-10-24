@@ -19,7 +19,7 @@ import {
 } from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
-import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
+import { IntegrationAction } from '@pages/IntegrationsPage/components/IntegrationTypes'
 import { IntegrationModal } from '@pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
 import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
 import { capitalize, debounce } from 'lodash'

@@ -23,11 +23,13 @@ export const IntegrationModal = ({
 			title={title}
 			visible={visible}
 			className={styles.modal}
-			width={width}
+			width={width || 560}
 			onCancel={onCancel}
 			destroyOnClose
 		>
-			{configurationPage()}
+			<div className={styles.centeredContent}>
+				{configurationPage()}
+			</div>
 		</Modal>
 	)
 }

@@ -5,7 +5,7 @@ import PlugIcon from '@icons/PlugIcon'
 import {
 	IntegrationAction,
 	IntegrationConfigProps,
-} from '@pages/IntegrationsPage/components/Integration'
+} from '@pages/IntegrationsPage/components/IntegrationTypes'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 

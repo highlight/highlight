@@ -55,10 +55,6 @@ const ApplicationRouter: React.FC = () => {
 							element={<IntegrationsPage />}
 						/>
 						<Route
-							path="dashboards/*"
-							element={<DashboardRouter />}
-						/>
-						<Route
 							path="*"
 							element={<Navigate to={BASE_PATH} replace />}
 						/>
