@@ -1,21 +1,17 @@
 import Card from '@components/Card/Card'
 import CopyText from '@components/CopyText/CopyText'
-import Input from '@components/Input/Input'
 import ProgressBarTable from '@components/ProgressBarTable/ProgressBarTable'
-import Select from '@components/Select/Select'
 import {
 	useGetProjectQuery,
 	useGetSourcemapFilesLazyQuery,
 	useGetSourcemapVersionsQuery,
 } from '@graph/hooks'
-import { Box, Stack } from '@highlight-run/ui/components'
+import { Box, Select, Stack } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { debounce } from 'lodash'
 import React, { useEffect } from 'react'
-
 import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
-
 import styles from './SourcemapSettings.module.css'
 
 const SourcemapSettings = () => {
@@ -46,9 +42,8 @@ const SourcemapSettings = () => {
 			skip: !project_id,
 			onCompleted: (data) => {
 				const trimmedVersions = data?.sourcemap_versions?.map((v) =>
-					v.replace(`${project_id}/`, '').replace('/', ''),
+					v.replace(${project_id}/, '').replace('/', ''),
 				)
-
 				setVersions(trimmedVersions || [])
 			},
 		})
@@ -60,7 +55,6 @@ const SourcemapSettings = () => {
 		if (versionsLoading || needToSelectVersion || !project_id) {
 			return
 		}
-
 		getSourcemapFilesQuery({
 			variables: {
 				project_id,
@@ -74,7 +68,6 @@ const SourcemapSettings = () => {
 	}, [versionsLoading, selectedVersion])
 
 	const fileKeys = data?.sourcemap_files?.map((file) => file.key) || []
-
 	const visibleFileKeys = query.length
 		? fileKeys.filter((key) => key && key.indexOf(query) > -1)
 		: fileKeys
@@ -113,11 +106,8 @@ const SourcemapSettings = () => {
 						/>
 					</Stack>
 				)}
-
 				<Box borderTop="dividerWeak" />
-
 				<BoxLabel info="Below is a list of sourcemap files we have for your project." />
-
 				<Card
 					className={styles.list}
 					title={
@@ -129,24 +119,18 @@ const SourcemapSettings = () => {
 										className={styles.versionSelect}
 										placeholder="Select a version of your app"
 										options={versions.map((v) => ({
-											id: v,
 											value: v,
-											displayValue: v,
+											label: v,
 										}))}
-										onChange={setSelectedVersion}
+										onValueChange={setSelectedVersion}
 										value={selectedVersion}
-										notFoundContent={
-											<p>No sourcemaps found</p>
-										}
 									/>
 								</div>
 							)}
-							<Input
-								allowClear
+							<input
 								style={{ width: '100%' }}
 								placeholder="Search for a file"
 								onChange={(e) => filterResults(e.target.value)}
-								size="small"
 								disabled={versionsLoading || loading}
 							/>
 						</div>
@@ -192,7 +176,7 @@ const SourcemapSettings = () => {
 								? 'Nothing to see here'
 								: needToSelectVersion
 									? 'Select a version'
-									: 'No sourcemap data yet 😔'
+									: 'No sourcemap data yet'
 						}
 					/>
 				</Card>

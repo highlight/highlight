@@ -10,16 +10,14 @@ import {
 	IconSolidQuestionMarkCircle,
 	IconSolidTrash,
 	IconSolidX,
+	Select as UISelect,
 	Text,
 	TextLink,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import { useMemo } from 'react'
-
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
-
 import * as styles from './GitHubSettingsModal.css'
 
 type Props = {
@@ -45,7 +43,6 @@ export const GitHubSettingsModal = ({
 		const submittedValues = formValues.githubRepo
 			? formValues
 			: { githubRepo: null, buildPrefix: null, githubPrefix: null }
-
 		handleSave(service, submittedValues)
 		closeModal()
 	}
@@ -120,12 +117,11 @@ const GithubSettingsForm = ({
 	const githubOptions = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
-				id: repo.key,
-				label: repo.name.split('/').pop(),
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
 				),
+				label: repo.name.split('/').pop() || repo.name,
 			})),
 		[githubRepos],
 	)
@@ -137,11 +133,12 @@ const GithubSettingsForm = ({
 			githubPrefix: service.githubPrefix || null,
 		},
 	})
+
 	const formState = formStore.useState()
 
 	const exampleLink = formState.values.githubPrefix
-		? `https://github.com/${formState.values.githubRepo}/blob/HEAD${formState.values.githubPrefix}/README.md`
-		: `https://github.com/${formState.values.githubRepo}/blob/HEAD/README.md`
+		? https://github.com//blob/HEAD/README.md
+		: https://github.com//blob/HEAD/README.md
 
 	return (
 		<Form store={formStore} onSubmit={() => handleSubmit(formState.values)}>
@@ -151,11 +148,11 @@ const GithubSettingsForm = ({
 					name="githubRepo"
 				>
 					<Box display="flex" alignItems="center" gap="8">
-						<Select
+						<UISelect
 							aria-label="GitHub repository"
 							className={styles.repoSelect}
 							placeholder="Search repos..."
-							onSelect={(repo: string) =>
+							onValueChange={(repo: string) =>
 								formStore.setValue(
 									formStore.names.githubRepo,
 									repo,
@@ -165,10 +162,7 @@ const GithubSettingsForm = ({
 								?.split('/')
 								.pop()}
 							options={githubOptions}
-							notFoundContent={<span>No repos found</span>}
-							optionFilterProp="label"
-							filterOption
-							showSearch
+							filterable
 						/>
 						<ButtonIcon
 							kind="secondary"
@@ -253,7 +247,6 @@ const GithubSettingsForm = ({
 								}
 							/>
 						</Box>
-
 						<Box
 							display="flex"
 							alignItems="flex-start"
@@ -276,7 +269,7 @@ const GithubSettingsForm = ({
 							<Text break="all">
 								e.g.{' '}
 								<i>{formState.values.buildPrefix}/README.md</i>{' '}
-								→{' '}
+								鈫抺' '}
 								<TextLink href={exampleLink} target="_blank">
 									{exampleLink}
 								</TextLink>
