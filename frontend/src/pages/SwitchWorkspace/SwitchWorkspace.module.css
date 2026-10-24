@@ -27,10 +27,6 @@
 	cursor: pointer;
 }
 
-.joinButton {
-	margin-left: auto;
-}
-
 .intercomButton {
 	color: var(--color-purple);
 	cursor: pointer;
