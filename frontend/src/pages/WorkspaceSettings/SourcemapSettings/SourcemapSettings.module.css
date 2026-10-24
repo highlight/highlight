@@ -13,20 +13,39 @@
 }
 
 .listHeader {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-small);
 	margin-bottom: var(--size-medium);
 
 	& h3 {
 		margin-bottom: 0 !important;
 	}
 
-	:global(.ant-input-affix-wrapper) {
-		width: 150px;
-	}
-
 	& .versionSelect {
-		margin-bottom: var(--size-medium);
 		width: 100%;
 	}
+}
+
+.searchInput {
+	background: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	color: var(--color-gray-700);
+	font-size: 13px;
+	height: 32px;
+	padding: 0 var(--size-small);
+	width: 100%;
+}
+
+.searchInput:focus {
+	border-color: var(--color-purple-400);
+	outline: none;
+}
+
+.searchInput:disabled {
+	cursor: not-allowed;
+	opacity: 0.7;
 }
 
 .listRow {
