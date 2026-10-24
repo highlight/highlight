@@ -301,20 +301,12 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 							<Menu.Item onClick={(e) => e.preventDefault()}>
 								<div ref={menuRef} />
 								<DatePicker
-									getPopupContainer={() =>
-										menuRef?.current || document.body
-									}
-									format="YYYY-MM-DD hh:mm"
-									showTime={{ format: 'hh:mm' }}
-									showNow={false}
-									placement="bottomRight"
-									placeholder="Select day and time"
-									className={styles.datepicker}
-									onChange={(datetime) => {
+									cssClass={styles.datepicker}
+									onDatesChange={(datetime) => {
 										if (datetime) {
 											handleChange(
 												initialErrorState,
-												datetime.format(),
+												moment(datetime).format(),
 											).then(() => {
 												menu.setOpen(false)
 											})
@@ -349,6 +341,16 @@ const showStateUpdateMessage = (
 				break
 			case ErrorState.Ignored:
 				displayMessage = `This error is set to Ignored. You will not receive any alerts even if a new error gets thrown.`
+				break
+			case ErrorState.Resolved:
+				displayMessage = `This error is set to Resolved. You will receive alerts when a new error gets thrown.`
+				break
+		}
+	}
+
+	toast.success(displayMessage, { duration: 10000, id: MESSAGE_KEY })
+}
+if a new error gets thrown.`
 				break
 			case ErrorState.Resolved:
 				displayMessage = `This error is set to Resolved. You will receive alerts when a new error gets thrown.`
