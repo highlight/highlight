@@ -138,6 +138,7 @@ import { ElixirOtherReorganizedContent } from './server/elixir/other'
 import { ReactNativeContent } from './frontend/react-native'
 import { siteUrl } from '../../utils/urls'
 import { NextJsTracesReorganizedContent } from './server/js/nextjs'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { AWSLambdaTracingSteps } from './server/serverless/shared-snippets-aws-lambda'
 
 export type QuickStartContent = {
@@ -461,6 +462,7 @@ export const quickStartContent = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
 		},
 		php: {
 			title: 'PHP',
@@ -605,6 +607,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
 		},
 	},
