@@ -1,9 +1,129 @@
+.pageHeader {
+	align-items: flex-start;
+	background:
+		linear-gradient(135deg, rgba(86, 67, 255, 0.1), rgba(56, 189, 248, 0.06)),
+		var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	display: flex;
+	gap: var(--size-large);
+	justify-content: space-between;
+	margin-bottom: var(--size-large);
+	padding: var(--size-large);
+}
+
+.eyebrow {
+	color: var(--color-purple-600);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	margin-bottom: var(--size-xSmall) !important;
+	text-transform: uppercase;
+}
+
+.pageTitle {
+	margin-bottom: var(--size-small) !important;
+}
+
+.summaryCards {
+	display: flex;
+	flex-shrink: 0;
+	gap: var(--size-small);
+}
+
+.summaryCard {
+	background: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	box-shadow: 0 8px 24px rgba(18, 20, 31, 0.06);
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 112px;
+	padding: var(--size-medium);
+}
+
+.summaryCard strong {
+	font-size: 28px;
+	line-height: 1;
+}
+
+.summaryCard span {
+	color: var(--color-gray-500);
+	font-size: 13px;
+}
+
+.toolbar {
+	align-items: center;
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: var(--size-large);
+}
+
+.searchLabel {
+	color: var(--color-gray-500);
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.searchInput {
+	background: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: 999px;
+	min-width: min(100%, 320px);
+	padding: 10px 16px;
+	transition:
+		border-color 120ms ease,
+		box-shadow 120ms ease;
+}
+
+.searchInput:focus {
+	border-color: var(--color-purple-500);
+	box-shadow: 0 0 0 3px rgba(86, 67, 255, 0.14);
+	outline: none;
+}
+
 .integrationsContainer {
 	display: grid;
 	grid-gap: var(--size-large);
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
+
+.emptyState {
+	align-items: center;
+	border: 1px dashed var(--color-gray-300);
+	border-radius: var(--border-radius);
+	color: var(--color-gray-500);
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-xSmall);
+	margin-top: var(--size-large);
+	padding: var(--size-xxLarge);
+	text-align: center;
+}
+
+.emptyState h3,
+.emptyState p {
+	margin: 0 !important;
+}
+
 .modalBtn {
 	padding-bottom: 4px !important;
 	padding-top: 4px !important;
+}
+
+@media screen and (max-width: 768px) {
+	.pageHeader,
+	.toolbar {
+		flex-direction: column;
+	}
+
+	.summaryCards,
+	.searchInput {
+		width: 100%;
+	}
+
+	.summaryCard {
+		flex: 1;
+	}
 }

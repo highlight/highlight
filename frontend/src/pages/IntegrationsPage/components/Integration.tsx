@@ -75,7 +75,12 @@ const Integration = ({
 
 	return (
 		<>
-			<Card className={styles.integration} interactable>
+			<Card
+				className={clsx(styles.integration, {
+					[styles.connected]: integrationEnabled,
+				})}
+				interactable
+			>
 				<div className={styles.header}>
 					<img
 						src={icon}
@@ -160,7 +165,12 @@ const Integration = ({
 					</div>
 				</div>
 				<div>
-					<h2 className={styles.title}>{name}</h2>
+					<div className={styles.titleRow}>
+						<h2 className={styles.title}>{name}</h2>
+						<span className={styles.statusBadge}>
+							{integrationEnabled ? 'Connected' : 'Available'}
+						</span>
+					</div>
 					<p className={styles.description}>{description}</p>
 					{docs && (
 						<a

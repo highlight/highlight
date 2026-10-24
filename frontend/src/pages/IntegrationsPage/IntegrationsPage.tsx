@@ -16,7 +16,7 @@ import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
@@ -35,6 +35,7 @@ const IntegrationsPage = () => {
 	}>()
 
 	const [popUpModal] = useQueryParam('enable', StringParam)
+	const [searchQuery, setSearchQuery] = useState('')
 
 	const { isHighlightAdmin } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
@@ -179,6 +180,33 @@ const IntegrationsPage = () => {
 		isCloudflareConnectedToWorkspace,
 	])
 
+	const connectedIntegrations = useMemo(
+		() => integrations.filter((integration) => integration.defaultEnable),
+		[integrations],
+	)
+	const availableIntegrations = useMemo(
+		() => integrations.filter((integration) => !integration.defaultEnable),
+		[integrations],
+	)
+	const filteredIntegrations = useMemo(() => {
+		const normalizedSearch = searchQuery.trim().toLowerCase()
+		const sortedIntegrations = [
+			...connectedIntegrations,
+			...availableIntegrations,
+		]
+
+		if (!normalizedSearch) {
+			return sortedIntegrations
+		}
+
+		return sortedIntegrations.filter((integration) =>
+			[integration.name, integration.description]
+				.join(' ')
+				.toLowerCase()
+				.includes(normalizedSearch),
+		)
+	}, [availableIntegrations, connectedIntegrations, searchQuery])
+
 	useEffect(() => analytics.page('Integrations'), [])
 
 	return (
@@ -187,13 +215,43 @@ const IntegrationsPage = () => {
 				<title>Integrations</title>
 			</Helmet>
 			<LeadAlignLayout>
-				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
-					Supercharge your workflows and attach Highlight with the
-					tools you use everyday.
-				</p>
+				<section className={styles.pageHeader}>
+					<div>
+						<p className={styles.eyebrow}>Workspace integrations</p>
+						<h2 className={styles.pageTitle}>Connect your workflow</h2>
+						<p className={layoutStyles.subTitle}>
+							Supercharge your workflows and attach Highlight with the
+							tools you use everyday.
+						</p>
+					</div>
+					<div className={styles.summaryCards}>
+						<div className={styles.summaryCard}>
+							<strong>{connectedIntegrations.length}</strong>
+							<span>Connected</span>
+						</div>
+						<div className={styles.summaryCard}>
+							<strong>{availableIntegrations.length}</strong>
+							<span>Available</span>
+						</div>
+					</div>
+				</section>
+
+				<div className={styles.toolbar}>
+					<label className={styles.searchLabel} htmlFor="integration-search">
+						Search integrations
+					</label>
+					<input
+						id="integration-search"
+						className={styles.searchInput}
+						type="search"
+						placeholder="Search by app or workflow"
+						value={searchQuery}
+						onChange={(event) => setSearchQuery(event.target.value)}
+					/>
+				</div>
+
 				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) => (
+					{filteredIntegrations.map((integration) => (
 						<Integration
 							integration={integration}
 							key={integration.key}
@@ -205,6 +263,12 @@ const IntegrationsPage = () => {
 						/>
 					))}
 				</div>
+				{filteredIntegrations.length === 0 && (
+					<div className={styles.emptyState}>
+						<h3>No integrations found</h3>
+						<p>Try a different search term or clear the search field.</p>
+					</div>
+				)}
 			</LeadAlignLayout>
 		</>
 	)
