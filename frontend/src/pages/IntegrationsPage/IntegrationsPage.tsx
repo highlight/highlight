@@ -12,11 +12,14 @@ import Integration from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
-import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import INTEGRATIONS, {
+	Integration as IntegrationType,
+} from '@pages/IntegrationsPage/Integrations'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { useEffect, useMemo } from 'react'
+import clsx from 'clsx'
+import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
@@ -24,14 +27,54 @@ import { useGitlabIntegration } from '@/pages/IntegrationsPage/components/Gitlab
 import { useJiraIntegration } from '@/pages/IntegrationsPage/components/JiraIntegration/utils'
 import { useMicrosoftTeamsBot } from '@/pages/IntegrationsPage/components/MicrosoftTeamsIntegration/utils'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
 import styles from './IntegrationsPage.module.css'
+
+const getIntegrationRouteKey = (routePath?: string) =>
+	routePath?.split('/').filter(Boolean)[0]
+
+const IntegrationNavItem = ({
+	integration,
+	isSelected,
+	onSelect,
+}: {
+	integration: IntegrationType
+	isSelected: boolean
+	onSelect: (key: string) => void
+}) => (
+	<button
+		type="button"
+		className={clsx(styles.integrationNavItem, {
+			[styles.integrationNavItemSelected]: isSelected,
+		})}
+		onClick={() => onSelect(integration.key)}
+		aria-pressed={isSelected}
+	>
+		<span className={styles.integrationNavIconWrap}>
+			<img
+				src={integration.icon}
+				alt=""
+				className={clsx(styles.integrationNavIcon, {
+					['rounded-none']: integration.noRoundedIcon,
+				})}
+			/>
+		</span>
+		<span className={styles.integrationNavCopy}>
+			<span className={styles.integrationNavName}>{integration.name}</span>
+			<span className={styles.integrationNavDescription}>
+				{integration.description}
+			</span>
+		</span>
+		{integration.defaultEnable && (
+			<span className={styles.integrationNavStatus}>Connected</span>
+		)}
+	</button>
+)
 
 const IntegrationsPage = () => {
 	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
 
-	const { integration_type: configureIntegration } = useParams<{
-		integration_type: string
+	const { '*': integrationRoutePath } = useParams<{
+		'*': string
 	}>()
 
 	const [popUpModal] = useQueryParam('enable', StringParam)
@@ -179,6 +222,41 @@ const IntegrationsPage = () => {
 		isCloudflareConnectedToWorkspace,
 	])
 
+	const connectedIntegrations = useMemo(
+		() => integrations.filter((integration) => integration.defaultEnable),
+		[integrations],
+	)
+
+	const availableIntegrations = useMemo(
+		() => integrations.filter((integration) => !integration.defaultEnable),
+		[integrations],
+	)
+
+	const routedIntegrationKey = getIntegrationRouteKey(integrationRoutePath)
+	const defaultIntegrationKey =
+		routedIntegrationKey ||
+		popUpModal ||
+		connectedIntegrations[0]?.key ||
+		integrations[0]?.key
+
+	const [selectedIntegrationKey, setSelectedIntegrationKey] = useState<
+		string | undefined
+	>(defaultIntegrationKey ?? undefined)
+
+	useEffect(() => {
+		if (defaultIntegrationKey) {
+			setSelectedIntegrationKey(defaultIntegrationKey)
+		}
+	}, [defaultIntegrationKey])
+
+	const selectedIntegration =
+		integrations.find(
+			(integration) => integration.key === selectedIntegrationKey,
+		) ?? integrations[0]
+	const handleSelectIntegration = (key: string) => {
+		setSelectedIntegrationKey(key)
+	}
+
 	useEffect(() => analytics.page('Integrations'), [])
 
 	return (
@@ -186,24 +264,124 @@ const IntegrationsPage = () => {
 			<Helmet>
 				<title>Integrations</title>
 			</Helmet>
-			<LeadAlignLayout>
-				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
-					Supercharge your workflows and attach Highlight with the
-					tools you use everyday.
-				</p>
-				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) => (
-						<Integration
-							integration={integration}
-							key={integration.key}
-							showModalDefault={popUpModal === integration.key}
-							showSettingsDefault={
-								configureIntegration === integration.key
-							}
-							loading={loading}
-						/>
-					))}
+			<LeadAlignLayout fullWidth className={styles.page}>
+				<div className={styles.header}>
+					<div>
+						<h2 className={styles.title}>Integrations</h2>
+						<p className={styles.subTitle}>
+							Supercharge your workflows and attach Highlight with
+							the tools you use everyday.
+						</p>
+					</div>
+					<div className={styles.summary}>
+						<div className={styles.summaryItem}>
+							<span className={styles.summaryValue}>
+								{connectedIntegrations.length}
+							</span>
+							<span className={styles.summaryLabel}>
+								Connected
+							</span>
+						</div>
+						<div className={styles.summaryItem}>
+							<span className={styles.summaryValue}>
+								{availableIntegrations.length}
+							</span>
+							<span className={styles.summaryLabel}>
+								Available
+							</span>
+						</div>
+					</div>
+				</div>
+				<div className={styles.layout}>
+					<aside
+						className={styles.sidebar}
+						aria-label="Integrations"
+					>
+						{connectedIntegrations.length > 0 && (
+							<section className={styles.integrationNavSection}>
+								<h3 className={styles.integrationNavHeading}>
+									Connected
+								</h3>
+								{connectedIntegrations.map((integration) => (
+									<IntegrationNavItem
+										key={integration.key}
+										integration={integration}
+										isSelected={
+											selectedIntegration?.key ===
+											integration.key
+										}
+										onSelect={handleSelectIntegration}
+									/>
+								))}
+							</section>
+						)}
+						{availableIntegrations.length > 0 && (
+							<section className={styles.integrationNavSection}>
+								<h3 className={styles.integrationNavHeading}>
+									Available
+								</h3>
+								{availableIntegrations.map((integration) => (
+									<IntegrationNavItem
+										key={integration.key}
+										integration={integration}
+										isSelected={
+											selectedIntegration?.key ===
+											integration.key
+										}
+										onSelect={handleSelectIntegration}
+									/>
+								))}
+							</section>
+						)}
+					</aside>
+					<section className={styles.detailPanel}>
+						{selectedIntegration && (
+							<>
+								<div className={styles.detailHeader}>
+									<div
+										className={styles.detailIconWrap}
+										aria-hidden="true"
+									>
+										<img
+											src={selectedIntegration.icon}
+											alt=""
+											className={clsx(
+												styles.detailIcon,
+												{
+													['rounded-none']:
+														selectedIntegration.noRoundedIcon,
+												},
+											)}
+										/>
+									</div>
+									<div>
+										<h3 className={styles.detailTitle}>
+											{selectedIntegration.name}
+										</h3>
+										<p
+											className={
+												styles.detailDescription
+											}
+										>
+											{selectedIntegration.description}
+										</p>
+									</div>
+								</div>
+								<Integration
+									integration={selectedIntegration}
+									key={selectedIntegration.key}
+									showModalDefault={
+										popUpModal === selectedIntegration.key
+									}
+									showSettingsDefault={
+										routedIntegrationKey ===
+										selectedIntegration.key
+									}
+									loading={loading}
+								/>
+							</>
+						)}
+					</section>
 				</div>
 			</LeadAlignLayout>
 		</>

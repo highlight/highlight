@@ -1,9 +1,261 @@
-.integrationsContainer {
-	display: grid;
-	grid-gap: var(--size-large);
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+.page {
+	max-width: 1180px !important;
 }
+
+.header {
+	align-items: flex-start;
+	display: flex;
+	gap: var(--size-large);
+	justify-content: space-between;
+	margin-bottom: var(--size-xLarge);
+}
+
+.title {
+	margin-bottom: var(--size-xSmall) !important;
+}
+
+.subTitle {
+	color: var(--color-gray-500);
+	font-size: 18px;
+	margin-bottom: 0 !important;
+	max-width: 620px;
+}
+
+.summary {
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	display: grid;
+	grid-template-columns: repeat(2, minmax(96px, 1fr));
+	overflow: hidden;
+}
+
+.summaryItem {
+	background: var(--color-primary-background);
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: var(--size-small) var(--size-medium);
+}
+
+.summaryItem + .summaryItem {
+	border-left: 1px solid var(--color-gray-300);
+}
+
+.summaryValue {
+	color: var(--text-primary);
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+.summaryLabel {
+	color: var(--color-gray-500);
+	font-size: 12px;
+	line-height: 1;
+}
+
+.layout {
+	align-items: stretch;
+	display: grid;
+	gap: var(--size-large);
+	grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+	min-height: 520px;
+}
+
+.sidebar {
+	background: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	display: flex;
+	flex-direction: column;
+	max-height: calc(100vh - 220px);
+	overflow-y: auto;
+	padding: var(--size-small);
+}
+
+.integrationNavSection + .integrationNavSection {
+	border-top: 1px solid var(--color-gray-300);
+	margin-top: var(--size-small);
+	padding-top: var(--size-small);
+}
+
+.integrationNavHeading {
+	color: var(--color-gray-500);
+	font-size: 11px !important;
+	font-weight: 600;
+	letter-spacing: 0.05em;
+	margin: 0 0 var(--size-xSmall) !important;
+	padding: 0 var(--size-xSmall);
+	text-transform: uppercase;
+}
+
+.integrationNavItem {
+	align-items: center;
+	background: transparent;
+	border: 0;
+	border-radius: var(--border-radius);
+	color: var(--text-primary);
+	cursor: pointer;
+	display: grid;
+	font-family: inherit;
+	gap: var(--size-small);
+	grid-template-columns: 34px minmax(0, 1fr) auto;
+	padding: var(--size-xSmall);
+	text-align: left;
+	transition:
+		background-color 120ms ease,
+		box-shadow 120ms ease;
+	width: 100%;
+}
+
+.integrationNavItem:hover {
+	background: var(--color-gray-200);
+}
+
+.integrationNavItemSelected {
+	background: var(--color-gray-200);
+	box-shadow: inset 0 0 0 1px var(--color-gray-300);
+}
+
+.integrationNavIconWrap {
+	align-items: center;
+	background: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	display: flex;
+	height: 34px;
+	justify-content: center;
+	width: 34px;
+}
+
+.integrationNavIcon {
+	border-radius: 50%;
+	height: 22px;
+	object-fit: contain;
+	width: 22px;
+}
+
+.integrationNavCopy {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.integrationNavName {
+	color: var(--text-primary);
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.integrationNavDescription {
+	color: var(--color-gray-500);
+	font-size: 12px;
+	line-height: 1.25;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.integrationNavStatus {
+	background: var(--color-green-100);
+	border-radius: 999px;
+	color: var(--color-green-700);
+	font-size: 11px;
+	font-weight: 600;
+	padding: 3px 7px;
+}
+
+.detailPanel {
+	background: var(--color-primary-background);
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-large);
+	min-width: 0;
+	padding: var(--size-large);
+}
+
+.detailHeader {
+	align-items: center;
+	border-bottom: 1px solid var(--color-gray-300);
+	display: flex;
+	gap: var(--size-medium);
+	padding-bottom: var(--size-large);
+}
+
+.detailIconWrap {
+	align-items: center;
+	background: var(--color-gray-200);
+	border: 1px solid var(--color-gray-300);
+	border-radius: var(--border-radius);
+	display: flex;
+	flex-shrink: 0;
+	height: 54px;
+	justify-content: center;
+	width: 54px;
+}
+
+.detailIcon {
+	border-radius: 50%;
+	height: 34px;
+	object-fit: contain;
+	width: 34px;
+}
+
+.detailTitle {
+	font-size: 20px !important;
+	font-weight: 600;
+	line-height: 1.2;
+	margin: 0 0 4px !important;
+}
+
+.detailDescription {
+	color: var(--color-gray-500);
+	font-size: 14px;
+	line-height: 1.4;
+	margin: 0 !important;
+}
+
 .modalBtn {
 	padding-bottom: 4px !important;
 	padding-top: 4px !important;
+}
+
+@media (max-width: 900px) {
+	.header {
+		flex-direction: column;
+	}
+
+	.summary {
+		width: 100%;
+	}
+
+	.layout {
+		grid-template-columns: 1fr;
+	}
+
+	.sidebar {
+		max-height: 360px;
+	}
+}
+
+@media (max-width: 540px) {
+	.integrationNavItem {
+		grid-template-columns: 34px minmax(0, 1fr);
+	}
+
+	.integrationNavStatus {
+		grid-column: 2;
+		justify-self: start;
+	}
+
+	.detailHeader {
+		align-items: flex-start;
+	}
 }
