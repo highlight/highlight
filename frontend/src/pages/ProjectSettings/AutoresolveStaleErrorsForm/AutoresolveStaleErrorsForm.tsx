@@ -2,7 +2,6 @@ import { LoadingBar } from '@components/Loading/Loading'
 import { Box, Callout, Form, Label, Stack } from '@highlight-run/ui/components'
 import { useEffect, useState } from 'react'
 
-import BorderBox from '@/components/BorderBox/BorderBox'
 import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
@@ -58,7 +57,13 @@ export const AutoresolveStaleErrorsForm = () => {
 	return (
 		<Form>
 			{categories.map((c) => (
-				<BorderBox key={c.key}>
+				<Box
+					key={c.key}
+					border="dividerWeak"
+					borderRadius="8"
+					px="8"
+					py="12"
+				>
 					<Box py="8">
 						{ToggleRow(
 							c.key,
@@ -117,7 +122,7 @@ export const AutoresolveStaleErrorsForm = () => {
 							time period.
 						</Callout>
 					)}
-				</BorderBox>
+				</Box>
 			))}
 		</Form>
 	)

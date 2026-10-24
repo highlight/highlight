@@ -1,4 +1,3 @@
-import BorderBox from '@components/BorderBox/BorderBox'
 import BoxLabel from '@components/BoxLabel/BoxLabel'
 import { IconAnimatedLoading, LoadingBar } from '@components/Loading/Loading'
 import { useGetSessionExportsQuery } from '@graph/hooks'
@@ -47,7 +46,7 @@ export const SessionExportForm = () => {
 	const gridColumns = ['120px', '120px', '1fr', '124px']
 	return (
 		<Box ref={ref}>
-			<BorderBox noPadding>
+			<Box border="dividerWeak" borderRadius="8">
 				<Stack gap="8">
 					<Box paddingTop="12" px="8">
 						<BoxLabel
@@ -155,7 +154,7 @@ export const SessionExportForm = () => {
 						</Table.Body>
 					</Table>
 				</Stack>
-			</BorderBox>
+			</Box>
 		</Box>
 	)
 }
