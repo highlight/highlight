@@ -35,6 +35,7 @@ import { OtherContext } from './frontend/other'
 import { ReactContent } from './frontend/react'
 import { RemixContent } from './frontend/remix'
 import { SvelteKitContent } from './frontend/sveltekit'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { VueContent } from './frontend/vue'
 import { DockerContent } from './logging/docker'
 import { FileContent } from './logging/file'
@@ -461,6 +462,7 @@ export const quickStartContent = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
 		},
 		php: {
 			title: 'PHP',
