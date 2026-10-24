@@ -1,5 +1,4 @@
-import { ButtonProps } from '@components/Button'
-import { ButtonContent, buttonStyles } from '@highlight-run/ui/components'
+import { ButtonContent, buttonStyles, ButtonProps } from '@highlight-run/ui/components'
 import analytics from '@util/analytics'
 import clsx from 'clsx'
 import React from 'react'
@@ -16,9 +15,9 @@ type Props = React.PropsWithChildren &
 		| 'emphasis'
 		| 'iconLeft'
 		| 'iconRight'
-		| 'trackingId'
-		| 'trackingProperties'
 	> & {
+		trackingId?: string
+		trackingProperties?: Record<string, any>
 		to: LinkProps['to']
 		state?: LinkProps['state']
 		target?: LinkProps['target']
@@ -55,7 +54,9 @@ export const LinkButton: React.FC<Props> = ({
 			)}
 			onClick={(e) => {
 				e.stopPropagation()
-				analytics.track(trackingId, trackingProperties)
+				if (trackingId) {
+					analytics.track(trackingId, trackingProperties)
+				}
 			}}
 		>
 			<ButtonContent

@@ -1,5 +1,4 @@
 import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton'
-import { Button } from '@components/Button'
 import {
 	useGetWorkspaceAdminsQuery,
 	useGetWorkspaceSettingsQuery,
@@ -13,7 +12,9 @@ import {
 	Tooltip,
 	Text,
 	Callout,
+	Button,
 } from '@highlight-run/ui/components'
+import analytics from '@util/analytics'
 import { useAuthContext } from '@/authentication/AuthContext'
 import AllMembers from '@pages/WorkspaceTeam/components/AllMembers'
 import { AutoJoinForm } from '@pages/WorkspaceTeam/components/AutoJoinForm'
@@ -111,7 +112,11 @@ const WorkspaceTeam = () => {
 									<Button
 										kind="secondary"
 										size="xSmall"
-										trackingId="WorkspaceTeamConfigureSSO"
+										onClick={() => {
+											analytics.track(
+												'Button-WorkspaceTeamConfigureSSO',
+											)
+										}}
 									>
 										<Text>Configure SSO</Text>
 									</Button>
@@ -198,9 +203,12 @@ const TabContentContainer = ({
 							variant="basic"
 						>
 							<Button
-								trackingId="WorkspaceTeamInviteMember"
 								iconLeft={<IconSolidUserAdd />}
-								onClick={() => null}
+								onClick={() => {
+									analytics.track(
+										'Button-WorkspaceTeamInviteMember',
+									)
+								}}
 								disabled={!isAdminUser}
 							>
 								Invite users

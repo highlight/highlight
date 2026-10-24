@@ -1,8 +1,0 @@
-.modal {
-  & footer {
-    column-gap: var(--size-medium);
-    display: flex;
-    justify-content: flex-end;
-    padding-top: var(--size-large);
-  }
-}
