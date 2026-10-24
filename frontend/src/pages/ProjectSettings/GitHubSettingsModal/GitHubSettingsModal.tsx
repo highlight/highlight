@@ -2,6 +2,7 @@ import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
+import Select from '@components/Select/Select'
 import {
 	Box,
 	ButtonIcon,
@@ -15,7 +16,6 @@ import {
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
 import { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
@@ -121,7 +121,7 @@ const GithubSettingsForm = ({
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
 				id: repo.key,
-				label: repo.name.split('/').pop(),
+				displayValue: repo.name.split('/').pop(),
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -161,9 +161,7 @@ const GithubSettingsForm = ({
 									repo,
 								)
 							}
-							value={formState.values.githubRepo
-								?.split('/')
-								.pop()}
+							value={formState.values.githubRepo ?? undefined}
 							options={githubOptions}
 							notFoundContent={<span>No repos found</span>}
 							optionFilterProp="label"
