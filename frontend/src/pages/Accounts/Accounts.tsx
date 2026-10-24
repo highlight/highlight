@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import { useAuthContext } from '@authentication/AuthContext'
 import {
 	AppLoadingState,
@@ -10,7 +11,15 @@ import {
 } from '@graph/hooks'
 import useLocalStorage from '@rehooks/local-storage'
 import { useParams } from '@util/react-router/useParams'
-import { Table } from 'antd'
+// Replaced antd Table with Highlight UI components
+import {
+	Box,
+	Table,
+	Text,
+	Button,
+	IconSolidDownload,
+	IconSolidRefresh,
+} from '@highlight-run/ui/components'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -29,170 +38,23 @@ import {
 } from 'recharts'
 
 const COLUMNS = [
-	{
-		title: 'ID',
-		dataIndex: 'id',
-		sorter: (a: { id: any }, b: { id: any }) => (a.id ?? 0) - (b.id ?? 0),
-	},
-	{
-		title: 'Name',
-		dataIndex: 'name',
-		render: (
-			value: any,
-			record: {
-				id: any
-				name:
-					| boolean
-					| React.ReactChild
-					| React.ReactFragment
-					| React.ReactPortal
-					| null
-					| undefined
-			},
-		) => <a href={`/w/${record.id}/team`}>{record.name}</a>,
-		sorter: (a: { name: any }, b: { name: any }) =>
-			(a.name ?? '').localeCompare(b.name ?? ''),
-	},
-	{
-		title: 'Email',
-		dataIndex: 'email',
-		sorter: (a: { email: any }, b: { email: any }) =>
-			(a.email ?? '').localeCompare(b.email ?? ''),
-	},
-	{
-		title: 'Stripe Customer ID',
-		dataIndex: 'stripe_customer_id',
-		render: (
-			value:
-				| boolean
-				| React.ReactChild
-				| React.ReactFragment
-				| React.ReactPortal
-				| null
-				| undefined,
-			record: { stripe_customer_id: any },
-		) => (
-			<a
-				href={`https://dashboard.stripe.com/customers/${record.stripe_customer_id}`}
-			>
-				{value}
-			</a>
-		),
-		sorter: (
-			a: { stripe_customer_id: any },
-			b: { stripe_customer_id: any },
-		) =>
-			(a.stripe_customer_id ?? '').localeCompare(
-				b.stripe_customer_id ?? '',
-			),
-	},
-	{
-		title: 'Subscription Start',
-		dataIndex: 'subscription_start',
-		render: (value: moment.MomentInput) => moment(value).format('MM/DD/YY'),
-		sorter: (
-			a: { subscription_start: any },
-			b: { subscription_start: any },
-		) =>
-			(a.subscription_start ?? '').localeCompare(
-				b.subscription_start ?? '',
-			),
-	},
-	{
-		title: 'Plan Tier',
-		dataIndex: 'plan_tier',
-		sorter: (a: { plan_tier: any }, b: { plan_tier: any }) =>
-			(a.plan_tier ?? '').localeCompare(b.plan_tier ?? ''),
-	},
-	{
-		title: 'Session Limit',
-		dataIndex: 'session_limit',
-		sorter: (a: { session_limit: any }, b: { session_limit: any }) =>
-			(a.session_limit ?? 0) - (b.session_limit ?? 0),
-	},
-	{
-		title: 'Sessions This Month',
-		dataIndex: 'session_count_cur',
-		sorter: (
-			a: { session_count_cur: any },
-			b: { session_count_cur: any },
-		) => (a.session_count_cur ?? 0) - (b.session_count_cur ?? 0),
-	},
-	{
-		title: 'Viewed This Month',
-		dataIndex: 'view_count_cur',
-		sorter: (a: { view_count_cur: any }, b: { view_count_cur: any }) =>
-			(a.view_count_cur ?? 0) - (b.view_count_cur ?? 0),
-	},
-	{
-		title: 'Sessions Last Month',
-		dataIndex: 'session_count_prev',
-		sorter: (
-			a: { session_count_prev: any },
-			b: { session_count_prev: any },
-		) => (a.session_count_prev ?? 0) - (b.session_count_prev ?? 0),
-	},
-	{
-		title: 'Viewed Last Month',
-		dataIndex: 'view_count_prev',
-		sorter: (a: { view_count_prev: any }, b: { view_count_prev: any }) =>
-			(a.view_count_prev ?? 0) - (b.view_count_prev ?? 0),
-	},
-	{
-		title: 'Paid Last Month',
-		dataIndex: 'paid_prev',
-		render: (value: any) => {
-			const baseAmount = dinero({
-				amount: value,
-				currency: USD,
-			})
-			return '$' + toDecimal(baseAmount)
-		},
-		sorter: (a: { paid_prev: any }, b: { paid_prev: any }) =>
-			(a.paid_prev ?? 0) - (b.paid_prev ?? 0),
-	},
-	{
-		title: 'Sessions Two Months Ago',
-		dataIndex: 'session_count_prev_prev',
-		sorter: (
-			a: { session_count_prev_prev: any },
-			b: { session_count_prev_prev: any },
-		) =>
-			(a.session_count_prev_prev ?? 0) - (b.session_count_prev_prev ?? 0),
-	},
-	{
-		title: 'Paid Two Months Ago',
-		dataIndex: 'paid_prev_prev',
-		render: (value: any) => {
-			const baseAmount = dinero({
-				amount: value,
-				currency: USD,
-			})
-			return '$' + toDecimal(baseAmount)
-		},
-		sorter: (a: { paid_prev_prev: any }, b: { paid_prev_prev: any }) =>
-			(a.paid_prev_prev ?? 0) - (b.paid_prev_prev ?? 0),
-	},
-	{
-		title: 'Member Count',
-		dataIndex: 'member_count',
-		sorter: (a: { member_count: any }, b: { member_count: any }) =>
-			(a.member_count ?? 0) - (b.member_count ?? 0),
-	},
-	{
-		title: 'Member Limit',
-		dataIndex: 'member_limit',
-		sorter: (a: { member_limit: any }, b: { member_limit: any }) =>
-			(a.member_limit ?? 0) - (b.member_limit ?? 0),
-	},
+	{ title: 'ID', dataIndex: 'id' },
+	{ title: 'Name', dataIndex: 'name' },
+	{ title: 'Email', dataIndex: 'email' },
+	{ title: 'Stripe Customer ID', dataIndex: 'stripe_customer_id' },
+	{ title: 'Subscription Start', dataIndex: 'subscription_start' },
+	{ title: 'Plan Tier', dataIndex: 'plan_tier' },
+	{ title: 'Session Limit', dataIndex: 'session_limit' },
+	{ title: 'Sessions This Month', dataIndex: 'session_count_cur' },
+	{ title: 'Viewed This Month', dataIndex: 'view_count_cur' },
+	{ title: 'Sessions Last Month', dataIndex: 'session_count_prev' },
+	{ title: 'Viewed Last Month', dataIndex: 'view_count_prev' },
+	{ title: 'Paid Last Month', dataIndex: 'paid_prev' },
+	{ title: 'Sessions Two Months Ago', dataIndex: 'session_count_prev_prev' },
+	{ title: 'Paid Two Months Ago', dataIndex: 'paid_prev_prev' },
+	{ title: 'Member Count', dataIndex: 'member_count' },
+	{ title: 'Member Limit', dataIndex: 'member_limit' },
 ]
-
-type Row = {
-	id: any
-	name?: any
-	email?: any
-	last_active?: any
-}
 
 export const AccountsPage = () => {
 	const { setLoadingState } = useAppLoadingContext()
@@ -220,215 +82,229 @@ export const Account = () => {
 		variables: { workspace_id: account_id ?? '' },
 		skip: !account_id,
 	})
-	console.log(accountData)
+
 	return (
-		<ResponsiveContainer width="80%" height="50%">
+		<Box p="32" width="full">
 			{loading ? (
-				<div>loading</div>
+				<Text>Loading...</Text>
 			) : (
 				<>
-					<h1>
-						<a href={`/w/${account_id}/team`}>
-							{accountData?.account_details?.name}
-						</a>
-					</h1>
-					<h1>
-						Stripe customer:{' '}
-						<a
-							href={`https://dashboard.stripe.com/customers/${accountData?.account_details?.stripe_customer_id}`}
-						>
-							{accountData?.account_details?.stripe_customer_id}
-						</a>
-					</h1>
-					<h1>Daily Session Count</h1>
-					<BarChart
-						width={1000}
-						height={300}
-						data={accountData?.account_details?.session_count_per_day?.map(
-							(m) => ({ amt: m?.count, name: m?.name }),
-						)}
-						margin={{
-							top: 5,
-							right: 30,
-							left: 20,
-							bottom: 5,
-						}}
-					>
-						<CartesianGrid strokeDasharray="3 3" />
-						<XAxis dataKey="name" />
-						<YAxis />
-						<Tooltip />
-						<Legend />
-						<Bar dataKey="amt" fill="#8884d8" />
-					</BarChart>
-					<h1>Monthly Session Count</h1>
-					<BarChart
-						width={1000}
-						height={300}
-						data={accountData?.account_details?.session_count_per_month?.map(
-							(m) => ({ amt: m?.count, name: m?.name }),
-						)}
-						margin={{
-							top: 5,
-							right: 30,
-							left: 20,
-							bottom: 5,
-						}}
-					>
-						<CartesianGrid strokeDasharray="3 3" />
-						<XAxis dataKey="name" />
-						<YAxis />
-						<Tooltip />
-						<Legend />
-						<Bar dataKey="amt" fill="#8884d8" />
-					</BarChart>
-					<Table
-						pagination={false}
-						sticky={true}
-						size="small"
-						columns={[
-							{
-								title: 'ID',
-								dataIndex: 'id',
-								sorter: (a: Row, b: Row) =>
-									(a.id ?? 0) - (b.id ?? 0),
-							},
-							{
-								title: 'Name',
-								dataIndex: 'name',
-								sorter: (a: Row, b: Row) =>
-									(a.name ?? '').localeCompare(b.name ?? ''),
-							},
-							{
-								title: 'Email',
-								dataIndex: 'email',
-								sorter: (a: Row, b: Row) =>
-									(a.email ?? '').localeCompare(
-										b.email ?? '',
-									),
-							},
-							{
-								title: 'Last Active',
-								dataIndex: 'last_active',
-								render: (value: moment.MomentInput) =>
-									moment(value).format('MM/DD/YY'),
-								sorter: (a: Row, b: Row) =>
-									(a.last_active ?? '').localeCompare(
-										b.last_active ?? '',
-									),
-							},
-						]}
-						dataSource={accountData?.account_details.members}
-					/>
+					<Box mb="16">
+						<Text size="large" weight="bold">
+							<a href={`/w/${account_id}/team`}>
+								{accountData?.account_details?.name}
+							</a>
+						</Text>
+						<Text color="weak">
+							Stripe customer:{' '}
+							<a
+								href={`https://dashboard.stripe.com/customers/${accountData?.account_details?.stripe_customer_id}`}
+								target="_blank"
+								rel="noreferrer"
+							>
+								{
+									accountData?.account_details
+										?.stripe_customer_id
+								}
+							</a>
+						</Text>
+					</Box>
+
+					<Box my="24">
+						<Text weight="bold">Daily Session Count</Text>
+						<ResponsiveContainer width="100%" height={300}>
+							<BarChart
+								data={accountData?.account_details?.session_count_per_day?.map(
+									(m) => ({ amt: m?.count, name: m?.name }),
+								)}
+							>
+								<CartesianGrid strokeDasharray="3 3" />
+								<XAxis dataKey="name" />
+								<YAxis />
+								<Tooltip />
+								<Legend />
+								<Bar dataKey="amt" fill="#8884d8" />
+							</BarChart>
+						</ResponsiveContainer>
+					</Box>
+
+					<Box my="24">
+						<Text weight="bold">Monthly Session Count</Text>
+						<ResponsiveContainer width="100%" height={300}>
+							<BarChart
+								data={accountData?.account_details?.session_count_per_month?.map(
+									(m) => ({ amt: m?.count, name: m?.name }),
+								)}
+							>
+								<CartesianGrid strokeDasharray="3 3" />
+								<XAxis dataKey="name" />
+								<YAxis />
+								<Tooltip />
+								<Legend />
+								<Bar dataKey="amt" fill="#8884d8" />
+							</BarChart>
+						</ResponsiveContainer>
+					</Box>
+
+					<Table>
+						<Table.Head>
+							<Table.Row>
+								<Table.Header>ID</Table.Header>
+								<Table.Header>Name</Table.Header>
+								<Table.Header>Email</Table.Header>
+								<Table.Header>Last Active</Table.Header>
+							</Table.Row>
+						</Table.Head>
+						<Table.Body>
+							{accountData?.account_details.members.map(
+								(member: any) => (
+									<Table.Row key={member.id}>
+										<Table.Cell>{member.id}</Table.Cell>
+										<Table.Cell>{member.name}</Table.Cell>
+										<Table.Cell>{member.email}</Table.Cell>
+										<Table.Cell>
+											{moment(member.last_active).format(
+												'MM/DD/YY',
+											)}
+										</Table.Cell>
+									</Table.Row>
+								),
+							)}
+						</Table.Body>
+					</Table>
 				</>
 			)}
-		</ResponsiveContainer>
+		</Box>
 	)
 }
 
 export const Accounts = () => {
 	const { download } = specific.useTextDownloader()
-
 	const navigate = useNavigate()
 	const [accountDataLocal, setAccountDataLocal] = useLocalStorage<
 		{ [key: string]: any }[]
 	>('accountData', [])
+
 	const [getAccountsQuery, { loading }] = useGetAccountsLazyQuery({
 		onCompleted: (data) => {
-			const accounts: any[] | undefined =
-				data?.accounts?.map((e) => e as any) ?? []
+			const accounts = data?.accounts?.map((e) => e as any) ?? []
 			setAccountDataLocal(accounts)
 		},
 	})
+
 	return (
-		<div style={{ padding: 50 }}>
-			<button
-				onClick={() => {
-					getAccountsQuery()
-				}}
-			>
-				refetch
-			</button>
-			<button
-				onClick={() => {
-					let dataStr = ''
-					let rowStarted = false
-					for (const c of COLUMNS) {
-						if (rowStarted) {
-							dataStr += ','
-						}
-						rowStarted = true
-						dataStr += c.title
-					}
-					dataStr += '\n'
-
-					for (const d of accountDataLocal) {
-						let rowStarted = false
-						for (const c of COLUMNS) {
-							if (rowStarted) {
-								dataStr += ','
-							}
-							rowStarted = true
-							let v = (d[c.dataIndex] || '').toString() as string
-							if (v.includes(',')) {
-								v = v.replaceAll('"', '\\"')
-								v = `"${v}"`
-							}
-							dataStr += v
-						}
-						dataStr += '\n'
-					}
-
-					download({
-						data: dataStr,
-						name: 'accounts.csv',
-					})
-				}}
-			>
-				download CSV
-			</button>
-			{loading ? (
-				'loading...'
-			) : (
-				<Table
-					pagination={false}
-					sticky={true}
-					onRow={(record) => {
-						return {
-							onClick: () => {
-								navigate(`/accounts/${record.id}`)
-							},
-						}
-					}}
+		<Box p="32">
+			<Box display="flex" gap="8" mb="16">
+				<Button
+					kind="secondary"
 					size="small"
-					columns={COLUMNS}
-					dataSource={
-						accountDataLocal.map((a: any, i: any) => {
-							return {
-								key: i,
-								email: a?.email,
-								id: a?.id,
-								member_count: a?.member_count,
-								member_limit: a?.member_limit,
-								name: a?.name,
-								plan_tier: a?.plan_tier,
-								paid_prev: a?.paid_prev,
-								paid_prev_prev: a?.paid_prev_prev,
-								session_count_cur: a?.session_count_cur,
-								view_count_cur: a?.view_count_cur,
-								session_count_prev: a?.session_count_prev,
-								view_count_prev: a?.view_count_prev,
-								session_count_prev_prev:
-									a?.session_count_prev_prev,
-								session_limit: a?.session_limit,
-								stripe_customer_id: a?.stripe_customer_id,
-								subscription_start: a?.subscription_start,
-							}
-						}) ?? undefined
-					}
-				/>
+					onClick={() => getAccountsQuery()}
+					iconLeft={<IconSolidRefresh size={14} />}
+				>
+					Refetch
+				</Button>
+				<Button
+					kind="secondary"
+					size="small"
+					onClick={() => {
+						let dataStr =
+							COLUMNS.map((c) => c.title).join(',') + '\n'
+						accountDataLocal.forEach((d) => {
+							dataStr +=
+								COLUMNS.map((c) => {
+									const v = (d[c.dataIndex] || '').toString()
+									return v.includes(',')
+										? `"${v.replaceAll('"', '\\"')}"`
+										: v
+								}).join(',') + '\n'
+						})
+						download({ data: dataStr, name: 'accounts.csv' })
+					}}
+					iconLeft={<IconSolidDownload size={14} />}
+				>
+					Download CSV
+				</Button>
+			</Box>
+
+			{loading ? (
+				<Text>Loading...</Text>
+			) : (
+				<Table>
+					<Table.Head>
+						<Table.Row>
+							{COLUMNS.map((col) => (
+								<Table.Header key={col.dataIndex}>
+									{col.title}
+								</Table.Header>
+							))}
+						</Table.Row>
+					</Table.Head>
+					<Table.Body>
+						{accountDataLocal.map((a: any) => (
+							<Table.Row
+								key={a.id}
+								onClick={() => navigate(`/accounts/${a.id}`)}
+							>
+								<Table.Cell>{a.id}</Table.Cell>
+								<Table.Cell>
+									<a
+										href={`/w/${a.id}/team`}
+										onClick={(e) => e.stopPropagation()}
+									>
+										{a.name}
+									</a>
+								</Table.Cell>
+								<Table.Cell>{a.email}</Table.Cell>
+								<Table.Cell>
+									<a
+										href={`https://dashboard.stripe.com/customers/${a.stripe_customer_id}`}
+										target="_blank"
+										rel="noreferrer"
+										onClick={(e) => e.stopPropagation()}
+									>
+										{a.stripe_customer_id}
+									</a>
+								</Table.Cell>
+								<Table.Cell>
+									{moment(a.subscription_start).format(
+										'MM/DD/YY',
+									)}
+								</Table.Cell>
+								<Table.Cell>{a.plan_tier}</Table.Cell>
+								<Table.Cell>{a.session_limit}</Table.Cell>
+								<Table.Cell>{a.session_count_cur}</Table.Cell>
+								<Table.Cell>{a.view_count_cur}</Table.Cell>
+								<Table.Cell>{a.session_count_prev}</Table.Cell>
+								<Table.Cell>{a.view_count_prev}</Table.Cell>
+								<Table.Cell>
+									{'$' +
+										toDecimal(
+											dinero({
+												amount: a.paid_prev || 0,
+												currency: USD,
+											}),
+										)}
+								</Table.Cell>
+								<Table.Cell>
+									{a.session_count_prev_prev}
+								</Table.Cell>
+								<Table.Cell>
+									{'$' +
+										toDecimal(
+											dinero({
+												amount: a.paid_prev_prev || 0,
+												currency: USD,
+											}),
+										)}
+								</Table.Cell>
+								<Table.Cell>{a.member_count}</Table.Cell>
+								<Table.Cell>{a.member_limit}</Table.Cell>
+							</Table.Row>
+						))}
+					</Table.Body>
+				</Table>
 			)}
-		</div>
+		</Box>
 	)
 }
 
