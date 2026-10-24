@@ -12,7 +12,6 @@ import { namedOperations } from '@graph/operations'
 import { Box, Callout, Stack, Text } from '@highlight-run/ui/components'
 import analytics from '@util/analytics'
 import { client } from '@util/graph'
-import { Divider } from 'antd'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
@@ -147,7 +146,7 @@ const NewProjectPage = ({ workspace_id }: { workspace_id: string }) => {
 								}}
 							/>
 						</Box>
-						<Divider className="m-0" />
+						<Box borderTop="dividerWeak" />
 						<Box
 							py="8"
 							px="12"
