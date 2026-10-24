@@ -1,46 +1,49 @@
+﻿.scrollContainer {
+	max-height: 287px;
+	overflow-y: auto;
+}
+
 .table {
+	width: 100%;
 	margin-bottom: -24px;
-	margin-left: -24px;
-	margin-right: -24px;
 	max-width: initial !important;
+	background: var(--color-primary-background) !important;
+	color: var(--text-primary) !important;
+	border-collapse: collapse;
+}
 
-	:global(.ant-table) {
-		background: var(--color-primary-background) !important;
-		color: var(--text-primary) !important;
-	}
+.row {
+	cursor: pointer;
+}
 
-	:global(.ant-table-cell) {
-		border-bottom: 1px solid var(--color-gray-300) !important;
-		padding: 12px 0 !important;
-	}
+.row:hover {
+	background: var(--color-gray-300) !important;
+}
 
-	:global(.ant-table-cell:first-of-type) {
-		padding-left: var(--size-large) !important;
-	}
+.row:last-of-type .cell {
+	border-bottom: 0 !important;
+}
 
-	:global(.ant-table-cell:last-of-type) {
-		padding-right: var(--size-large) !important;
-	}
+.cell {
+	border-bottom: 1px solid var(--color-gray-300) !important;
+	padding: 12px 0 !important;
+}
 
-	:global(.ant-table-row:last-of-type) {
-		:global(.ant-table-cell) {
-			border-bottom: 0 !important;
-		}
-	}
+.cell:first-of-type {
+	padding-left: var(--size-large) !important;
+}
 
-	:global(.ant-table-tbody > tr.ant-table-row:hover > td) {
-		background: var(--color-gray-300) !important;
-	}
+.cell:last-of-type {
+	padding-right: var(--size-large) !important;
+}
 
-	:global(.ant-table-tbody > tr.ant-table-placeholder:hover > td) {
-		background: transparent !important;
-	}
+.loadingContainer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: var(--size-xxLarge);
+}
 
-	:global(.ant-table-empty) {
-		margin-top: var(--size-xxLarge);
-
-		:global(.ant-table-cell) {
-			border-bottom: 0 !important;
-		}
-	}
+.emptyContainer {
+	margin-top: var(--size-xxLarge);
 }
