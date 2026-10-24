@@ -1,4 +1,3 @@
-import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import Input from '@components/Input/Input'
 import Select from '@components/Select/Select'
@@ -10,10 +9,16 @@ import {
 } from '@context/AppLoadingContext'
 import { namedOperations } from '@graph/operations'
 import { VercelProjectMappingInput } from '@graph/schemas'
+import {
+	Box,
+	IconSolidLightningBolt,
+	IconSolidLogout,
+	IconSolidPlus,
+	IconSolidTrash,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
-import PlugIcon from '@icons/PlugIcon'
-import Sparkles2Icon from '@icons/Sparkles2Icon'
-import SvgTrashIconSolid from '@icons/TrashIconSolid'
 import {
 	IntegrationAction,
 	IntegrationConfigProps,
@@ -21,8 +26,9 @@ import {
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import useMap from '@util/useMap'
-import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
+
+import { Button } from '@/components/Button'
 
 import styles from './VercelIntegrationConfig.module.css'
 
@@ -66,15 +72,22 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 	setIntegrationEnabled,
 }) => {
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
+		<Stack gap="16" cssClass={styles.container}>
+			<Text color="moderate" size="small">
 				Connect Highlight with Vercel to configure environment variables
 				for source map uploads.
-			</p>
-			<footer>
+			</Text>
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="flex-end"
+				gap="8"
+			>
 				<Button
 					trackingId="IntegrationConfigurationCancel-Vercel"
-					className={styles.modalBtn}
+					kind="secondary"
+					size="medium"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)
@@ -84,21 +97,22 @@ const VercelIntegrationSetup: React.FC<IntegrationConfigProps> = ({
 				</Button>
 				<Button
 					trackingId="IntegrationConfigurationSave-Vercel"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
-					href="https://vercel.com/integrations/highlight/new"
-					rel="noreferrer"
+					kind="primary"
+					size="medium"
+					emphasis="high"
+					iconLeft={<IconSolidLightningBolt />}
+					onClick={() => {
+						window.open(
+							'https://vercel.com/integrations/highlight/new',
+							'_blank',
+							'noreferrer',
+						)
+					}}
 				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span style={{ marginTop: 4 }}>
-							Connect Highlight with Vercel
-						</span>
-					</span>
+					Connect with Vercel
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 
@@ -109,15 +123,22 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 	const { removeVercelIntegrationFromProject } = useVercelIntegration()
 
 	return (
-		<>
-			<p className={styles.modalSubTitle}>
+		<Stack gap="16" cssClass={styles.container}>
+			<Text color="moderate" size="small">
 				Disconnecting Vercel from Highlight will remove the environment
 				variables for source map uploads.
-			</p>
-			<footer>
+			</Text>
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="flex-end"
+				gap="8"
+			>
 				<Button
-					trackingId="IntegrationDisconnectCancel-Slack"
-					className={styles.modalBtn}
+					trackingId="IntegrationDisconnectCancel-Vercel"
+					kind="secondary"
+					size="medium"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(true)
@@ -126,10 +147,11 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationDisconnectSave-Slack"
-					className={styles.modalBtn}
-					type="primary"
-					danger
+					trackingId="IntegrationDisconnectSave-Vercel"
+					kind="danger"
+					size="medium"
+					emphasis="high"
+					iconLeft={<IconSolidLogout />}
 					onClick={() => {
 						removeVercelIntegrationFromProject()
 							.then(() => {
@@ -144,11 +166,10 @@ const VercelIntegrationDisconnect: React.FC<IntegrationConfigProps> = ({
 							})
 					}}
 				>
-					<PlugIcon className={styles.modalBtnIcon} />
 					Disconnect Vercel
 				</Button>
-			</footer>
-		</>
+			</Box>
+		</Stack>
 	)
 }
 
@@ -335,18 +356,16 @@ export const VercelIntegrationSettings: React.FC<
 									}}
 									placeholder="e.g. Frontend"
 								></Input>
-								<div className="h-8 w-8">
-									<Button
-										className="rounded-lg"
-										iconButton
-										trackingId="IntegrationConfiguration-Vercel-DeleteNewProject"
-										onClick={() => {
-											onProjectDelete(row.id)
-										}}
-									>
-										<SvgTrashIconSolid />
-									</Button>
-								</div>
+								<Button
+									trackingId="IntegrationConfiguration-Vercel-DeleteNewProject"
+									kind="secondary"
+									size="small"
+									emphasis="low"
+									iconLeft={<IconSolidTrash />}
+									onClick={() => {
+										onProjectDelete(row.id)
+									}}
+								/>
 							</>
 						) : (
 							<div
@@ -408,63 +427,74 @@ export const VercelIntegrationSettings: React.FC<
 	}
 
 	return (
-		<div>
-			<p className={clsx(styles.modalSubTitle)}>
+		<Stack gap="16" cssClass={styles.container}>
+			<Text color="moderate" size="small">
 				Select Vercel projects to link to your Highlight projects.
-			</p>
-			<div className="my-6">
-				<Card noPadding>
-					<Table
-						dataSource={highlightProjects}
-						columns={tableColumns}
-						pagination={false}
-						showHeader={false}
-						rowHasPadding
-						smallPadding
-					></Table>
-					<div className="border-0 border-t border-solid border-[#eaeaea]">
-						<Button
-							trackingId="IntegrationConfiguration-Vercel-NewHighlightProject"
-							className={clsx('m-4 ml-auto', styles.modalBtn)}
-							onClick={() => {
-								const tId = 'new_' + tempId
-								setTempHighlightProjects((cur) =>
-									cur.concat([
-										{
-											name: '',
-											editable: true,
-											id: tId,
-											vercelProjects: [],
-											onUpdateProjectLink: (
-												vercelProjectNames: string[],
-											) => {
-												projectMapSet(
-													tId,
-													vercelProjectNames.map(
-														(n) =>
-															allVercelProjects?.find(
-																(p) =>
-																	p.name ===
-																	n,
-															)?.id ?? '',
-													),
-												)
-											},
+			</Text>
+			<Card noPadding>
+				<Table
+					dataSource={highlightProjects}
+					columns={tableColumns}
+					pagination={false}
+					showHeader={false}
+					rowHasPadding
+					smallPadding
+				></Table>
+				<Box
+					display="flex"
+					justifyContent="flex-end"
+					padding="12"
+					borderTop="divider"
+				>
+					<Button
+						trackingId="IntegrationConfiguration-Vercel-NewHighlightProject"
+						kind="secondary"
+						size="medium"
+						emphasis="medium"
+						iconLeft={<IconSolidPlus />}
+						onClick={() => {
+							const tId = 'new_' + tempId
+							setTempHighlightProjects((cur) =>
+								cur.concat([
+									{
+										name: '',
+										editable: true,
+										id: tId,
+										vercelProjects: [],
+										onUpdateProjectLink: (
+											vercelProjectNames: string[],
+										) => {
+											projectMapSet(
+												tId,
+												vercelProjectNames.map(
+													(n) =>
+														allVercelProjects?.find(
+															(p) => p.name === n,
+														)?.id ?? '',
+												),
+											)
 										},
-									]),
-								)
-								setTempId((cur) => cur + 1)
-							}}
-						>
-							Create New Highlight Project +
-						</Button>
-					</div>
-				</Card>
-			</div>
-			<footer className="flex justify-end gap-2 pt-0">
+									},
+								]),
+							)
+							setTempId((cur) => cur + 1)
+						}}
+					>
+						Create new Highlight project
+					</Button>
+				</Box>
+			</Card>
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="flex-end"
+				gap="8"
+			>
 				<Button
 					trackingId="IntegrationConfigurationCancel-Vercel"
-					className={styles.modalBtn}
+					kind="secondary"
+					size="medium"
+					emphasis="medium"
 					onClick={() => {
 						onCancel && onCancel()
 						setModalOpen(false)
@@ -474,16 +504,16 @@ export const VercelIntegrationSettings: React.FC<
 				</Button>
 				<Button
 					trackingId="IntegrationConfigurationSave-Vercel"
-					className={styles.modalBtn}
-					type="primary"
-					target="_blank"
+					kind="primary"
+					size="medium"
+					emphasis="high"
+					iconLeft={<IconSolidLightningBolt />}
 					onClick={onSave}
 					disabled={
-						projectMappings.length === 0 || // If no project mappings
-						tempHighlightProjects.find((p) => !p.name) || // If a new project is missing a name
-						tempHighlightProjects.find((p) => {
+						projectMappings.length === 0 ||
+						!!tempHighlightProjects.find((p) => !p.name) ||
+						!!tempHighlightProjects.find((p) => {
 							const vercelProjects = projectMap.get(p.id)
-							// If a new project has no Vercel projects
 							return (
 								vercelProjects === undefined ||
 								vercelProjects.length === 0
@@ -491,13 +521,10 @@ export const VercelIntegrationSettings: React.FC<
 						})
 					}
 				>
-					<span className={styles.modalBtnText}>
-						<Sparkles2Icon className={styles.modalBtnIcon} />
-						<span>Link Projects</span>
-					</span>
+					Link projects
 				</Button>
-			</footer>
-		</div>
+			</Box>
+		</Stack>
 	)
 }
 

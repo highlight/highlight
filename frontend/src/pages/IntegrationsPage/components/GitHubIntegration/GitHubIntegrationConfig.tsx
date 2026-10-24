@@ -1,7 +1,11 @@
-import Button from '@components/Button/Button/Button'
+import {
+	Box,
+	IconSolidGithub,
+	IconSolidLogout,
+	Stack,
+	Text,
+} from '@highlight-run/ui/components'
 import { useProjectId } from '@hooks/useProjectId'
-import AppsIcon from '@icons/AppsIcon'
-import PlugIcon from '@icons/PlugIcon'
 import {
 	getGitHubInstallationOAuthUrl,
 	useGitHubIntegration,
@@ -13,11 +17,13 @@ import {
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import React, { useMemo } from 'react'
 
+import { Button } from '@/components/Button'
+
 import styles from './GitHubIntegrationConfig.module.css'
 
 const GitHubIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
-> = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {
+> = ({ setModalOpen, setIntegrationEnabled, action }) => {
 	const { projectId } = useProjectId()
 	const { currentWorkspace } = useApplicationContext()
 	const { removeIntegration } = useGitHubIntegration()
@@ -29,72 +35,69 @@ const GitHubIntegrationConfig: React.FC<
 			),
 		[currentWorkspace?.id, projectId],
 	)
-	if (action === IntegrationAction.Disconnect) {
-		return (
-			<>
-				<p className={styles.modalSubTitle}>
-					Disconnecting your GitHub workspace from Highlight will
-					prevent you from linking issues to future comments and your
-					stacktraces will not be enhanced.
-				</p>
-				<footer>
-					<Button
-						trackingId="IntegrationDisconnectCancel-GitHub"
-						className={styles.modalBtn}
-						onClick={() => {
-							setModalOpen(false)
-							setIntegrationEnabled(true)
-						}}
-					>
-						Cancel
-					</Button>
+
+	const isDisconnect = action === IntegrationAction.Disconnect
+
+	return (
+		<Stack gap="16" cssClass={styles.container}>
+			<Text color="moderate" size="small">
+				{isDisconnect
+					? 'Disconnecting GitHub from Highlight will prevent you from linking issues to future comments and your stacktraces will no longer be enhanced.'
+					: 'Connect GitHub to your Highlight workspace to enhance stacktraces and create issues from comments.'}
+			</Text>
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="flex-end"
+				gap="8"
+			>
+				<Button
+					trackingId={
+						isDisconnect
+							? 'IntegrationDisconnectCancel-GitHub'
+							: 'IntegrationConfigurationCancel-GitHub'
+					}
+					kind="secondary"
+					size="medium"
+					emphasis="medium"
+					onClick={() => {
+						setModalOpen(false)
+						setIntegrationEnabled(isDisconnect)
+					}}
+				>
+					Cancel
+				</Button>
+				{isDisconnect ? (
 					<Button
 						trackingId="IntegrationDisconnectSave-GitHub"
-						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
+						size="medium"
+						emphasis="high"
+						iconLeft={<IconSolidLogout />}
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeIntegration()
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect GitHub
 					</Button>
-				</footer>
-			</>
-		)
-	}
-
-	return (
-		<>
-			<p className={styles.modalSubTitle}>
-				Connect GitHub to your Highlight workspace to enhance
-				stacktraces and create issues from comments.
-			</p>
-			<footer>
-				<Button
-					trackingId="IntegrationConfigurationCancel-GitHub"
-					className={styles.modalBtn}
-					onClick={() => {
-						setModalOpen(false)
-						setIntegrationEnabled(false)
-					}}
-				>
-					Cancel
-				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-GitHub"
-					className={styles.modalBtn}
-					type="primary"
-					href={authUrl}
-				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with GitHub
-				</Button>
-			</footer>
-		</>
+				) : (
+					<Button
+						trackingId="IntegrationConfigurationSave-GitHub"
+						kind="primary"
+						size="medium"
+						emphasis="high"
+						iconLeft={<IconSolidGithub />}
+						onClick={() => {
+							window.location.assign(authUrl)
+						}}
+					>
+						Connect with GitHub
+					</Button>
+				)}
+			</Box>
+		</Stack>
 	)
 }
 
