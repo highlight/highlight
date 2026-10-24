@@ -18,7 +18,6 @@ import {
 	Text,
 } from '@highlight-run/ui/components'
 import { LabeledRow } from '@pages/Graphing/LabeledRow'
-import { Divider } from 'antd'
 import { EventSelection } from '@pages/Graphing/EventSelection/index'
 import {
 	EventSelectionDetails,
@@ -180,7 +179,7 @@ const AddEventStep: React.FC<AddEventStepProps> = ({
 					}}
 				/>
 			</LabeledRow>
-			<Divider className="m-0" />
+			<Box borderTop="dividerWeak" />
 			<EventSelection
 				initialQuery={query}
 				setQuery={setQuery}
