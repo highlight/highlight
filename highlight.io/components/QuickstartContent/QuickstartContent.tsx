@@ -104,6 +104,7 @@ import { JSCloudflareReorganizedContent } from './server/js/cloudflare'
 import { JSExpressReorganizedContent } from './server/js/express'
 import { JSFirebaseReorganizedContent } from './server/js/firebase'
 import { JSHonoReorganizedContent } from './server/js/hono'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { JSNodeReorganizedContent } from './server/js/nodejs'
 import { JSNestReorganizedContent } from './server/js/nestjs'
 import { JStRPCReorganizedContent } from './server/js/trpc'
@@ -206,6 +207,7 @@ export enum QuickStartType {
 	JSNextjs = 'nextjs',
 	JSManual = 'manual',
 	JSNestjs = 'nestjs',
+	JSSvelteKit = 'sveltekit',
 	JSWinston = 'winston',
 	JSPino = 'pino',
 	JStRPC = 'trpc',
@@ -456,6 +458,7 @@ export const quickStartContent = {
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
@@ -601,6 +604,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
