@@ -1012,6 +1012,26 @@ opentelemetry-proto = "1.28.2"
 opentelemetry-sdk = ">=1.28.2,<1.29.0"
 
 [[package]]
+name = "opentelemetry-exporter-otlp-proto-http"
+version = "1.28.2"
+description = "OpenTelemetry Collector Protobuf over HTTP Exporter"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "opentelemetry_exporter_otlp_proto_http-1.28.2-py3-none-any.whl", hash = "sha256:af921c18212a56ef4be68458ba475791c0517ebfd8a2ff04669c9cd477d90ff2"},
+    {file = "opentelemetry_exporter_otlp_proto_http-1.28.2.tar.gz", hash = "sha256:d9b353d67217f091aaf4cfe8693c170973bb3e90a558992570d97020618fda79"},
+]
+
+[package.dependencies]
+deprecated = ">=1.2.6"
+googleapis-common-protos = ">=1.52,<2.0"
+opentelemetry-api = ">=1.15,<2.0"
+opentelemetry-exporter-otlp-proto-common = "1.28.2"
+opentelemetry-proto = "1.28.2"
+opentelemetry-sdk = ">=1.28.2,<1.29.0"
+requests = ">=2.7,<3.0"
+
+[[package]]
 name = "opentelemetry-instrumentation"
 version = "0.49b2"
 description = "Instrumentation Tools & Auto Instrumentation for OpenTelemetry Python"
@@ -2688,4 +2708,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4"
-content-hash = "a9efb939729d8c12865908d15d0e3c7305783c133824040fd7e1b1c4755a1b6d"
+content-hash = "fef7cd0dacbd6a06940ace3b23a141189d0809da4d4920950ff369dd695fea9e"

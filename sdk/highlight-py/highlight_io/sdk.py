@@ -4,6 +4,8 @@ import json
 import logging
 import traceback
 import typing
+import urllib.parse
+from enum import Enum
 from importlib import metadata
 
 import sys
@@ -12,9 +14,24 @@ from opentelemetry import trace as otel_trace, _logs, metrics
 from opentelemetry._logs.severity import std_to_otel
 from opentelemetry.baggage import set_baggage, get_baggage
 from opentelemetry.context import Context, attach, get_current
-from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
-from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.grpc._log_exporter import (
+    OTLPLogExporter as GrpcOTLPLogExporter,
+)
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import (
+    OTLPMetricExporter as GrpcOTLPMetricExporter,
+)
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
+    OTLPSpanExporter as GrpcOTLPSpanExporter,
+)
+from opentelemetry.exporter.otlp.proto.http._log_exporter import (
+    OTLPLogExporter as HttpOTLPLogExporter,
+)
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import (
+    OTLPMetricExporter as HttpOTLPMetricExporter,
+)
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+    OTLPSpanExporter as HttpOTLPSpanExporter,
+)
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.metrics import (
     _Gauge as APIGauge,
@@ -87,9 +104,16 @@ class LogHandler(logging.Handler):
                 )
 
 
+class OTLPTransport(Enum):
+    GRPC = "gRPC"
+    HTTP = "HTTP"
+
+
 class H(object):
     REQUEST_HEADER = "X-Highlight-Request"
-    OTLP_HTTP = "https://otel.highlight.io:4317"
+    DEFAULT_OTLP_ENDPOINT = "https://otel.highlight.io:4317"
+    DEFAULT_OTLP_TRANSPORT = OTLPTransport.GRPC
+    OTLP_HTTP = DEFAULT_OTLP_ENDPOINT  # for backwards compatibility
     _instance: "H" = None
     _logging_instrumented = False
     # context is a LRU cache to avoid storing too many trace ids in memory
@@ -116,6 +140,7 @@ class H(object):
         integrations: typing.List[Integration] = None,
         disabled_integrations: typing.List[str] = None,
         otlp_endpoint: str = "",
+        otlp_transport: typing.Optional[OTLPTransport] = None,
         instrument_logging: bool = True,
         log_level=logging.INFO,
         service_name: str = "",
@@ -132,12 +157,12 @@ class H(object):
             import highlight_io
             H = highlight_io.H('project_id', ...)
 
-
         :param project_id: a string that corresponds to the verbose id of your project from app.highlight.io/setup
         :param integrations: a list of Integrations that allow connecting with your framework, like Flask or Django.
         :param disabled_integrations: a list of integrations to disable.
         :param instrument_logging: defaults to True. set False to disable auto-instrumentation of python `logging` methods.
         :param otlp_endpoint: set to a custom otlp destination
+        :param otlp_transport: select OTLPTransport.GRPC or OTLPTransport.HTTP.
         :param service_name: a string to name this app
         :param service_version: a string to set this app's version (typically a Git deploy sha).
         :param environment: a string to set this app's environment (e.g. 'production', 'development').
@@ -181,10 +206,43 @@ class H(object):
         self._project_id = project_id
         self._integrations = integrations or []
         self._disabled_integrations = disabled_integrations or []
-        self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
+        self._otlp_endpoint = otlp_endpoint or H.DEFAULT_OTLP_ENDPOINT
+
+        # if not provided, determine the transport
+        endpoint_port = urllib.parse.urlparse(self._otlp_endpoint).port
+        if otlp_transport is not None:
+            self._otlp_transport = otlp_transport
+        elif self._otlp_endpoint == H.DEFAULT_OTLP_ENDPOINT:
+            # the highlight.io hosted OTLP endpoint uses gRPC
+            self._otlp_transport = H.DEFAULT_OTLP_TRANSPORT
+        elif endpoint_port == 4317:
+            # OTLP spec: "The default network port for OTLP/gRPC is 4317."
+            self._otlp_transport = OTLPTransport.GRPC
+        elif endpoint_port == 4318:
+            # OTLP spec: "The default network port for OTLP/HTTP is 4318."
+            self._otlp_transport = OTLPTransport.HTTP
+        else:
+            # default is gRPC for backwards compatibility
+            self._otlp_transport = OTLPTransport.GRPC
+
+        # pick exporters based on the selected transport
+        if self._otlp_transport is OTLPTransport.HTTP:
+            log_exporter_cls, span_exporter_cls, metric_exporter_cls = (
+                HttpOTLPLogExporter,
+                HttpOTLPSpanExporter,
+                HttpOTLPMetricExporter,
+            )
+        else:
+            log_exporter_cls, span_exporter_cls, metric_exporter_cls = (
+                GrpcOTLPLogExporter,
+                GrpcOTLPSpanExporter,
+                GrpcOTLPMetricExporter,
+            )
+
         logger.debug(
-            "Highlight initializing: %s %s %s",
+            "Highlight initializing: %s (%s) %s %s",
             self._otlp_endpoint,
+            self._otlp_transport,
             self._project_id,
             kwargs,
         )
@@ -234,7 +292,7 @@ class H(object):
         self._trace_provider.add_span_processor(HighlightSpanProcessor())
         self._trace_provider.add_span_processor(
             BatchSpanProcessor(
-                OTLPSpanExporter(
+                span_exporter_cls(
                     f"{self._otlp_endpoint}/v1/traces",
                     compression=Compression.Gzip,
                     timeout=kwargs["schedule_delay_millis"],
@@ -250,7 +308,7 @@ class H(object):
         )
         self._log_provider.add_log_record_processor(
             BatchLogRecordProcessor(
-                OTLPLogExporter(
+                log_exporter_cls(
                     f"{self._otlp_endpoint}/v1/logs",
                     compression=Compression.Gzip,
                     timeout=kwargs["schedule_delay_millis"],
@@ -261,12 +319,17 @@ class H(object):
         _logs.set_logger_provider(self._log_provider)
         self.log = self._log_provider.get_logger(__name__)
 
+        extra_exporter_kwargs = {}
+        if self._otlp_transport is OTLPTransport.GRPC:
+            extra_exporter_kwargs["max_export_batch_size"] = kwargs[
+                "max_export_batch_size"
+            ]
+
         metric_reader = PeriodicExportingMetricReader(
-            exporter=OTLPMetricExporter(
+            exporter=metric_exporter_cls(
                 f"{self._otlp_endpoint}/v1/metrics",
                 compression=Compression.Gzip,
                 timeout=kwargs["schedule_delay_millis"],
-                max_export_batch_size=kwargs["max_export_batch_size"],
                 preferred_temporality={
                     Counter: AggregationTemporality.DELTA,
                     UpDownCounter: AggregationTemporality.CUMULATIVE,
@@ -275,6 +338,7 @@ class H(object):
                     ObservableUpDownCounter: AggregationTemporality.CUMULATIVE,
                     ObservableGauge: AggregationTemporality.CUMULATIVE,
                 },
+                **extra_exporter_kwargs,
             ),
             export_interval_millis=kwargs["schedule_delay_millis"],
             export_timeout_millis=kwargs["schedule_delay_millis"],
