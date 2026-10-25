@@ -479,39 +479,15 @@ const H: HighlightPublicInterface = {
 	},
 	startManualSpan: (
 		name: string,
-		options: SpanOptions | ((span: Span) => any),
-		context?: Context | ((span: Span) => any),
-		fn?: (span: Span) => any,
-	): any => {
+		options?: SpanOptions,
+		context?: Context,
+	): Span => {
 		const tracer = typeof getTracer === 'function' ? getTracer() : undefined
 		if (!tracer) {
-			const noopSpan = getNoopSpan()
-
-			if (fn === undefined && context === undefined) {
-				return (options as Callback)(noopSpan)
-			} else if (fn === undefined) {
-				return (context as Callback)(noopSpan)
-			} else {
-				return fn(noopSpan)
-			}
+			return getNoopSpan()
 		}
 
-		if (fn === undefined && context === undefined) {
-			return tracer.startActiveSpan(name, options as Callback)
-		} else if (fn === undefined) {
-			return tracer.startActiveSpan(
-				name,
-				options as SpanOptions,
-				context as Callback,
-			)
-		} else {
-			return tracer.startActiveSpan(
-				name,
-				options as SpanOptions,
-				context as Context,
-				fn,
-			)
-		}
+		return tracer.startSpan(name, options, context)
 	},
 	getSessionURL: () => {
 		return new Promise((resolve, reject) => {

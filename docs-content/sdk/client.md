@@ -286,40 +286,33 @@ slug: client
 <section className="section">
   <div className="left">
     <h3>H.startManualSpan</h3>
-    <p>This method is used to start a new manual span. Use this when you don't want the span to be ended automatically. You need to end these spans by calling <code inline>span.end()</code></p>
+    <p>This method is used to start a new manual span without binding it to active context. Use this when you want manual lifecycle control over when the span is ended by calling <code inline>span.end()</code>. Returns a <code inline>Span</code> object.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
       <h5>name<code>string</code> <code>required</code></h5>
       <p>The name of the span you are starting.</p>
     </aside>
     <aside className="parameter">
-      <h5>options <code>SpanOptions | ((span?: Span) => any)</code> <code>optional</code></h5>
-      <p>Options for the span or a callback function to be executed within the span.</p>
+      <h5>options <code>SpanOptions</code> <code>optional</code></h5>
+      <p>Options for the span.</p>
     </aside>
     <aside className="parameter">
-      <h5>context <code>Context | ((span?: Span) => any)</code> <code>optional</code></h5>
-      <p>The context for the span or a callback function to be executed within the span.</p>
-    </aside>
-    <aside className="parameter">
-      <h5>fn <code>(span?: Span) => any</code> <code>optional</code></h5>
-      <p>A callback function to be executed within the span.</p>
+      <h5>context <code>Context</code> <code>optional</code></h5>
+      <p>The context for the span.</p>
     </aside>
   </div>
   <div className="right">
     <code>
-      H.startManualSpan('fetchData', { attributes: { key: 'value' } }, context, (span) => {
+      const span = H.startManualSpan('fetchData', { attributes: { key: 'value' } });
+      try {
         // Your code here
+      } finally {
+        span.end();
+      }
 
-        span.end()
-      });
-
-      // Note: the options and context arguments are not required, so you can
-      // call this function with only a span name + callback.
-      H.startManualSpan('fetchData', (span) => {
-        // Your code here
-
-        span.end()
-      });
+      // Note: the options and context arguments are optional:
+      const simpleSpan = H.startManualSpan('fetchData');
+      simpleSpan.end();
     </code>
   </div>
 </section>
