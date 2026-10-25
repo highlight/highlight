@@ -78,6 +78,9 @@ type Worker struct {
 	StorageClient  storage.Client
 }
 
+// messageHandlerRegistry is a singleton instance of the handler registry
+var messageHandlerRegistry = NewMessageHandlerRegistry()
+
 func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payloadManager *payload.PayloadManager) error {
 	project, err := w.Resolver.Store.GetProject(ctx, s.ProjectID)
 	if err != nil {
@@ -402,100 +405,53 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		}
 	}()
 
+	// Use the handler registry to process the message
+	handler := messageHandlerRegistry.GetHandler(task)
+	if handler == nil {
+		log.WithContext(ctx).Errorf("Unknown task type %+v", task.Type)
+		return nil
+	}
+
+	return handler.Handle(ctx, w, task)
+}
+
+// extractSessionIDFromTask extracts the session ID from various task types
+func (w *Worker) extractSessionIDFromTask(task *kafkaqueue.Message) string {
 	switch task.Type {
 	case kafkaqueue.PushPayload:
-		if task.PushPayload == nil {
-			break
-		}
-		if err := w.PublicResolver.ProcessPayload(
-			ctx,
-			task.PushPayload.SessionSecureID,
-			task.PushPayload.Events,
-			task.PushPayload.Messages,
-			task.PushPayload.Resources,
-			task.PushPayload.WebSocketEvents,
-			task.PushPayload.Errors,
-			task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
-			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
-			task.PushPayload.HighlightLogs,
-			task.PushPayload.PayloadID); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.PushCompressedPayload:
-		if task.PushCompressedPayload == nil {
-			break
-		}
-		if err := w.PublicResolver.ProcessCompressedPayload(
-			ctx,
-			task.PushCompressedPayload.SessionSecureID,
-			task.PushCompressedPayload.PayloadID,
-			task.PushCompressedPayload.Data,
-		); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
-			return err
+		if task.PushPayload != nil {
+			return task.PushPayload.SessionSecureID
 		}
 	case kafkaqueue.InitializeSession:
-		if task.InitializeSession == nil {
-			break
-		}
-		_, err := w.PublicResolver.InitializeSessionImpl(ctx, task.InitializeSession)
-		hmetric.Incr(ctx, "worker.session.initialize.count", []attribute.KeyValue{
-			attribute.Bool("success", err == nil),
-		}, 1)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
-			return err
+		if task.InitializeSession != nil {
+			return task.InitializeSession.SessionSecureID
 		}
 	case kafkaqueue.IdentifySession:
-		if task.IdentifySession == nil {
-			break
-		}
-		if err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionSecureID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
-			return err
+		if task.IdentifySession != nil {
+			return task.IdentifySession.SessionSecureID
 		}
 	case kafkaqueue.AddTrackProperties:
-		if task.AddTrackProperties == nil {
-			break
-		}
-		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, task.AddTrackProperties.SessionSecureID, task.AddTrackProperties.PropertiesObject); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
-			return err
+		if task.AddTrackProperties != nil {
+			return task.AddTrackProperties.SessionSecureID
 		}
 	case kafkaqueue.AddSessionProperties:
-		if task.AddSessionProperties == nil {
-			break
-		}
-		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, task.AddSessionProperties.SessionSecureID, task.AddSessionProperties.PropertiesObject); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
-			return err
+		if task.AddSessionProperties != nil {
+			return task.AddSessionProperties.SessionSecureID
 		}
 	case kafkaqueue.PushBackendPayload:
-		if task.PushBackendPayload == nil {
-			break
+		if task.PushBackendPayload != nil {
+			return task.PushBackendPayload.SessionSecureID
 		}
-		w.PublicResolver.ProcessBackendPayloadImpl(ctx, task.PushBackendPayload.SessionSecureID, task.PushBackendPayload.ProjectVerboseID, task.PushBackendPayload.Errors)
 	case kafkaqueue.PushMetrics:
-		if task.PushMetrics == nil {
-			break
-		}
-		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.ProjectVerboseID, task.PushMetrics.SessionSecureID, task.PushMetrics.Metrics); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
-			return err
+		if task.PushMetrics != nil {
+			return task.PushMetrics.SessionSecureID
 		}
 	case kafkaqueue.AddSessionFeedback:
-		if task.AddSessionFeedback == nil {
-			break
+		if task.AddSessionFeedback != nil {
+			return task.AddSessionFeedback.SessionID
 		}
-		if err := w.PublicResolver.AddSessionFeedbackImpl(ctx, task.AddSessionFeedback); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("key", string(task.KafkaMessage.Key)).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.HealthCheck:
-	default:
-		log.WithContext(ctx).Errorf("Unknown task type %+v", task.Type)
 	}
+	return ""
 	return nil
 }
 
