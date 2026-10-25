@@ -26,7 +26,7 @@ const getColor = (day: DPDay) => {
 		return 'white'
 	}
 
-	return 'inherit'
+	return 'default'
 }
 
 const getContainerBorderTopLeftRadius = (day: DPDay) => {
@@ -60,7 +60,7 @@ const getContainerBorderTopLeftRadius = (day: DPDay) => {
 		return '6'
 	}
 
-	return 'inherit'
+	return 'default'
 }
 
 const getContainerBorderTopRightRadius = (day: DPDay) => {
@@ -90,7 +90,7 @@ const getContainerBorderTopRightRadius = (day: DPDay) => {
 		return '6'
 	}
 
-	return 'inherit'
+	return 'default'
 }
 
 const getContainerBorderBottomLeftRadius = (day: DPDay) => {
@@ -124,7 +124,7 @@ const getContainerBorderBottomLeftRadius = (day: DPDay) => {
 		return '6'
 	}
 
-	return 'inherit'
+	return 'default'
 }
 
 const getContainerBorderBottomRightRadius = (day: DPDay) => {
@@ -151,20 +151,20 @@ const getContainerBorderBottomRightRadius = (day: DPDay) => {
 	}
 
 	if (selected && range === 'in-range') {
-		return 'inherit'
+		return 'default'
 	}
 
 	if (range === 'will-be-range-end') {
 		return '6'
 	}
-	return 'inherit'
+	return 'default'
 }
 
 const getContainerBackgroundColor = (day: DPDay) => {
 	const { selected, range, now, disabled } = day
 
 	if (disabled) {
-		return 'inherit'
+		return 'default'
 	}
 
 	if (now && selected) {
@@ -187,14 +187,14 @@ const getContainerBackgroundColor = (day: DPDay) => {
 		return 'p6'
 	}
 
-	return 'inherit'
+	return 'default'
 }
 
 const getBackgroundColor = (day: DPDay) => {
 	const { selected, range, now, disabled } = day
 
 	if (disabled) {
-		return 'inherit'
+		return 'default'
 	}
 
 	if (now) {
@@ -221,7 +221,7 @@ const getBackgroundColor = (day: DPDay) => {
 		return 'p6'
 	}
 
-	return 'inherit'
+	return 'default'
 }
 
 const getBorderRadius = (day: DPDay) => {
@@ -243,7 +243,7 @@ const getBorderRadius = (day: DPDay) => {
 		return '6'
 	}
 
-	return 'inherit'
+	return 'default'
 }
 
 const getPointer = (day: DPDay) => {
@@ -301,7 +301,7 @@ const Day = ({ children, day, onMouseEnter, onMouseLeave }: Props) => {
 					day.range === 'will-be-range-end' ||
 					day.selected
 						? 'p6'
-						: 'inherit',
+						: 'default',
 				borderTopRightRadius:
 					day.range === 'range-end' ||
 					day.range === 'will-be-range-end'
