@@ -12,6 +12,7 @@ import { JSExpressContent } from './backend/js/express'
 import { JSFirebaseContent } from './backend/js/firebase'
 import { JSNestContent } from './backend/js/nestjs'
 import { JSNodeContent } from './backend/js/nodejs'
+import { JSSvelteKitContent } from './backend/js/sveltekit'
 import { JStRPCContent } from './backend/js/trpc'
 import { OTLPErrorMonitoringContent } from './backend/otlp'
 import { PHPOtherContent } from './backend/php/other'
@@ -105,6 +106,7 @@ import { JSExpressReorganizedContent } from './server/js/express'
 import { JSFirebaseReorganizedContent } from './server/js/firebase'
 import { JSHonoReorganizedContent } from './server/js/hono'
 import { JSNodeReorganizedContent } from './server/js/nodejs'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { JSNestReorganizedContent } from './server/js/nestjs'
 import { JStRPCReorganizedContent } from './server/js/trpc'
 import { JSPinoHTTPJSONLogReorganizedContent } from './server/js/pino'
@@ -209,6 +211,7 @@ export enum QuickStartType {
 	JSWinston = 'winston',
 	JSPino = 'pino',
 	JStRPC = 'trpc',
+	JSSvelteKit = 'sveltekit',
 	HTTPOTLP = 'curl',
 	Syslog = 'syslog',
 	Systemd = 'systemd',
@@ -274,6 +277,7 @@ export const quickStartContent = {
 			[QuickStartType.JSNodejs]: JSNodeContent,
 			[QuickStartType.JSNestjs]: JSNestContent,
 			[QuickStartType.JStRPC]: JStRPCContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitContent,
 		},
 		ruby: {
 			[QuickStartType.RubyRails]: RubyRailsContent,
@@ -461,6 +465,8 @@ export const quickStartContent = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
 		},
 		php: {
 			title: 'PHP',
@@ -513,6 +519,7 @@ export const quickStartContent = {
 			title: 'OpenTelemetry',
 			subtitle: 'OpenTelemetry Protocol (OTLP)',
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.OTLPDotNet]: DotNetOTLPReorganizedContent,
 			[QuickStartType.OTLPDotNet4]: DotNet4OTLPReorganizedContent,
 		},
@@ -606,6 +613,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 		},
 	},
 	php: {
