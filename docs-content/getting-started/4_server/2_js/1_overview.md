@@ -48,4 +48,7 @@ updatedAt: 2022-04-01T19:52:59.000Z
     <DocsCard title="Node.js OpenTelemetry" href="../../7_native-opentelemetry/2_error-monitoring.md">
         {"Get started with OpenTelemetry"}
     </DocsCard>
+    <DocsCard title="SvelteKit" href="../js/sveltekit">
+        {"Get started with SvelteKit"}
+    </DocsCard>
 </DocsCardGroup>
