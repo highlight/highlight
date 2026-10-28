@@ -79,6 +79,10 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			...setupBackendSnippet,
+			content:
+				'To instrument your SvelteKit server hooks (`src/hooks.server.ts`), API routes, and server load functions with `@highlight-run/node`, follow the [SvelteKit Server Quickstart](/docs/getting-started/server/js/sveltekit) or the [SvelteKit Fullstack Walkthrough](/docs/getting-started/fullstack-frameworks/sveltekit).',
+		},
 	],
 }
