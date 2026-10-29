@@ -276,6 +276,7 @@ export const quickStartContent = {
 			[QuickStartType.JSNodejs]: JSNodeContent,
 			[QuickStartType.JSNestjs]: JSNestContent,
 			[QuickStartType.JStRPC]: JStRPCContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 		},
 		ruby: {
 			[QuickStartType.RubyRails]: RubyRailsContent,

@@ -4,8 +4,8 @@
   "private": true,
   "description": "",
   "scripts": {
-    "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
-    "dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
+    "build": "node init && webpack -c ./.config/webpack/webpack.config.ts --env production",
+    "dev": "node init && webpack -w -c ./.config/webpack/webpack.config.ts --env development",
     "test": "jest --passWithNoTests --maxWorkers 4",
     "test:ci": "jest --passWithNoTests --maxWorkers 4",
     "typecheck": "tsc --noEmit",

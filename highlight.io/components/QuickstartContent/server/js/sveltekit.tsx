@@ -4,12 +4,13 @@ import { frontendInstallSnippet } from '../shared-snippets-monitoring'
 import { verifyTraces } from '../shared-snippets-tracing'
 import {
 	jsGetSnippet,
+	manualError,
 	verifyError,
 } from './shared-snippets-monitoring'
 
 export const JSSvelteKitReorganizedContent: QuickStartContent = {
 	title: 'SvelteKit',
-	subtitle: 'Learn how to set up highlight.io in your SvelteKit application.',
+	subtitle: 'Learn how to set up highlight.io on the backend in SvelteKit.',
 	logoKey: 'sveltekit',
 	products: ['Errors', 'Logs', 'Traces'],
 	entries: [
@@ -20,47 +21,53 @@ export const JSSvelteKitReorganizedContent: QuickStartContent = {
 			content:
 				'In SvelteKit, server-side request and error handling are managed via server hooks. ' +
 				'Initialize Highlight with your `projectID` in `src/hooks.server.ts` (or `src/hooks.server.js`), ' +
-				'and export `handleError` to automatically capture server-side errors.',
+				'and export `handle` and `handleError` to automatically trace requests and capture errors.',
 			code: [
 				{
 					text: `// src/hooks.server.ts
 import { H } from '@highlight-run/node'
-import type { HandleServerError } from '@sveltejs/kit'
+import type { Handle, HandleServerError } from '@sveltejs/kit'
 
 H.init({
 	projectID: '<YOUR_PROJECT_ID>',
-	serviceName: 'sveltekit-app',
+	serviceName: 'my-sveltekit-app',
+	environment: 'production',
 })
 
-export const handleError: HandleServerError = ({ error, event }) => {
-	const { secureSessionId, requestId } = H.parseHeaders(
+// Trace server-side requests and correlate with frontend sessions
+export const handle: Handle = async ({ event, resolve }) => {
+	return H.runWithHeaders(
+		\`\${event.request.method} \${event.url.pathname}\`,
 		Object.fromEntries(event.request.headers),
+		() => resolve(event),
 	)
+}
 
-	H.consumeError(error as Error, secureSessionId, requestId)
+// Automatically report uncaught server errors
+export const handleError: HandleServerError = ({ error, event, status }) => {
+	const headers = Object.fromEntries(event.request.headers)
+	const parsed = H.parseHeaders(headers)
+	const err = error instanceof Error ? error : new Error(String(error))
+
+	H.consumeError(err, parsed?.secureSessionId, parsed?.requestId, {
+		'http.status_code': status,
+		'http.route': event.url.pathname,
+	})
 }`,
 					language: 'ts',
 				},
 			],
 		},
-		{
-			title: 'Record logs using console methods',
-			content:
-				'Logs are automatically recorded by the Highlight SDK. Standard `console.log` and `console.error` calls will be captured and forwarded to Highlight. ' +
-				'Arguments passed as an object as the second parameter will be interpreted as structured key-value pairs that logs can be easily searched by.',
-			code: [
-				{
-					text: `console.log('Hello from SvelteKit backend!')
-console.error('Something went wrong', { key: 'value' })`,
-					language: 'ts',
-				},
-			],
-		},
+		manualError,
 		verifyError(
 			'SvelteKit',
 			`// src/routes/+page.server.ts
-export const load = async () => {
-	throw new Error('Example server error')
+import type { PageServerLoad } from './$types'
+
+export const load: PageServerLoad = async () => {
+	console.log('Testing Highlight logging in SvelteKit server load')
+	// Uncaught errors in load functions are passed directly to handleError in hooks.server.ts
+	throw new Error('Test server error for Highlight.io')
 }`,
 		),
 		verifyLogs,
