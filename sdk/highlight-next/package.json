@@ -1,85 +1,85 @@
 {
-	"name": "@highlight-run/next",
-	"version": "7.9.6",
-	"description": "Client for interfacing with Highlight in next.js",
-	"files": [
-		"dist",
-		"client.d.ts",
-		"config.d.ts",
-		"server.d.ts",
-		"ssr.d.ts",
-		"types.d.ts"
-	],
-	"exports": {
-		"./server": {
-			"types": "./dist/server.d.ts",
-			"edge": "./dist/server.edge.js",
-			"edge-light": "./dist/server.edge.js",
-			"worker": "./dist/server.edge.js",
-			"workerd": "./dist/server.edge.js",
-			"require": "./dist/server.cjs",
-			"import": "./dist/server.js"
-		},
-		"./client": {
-			"types": "./dist/next-client.d.ts",
-			"import": "./dist/next-client.js",
-			"require": "./dist/next-client.cjs"
-		},
-		"./config": {
-			"types": "./dist/config.d.ts",
-			"import": "./dist/config.js",
-			"require": "./dist/config.cjs"
-		},
-		"./ssr": {
-			"types": "./dist/ssr.d.ts",
-			"import": "./dist/ssr.js",
-			"require": "./dist/ssr.cjs"
-		}
-	},
-	"type": "module",
-	"publishConfig": {
-		"access": "public"
-	},
-	"scripts": {
-		"typegen": "tsc -d --emitDeclarationOnly",
-		"dev": "rm -rf .next && yarn watch:build & yarn build --watch",
-		"watch:build": "chokidar \"dist/next-client.d.ts\" -c \"sh ./bin/clean-dist.sh\"",
-		"build": "rollup --config rollup.config.js && sh bin/clean-dist.sh",
-		"test": "vitest run",
-		"test:dev": "vitest"
-	},
-	"author": "",
-	"license": "Apache-2.0",
-	"installConfig": {
-		"hoistingLimits": "workspaces"
-	},
-	"peerDependencies": {
-		"next": ">=13",
-		"react": ">=17"
-	},
-	"dependencies": {
-		"@highlight-run/cloudflare": "workspace:*",
-		"@highlight-run/node": "workspace:*",
-		"@highlight-run/react": "workspace:*",
-		"@highlight-run/sourcemap-uploader": "workspace:*",
-		"highlight.run": "workspace:*",
-		"js-cookie": "^3.0.5"
-	},
-	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20231016.0",
-		"@opentelemetry/api": "^1.9.0",
-		"@opentelemetry/resources": "^1.30.1",
-		"@rollup/plugin-terser": "^0.4.4",
-		"@rollup/plugin-typescript": "^11.1.5",
-		"@trpc/server": "^9.27.4",
-		"@types/js-cookie": "^3",
-		"@types/node": "^16.18.113",
-		"chokidar-cli": "^3.0.0",
-		"eslint": "8.39.0",
-		"rollup": "^4.4.1",
-		"semver": "^7.6.3",
-		"tree-kill": "^1.2.2",
-		"typescript": "^5.0.4",
-		"vitest": "^2.1.3"
-	}
+  "name": "@highlight-run/next",
+  "version": "7.9.6",
+  "description": "Client for interfacing with Highlight in next.js",
+  "files": [
+    "dist",
+    "client.d.ts",
+    "config.d.ts",
+    "server.d.ts",
+    "ssr.d.ts",
+    "types.d.ts"
+  ],
+  "exports": {
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "edge": "./dist/server.edge.js",
+      "edge-light": "./dist/server.edge.js",
+      "worker": "./dist/server.edge.js",
+      "workerd": "./dist/server.edge.js",
+      "require": "./dist/server.cjs",
+      "import": "./dist/server.js"
+    },
+    "./client": {
+      "types": "./dist/next-client.d.ts",
+      "import": "./dist/next-client.js",
+      "require": "./dist/next-client.cjs"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js",
+      "require": "./dist/config.cjs"
+    },
+    "./ssr": {
+      "types": "./dist/ssr.d.ts",
+      "import": "./dist/ssr.js",
+      "require": "./dist/ssr.cjs"
+    }
+  },
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typegen": "tsc -d --emitDeclarationOnly",
+    "dev": "node init && rm -rf .next && yarn watch:build & yarn build --watch",
+    "watch:build": "chokidar \"dist/next-client.d.ts\" -c \"sh ./bin/clean-dist.sh\"",
+    "build": "node init && rollup --config rollup.config.js && sh bin/clean-dist.sh",
+    "test": "vitest run",
+    "test:dev": "vitest"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "installConfig": {
+    "hoistingLimits": "workspaces"
+  },
+  "peerDependencies": {
+    "next": ">=13",
+    "react": ">=17"
+  },
+  "dependencies": {
+    "@highlight-run/cloudflare": "workspace:*",
+    "@highlight-run/node": "workspace:*",
+    "@highlight-run/react": "workspace:*",
+    "@highlight-run/sourcemap-uploader": "workspace:*",
+    "highlight.run": "workspace:*",
+    "js-cookie": "^3.0.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231016.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/resources": "^1.30.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@trpc/server": "^9.27.4",
+    "@types/js-cookie": "^3",
+    "@types/node": "^16.18.113",
+    "chokidar-cli": "^3.0.0",
+    "eslint": "8.39.0",
+    "rollup": "^4.4.1",
+    "semver": "^7.6.3",
+    "tree-kill": "^1.2.2",
+    "typescript": "^5.0.4",
+    "vitest": "^2.1.3"
+  }
 }

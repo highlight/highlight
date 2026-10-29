@@ -27,8 +27,8 @@
     "node": ">=14.18.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "node init && vite",
+    "build": "node init && tsc && vite build",
     "preview": "vite preview",
     "fmt": "prettier --write '**/*.{ts,json,css,scss,md}'",
     "zip": "yarn build && node src/zip.js"
