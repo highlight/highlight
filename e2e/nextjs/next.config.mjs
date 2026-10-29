@@ -15,4 +15,4 @@ const nextConfig = {
 
 export default withHighlightConfig(nextConfig, {
 	apiKey: 'abc123',
-})
+});
