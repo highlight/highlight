@@ -110,6 +110,7 @@ import { JStRPCReorganizedContent } from './server/js/trpc'
 import { JSPinoHTTPJSONLogReorganizedContent } from './server/js/pino'
 import { JSWinstonHTTPJSONLogReorganizedContent } from './server/js/winston'
 import { JSManualTracesReorganizedContent } from './server/js/manual'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { PHPOtherReorganizedContent } from './server/php/other'
 import { PythonAWSReorganizedContext } from './server/python/aws'
 import { PythonAzureReorganizedContext } from './server/python/azure'
@@ -461,6 +462,7 @@ export const quickStartContent = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
 		},
 		php: {
 			title: 'PHP',
