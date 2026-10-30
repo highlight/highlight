@@ -3,10 +3,10 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
+import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts
@@ -79,6 +79,11 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Instrument your SvelteKit backend.',
+			content: `If you use SvelteKit as a fullstack framework, follow the [SvelteKit server quick start](${siteUrl(
+				'/docs/getting-started/server/js/sveltekit',
+			)}) to initialize \`@highlight-run/node\` in \`hooks.server.ts\` and connect backend errors and traces to your frontend sessions.`,
+		},
 	],
 }
