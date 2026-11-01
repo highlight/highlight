@@ -1,13 +1,14 @@
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { TableList } from '@components/TableList/TableList'
 import {
 	Badge,
 	Box,
 	ButtonIcon,
+	IconSolidInformationCircle,
 	IconSolidX,
 	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
 import {
@@ -132,12 +133,20 @@ const EventDetails = React.memo(({ event }: { event: HighlightEvent }) => {
 							alignItems="center"
 							style={{ width: 12, height: 12 }}
 						>
-							<InfoTooltip
-								color={EVENT_TYPES_TO_COLORS[displayName]}
-								title={getTimelineEventTooltipText(
+							<Tooltip
+								trigger={
+									<IconSolidInformationCircle
+										color={
+											EVENT_TYPES_TO_COLORS[displayName]
+										}
+										size={12}
+									/>
+								}
+							>
+								{getTimelineEventTooltipText(
 									details.title || '',
 								)}
-							/>
+							</Tooltip>
 						</Box>
 					}
 				/>
