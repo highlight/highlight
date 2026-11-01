@@ -90,7 +90,7 @@ export const MetadataBox = React.memo(() => {
 				lines: '1',
 			},
 			{
-				keyDisplayValue: 'UserID',
+				keyDisplayValue: 'Fingerprint',
 				valueDisplayValue: session?.fingerprint?.toString(),
 			},
 			{
