@@ -36,7 +36,7 @@ slug: nodejs
         </aside>
         <aside className="parameter">
           <h5>serviceVersion <code>string</code> <code>optional</code></h5>
-          <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app.</p>
+          <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app. This should match the `serviceVersion` used when uploading sourcemaps for error mapping to work correctly.</p>
         </aside>
         <aside className="parameter">
           <h5>disableErrorSourceContext <code>boolean</code> <code>optional</code></h5>
