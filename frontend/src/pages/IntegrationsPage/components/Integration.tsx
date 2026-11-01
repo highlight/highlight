@@ -76,15 +76,20 @@ const Integration = ({
 	return (
 		<>
 			<Card className={styles.integration} interactable>
-				<div className={styles.header}>
-					<img
-						src={icon}
-						alt=""
-						className={clsx(styles.logo, {
-							['rounded-none']: noRoundedIcon,
-						})}
-					/>
-					<div className="flex flex-col gap-2">
+				<div className={styles.topRow}>
+					<div className={styles.header}>
+						<img
+							src={icon}
+							alt=""
+							className={clsx(styles.logo, {
+								['rounded-none']: noRoundedIcon,
+							})}
+						/>
+						<div className={styles.headerText}>
+							<h2 className={styles.title}>{name}</h2>
+						</div>
+					</div>
+					<div className={styles.actions}>
 						{isGated ? (
 							<EnterpriseFeatureButton
 								setting={enterpriseSetting}
@@ -159,8 +164,7 @@ const Integration = ({
 						)}
 					</div>
 				</div>
-				<div>
-					<h2 className={styles.title}>{name}</h2>
+				<div className={styles.content}>
 					<p className={styles.description}>{description}</p>
 					{docs && (
 						<a
