@@ -54,7 +54,7 @@ export const bytesToPrettyString = (
 	use1024 = false,
 	decimalPoints = 1,
 ) => {
-	const thresh = use1024 ? 1000 : 1024
+	const thresh = use1024 ? 1024 : 1000
 
 	if (Math.abs(bytes) < thresh) {
 		return bytes + ' B'

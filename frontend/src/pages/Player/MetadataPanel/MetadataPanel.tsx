@@ -249,6 +249,7 @@ const MetadataPanel = () => {
 			keyDisplayValue: 'RAM',
 			valueDisplayValue: bytesToPrettyString(
 				session.deviceMemory! * 1024 * 1024,
+				true,
 			),
 		})
 	}
