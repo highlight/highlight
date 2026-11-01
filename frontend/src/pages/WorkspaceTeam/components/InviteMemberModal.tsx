@@ -119,6 +119,13 @@ function InviteMemberModal({
 		[form, sendInviteReset, toggleShowModal],
 	)
 
+	useEffect(() => {
+		if (showModal && !autoinvite_email) {
+			form.reset()
+			sendInviteReset()
+		}
+	}, [showModal])
+
 	const projectOptions = useMemo(
 		() =>
 			allProjects?.map((p) => ({
