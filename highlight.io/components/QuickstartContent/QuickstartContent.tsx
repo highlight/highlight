@@ -1,4 +1,5 @@
 import { GoChiContent } from './backend/go/chi'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { GoEchoContent } from './backend/go/echo'
 import { GoFiberContent } from './backend/go/fiber'
 import { GoGinContent } from './backend/go/gin'
@@ -203,6 +204,7 @@ export enum QuickStartType {
 	JSExpress = 'express',
 	JSFirebase = 'firebase',
 	JSNodejs = 'nodejs',
+	JSSvelteKit = 'sveltekit',
 	JSNextjs = 'nextjs',
 	JSManual = 'manual',
 	JSNestjs = 'nestjs',
@@ -455,6 +457,7 @@ export const quickStartContent = {
 			[QuickStartType.JSFirebase]: JSFirebaseReorganizedContent,
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
@@ -600,6 +603,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSFirebase]: JSFirebaseReorganizedContent,
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
