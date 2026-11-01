@@ -39,7 +39,7 @@ Here's the high level structure of the code that you'll want to start tinkering 
 
 ## InfluxDB Diagram
 
-![](/images/influx.png)
+![](/images/Influx.png)
 
 ## OpenTelemetry Diagram
 
