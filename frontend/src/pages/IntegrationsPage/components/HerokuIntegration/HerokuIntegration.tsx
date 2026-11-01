@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { Form } from '@highlight-run/ui/components'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
@@ -36,8 +36,10 @@ const HerokuIntegration: React.FC<
 				</p>
 				<footer>
 					<Button
-						trackingId="IntegrationDisconnectCancel-Heroku"
+						trackingId="Button-IntegrationDisconnectCancel-Heroku"
 						className={styles.modalBtn}
+						kind="secondary"
+						emphasis="medium"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(true)
@@ -46,17 +48,16 @@ const HerokuIntegration: React.FC<
 						Cancel
 					</Button>
 					<Button
-						trackingId="IntegrationDisconnectSave-Heroku"
+						trackingId="Button-IntegrationDisconnectSave-Heroku"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
+						iconLeft={<PlugIcon />}
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
 							removeHerokuIntegrationFromProject(project_id)
 						}}
 					>
-						<PlugIcon className={styles.modalBtnIcon} />
 						Disconnect Heroku
 					</Button>
 				</footer>
@@ -98,8 +99,10 @@ const HerokuIntegration: React.FC<
 			</Form>
 			<footer>
 				<Button
-					trackingId="IntegrationConfigurationCancel-Heroku"
+					trackingId="Button-IntegrationConfigurationCancel-Heroku"
 					className={styles.modalBtn}
+					kind="secondary"
+					emphasis="medium"
 					onClick={() => {
 						setModalOpen(false)
 						setIntegrationEnabled(false)
@@ -108,17 +111,18 @@ const HerokuIntegration: React.FC<
 					Cancel
 				</Button>
 				<Button
-					trackingId="IntegrationConfigurationSave-Heroku"
+					trackingId="Button-IntegrationConfigurationSave-Heroku"
 					className={styles.modalBtn}
-					type="primary"
+					kind="primary"
+					emphasis="high"
+					iconLeft={<AppsIcon />}
 					disabled={!tokens.filter((t) => t.length >= 38).length}
 					onClick={async () => {
 						setModalOpen(false)
 						await addHerokuToProject(tokens, project_id)
 					}}
 				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Heroku
+					Connect Highlight with Heroku
 				</Button>
 			</footer>
 		</>
