@@ -1,6 +1,5 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import analytics from '@util/analytics'
-import { ButtonType } from 'antd/es/button'
 import clsx from 'clsx'
 import React from 'react'
 import { Link, LinkProps } from 'react-router-dom'
@@ -17,7 +16,8 @@ type Props = {
 	icon?: React.ReactNode
 	fullWidth?: boolean
 	disabled?: boolean
-	type?: ButtonType
+	/** Controls visual style: 'default' renders secondary styling, 'text' renders minimal styling */
+	type?: 'default' | 'text'
 } & Partial<Pick<LinkProps, 'to' | 'onClick' | 'state'>>
 
 const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
@@ -37,7 +37,6 @@ const ButtonLink: React.FC<React.PropsWithChildren<Props>> = ({
 	if (disabled) {
 		return (
 			<Button
-				type={type}
 				disabled
 				trackingId={trackingId}
 				className={clsx(styles.link, className, {

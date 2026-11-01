@@ -21,7 +21,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { authRedirect } from '@/pages/Auth/utils'
 import SvgCloseIcon from '@/static/CloseIcon'
 
-import Button from '../../components/Button/Button/Button'
+import { Button } from '@components/Button'
 import styles from './NewProject.module.css'
 
 const NewProjectPage = ({ workspace_id }: { workspace_id: string }) => {
@@ -226,7 +226,6 @@ const NewProjectPage = ({ workspace_id }: { workspace_id: string }) => {
 									</ButtonLink>
 								)}
 							<Button
-								type="primary"
 								htmlType="submit"
 								disabled={name.length === 0}
 								className={clsx(

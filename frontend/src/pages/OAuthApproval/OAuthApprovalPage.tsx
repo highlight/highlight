@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParams } from 'use-query-params'
 
-import Button from '../../components/Button/Button/Button'
+import { Button } from '@components/Button'
 
 interface OAuthToken {
 	access_token: string
@@ -138,7 +138,6 @@ const OAuthApprovalPage = () => {
 						<div className="flex gap-5">
 							<Button
 								trackingId="OAuthApprove"
-								type="primary"
 								className="mx-0 flex"
 								block
 								onClick={onLogin}
@@ -149,7 +148,7 @@ const OAuthApprovalPage = () => {
 								trackingId="OAuthReject"
 								className="mx-0 flex"
 								block
-								danger
+								kind="danger"
 								onClick={() => {
 									toast
 										.warning(

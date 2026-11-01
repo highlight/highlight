@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import AppsIcon from '@icons/AppsIcon'
 import PlugIcon from '@icons/PlugIcon'
@@ -38,8 +38,7 @@ const SlackIntegrationConfig: React.FC<
 					<Button
 						trackingId="IntegrationDisconnectSave-Slack"
 						className={styles.modalBtn}
-						type="primary"
-						danger
+						kind="danger"
 						onClick={() => {
 							setModalOpen(false)
 							setIntegrationEnabled(false)
@@ -71,15 +70,15 @@ const SlackIntegrationConfig: React.FC<
 				>
 					Cancel
 				</Button>
-				<Button
-					trackingId="IntegrationConfigurationSave-Slack"
-					className={styles.modalBtn}
-					type="primary"
-					href={slackUrl}
-				>
-					<AppsIcon className={styles.modalBtnIcon} /> Connect
-					Highlight with Slack
-				</Button>
+				<a href={slackUrl}>
+					<Button
+						trackingId="IntegrationConfigurationSave-Slack"
+						className={styles.modalBtn}
+					>
+						<AppsIcon className={styles.modalBtnIcon} /> Connect
+						Highlight with Slack
+					</Button>
+				</a>
 			</footer>
 		</>
 	)

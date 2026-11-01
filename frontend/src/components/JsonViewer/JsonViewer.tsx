@@ -1,4 +1,4 @@
-import Button from '@components/Button/Button/Button'
+import { Button } from '@components/Button'
 import Tooltip from '@components/Tooltip/Tooltip'
 import SvgDownloadIcon from '@icons/DownloadIcon'
 // @ts-expect-error
@@ -33,9 +33,9 @@ const JsonViewer = ({
 					<Button
 						className={styles.downloadButton}
 						trackingId="JsonViewerDownload"
-						iconButton
-						type="text"
-						size="small"
+						kind="secondary"
+						emphasis="low"
+						size="xSmall"
 						onClick={() => {
 							download({
 								data: JSON.stringify(props.src, undefined, 2),

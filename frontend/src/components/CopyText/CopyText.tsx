@@ -3,7 +3,7 @@ import SvgCopyIcon from '@icons/CopyIcon'
 import clsx from 'clsx'
 import React, { ReactNode } from 'react'
 
-import Button from '../Button/Button/Button'
+import { Button } from '@components/Button'
 import styles from './CopyText.module.css'
 
 interface Props {
@@ -32,8 +32,8 @@ const CopyText: React.FC<React.PropsWithChildren<Props>> = ({
 				{custom ? custom : <span>{text}</span>}
 				<Button
 					trackingId="CopyTextMinimal"
-					iconButton
-					type="text"
+					kind="secondary"
+					emphasis="low"
 					className={styles.copyButton}
 					onClick={onCopyHandler}
 				>
@@ -47,7 +47,6 @@ const CopyText: React.FC<React.PropsWithChildren<Props>> = ({
 		<div className={clsx(className, styles.container)}>
 			<span className={styles.link}>{text}</span>
 			<Button
-				type="primary"
 				trackingId="CopyText"
 				className={styles.copyButton}
 				onClick={onCopyHandler}
