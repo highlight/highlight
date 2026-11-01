@@ -2,7 +2,7 @@ import EnterpriseFeatureButton from '@components/Billing/EnterpriseFeatureButton
 import { Modal } from '@components/Modal/ModalV2'
 import Switch from '@components/Switch/Switch'
 import { toast } from '@components/Toaster'
-import { USD } from '@dinero.js/currencies'
+import { USD } from 'dinero.js/currencies'
 import {
 	Badge,
 	Box,

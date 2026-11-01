@@ -1,7 +1,7 @@
 import { CalendlyButton } from '@components/CalendlyModal/CalendlyButton'
 import LoadingBox from '@components/LoadingBox'
 import { toast } from '@components/Toaster'
-import { USD } from '@dinero.js/currencies'
+import { USD } from 'dinero.js/currencies'
 import {
 	Badge,
 	Box,
