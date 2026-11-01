@@ -14,19 +14,31 @@ import { useEffect, useState } from 'react'
 import { SearchContext, useSearchContext } from '../Search/SearchContext'
 import { FlameGraphSpan } from '@/pages/Traces/utils'
 
+import { useSearchParams } from 'react-router-dom'
+
 export const TracePanel: React.FC<{ resource: RelatedTrace }> = () => {
 	const { highlightedSpan, loading, selectedSpan, traces } = useTrace()
 	const span = selectedSpan || highlightedSpan
 	const path = `${window.location.pathname}${window.location.search}`
-	const { searchParams, updateQuery } = useRelatedResource()
+	const { searchParams } = useRelatedResource()
+	const [routerSearchParams, setRouterSearchParams] = useSearchParams()
 	const [query, setQuery] = useState(searchParams?.get('query') ?? '')
+
+	const handleUpdateQuery = (newQuery: string) => {
+		if (newQuery) {
+			routerSearchParams.set('query', newQuery)
+		} else {
+			routerSearchParams.delete('query')
+		}
+		setRouterSearchParams(routerSearchParams)
+	}
 
 	useEffect(() => {
 		setQuery(searchParams?.get('query') ?? '')
 	}, [searchParams])
 
 	return (
-		<SearchContext initialQuery={query} onSubmit={updateQuery} disabled>
+		<SearchContext initialQuery={query} onSubmit={handleUpdateQuery} disabled>
 			<Panel.Header>
 				<Panel.HeaderCopyLinkButton path={path} />
 				<Panel.HeaderDivider />
