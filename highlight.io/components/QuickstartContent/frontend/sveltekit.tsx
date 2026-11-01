@@ -3,9 +3,9 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
+import { verifyTraces } from '../server/shared-snippets-tracing'
 
 import { QuickStartContent } from '../QuickstartContent'
 
@@ -30,6 +30,60 @@ H.init('<YOUR_PROJECT_ID>', {
 	},
 });
 ...
+`
+
+const svelteKitServerHooksCodeSnippet = `// src/hooks.server.ts
+import { H } from '@highlight-run/node';
+
+const headersToObject = (headers: Headers) =>
+	Object.fromEntries(headers.entries());
+
+if (!H.isInitialized()) {
+	H.init({
+		projectID: '<YOUR_PROJECT_ID>',
+		serviceName: 'my-sveltekit-backend',
+		environment: 'production',
+	});
+}
+
+export const handle = async ({ event, resolve }) => {
+	return H.runWithHeaders(headersToObject(event.request.headers), async () => {
+		return resolve(event);
+	});
+};
+
+export const handleError = ({ error, event }) => {
+	const parsed = H.parseHeaders(headersToObject(event.request.headers));
+
+	if (parsed !== undefined) {
+		H.consumeError(error, parsed.secureSessionId, parsed.requestId, {
+			route: event.route.id ?? 'unknown',
+			url: event.url.pathname,
+		});
+	}
+
+	console.error(error);
+};
+`
+
+const svelteKitServerRouteCodeSnippet = `// src/routes/api/demo/+server.ts
+import { H } from '@highlight-run/node';
+import { json } from '@sveltejs/kit';
+
+export const GET = async ({ request }) => {
+	const headers = Object.fromEntries(request.headers.entries());
+
+	return H.runWithHeaders(headers, async () => {
+		const { span } = H.startWithHeaders('GET /api/demo', headers);
+
+		try {
+			console.info('handling /api/demo');
+			return json({ ok: true });
+		} finally {
+			span.end();
+		}
+	});
+};
 `
 
 export const SvelteKitContent: QuickStartContent = {
@@ -79,6 +133,39 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Install the backend SDK.',
+			content:
+				'Install the `@highlight-run/node` package so server-side requests, logs, and errors can be tied back to the originating Highlight session.',
+			code: [
+				{
+					language: 'bash',
+					text: `npm install --save @highlight-run/node`,
+				},
+			],
+		},
+		{
+			title: 'Initialize the server SDK in `hooks.server.ts`.',
+			content:
+				'Initialize the Node.js SDK once, wrap incoming requests with `H.runWithHeaders()`, and forward unhandled server errors through `handleError` so Highlight can associate them with the current frontend session.',
+			code: [
+				{
+					language: 'ts',
+					text: svelteKitServerHooksCodeSnippet,
+				},
+			],
+		},
+		{
+			title: 'Create spans inside `+server.ts` routes or form actions.',
+			content:
+				'For request-level tracing, start spans inside the server code that does the work. The request context created in `handle` lets Highlight relate spans, logs, and captured errors to the same session.',
+			code: [
+				{
+					language: 'ts',
+					text: svelteKitServerRouteCodeSnippet,
+				},
+			],
+		},
+		verifyTraces,
 	],
 }
