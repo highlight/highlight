@@ -1,4 +1,5 @@
-import { Dropdown, Skeleton } from 'antd'
+import { Dropdown } from '@components/Dropdown/Dropdown'
+import { Skeleton } from '@components/Skeleton/Skeleton'
 import { FiLogOut } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 

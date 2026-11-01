@@ -1,5 +1,5 @@
 import { Form } from '@highlight-run/ui/components'
-import { Select } from 'antd'
+import Select from '@components/Select/Select'
 import React, { useState } from 'react'
 
 import { useSearchIssuesLazyQuery } from '@/graph/generated/hooks'
@@ -10,7 +10,7 @@ import { IssueTrackerIntegration } from '@/pages/IntegrationsPage/IssueTrackerIn
 import styles from './SearchIssues.module.css'
 export interface SearchOption {
 	value: string
-	label: string
+	displayValue: string
 	id: string
 	url: string
 }
@@ -29,7 +29,7 @@ export const SearchIssues = ({
 	const [selectedOption, setSelectOption] = React.useState<
 		SearchOption | undefined
 	>({
-		label: '',
+		displayValue: '',
 		value: '',
 		id: '',
 		url: '',
@@ -57,7 +57,7 @@ export const SearchIssues = ({
 				id: s.id,
 				url: s.issue_url,
 				value: s.issue_url,
-				label: s.title,
+				displayValue: s.title,
 			})) || []
 		)
 	}, [data]) as SearchOption[]
@@ -67,11 +67,9 @@ export const SearchIssues = ({
 			<Select
 				className={styles.select}
 				// this mode allows using the select component as a single searchable input
-				// @ts-ignore
 				placeholder="Search Issues"
 				autoFocus
 				size="middle"
-				// @ts-ignore
 				onSelect={(newValue: string) => {
 					const option = options.find((o) => o.value === newValue)
 					if (option) {

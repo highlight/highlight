@@ -1,8 +1,8 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import Tooltip from '@components/Tooltip/Tooltip'
 import { Box, Text } from '@highlight-run/ui/components'
-import { Divider } from 'antd'
-import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
+import { Checkbox, CheckboxChangeEvent } from '@components/Checkbox/Checkbox'
+import { Divider } from '@components/Divider/Divider'
 import React from 'react'
 
 import { getEmailDomain } from '@/util/email'
