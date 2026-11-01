@@ -39,7 +39,13 @@ export const JSSvelteKitReorganizedContent: QuickStartContent = {
 				'Use this integration with a Node.js runtime, such as adapter-node. It is not an edge-runtime or static-only integration. Initialize the SDK only in `src/hooks.server.ts`, never in shared or browser code. ' +
 				'The handle hook traces requests and preserves the response returned by SvelteKit. The handleError hook reports unexpected server errors with the incoming Highlight session and request IDs, while returning a generic message to the browser. ' +
 				"If you already have hooks, merge these changes into them; use SvelteKit's `sequence` helper to compose handle functions. Keep existing authentication and response handling. See the [SvelteKit hooks documentation](https://svelte.dev/docs/kit/hooks).",
-			code: [{ text: svelteKitServerHooks, language: 'ts' }],
+			code: [
+				{
+					key: 'server-hooks',
+					text: svelteKitServerHooks,
+					language: 'ts',
+				},
+			],
 		},
 		{
 			title: 'Verify an unexpected server error.',
@@ -47,6 +53,7 @@ export const JSSvelteKitReorganizedContent: QuickStartContent = {
 				"In a development environment, add this temporary route and visit `/highlight-test` from a browser with the Highlight frontend SDK initialized. Confirm the error in your Highlight project, then remove the route. Expected errors raised with SvelteKit's `error()` helper are not passed to handleError. Static assets and prerendered pages do not run these server hooks.",
 			code: [
 				{
+					key: 'test-route',
 					text: `// src/routes/highlight-test/+server.ts
 export function GET() {
   throw new Error('Highlight SvelteKit server test')
