@@ -105,6 +105,7 @@ import { JSExpressReorganizedContent } from './server/js/express'
 import { JSFirebaseReorganizedContent } from './server/js/firebase'
 import { JSHonoReorganizedContent } from './server/js/hono'
 import { JSNodeReorganizedContent } from './server/js/nodejs'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { JSNestReorganizedContent } from './server/js/nestjs'
 import { JStRPCReorganizedContent } from './server/js/trpc'
 import { JSPinoHTTPJSONLogReorganizedContent } from './server/js/pino'
@@ -203,6 +204,7 @@ export enum QuickStartType {
 	JSExpress = 'express',
 	JSFirebase = 'firebase',
 	JSNodejs = 'nodejs',
+	JSSvelteKit = 'sveltekit',
 	JSNextjs = 'nextjs',
 	JSManual = 'manual',
 	JSNestjs = 'nestjs',
@@ -461,6 +463,7 @@ export const quickStartContent = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 		},
 		php: {
 			title: 'PHP',
@@ -606,6 +609,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.OTLP]: OTLPReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 		},
 	},
 	php: {
