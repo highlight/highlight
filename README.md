@@ -123,6 +123,22 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
 
 ## Contributors
 
+## New SDK: PHP (Laravel + Symphony)
+
+We're excited to announce the addition of a new SDK for PHP, with specific support for popular frameworks like Laravel and Symphony. This integration allows you to leverage Highlight's powerful monitoring capabilities directly within your PHP applications.
+
+### Key Features:
+
+*   **Exception Reporting:** Seamlessly record uncaught and manually thrown exceptions using `H.recordException`, adhering to the OpenTelemetry (OTel) exception reporting specification. This ensures detailed error context is captured and sent to Highlight.
+*   **Logging Integration:** Instrument your PHP/Laravel logging libraries. Logs can be routed as native OTel LogRecords to `v1/logs` if supported, or captured as trace events otherwise, providing a unified view of your application's behavior.
+*   **HTTP Request Tracing:** For Laravel applications, we automatically instrument common HTTP request handling patterns, wrapping them as native OTel traces. This provides valuable insights into request latency and performance.
+
+### Getting Started:
+
+To integrate the PHP SDK into your Laravel or Symphony project, please refer to our detailed documentation and the [OpenTelemetry PHP Laravel Quickstart guide](https://github.com/open-telemetry/opentelemetry-php/blob/main/docs/laravel-quickstart.md).
+
+This new SDK is built upon the robust [OpenTelemetry SDK](https://opentelemetry.io/docs/instrumentation/php/), ensuring best practices for data collection and compatibility.
+
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
