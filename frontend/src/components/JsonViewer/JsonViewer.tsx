@@ -1,6 +1,10 @@
-import Button from '@components/Button/Button/Button'
-import Tooltip from '@components/Tooltip/Tooltip'
-import SvgDownloadIcon from '@icons/DownloadIcon'
+import {
+	Box,
+	ButtonIcon,
+	IconSolidDownload,
+	Text,
+	Tooltip,
+} from '@highlight-run/ui/components'
 // @ts-expect-error
 import { specific } from 'react-files-hooks'
 import ReactJson, { ReactJsonViewProps } from 'react-json-view'
@@ -29,22 +33,31 @@ const JsonViewer = ({
 	return (
 		<div className={styles.container}>
 			{allowDownload && (
-				<Tooltip title="Download this as JSON" placement="left">
-					<Button
-						className={styles.downloadButton}
-						trackingId="JsonViewerDownload"
-						iconButton
-						type="text"
-						size="small"
-						onClick={() => {
-							download({
-								data: JSON.stringify(props.src, undefined, 2),
-								name: downloadFileName,
-							})
-						}}
-					>
-						<SvgDownloadIcon />
-					</Button>
+				<Tooltip
+					trigger={
+						<ButtonIcon
+							cssClass={styles.downloadButton}
+							trackingId="JsonViewerDownload"
+							kind="secondary"
+							size="xSmall"
+							shape="square"
+							emphasis="low"
+							icon={<IconSolidDownload />}
+							onClick={() => {
+								download({
+									data: JSON.stringify(props.src, undefined, 2),
+									name: downloadFileName,
+								})
+							}}
+						/>
+					}
+					delayed
+				>
+					<Box p="4">
+						<Text userSelect="none" color="n11">
+							Download this as JSON
+						</Text>
+					</Box>
 				</Tooltip>
 			)}
 			<ReactJson
