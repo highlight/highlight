@@ -32,6 +32,43 @@ H.init('<YOUR_PROJECT_ID>', {
 ...
 `
 
+const svelteKitBackendCodeSnippet = `// src/hooks.server.ts
+import type { Handle, HandleServerError } from '@sveltejs/kit';
+import { H } from '@highlight-run/node';
+
+const highlightOptions = {
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'my-sveltekit-backend',
+	serviceVersion: 'git-sha',
+	environment: 'production',
+};
+
+H.init(highlightOptions);
+
+export const handle: Handle = async ({ event, resolve }) => {
+	const headers = Object.fromEntries(event.request.headers);
+
+	return await H.runWithHeaders(headers, async () => {
+		return await resolve(event);
+	});
+};
+
+export const handleError: HandleServerError = ({ error, event }) => {
+	const headers = Object.fromEntries(event.request.headers);
+	const parsed = H.parseHeaders(headers);
+
+	if (error instanceof Error) {
+		H.consumeError(error, parsed.secureSessionId, parsed.requestId);
+	} else {
+		H.consumeError(
+			new Error(\`Unhandled SvelteKit server error: \${JSON.stringify(error)}\`),
+			parsed.secureSessionId,
+			parsed.requestId,
+		);
+	}
+};
+`
+
 export const SvelteKitContent: QuickStartContent = {
 	title: 'SvelteKit',
 	subtitle:
@@ -79,6 +116,24 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
+		{
+			title: 'Instrument your SvelteKit server hooks (Backend).',
+			content:
+				'Install `@highlight-run/node` and configure `src/hooks.server.ts` (or `src/hooks.server.js`) using SvelteKit\'s `handle` and `handleError` hooks. ' +
+				'Using `H.runWithHeaders` and `H.parseHeaders` automatically correlates server-side errors, logs, and traces with the frontend session replay.',
+			code: [
+				{
+					key: 'npm',
+					text: 'npm install @highlight-run/node',
+					language: 'bash',
+				},
+				{
+					key: 'hooks.server.ts',
+					text: svelteKitBackendCodeSnippet,
+					language: 'ts',
+				},
+			],
+		},
 		setupBackendSnippet,
 	],
 }
