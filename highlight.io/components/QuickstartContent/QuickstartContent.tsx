@@ -109,6 +109,7 @@ import { JSNestReorganizedContent } from './server/js/nestjs'
 import { JStRPCReorganizedContent } from './server/js/trpc'
 import { JSPinoHTTPJSONLogReorganizedContent } from './server/js/pino'
 import { JSWinstonHTTPJSONLogReorganizedContent } from './server/js/winston'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { JSManualTracesReorganizedContent } from './server/js/manual'
 import { PHPOtherReorganizedContent } from './server/php/other'
 import { PythonAWSReorganizedContext } from './server/python/aws'
@@ -201,6 +202,7 @@ export enum QuickStartType {
 	JSAWSFn = 'aws-lambda-node',
 	JSCloudflare = 'cloudflare',
 	JSExpress = 'express',
+	JSSvelteKit = 'sveltekit',
 	JSFirebase = 'firebase',
 	JSNodejs = 'nodejs',
 	JSNextjs = 'nextjs',
@@ -452,6 +454,7 @@ export const quickStartContent = {
 			[QuickStartType.JSAWSFn]: JSAWSLambdaReorganizedContent,
 			[QuickStartType.JSCloudflare]: JSCloudflareReorganizedContent,
 			[QuickStartType.JSExpress]: JSExpressReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JSFirebase]: JSFirebaseReorganizedContent,
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
