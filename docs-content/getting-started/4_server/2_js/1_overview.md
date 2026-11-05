@@ -39,7 +39,7 @@ updatedAt: 2022-04-01T19:52:59.000Z
     <DocsCard title="Pino" href="../js/pino">
         {"Get started with Pino"}
     </DocsCard>
-    <DocsCard title="tRPC" href="../js/trpc">
+    <DocsCard title="SvelteKit" href="../js/sveltekit">\n        {"Get started with SvelteKit on Node.js"}\n    </DocsCard>\n    <DocsCard title="tRPC" href="../js/trpc">
         {"Get started with tRPC"}
     </DocsCard>
     <DocsCard title="Winston" href="../js/winston">
@@ -49,3 +49,4 @@ updatedAt: 2022-04-01T19:52:59.000Z
         {"Get started with OpenTelemetry"}
     </DocsCard>
 </DocsCardGroup>
+
