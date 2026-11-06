@@ -79,6 +79,39 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
+		{
+			title: 'Instrument your SvelteKit server backend (`hooks.server.ts`).',
+			content:
+				'Install `@highlight-run/node` and configure `src/hooks.server.ts` to pair frontend sessions with backend traces, logs, and errors. See the [SvelteKit Backend Guide](/docs/getting-started/server/js/sveltekit) for full details.',
+			code: [
+				{
+					language: 'ts',
+					text: `// src/hooks.server.ts
+import type { Handle, HandleServerError } from '@sveltejs/kit'
+import { H } from '@highlight-run/node'
+
+H.init({
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'my-sveltekit-backend',
+	environment: 'production',
+})
+
+export const handle: Handle = async ({ event, resolve }) => {
+	const headers = Object.fromEntries(event.request.headers)
+	return await H.runWithHeaders(
+		`${event.request.method} ${event.url.pathname}`,
+		headers,
+		() => resolve(event),
+	)
+}
+
+export const handleError: HandleServerError = ({ error, event }) => {
+	const parsed = H.parseHeaders(Object.fromEntries(event.request.headers))
+	H.consumeError(error as Error, parsed.secureSessionId, parsed.requestId)
+}`,
+				},
+			],
+		},
 		setupBackendSnippet,
 	],
 }
