@@ -13,6 +13,7 @@ import { JSFirebaseContent } from './backend/js/firebase'
 import { JSNestContent } from './backend/js/nestjs'
 import { JSNodeContent } from './backend/js/nodejs'
 import { JStRPCContent } from './backend/js/trpc'
+import { JSSvelteKitContent } from './backend/js/sveltekit'
 import { OTLPErrorMonitoringContent } from './backend/otlp'
 import { PHPOtherContent } from './backend/php/other'
 import { PythonAWSContext } from './backend/python/aws'
@@ -204,6 +205,7 @@ export enum QuickStartType {
 	JSFirebase = 'firebase',
 	JSNodejs = 'nodejs',
 	JSNextjs = 'nextjs',
+	JSSvelteKit = 'sveltekit',
 	JSManual = 'manual',
 	JSNestjs = 'nestjs',
 	JSWinston = 'winston',
@@ -272,6 +274,7 @@ export const quickStartContent = {
 			[QuickStartType.JSFirebase]: JSFirebaseContent,
 			[QuickStartType.JSHono]: JSHonoContent,
 			[QuickStartType.JSNodejs]: JSNodeContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitContent,
 			[QuickStartType.JSNestjs]: JSNestContent,
 			[QuickStartType.JStRPC]: JStRPCContent,
 		},
