@@ -3,7 +3,6 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
@@ -79,6 +78,10 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Set up your SvelteKit server.',
+			content:
+				'Follow the [SvelteKit server quickstart](/docs/getting-started/server/js/sveltekit) to capture server errors, logs, and request traces in a Node-compatible deployment. Use the same project ID to associate server telemetry with browser sessions.',
+		},
 	],
 }
