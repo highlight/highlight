@@ -8,7 +8,12 @@ export type WorkspaceSettingsTab =
 	| 'current-plan'
 	| 'upgrade-plan'
 	| 'harold-ai'
+	| 'integrations'
 
+/**
+ * Evaluates whether the active URL path segments belong to an account,
+ * project, or workspace settings route.
+ */
 export const isSettingsPath = (path: string[]) => {
 	const settingsPaths: (WorkspaceSettingsTab | SettingGroups)[] = [
 		'settings',
@@ -17,6 +22,7 @@ export const isSettingsPath = (path: string[]) => {
 		'current-plan',
 		'upgrade-plan',
 		'harold-ai',
+		'integrations',
 	]
 	return settingsPaths.some(
 		(settingsPath) => path.indexOf(settingsPath) !== -1,
