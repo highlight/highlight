@@ -1,8 +1,7 @@
-import Input from '@components/Input/Input'
-import { Tooltip } from '@highlight-run/ui/components'
 import { toast } from '@components/Toaster'
 import { useEditProjectMutation, useEditWorkspaceMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
+import { Form, Tooltip } from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import React, { useState } from 'react'
 
@@ -52,24 +51,26 @@ export const FieldsForm: React.FC<Props> = ({
 			}).then(() => {
 				toast.success('Updated workspace fields!', { duration: 5000 })
 			})
-		} else {
-			editProject({
-				variables: {
-					id: project_id!,
-					name,
-					billing_email: email,
-				},
-			}).then(() => {
-				toast.success('Updated project fields!', { duration: 5000 })
-			})
+			return
 		}
+		editProject({
+			variables: {
+				id: project_id!,
+				name,
+				billing_email: email,
+			},
+		}).then(() => {
+			toast.success('Updated project fields!', { duration: 5000 })
+		})
 	}
 
+	const isSubmitting = editProjectLoading || editWorkspaceLoading
+
 	return (
-		<form onSubmit={onSubmit} key={project_id}>
+		<Form onSubmit={onSubmit} key={project_id}>
 			<div className={styles.fieldRow}>
 				<label className={styles.fieldKey}>Name</label>
-				<Input
+				<Form.Input
 					name="name"
 					value={name}
 					onChange={(e) => {
@@ -78,23 +79,20 @@ export const FieldsForm: React.FC<Props> = ({
 					disabled={formDisabled}
 				/>
 			</div>
-			{isWorkspace ? null : (
-				<>
-					{' '}
-					<div className={styles.fieldRow}>
-						<label className={styles.fieldKey}>Billing Email</label>
-						<Input
-							placeholder="Billing Email"
-							type="email"
-							name="email"
-							value={email}
-							onChange={(e) => {
-								setEmail(e.target.value)
-							}}
-							disabled={formDisabled}
-						/>
-					</div>
-				</>
+			{!isWorkspace && (
+				<div className={styles.fieldRow}>
+					<label className={styles.fieldKey}>Billing Email</label>
+					<Form.Input
+						placeholder="Billing Email"
+						type="email"
+						name="email"
+						value={email}
+						onChange={(e) => {
+							setEmail(e.target.value)
+						}}
+						disabled={formDisabled}
+					/>
+				</div>
 			)}
 			<div className={styles.fieldRow}>
 				<Tooltip
@@ -109,7 +107,7 @@ export const FieldsForm: React.FC<Props> = ({
 							className={commonStyles.submitButton}
 							disabled={formDisabled}
 						>
-							{editProjectLoading || editWorkspaceLoading ? (
+							{isSubmitting ? (
 								<CircularSpinner
 									style={{
 										fontSize: 18,
@@ -126,6 +124,6 @@ export const FieldsForm: React.FC<Props> = ({
 					contact your workspace admin.
 				</Tooltip>
 			</div>
-		</form>
+		</Form>
 	)
 }

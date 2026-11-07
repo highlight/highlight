@@ -1,22 +1,20 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
 import { toast } from '@components/Toaster'
-import { Stack } from '@highlight-run/ui/components'
-import { Text } from 'recharts'
+import { Select, SelectOption, Stack } from '@highlight-run/ui/components'
 
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
 import styles from './ErrorFiltersForm.module.css'
 
-const isValidRegex = function (p: string) {
+const isValidRegex = (pattern: string): boolean => {
 	try {
-		new RegExp(p)
-	} catch (e: any) {
-		toast.error(`Pattern \`${p}\` is not valid regex.`)
+		new RegExp(pattern)
+		return true
+	} catch {
+		toast.error(`Pattern \`${pattern}\` is not valid regex.`)
 		return false
 	}
-	return true
 }
 
 export const ErrorFiltersForm = () => {
@@ -30,6 +28,23 @@ export const ErrorFiltersForm = () => {
 		return <LoadingBar />
 	}
 
+	const currentFilters = data?.projectSettings?.error_filters || []
+
+	const handleValueChange = (options: SelectOption[]) => {
+		const patterns = options.map((option) => String(option.value))
+		patterns.filter(isValidRegex)
+		setAllProjectSettings((currentProjectSettings) =>
+			currentProjectSettings?.projectSettings
+				? {
+						projectSettings: {
+							...currentProjectSettings.projectSettings,
+							error_filters: patterns,
+						},
+					}
+				: currentProjectSettings,
+		)
+	}
+
 	return (
 		<form>
 			<Stack gap="8">
@@ -40,27 +55,13 @@ export const ErrorFiltersForm = () => {
 				<div className={styles.inputAndButtonRow}>
 					<Select
 						className={styles.input}
-						mode="tags"
+						creatable
+						filterable
+						displayMode="tags"
 						placeholder="TypeError: Failed to fetch"
-						value={data?.projectSettings?.error_filters || []}
-						notFoundContent={
-							<Text>
-								Provide a regex pattern to filter out errors.
-							</Text>
-						}
-						onChange={(patterns: string[]) => {
-							patterns.filter(isValidRegex)
-							setAllProjectSettings((currentProjectSettings) =>
-								currentProjectSettings?.projectSettings
-									? {
-											projectSettings: {
-												...currentProjectSettings.projectSettings,
-												error_filters: patterns,
-											},
-										}
-									: currentProjectSettings,
-							)
-						}}
+						value={currentFilters}
+						options={currentFilters}
+						onValueChange={handleValueChange}
 					/>
 				</div>
 			</Stack>

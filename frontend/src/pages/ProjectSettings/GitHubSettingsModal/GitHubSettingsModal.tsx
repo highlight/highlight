@@ -10,13 +10,14 @@ import {
 	IconSolidQuestionMarkCircle,
 	IconSolidTrash,
 	IconSolidX,
+	Select,
+	SelectOption,
 	Text,
 	TextLink,
 	Tooltip,
 } from '@highlight-run/ui/components'
 import { vars } from '@highlight-run/ui/vars'
-import { Select } from 'antd'
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
 
@@ -104,6 +105,154 @@ export const GitHubSettingsModal = ({
 	)
 }
 
+type GithubPathPrefixesSectionProps = {
+	buildPrefixName: GithubSettingsFormValues['buildPrefix'] & string
+	githubPrefixName: GithubSettingsFormValues['githubPrefix'] & string
+	buildPrefixValue: string | null
+	exampleLink: string
+}
+
+const GithubPathPrefixesSection: React.FC<GithubPathPrefixesSectionProps> = ({
+	buildPrefixName,
+	githubPrefixName,
+	buildPrefixValue,
+	exampleLink,
+}) => (
+	<>
+		<Box
+			display="flex"
+			gap="16"
+			paddingTop="12"
+			borderTop="dividerWeak"
+		>
+			<Form.Input
+				name={buildPrefixName}
+				label="Build path prefix"
+				placeholder="/build"
+				icon={
+					<Tooltip
+						trigger={
+							<IconSolidQuestionMarkCircle
+								color={vars.theme.static.content.weak}
+								size={14}
+							/>
+						}
+						renderInLine
+					>
+						<Box cssClass={styles.tooltipContent}>
+							The path added in the deployment process to host
+							your files, and should be removed when trying to map
+							your files to GitHub.
+						</Box>
+					</Tooltip>
+				}
+			/>
+			<Form.Input
+				name={githubPrefixName}
+				label="GitHub path prefix"
+				placeholder="/src"
+				icon={
+					<Tooltip
+						trigger={
+							<IconSolidQuestionMarkCircle
+								color={vars.theme.static.content.weak}
+								size={14}
+							/>
+						}
+						renderInLine
+					>
+						<Box cssClass={styles.tooltipContent}>
+							The path removed in the deployment process to host
+							your files, which can be seen in your GitHub repo.
+						</Box>
+					</Tooltip>
+				}
+			/>
+		</Box>
+		<Box
+			display="flex"
+			alignItems="flex-start"
+			gap="4"
+			cssClass={styles.example}
+		>
+			<Tooltip
+				trigger={
+					<IconSolidInformationCircle
+						color={vars.theme.static.content.weak}
+						size={14}
+					/>
+				}
+				renderInLine
+			>
+				<Box cssClass={styles.tooltipContent}>
+					An example using the configuration provided.
+				</Box>
+			</Tooltip>
+			<Text break="all">
+				e.g. <i>{buildPrefixValue}/README.md</i> →{' '}
+				<TextLink href={exampleLink} target="_blank">
+					{exampleLink}
+				</TextLink>
+			</Text>
+		</Box>
+	</>
+)
+
+type GithubFormFooterActionsProps = {
+	handleCancel: () => void
+}
+
+const GithubFormFooterActions: React.FC<GithubFormFooterActionsProps> = ({
+	handleCancel,
+}) => (
+	<Box
+		display="flex"
+		alignItems="center"
+		justifyContent="space-between"
+	>
+		<LinkButton
+			kind="secondary"
+			to="https://www.highlight.io/docs/general/product-features/error-monitoring/enhancing-errors-with-github#link-your-service-to-a-github-repo"
+			trackingId="enhance-stack-traces-docs"
+			emphasis="low"
+			size="medium"
+			target="_blank"
+			iconLeft={
+				<IconSolidQuestionMarkCircle
+					color={vars.theme.static.content.weak}
+					size={14}
+				/>
+			}
+		>
+			Learn more
+		</LinkButton>
+		<Box
+			display="flex"
+			alignItems="center"
+			justifyContent="flex-end"
+			gap="8"
+		>
+			<Button
+				kind="secondary"
+				trackingId="cancel-service-github-settings"
+				size="medium"
+				emphasis="medium"
+				onClick={handleCancel}
+			>
+				Cancel
+			</Button>
+			<Button
+				type="submit"
+				kind="primary"
+				trackingId="update-service-github-settings"
+				size="medium"
+			>
+				Save
+			</Button>
+		</Box>
+	</Box>
+)
+
 type GithubSettingsFormProps = {
 	service: Service
 	githubRepos: GitHubRepo[]
@@ -117,11 +266,11 @@ const GithubSettingsForm = ({
 	handleSubmit,
 	handleCancel,
 }: GithubSettingsFormProps) => {
-	const githubOptions = useMemo(
+	const githubOptions: SelectOption[] = useMemo(
 		() =>
 			githubRepos.map((repo: GitHubRepo) => ({
 				id: repo.key,
-				label: repo.name.split('/').pop(),
+				name: repo.name.split('/').pop() || repo.name,
 				value: repo.repo_id.replace(
 					'https://api.github.com/repos/',
 					'',
@@ -155,20 +304,15 @@ const GithubSettingsForm = ({
 							aria-label="GitHub repository"
 							className={styles.repoSelect}
 							placeholder="Search repos..."
-							onSelect={(repo: string) =>
+							filterable
+							options={githubOptions}
+							value={formState.values.githubRepo || ''}
+							onValueChange={(option: SelectOption) =>
 								formStore.setValue(
 									formStore.names.githubRepo,
-									repo,
+									option ? String(option.value) : null,
 								)
 							}
-							value={formState.values.githubRepo
-								?.split('/')
-								.pop()}
-							options={githubOptions}
-							notFoundContent={<span>No repos found</span>}
-							optionFilterProp="label"
-							filterOption
-							showSearch
 						/>
 						<ButtonIcon
 							kind="secondary"
@@ -194,142 +338,14 @@ const GithubSettingsForm = ({
 					</Box>
 				</Form.NamedSection>
 				{formState.values.githubRepo && (
-					<>
-						<Box
-							display="flex"
-							gap="16"
-							paddingTop="12"
-							borderTop="dividerWeak"
-						>
-							<Form.Input
-								name={formStore.names.buildPrefix}
-								label="Build path prefix"
-								placeholder="/build"
-								icon={
-									<Tooltip
-										trigger={
-											<IconSolidQuestionMarkCircle
-												color={
-													vars.theme.static.content
-														.weak
-												}
-												size={14}
-											/>
-										}
-										renderInLine
-									>
-										<Box cssClass={styles.tooltipContent}>
-											The path added in the deployment
-											process to host your files, and
-											should be removed when trying to map
-											your files to GitHub.
-										</Box>
-									</Tooltip>
-								}
-							/>
-							<Form.Input
-								name={formStore.names.githubPrefix}
-								label="GitHub path prefix"
-								placeholder="/src"
-								icon={
-									<Tooltip
-										trigger={
-											<IconSolidQuestionMarkCircle
-												color={
-													vars.theme.static.content
-														.weak
-												}
-												size={14}
-											/>
-										}
-										renderInLine
-									>
-										<Box cssClass={styles.tooltipContent}>
-											The path removed in the deployment
-											process to host your files, which
-											can be seen in your GitHub repo.
-										</Box>
-									</Tooltip>
-								}
-							/>
-						</Box>
-
-						<Box
-							display="flex"
-							alignItems="flex-start"
-							gap="4"
-							cssClass={styles.example}
-						>
-							<Tooltip
-								trigger={
-									<IconSolidInformationCircle
-										color={vars.theme.static.content.weak}
-										size={14}
-									/>
-								}
-								renderInLine
-							>
-								<Box cssClass={styles.tooltipContent}>
-									An example using the configuration provided.
-								</Box>
-							</Tooltip>
-							<Text break="all">
-								e.g.{' '}
-								<i>{formState.values.buildPrefix}/README.md</i>{' '}
-								→{' '}
-								<TextLink href={exampleLink} target="_blank">
-									{exampleLink}
-								</TextLink>
-							</Text>
-						</Box>
-					</>
+					<GithubPathPrefixesSection
+						buildPrefixName={formStore.names.buildPrefix}
+						githubPrefixName={formStore.names.githubPrefix}
+						buildPrefixValue={formState.values.buildPrefix}
+						exampleLink={exampleLink}
+					/>
 				)}
-				<Box
-					display="flex"
-					alignItems="center"
-					justifyContent="space-between"
-				>
-					<LinkButton
-						kind="secondary"
-						to="https://www.highlight.io/docs/general/product-features/error-monitoring/enhancing-errors-with-github#link-your-service-to-a-github-repo"
-						trackingId="enhance-stack-traces-docs"
-						emphasis="low"
-						size="medium"
-						target="_blank"
-						iconLeft={
-							<IconSolidQuestionMarkCircle
-								color={vars.theme.static.content.weak}
-								size={14}
-							/>
-						}
-					>
-						Learn more
-					</LinkButton>
-					<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="flex-end"
-						gap="8"
-					>
-						<Button
-							kind="secondary"
-							trackingId="cancel-service-github-settings"
-							size="medium"
-							emphasis="medium"
-							onClick={handleCancel}
-						>
-							Cancel
-						</Button>
-						<Button
-							type="submit"
-							kind="primary"
-							trackingId="update-service-github-settings"
-							size="medium"
-						>
-							Save
-						</Button>
-					</Box>
-				</Box>
+				<GithubFormFooterActions handleCancel={handleCancel} />
 			</Box>
 		</Form>
 	)
