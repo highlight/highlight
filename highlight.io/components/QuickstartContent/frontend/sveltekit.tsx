@@ -1,13 +1,18 @@
 import {
+	backendInstrumentationLink,
 	configureSourcemapsCI,
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
 
+import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
+
+const SVELTEKIT_SERVER_GUIDE_URL = siteUrl(
+	'/docs/getting-started/server/js/sveltekit',
+)
 
 const svelteKitInitCodeSnippet = `// hooks.client.ts
 ...
@@ -79,6 +84,9 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Instrument your backend.',
+			content: `The next step is instrumenting your SvelteKit server hooks (\`hooks.server.ts\`) to tie backend logs, traces, and errors to your frontend sessions. Follow our [SvelteKit server instrumentation guide](${SVELTEKIT_SERVER_GUIDE_URL}) or read more in our [backend instrumentation](${backendInstrumentationLink}) section.`,
+		},
 	],
 }
