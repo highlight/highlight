@@ -1,4 +1,4 @@
-﻿---
+---
 title: SvelteKit
 heading: SvelteKit Server Quick Start
 metaTitle: SvelteKit Server Quick Start

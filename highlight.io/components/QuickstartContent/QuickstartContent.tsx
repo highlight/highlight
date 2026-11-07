@@ -462,7 +462,7 @@ export const quickStartContent = {
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
 			[QuickStartType.JSNextjs]: NextJsTracesReorganizedContent,
-            [QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
 		},
 		php: {
 			title: 'PHP',
