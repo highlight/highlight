@@ -1,9 +1,12 @@
 import { LoadingBar } from '@components/Loading/Loading'
-import Select from '@components/Select/Select'
-import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { toast } from '@components/Toaster'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
-import { Form, Stack } from '@highlight-run/ui/components'
+import {
+	Form,
+	Select,
+	SelectOption,
+	Stack,
+} from '@highlight-run/ui/components'
 import { useParams } from '@util/react-router/useParams'
 import { useState } from 'react'
 
@@ -11,11 +14,56 @@ import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
+const partitionExcludedExpressions = (
+	excluded: string[],
+): { validRegexes: string[]; invalidRegexes: string[] } => {
+	const validRegexes: string[] = []
+	const invalidRegexes: string[] = []
+	excluded.forEach((expression) => {
+		try {
+			new RegExp(expression)
+			validRegexes.push(expression)
+		} catch {
+			invalidRegexes.push(expression)
+		}
+	})
+	return { validRegexes, invalidRegexes }
+}
+
+const notifyIfLatestExcludedInvalid = (
+	excluded: string[],
+	invalidRegexes: string[],
+) => {
+	const latestExpression = excluded[excluded.length - 1]
+	const latestInvalid = invalidRegexes[invalidRegexes.length - 1]
+	if (!latestExpression || !latestInvalid) {
+		return
+	}
+	if (latestExpression === latestInvalid) {
+		toast.error(`'${latestExpression}' is not a valid regular expression`, {
+			duration: 5000,
+		})
+	}
+}
+
+const mapIdentifierSuggestions = (
+	loading: boolean,
+	suggestions?: string[],
+): SelectOption[] => {
+	if (loading || !suggestions) {
+		return []
+	}
+	return suggestions.map((suggestion) => ({
+		name: suggestion,
+		value: suggestion,
+		id: suggestion,
+	}))
+}
+
 export const ExcludedUsersForm = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const [identifierQuery, setIdentifierQuery] = useState('')
 	const [invalidExcludedUsers, setInvalidExcludedUsers] = useState<string[]>(
 		[],
 	)
@@ -41,25 +89,36 @@ export const ExcludedUsersForm = () => {
 		return <LoadingBar />
 	}
 
-	const identifierSuggestions = identifierSuggestionsLoading
-		? []
-		: (identifierSuggestionsApiResponse?.identifier_suggestion || []).map(
-				(suggestion) => ({
-					value: suggestion,
-					displayValue: (
-						<TextHighlighter
-							searchWords={[identifierQuery]}
-							textToHighlight={suggestion}
-						/>
-					),
-					id: suggestion,
-				}),
-			)
+	const identifierSuggestions = mapIdentifierSuggestions(
+		identifierSuggestionsLoading,
+		identifierSuggestionsApiResponse?.identifier_suggestion,
+	)
 
 	const handleIdentifierSearch = (query = '') => {
-		setIdentifierQuery(query)
 		refetchIdentifierSuggestions({ query, project_id })
 	}
+
+	const handleExcludedUsersChange = (options: SelectOption[]) => {
+		const excluded = options.map((option) => String(option.value))
+		const { validRegexes, invalidRegexes } =
+			partitionExcludedExpressions(excluded)
+		notifyIfLatestExcludedInvalid(excluded, invalidRegexes)
+		setInvalidExcludedUsers(invalidRegexes)
+		handleIdentifierSearch('')
+		setAllProjectSettings((currentProjectSettings) => {
+			if (!currentProjectSettings?.projectSettings) {
+				return currentProjectSettings
+			}
+			return {
+				projectSettings: {
+					...currentProjectSettings.projectSettings,
+					excluded_users: validRegexes,
+				},
+			}
+		})
+	}
+
+	const excludedUsersValue = data?.projectSettings?.excluded_users ?? []
 
 	return (
 		<BorderBox>
@@ -67,65 +126,22 @@ export const ExcludedUsersForm = () => {
 				<Stack gap="8">
 					<BoxLabel
 						label="Excluded users"
-						info="
-					Enter user identifiers or emails to filter (regular
-					expressions are accepted). On completion, sessions from
-					these users will be excluded from your searches and quota."
+						info="Enter user identifiers or emails to filter (regular expressions are accepted). On completion, sessions from these users will be excluded from your searches and quota."
 					/>
 					<Form.NamedSection
 						label="Filtered users"
 						name="Filtered users"
 					>
 						<Select
-							mode="tags"
+							creatable
+							filterable
+							displayMode="tags"
+							loading={identifierSuggestionsLoading}
 							placeholder=".*@yourdomain.com"
-							value={
-								data?.projectSettings?.excluded_users ||
-								undefined
-							}
-							onSearch={handleIdentifierSearch}
+							value={excludedUsersValue}
+							onSearchValueChange={handleIdentifierSearch}
 							options={identifierSuggestions}
-							onChange={(excluded: string[]) => {
-								const validRegexes: string[] = []
-								const invalidRegexes: string[] = []
-								excluded.forEach((expression) => {
-									try {
-										new RegExp(expression)
-										validRegexes.push(expression)
-									} catch (e) {
-										invalidRegexes.push(expression)
-									}
-								})
-								if (
-									excluded.length > 0 &&
-									invalidRegexes.length > 0 &&
-									excluded[excluded.length - 1] ===
-										invalidRegexes[
-											invalidRegexes.length - 1
-										]
-								) {
-									toast.error(
-										"'" +
-											excluded[excluded.length - 1] +
-											"' is not a valid regular expression",
-										{ duration: 5000 },
-									)
-								}
-								setInvalidExcludedUsers(invalidRegexes)
-								handleIdentifierSearch('')
-								setAllProjectSettings(
-									(currentProjectSettings) =>
-										currentProjectSettings?.projectSettings
-											? {
-													projectSettings: {
-														...currentProjectSettings.projectSettings,
-														excluded_users:
-															validRegexes,
-													},
-												}
-											: currentProjectSettings,
-								)
-							}}
+							onValueChange={handleExcludedUsersChange}
 						/>
 					</Form.NamedSection>
 					{invalidExcludedUsers.length > 0 && <div></div>}
