@@ -79,6 +79,44 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
+		{
+			title: 'Instrument your SvelteKit backend (hooks.server.ts)',
+			content:
+				'Install `@highlight-run/node` and add `src/hooks.server.ts` to wrap server requests with `H.runWithHeaders` and capture unhandled server exceptions in `handleError`. See the full [SvelteKit Backend Instrumentation guide](/docs/getting-started/server/js/sveltekit) for logging and custom tracing details.',
+			code: [
+				{
+					key: 'npm',
+					text: 'npm install @highlight-run/node',
+					language: 'bash',
+				},
+				{
+					key: 'hooks.server.ts',
+					text: `// src/hooks.server.ts
+import { H } from '@highlight-run/node'
+import type { Handle, HandleServerError } from '@sveltejs/kit'
+
+H.init({
+	projectID: '<YOUR_PROJECT_ID>',
+	serviceName: 'my-sveltekit-backend',
+	environment: 'production',
+})
+
+export const handle: Handle = async ({ event, resolve }) => {
+	const headers = Object.fromEntries(event.request.headers.entries())
+	return await H.runWithHeaders(headers, () => resolve(event))
+}
+
+export const handleError: HandleServerError = ({ error, event }) => {
+	const headers = Object.fromEntries(event.request.headers.entries())
+	const parsed = H.parseHeaders(headers)
+	if (error instanceof Error) {
+		H.consumeError(error, parsed.secureSessionId, parsed.requestId)
+	}
+}`,
+					language: 'ts',
+				},
+			],
+		},
 		setupBackendSnippet,
 	],
 }
