@@ -164,7 +164,7 @@ const H: HighlightPublicInterface = {
 				organizationID: projectID,
 				firstloadVersion,
 				environment: options?.environment || 'production',
-				appVersion: options?.version,
+				appVersion: options?.serviceVersion ?? options?.version,
 				sessionSecureID,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)

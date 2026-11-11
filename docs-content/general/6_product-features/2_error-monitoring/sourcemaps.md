@@ -51,6 +51,6 @@ yarn @highlight-run/sourcemap-uploader upload --apiKey "${HIGHLIGHT_API_KEY}" --
 
 The `HIGHLIGHT_API_KEY` environment variable will correspond to the API key for highlight, found in
 the [project settings](https://app.highlight.io/settings/errors#sourcemaps). The `APP_VERSION` environment variable will
-correspond to the `serviceName` and `serviceVersion`, separated by `-`. For example, if your node.js application
-calls `H.init` with `service_name: 'express', serviceVersion: 'abc123'`, the `APP_VERSION` should be set
-to `express-abc123`. 
+correspond to the `serviceVersion` (or `version` if using the browser SDK). For example, if your node.js application
+calls `H.init` with `serviceName: 'express', serviceVersion: 'abc123'`, the `APP_VERSION` should be set
+to `abc123` (matching the `serviceVersion` provided to `H.init`). 

@@ -157,8 +157,14 @@ export declare type HighlightOptions = {
 	/**
 	 * Specifies the version of your application.
 	 * This is commonly a Git hash or a semantic version.
+	 * @deprecated Use `serviceVersion` instead.
 	 */
 	version?: string
+	/**
+	 * Specifies the version of your application service.
+	 * This is commonly a Git hash or a semantic version.
+	 */
+	serviceVersion?: string
 	/**
 	 * Specifies the name of your app.
 	 */
