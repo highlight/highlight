@@ -42,6 +42,9 @@ updatedAt: 2022-04-01T19:52:59.000Z
     <DocsCard title="tRPC" href="../js/trpc">
         {"Get started with tRPC"}
     </DocsCard>
+    <DocsCard title="SvelteKit" href="../js/sveltekit">
+        {"Get started with SvelteKit"}
+    </DocsCard>
     <DocsCard title="Winston" href="../js/winston">
         {"Get started with Winston"}
     </DocsCard>
