@@ -1,40 +1,40 @@
 {
-	"name": "render",
-	"private": true,
-	"version": "0.0.0",
-	"type": "module",
-	"main": "./dist/index.js",
-	"module": "./dist/index.js",
-	"scripts": {
-		"build": "tsup",
-		"test:screenshots": "DEV=true node dist/index.js",
-		"test:activity": "DEV=true node dist/activity.js",
-		"test": "yarn test:activity && yarn test:screenshots",
-		"zip": "zip -9 -r function.zip node_modules package.json -x node_modules/\\*\\*/\\*.map -x node_modules/\\*\\*/\\*.d.ts -x node_modules/typescript/\\* -x node_modules/tsup/\\* -x node_modules/@types/\\* -x node_modules/\\*\\*/node_modules/typescript/\\* -x node_modules/\\*\\*/node_modules/vite/\\* -x node_modules/puppeteer-screen-recorder/node_modules/@ffmpeg-installer/\\* -x node_modules/@esbuild/\\* && cd dist && zip ../function.zip * && cd ..",
-		"check": "node dist/check.js",
-		"update:screenshots": "aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip > /dev/null && echo 'session-screenshots lambda updated'",
-		"update:activity": "aws lambda update-function-code --function-name session-activity --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip > /dev/null && echo 'session-activity lambda updated'",
-		"publish": "yarn zip && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && yarn update:screenshots && yarn update:activity"
-	},
-	"installConfig": {
-		"hoistingLimits": "dependencies"
-	},
-	"dependencies": {
-		"@aws-sdk/client-s3": "^3.623.0",
-		"@sparticuz/chromium": "126.0.0",
-		"pg": "^8.12.0",
-		"puppeteer-core": "22.15.0",
-		"puppeteer-screen-recorder": "^3.0.3",
-		"rrweb": "workspace:*"
-	},
-	"devDependencies": {
-		"@types/aws-lambda": "^8.10.142",
-		"@types/find": "^0.2.4",
-		"@types/fs-extra": "^11.0.4",
-		"@types/node": "^22.1.0",
-		"@types/pg": "^8.11.6",
-		"tsup": "^8.3.6",
-		"typescript": "^5.5.4"
-	},
-	"packageManager": "yarn@4.0.2"
+  "name": "render",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "scripts": {
+    "build": "node init && tsup",
+    "test:screenshots": "DEV=true node dist/index.js",
+    "test:activity": "DEV=true node dist/activity.js",
+    "test": "yarn test:activity && yarn test:screenshots",
+    "zip": "zip -9 -r function.zip node_modules package.json -x node_modules/\\*\\*/\\*.map -x node_modules/\\*\\*/\\*.d.ts -x node_modules/typescript/\\* -x node_modules/tsup/\\* -x node_modules/@types/\\* -x node_modules/\\*\\*/node_modules/typescript/\\* -x node_modules/\\*\\*/node_modules/vite/\\* -x node_modules/puppeteer-screen-recorder/node_modules/@ffmpeg-installer/\\* -x node_modules/@esbuild/\\* && cd dist && zip ../function.zip * && cd ..",
+    "check": "node dist/check.js",
+    "update:screenshots": "aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip > /dev/null && echo 'session-screenshots lambda updated'",
+    "update:activity": "aws lambda update-function-code --function-name session-activity --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip > /dev/null && echo 'session-activity lambda updated'",
+    "publish": "yarn zip && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && yarn update:screenshots && yarn update:activity"
+  },
+  "installConfig": {
+    "hoistingLimits": "dependencies"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.623.0",
+    "@sparticuz/chromium": "126.0.0",
+    "pg": "^8.12.0",
+    "puppeteer-core": "22.15.0",
+    "puppeteer-screen-recorder": "^3.0.3",
+    "rrweb": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.142",
+    "@types/find": "^0.2.4",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.1.0",
+    "@types/pg": "^8.11.6",
+    "tsup": "^8.3.6",
+    "typescript": "^5.5.4"
+  },
+  "packageManager": "yarn@4.0.2"
 }

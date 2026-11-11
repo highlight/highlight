@@ -94,17 +94,32 @@ export class HighlightInterceptor
 		await NodeH.flush()
 	}
 
+	private getRequest(context: ExecutionContext): any {
+		if ((context.getType() as string) === 'graphql') {
+			const gqlContext = context.getArgs()?.[2]
+			return (
+				gqlContext?.req ??
+				gqlContext?.request ??
+				context.switchToHttp().getRequest()
+			)
+		}
+		return context.switchToHttp().getRequest()
+	}
+
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-		const ctx = context.switchToHttp()
-		const request = ctx.getRequest()
+		const request = this.getRequest(context)
+		const method =
+			request?.method ?? (context.getType() as string).toUpperCase()
+		const url = request?.url ?? ''
+		const headers = request?.headers ?? {}
 
 		const { span: requestSpan, ctx: spanCtx } = NodeH.startWithHeaders(
-			`${request.method} ${request.url}`,
-			request.headers,
+			`${method} ${url}`.trim(),
+			headers,
 			{
 				attributes: {
-					'http.method': request.method,
-					'http.url': request.url,
+					'http.method': method,
+					'http.url': url,
 				},
 			},
 		)

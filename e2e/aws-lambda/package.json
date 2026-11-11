@@ -1,14 +1,14 @@
 {
-	"name": "e2e-aws-lambda",
-	"description": "aws-lambda",
-	"version": "0.0.1",
-	"private": true,
-	"dependencies": {
-		"@highlight-run/node": "latest"
-	},
-	"scripts": {
-		"build": "sam build",
-		"validate": "sam validate",
-		"start": "sam local start-api"
-	}
+  "name": "e2e-aws-lambda",
+  "description": "aws-lambda",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@highlight-run/node": "latest"
+  },
+  "scripts": {
+    "build": "node init && sam build",
+    "validate": "sam validate",
+    "start": "node init && sam local start-api"
+  }
 }
