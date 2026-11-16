@@ -37,7 +37,6 @@ docker/enterprise-private.pem
 
 # Editor Artifacts
 **/.idea
-.vscode/*.log
 
 dump.rdb
 
@@ -53,7 +52,6 @@ __pycache__
 .turbo
 .vercel
 temp
-.env
 .rollup.cache
 
 scripts/emails.csv
@@ -66,3 +64,4 @@ google-chrome*
 # WordPress plugin build files
 sdk/highlight-wordpress/highlight-io.zip
 sdk/highlight-wordpress/highlight-io/highlight.js
+config.bat
