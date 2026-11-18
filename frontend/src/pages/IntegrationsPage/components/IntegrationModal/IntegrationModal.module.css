@@ -1,8 +1,57 @@
 .modal {
-  & footer {
-    column-gap: var(--size-medium);
-    display: flex;
-    justify-content: flex-end;
-    padding-top: var(--size-large);
-  }
+	& footer {
+		column-gap: var(--size-medium);
+		display: flex;
+		justify-content: flex-end;
+		padding-top: var(--size-large);
+	}
+}
+
+.modalHeader {
+	align-items: center;
+	border-bottom: 1px solid var(--color-gray-200, #f0eff2);
+	display: flex;
+	gap: 10px;
+	justify-content: space-between;
+	margin-bottom: var(--size-medium);
+	padding-bottom: var(--size-small);
+}
+
+.modalIdentity {
+	align-items: center;
+	display: flex;
+	gap: 10px;
+}
+
+.modalIcon {
+	border-radius: 6px;
+	height: 24px;
+	object-fit: contain;
+	width: 24px;
+}
+
+.modalIntegrationName {
+	color: var(--color-gray-900, #1a1523);
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.modalStatus {
+	background: var(--color-gray-200, #f3f2f4);
+	border-radius: 999px;
+	color: var(--color-gray-600, #6f6e77);
+	font-size: 11px;
+	font-weight: 600;
+	padding: 2px 8px;
+}
+
+.modalStatusConnected {
+	background: rgba(34, 197, 94, 0.12);
+	color: #15803d;
+}
+
+.modalBody {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-small);
 }

@@ -20,6 +20,7 @@ import MicrosoftTeamsIntegrationConfig from '@pages/IntegrationsPage/components/
 import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegration/SlackIntegrationConfig'
 import VercelIntegrationConfig from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIntegration/ZapierIntegrationConfig'
+import { IntegrationSpecificCategory } from '@pages/IntegrationsPage/integrationsUtils'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import React from 'react'
 
@@ -72,6 +73,7 @@ export interface Integration {
 	hasSettings: boolean
 	modalWidth?: number
 	docs?: string
+	category?: IntegrationSpecificCategory
 }
 
 export const SLACK_INTEGRATION: Integration = {
@@ -83,6 +85,7 @@ export const SLACK_INTEGRATION: Integration = {
 	icon: SlackLogo,
 	configurationPage: (opts) => <SlackIntegrationConfig {...opts} />,
 	hasSettings: false,
+	category: 'messaging',
 }
 
 export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
@@ -93,6 +96,7 @@ export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
 	icon: MicrosoftTeamsLogo,
 	configurationPage: (opts) => <MicrosoftTeamsIntegrationConfig {...opts} />,
 	hasSettings: false,
+	category: 'messaging',
 }
 
 export const HEROKU_INTEGRATION: Integration = {
@@ -103,6 +107,7 @@ export const HEROKU_INTEGRATION: Integration = {
 	icon: HerokuLogo,
 	configurationPage: (opts) => <HerokuIntegrationConfig {...opts} />,
 	hasSettings: false,
+	category: 'infrastructure',
 }
 
 export const CLOUDFLARE_INTEGRATION: Integration = {
@@ -114,6 +119,7 @@ export const CLOUDFLARE_INTEGRATION: Integration = {
 	configurationPage: (opts) => <CloudflareIntegrationConfig {...opts} />,
 	hasSettings: true,
 	modalWidth: VercelSettingsModalWidth,
+	category: 'infrastructure',
 }
 
 export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
@@ -128,6 +134,7 @@ export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
 	issueLabel: 'issue',
 	containerSelection: (opts) => <LinearTeamSelector {...opts} />,
 	Icon: IconSolidLinear,
+	category: 'issue_tracking',
 }
 
 export const JIRA_INTEGRATION: IssueTrackerIntegration = {
@@ -142,6 +149,7 @@ export const JIRA_INTEGRATION: IssueTrackerIntegration = {
 	issueLabel: 'issue',
 	containerSelection: (opts) => <JiraProjectAndIssueTypeSelector {...opts} />,
 	Icon: IconSolidJira,
+	category: 'issue_tracking',
 }
 
 export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
@@ -156,6 +164,7 @@ export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
 	issueLabel: 'issue',
 	containerSelection: (opts) => <GitlabProjectSelector {...opts} />,
 	Icon: IconSolidGitlab,
+	category: 'issue_tracking',
 }
 
 export const ZAPIER_INTEGRATION: Integration = {
@@ -167,6 +176,7 @@ export const ZAPIER_INTEGRATION: Integration = {
 	icon: ZapierLogo,
 	configurationPage: (opts) => <ZapierIntegrationConfig {...opts} />,
 	hasSettings: false,
+	category: 'analytics_automation',
 }
 
 export const CLEARBIT_INTEGRATION: Integration = {
@@ -177,6 +187,7 @@ export const CLEARBIT_INTEGRATION: Integration = {
 	icon: ClearbitLogo,
 	configurationPage: (opts) => <ClearbitIntegrationConfig {...opts} />,
 	hasSettings: false,
+	category: 'analytics_automation',
 }
 
 export const VERCEL_INTEGRATION: Integration = {
@@ -189,6 +200,7 @@ export const VERCEL_INTEGRATION: Integration = {
 	noRoundedIcon: true,
 	hasSettings: true,
 	modalWidth: VercelSettingsModalWidth,
+	category: 'infrastructure',
 }
 
 export const DISCORD_INTEGRATION: Integration = {
@@ -199,6 +211,7 @@ export const DISCORD_INTEGRATION: Integration = {
 	icon: DiscordLogo,
 	configurationPage: (opts) => <DiscordIntegrationConfig {...opts} />,
 	hasSettings: false,
+	category: 'messaging',
 }
 
 export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
@@ -214,6 +227,7 @@ export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
 	issueLabel: 'task',
 	containerSelection: (opts) => <ClickUpListSelector {...opts} />,
 	Icon: IconSolidClickUp,
+	category: 'issue_tracking',
 }
 
 export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
@@ -229,6 +243,7 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 	issueLabel: 'task',
 	containerSelection: (opts) => <HeightListSelector {...opts} />,
 	Icon: IconSolidHeight,
+	category: 'issue_tracking',
 }
 
 export const GITHUB_INTEGRATION: IssueTrackerIntegration = {
@@ -244,6 +259,7 @@ export const GITHUB_INTEGRATION: IssueTrackerIntegration = {
 	issueLabel: 'issue',
 	containerSelection: (opts) => <GitHubRepoSelector {...opts} />,
 	Icon: IconSolidGithub,
+	category: 'issue_tracking',
 }
 
 const INTEGRATIONS: Integration[] = [
