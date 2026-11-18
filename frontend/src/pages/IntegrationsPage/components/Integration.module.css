@@ -1,15 +1,85 @@
 .integration {
+	border: 1px solid var(--color-gray-300, #e4e2e4);
+	border-radius: 12px;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	justify-content: space-between;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease,
+		transform 0.15s ease;
+
+	&:hover {
+		border-color: var(--color-gray-400, #c8c7cb);
+		box-shadow: 0 6px 18px rgba(26, 21, 35, 0.06);
+	}
+
 	& .logo {
-		border-radius: 50%;
+		border-radius: 10px;
 		height: var(--size-xxLarge);
+		object-fit: contain;
 		width: var(--size-xxLarge);
 	}
 
 	& .header {
 		align-items: flex-start;
 		display: flex;
+		gap: var(--size-small);
 		justify-content: space-between;
-		padding-bottom: var(--size-small);
+		padding-bottom: var(--size-medium);
+	}
+
+	& .identity {
+		align-items: center;
+		display: flex;
+		gap: 12px;
+	}
+
+	& .metaColumn {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	& .categoryTag {
+		color: var(--color-gray-500, #86848d);
+		font-size: 11px;
+		font-weight: 500;
+		letter-spacing: 0.02em;
+	}
+
+	& .statusBadge {
+		align-items: center;
+		border-radius: 999px;
+		display: inline-flex;
+		font-size: 11px;
+		font-weight: 600;
+		gap: 5px;
+		padding: 3px 9px;
+		white-space: nowrap;
+	}
+
+	& .statusConnected {
+		background: rgba(34, 197, 94, 0.12);
+		color: #15803d;
+	}
+
+	& .statusAvailable {
+		background: var(--color-gray-200, #f3f2f4);
+		color: var(--color-gray-600, #6f6e77);
+	}
+
+	& .statusDot {
+		border-radius: 50%;
+		height: 6px;
+		width: 6px;
+	}
+
+	& .statusDotConnected {
+		background: #22c55e;
+	}
+
+	& .statusDotAvailable {
+		background: var(--color-gray-400, #a1a0a8);
 	}
 
 	& .connectButton {
@@ -17,10 +87,43 @@
 	}
 
 	& .title {
-		margin-bottom: var(--size-small) !important;
+		font-size: 16px;
+		font-weight: 600;
+		margin-bottom: 2px !important;
 	}
 
 	& .description {
+		color: var(--color-gray-600, #6f6e77);
+		font-size: 13px;
+		line-height: 1.45;
 		margin-bottom: 0 !important;
 	}
+
+	& .docsLink {
+		color: var(--color-purple-700, #5d21d0);
+		display: inline-block;
+		font-size: 12px;
+		font-weight: 500;
+		margin-top: 8px;
+		text-decoration: none;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+
+	& .footer {
+		align-items: center;
+		border-top: 1px solid var(--color-gray-200, #f0eff2);
+		display: flex;
+		gap: 8px;
+		justify-content: space-between;
+		margin-top: var(--size-medium);
+		padding-top: var(--size-small);
+	}
+}
+
+.connectedCard {
+	border-color: rgba(116, 68, 242, 0.32);
+	box-shadow: 0 2px 10px rgba(116, 68, 242, 0.06);
 }

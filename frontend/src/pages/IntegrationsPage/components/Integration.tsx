@@ -4,13 +4,18 @@ import LoadingBox from '@components/LoadingBox'
 import Switch from '@components/Switch/Switch'
 import SettingsIcon from '@icons/SettingsIcon'
 import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
+import {
+	CATEGORY_LABELS,
+	getIntegrationCategory,
+	getIntegrationStatus,
+} from '@pages/IntegrationsPage/integrationsUtils'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
+import EnterpriseFeatureButton from '@/components/Billing/EnterpriseFeatureButton'
 import { IntegrationModal } from '@/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
 
 import styles from './Integration.module.css'
-import EnterpriseFeatureButton from '@/components/Billing/EnterpriseFeatureButton'
 
 export enum IntegrationAction {
 	Setup,
@@ -33,6 +38,7 @@ interface Props {
 
 const Integration = ({
 	integration: {
+		key,
 		icon,
 		noRoundedIcon,
 		name,
@@ -42,6 +48,7 @@ const Integration = ({
 		hasSettings,
 		modalWidth,
 		docs,
+		category,
 	},
 	showModalDefault,
 	showSettingsDefault,
@@ -59,13 +66,19 @@ const Integration = ({
 	useEffect(() => {
 		setIntegrationEnabled(defaultEnable)
 	}, [defaultEnable, setIntegrationEnabled])
+
 	if (loading) {
 		return (
 			<Card>
-				<LoadingBox height={156} />
+				<LoadingBox height={180} />
 			</Card>
 		)
 	}
+
+	const resolvedCategory = getIntegrationCategory(key, category)
+	const categoryLabel = CATEGORY_LABELS[resolvedCategory]
+	const statusLabel = getIntegrationStatus(integrationEnabled)
+	const isConnected = statusLabel === 'Connected'
 
 	const isGated = name === 'Jira' || name === 'Microsoft Teams'
 	const enterpriseSetting =
@@ -73,98 +86,83 @@ const Integration = ({
 	const enterpriseName =
 		name === 'Jira' ? 'Jira Integration' : 'Teams Integration'
 
+	const toggleIntegration = () => {
+		const newValue = !integrationEnabled
+		if (newValue) {
+			setShowConfiguration(true)
+		} else {
+			setShowDeleteConfirmation(true)
+		}
+		setIntegrationEnabled(newValue)
+	}
+
+	const switchControl = (
+		<Switch
+			trackingId={`IntegrationConnect-${name}`}
+			label={
+				!showConfiguration && integrationEnabled
+					? 'Connected'
+					: 'Connect'
+			}
+			loading={
+				(showConfiguration && integrationEnabled) ||
+				(showDeleteConfirmation && !integrationEnabled)
+			}
+			onChange={isGated ? undefined : toggleIntegration}
+			size="default"
+			checked={integrationEnabled}
+		/>
+	)
+
 	return (
 		<>
-			<Card className={styles.integration} interactable>
-				<div className={styles.header}>
-					<img
-						src={icon}
-						alt=""
-						className={clsx(styles.logo, {
-							['rounded-none']: noRoundedIcon,
-						})}
-					/>
-					<div className="flex flex-col gap-2">
-						{isGated ? (
-							<EnterpriseFeatureButton
-								setting={enterpriseSetting}
-								name={enterpriseName}
-								fn={async () => {
-									const newValue = !integrationEnabled
-									if (newValue) {
-										setShowConfiguration(true)
-									} else {
-										setShowDeleteConfirmation(true)
-									}
-									setIntegrationEnabled(newValue)
-								}}
-								variant="basic"
-							>
-								<Switch
-									trackingId={`IntegrationConnect-${name}`}
-									label={
-										!showConfiguration && integrationEnabled
-											? 'Connected'
-											: 'Connect'
-									}
-									loading={
-										(showConfiguration &&
-											integrationEnabled) ||
-										(showDeleteConfirmation &&
-											!integrationEnabled)
-									}
-									size="default"
-									checked={integrationEnabled}
-								/>
-							</EnterpriseFeatureButton>
-						) : (
-							<Switch
-								trackingId={`IntegrationConnect-${name}`}
-								label={
-									!showConfiguration && integrationEnabled
-										? 'Connected'
-										: 'Connect'
-								}
-								loading={
-									(showConfiguration && integrationEnabled) ||
-									(showDeleteConfirmation &&
-										!integrationEnabled)
-								}
-								onChange={() => {
-									const newValue = !integrationEnabled
-									if (newValue) {
-										setShowConfiguration(true)
-									} else {
-										setShowDeleteConfirmation(true)
-									}
-									setIntegrationEnabled(newValue)
-								}}
-								size="default"
-								checked={integrationEnabled}
-							/>
-						)}
-						{hasSettings && (
-							<div className="flex h-[18px] w-full justify-end">
-								<Button
-									trackingId="IntegrationSettings"
-									iconButton
-									onClick={() => {
-										setShowUpdateSettings(true)
-									}}
-									disabled={!integrationEnabled}
-								>
-									<SettingsIcon />
-								</Button>
-							</div>
-						)}
-					</div>
-				</div>
+			<Card
+				className={clsx(styles.integration, {
+					[styles.connectedCard]: isConnected,
+				})}
+				interactable
+			>
 				<div>
-					<h2 className={styles.title}>{name}</h2>
+					<div className={styles.header}>
+						<div className={styles.identity}>
+							<img
+								src={icon}
+								alt=""
+								className={clsx(styles.logo, {
+									['rounded-none']: noRoundedIcon,
+								})}
+							/>
+							<div className={styles.metaColumn}>
+								<h2 className={styles.title}>{name}</h2>
+								<span className={styles.categoryTag}>
+									{categoryLabel}
+								</span>
+							</div>
+						</div>
+						<span
+							className={clsx(
+								styles.statusBadge,
+								isConnected
+									? styles.statusConnected
+									: styles.statusAvailable,
+							)}
+						>
+							<span
+								className={clsx(
+									styles.statusDot,
+									isConnected
+										? styles.statusDotConnected
+										: styles.statusDotAvailable,
+								)}
+							/>
+							{statusLabel}
+						</span>
+					</div>
+
 					<p className={styles.description}>{description}</p>
 					{docs && (
 						<a
-							className={styles.description}
+							className={styles.docsLink}
 							href={docs}
 							target="_blank"
 							rel="noopener noreferrer"
@@ -173,10 +171,44 @@ const Integration = ({
 						</a>
 					)}
 				</div>
+
+				<div className={styles.footer}>
+					{isGated ? (
+						<EnterpriseFeatureButton
+							setting={enterpriseSetting}
+							name={enterpriseName}
+							fn={async () => {
+								toggleIntegration()
+							}}
+							variant="basic"
+						>
+							{switchControl}
+						</EnterpriseFeatureButton>
+					) : (
+						switchControl
+					)}
+
+					{hasSettings && (
+						<Button
+							trackingId="IntegrationSettings"
+							iconButton
+							onClick={() => {
+								setShowUpdateSettings(true)
+							}}
+							disabled={!integrationEnabled}
+							aria-label={`Configure ${name} settings`}
+						>
+							<SettingsIcon />
+						</Button>
+					)}
+				</div>
 			</Card>
 
 			<IntegrationModal
 				width={modalWidth}
+				integrationIcon={icon}
+				integrationName={name}
+				statusLabel={statusLabel}
 				visible={
 					showConfiguration ||
 					showDeleteConfirmation ||
@@ -195,7 +227,7 @@ const Integration = ({
 				}}
 				title={
 					showDeleteConfirmation
-						? 'Are you sure?'
+						? `Disconnect ${name}?`
 						: `Configuring ${name} Integration`
 				}
 				configurationPage={() => {

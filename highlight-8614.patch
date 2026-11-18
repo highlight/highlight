@@ -1,0 +1,1475 @@
+��diff --git a/frontend/src/pages/IntegrationsPage/Integrations.tsx b/frontend/src/pages/IntegrationsPage/Integrations.tsx
+index 974718a..73a4388 100644
+--- a/frontend/src/pages/IntegrationsPage/Integrations.tsx
++++ b/frontend/src/pages/IntegrationsPage/Integrations.tsx
+@@ -20,6 +20,7 @@ import MicrosoftTeamsIntegrationConfig from '@pages/IntegrationsPage/components/
+ import SlackIntegrationConfig from '@pages/IntegrationsPage/components/SlackIntegration/SlackIntegrationConfig'
+ import VercelIntegrationConfig from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
+ import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIntegration/ZapierIntegrationConfig'
++import { IntegrationSpecificCategory } from '@pages/IntegrationsPage/integrationsUtils'
+ import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
+ import React from 'react'
+ 
+@@ -72,6 +73,7 @@ export interface Integration {
+ 	hasSettings: boolean
+ 	modalWidth?: number
+ 	docs?: string
++	category?: IntegrationSpecificCategory
+ }
+ 
+ export const SLACK_INTEGRATION: Integration = {
+@@ -83,6 +85,7 @@ export const SLACK_INTEGRATION: Integration = {
+ 	icon: SlackLogo,
+ 	configurationPage: (opts) => <SlackIntegrationConfig {...opts} />,
+ 	hasSettings: false,
++	category: 'messaging',
+ }
+ 
+ export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
+@@ -93,6 +96,7 @@ export const MICROSOFT_TEAMS_INTEGRATION: Integration = {
+ 	icon: MicrosoftTeamsLogo,
+ 	configurationPage: (opts) => <MicrosoftTeamsIntegrationConfig {...opts} />,
+ 	hasSettings: false,
++	category: 'messaging',
+ }
+ 
+ export const HEROKU_INTEGRATION: Integration = {
+@@ -103,6 +107,7 @@ export const HEROKU_INTEGRATION: Integration = {
+ 	icon: HerokuLogo,
+ 	configurationPage: (opts) => <HerokuIntegrationConfig {...opts} />,
+ 	hasSettings: false,
++	category: 'infrastructure',
+ }
+ 
+ export const CLOUDFLARE_INTEGRATION: Integration = {
+@@ -114,6 +119,7 @@ export const CLOUDFLARE_INTEGRATION: Integration = {
+ 	configurationPage: (opts) => <CloudflareIntegrationConfig {...opts} />,
+ 	hasSettings: true,
+ 	modalWidth: VercelSettingsModalWidth,
++	category: 'infrastructure',
+ }
+ 
+ export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
+@@ -128,6 +134,7 @@ export const LINEAR_INTEGRATION: IssueTrackerIntegration = {
+ 	issueLabel: 'issue',
+ 	containerSelection: (opts) => <LinearTeamSelector {...opts} />,
+ 	Icon: IconSolidLinear,
++	category: 'issue_tracking',
+ }
+ 
+ export const JIRA_INTEGRATION: IssueTrackerIntegration = {
+@@ -142,6 +149,7 @@ export const JIRA_INTEGRATION: IssueTrackerIntegration = {
+ 	issueLabel: 'issue',
+ 	containerSelection: (opts) => <JiraProjectAndIssueTypeSelector {...opts} />,
+ 	Icon: IconSolidJira,
++	category: 'issue_tracking',
+ }
+ 
+ export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
+@@ -156,6 +164,7 @@ export const GITLAB_INTEGRATION: IssueTrackerIntegration = {
+ 	issueLabel: 'issue',
+ 	containerSelection: (opts) => <GitlabProjectSelector {...opts} />,
+ 	Icon: IconSolidGitlab,
++	category: 'issue_tracking',
+ }
+ 
+ export const ZAPIER_INTEGRATION: Integration = {
+@@ -167,6 +176,7 @@ export const ZAPIER_INTEGRATION: Integration = {
+ 	icon: ZapierLogo,
+ 	configurationPage: (opts) => <ZapierIntegrationConfig {...opts} />,
+ 	hasSettings: false,
++	category: 'analytics_automation',
+ }
+ 
+ export const CLEARBIT_INTEGRATION: Integration = {
+@@ -177,6 +187,7 @@ export const CLEARBIT_INTEGRATION: Integration = {
+ 	icon: ClearbitLogo,
+ 	configurationPage: (opts) => <ClearbitIntegrationConfig {...opts} />,
+ 	hasSettings: false,
++	category: 'analytics_automation',
+ }
+ 
+ export const VERCEL_INTEGRATION: Integration = {
+@@ -189,6 +200,7 @@ export const VERCEL_INTEGRATION: Integration = {
+ 	noRoundedIcon: true,
+ 	hasSettings: true,
+ 	modalWidth: VercelSettingsModalWidth,
++	category: 'infrastructure',
+ }
+ 
+ export const DISCORD_INTEGRATION: Integration = {
+@@ -199,6 +211,7 @@ export const DISCORD_INTEGRATION: Integration = {
+ 	icon: DiscordLogo,
+ 	configurationPage: (opts) => <DiscordIntegrationConfig {...opts} />,
+ 	hasSettings: false,
++	category: 'messaging',
+ }
+ 
+ export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
+@@ -214,6 +227,7 @@ export const CLICKUP_INTEGRATION: IssueTrackerIntegration = {
+ 	issueLabel: 'task',
+ 	containerSelection: (opts) => <ClickUpListSelector {...opts} />,
+ 	Icon: IconSolidClickUp,
++	category: 'issue_tracking',
+ }
+ 
+ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
+@@ -229,6 +243,7 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
+ 	issueLabel: 'task',
+ 	containerSelection: (opts) => <HeightListSelector {...opts} />,
+ 	Icon: IconSolidHeight,
++	category: 'issue_tracking',
+ }
+ 
+ export const GITHUB_INTEGRATION: IssueTrackerIntegration = {
+@@ -244,6 +259,7 @@ export const GITHUB_INTEGRATION: IssueTrackerIntegration = {
+ 	issueLabel: 'issue',
+ 	containerSelection: (opts) => <GitHubRepoSelector {...opts} />,
+ 	Icon: IconSolidGithub,
++	category: 'issue_tracking',
+ }
+ 
+ const INTEGRATIONS: Integration[] = [
+diff --git a/frontend/src/pages/IntegrationsPage/IntegrationsPage.module.css b/frontend/src/pages/IntegrationsPage/IntegrationsPage.module.css
+index 003e816..0c5f2d1 100644
+--- a/frontend/src/pages/IntegrationsPage/IntegrationsPage.module.css
++++ b/frontend/src/pages/IntegrationsPage/IntegrationsPage.module.css
+@@ -1,8 +1,190 @@
++.pageHeader {
++	align-items: flex-start;
++	display: flex;
++	flex-wrap: wrap;
++	gap: var(--size-medium);
++	justify-content: space-between;
++	margin-bottom: var(--size-large);
++}
++
++.pageTitleRow {
++	align-items: center;
++	display: flex;
++	gap: var(--size-small);
++}
++
++.connectedSummary {
++	align-items: center;
++	background: rgba(114, 22, 243, 0.08);
++	border: 1px solid rgba(114, 22, 243, 0.2);
++	border-radius: 999px;
++	color: var(--color-purple-700, #5d21d0);
++	display: inline-flex;
++	font-size: 12px;
++	font-weight: 600;
++	gap: 6px;
++	padding: 4px 12px;
++}
++
++.connectedDot {
++	background: var(--color-green-500, #22c55e);
++	border-radius: 50%;
++	height: 8px;
++	width: 8px;
++}
++
++.toolbar {
++	align-items: center;
++	display: flex;
++	flex-wrap: wrap;
++	gap: var(--size-medium);
++	justify-content: space-between;
++	margin-bottom: var(--size-large);
++}
++
++.categoryTabs {
++	display: flex;
++	flex-wrap: wrap;
++	gap: 8px;
++}
++
++.categoryTab {
++	align-items: center;
++	background: var(--color-white, #ffffff);
++	border: 1px solid var(--color-gray-300, #e4e2e4);
++	border-radius: 8px;
++	color: var(--color-gray-600, #6f6e77);
++	cursor: pointer;
++	display: inline-flex;
++	font-size: 13px;
++	font-weight: 500;
++	gap: 6px;
++	padding: 6px 12px;
++	transition: all 0.15s ease;
++
++	&:hover {
++		border-color: var(--color-gray-400, #c8c7cb);
++		color: var(--color-gray-900, #1a1523);
++	}
++}
++
++.categoryTabActive {
++	background: var(--color-purple-100, #f4f0fe);
++	border-color: var(--color-purple-500, #7444f2);
++	color: var(--color-purple-700, #5d21d0);
++
++	&:hover {
++		border-color: var(--color-purple-500, #7444f2);
++		color: var(--color-purple-700, #5d21d0);
++	}
++}
++
++.categoryCount {
++	background: rgba(0, 0, 0, 0.06);
++	border-radius: 999px;
++	font-size: 11px;
++	font-weight: 600;
++	line-height: 1;
++	padding: 3px 7px;
++}
++
++.categoryTabActive .categoryCount {
++	background: rgba(116, 68, 242, 0.14);
++	color: var(--color-purple-700, #5d21d0);
++}
++
++.searchWrapper {
++	align-items: center;
++	background: var(--color-white, #ffffff);
++	border: 1px solid var(--color-gray-300, #e4e2e4);
++	border-radius: 8px;
++	display: flex;
++	min-width: 240px;
++	padding: 0 10px;
++	transition: border-color 0.15s ease, box-shadow 0.15s ease;
++
++	&:focus-within {
++		border-color: var(--color-purple-500, #7444f2);
++		box-shadow: 0 0 0 2px rgba(116, 68, 242, 0.12);
++	}
++}
++
++.searchInput {
++	background: transparent;
++	border: none;
++	color: var(--color-gray-900, #1a1523);
++	flex: 1;
++	font-size: 13px;
++	outline: none;
++	padding: 7px 6px;
++
++	&::placeholder {
++		color: var(--color-gray-500, #86848d);
++	}
++}
++
++.clearButton {
++	background: transparent;
++	border: none;
++	color: var(--color-gray-500, #86848d);
++	cursor: pointer;
++	font-size: 12px;
++	font-weight: 500;
++	padding: 2px 4px;
++
++	&:hover {
++		color: var(--color-gray-900, #1a1523);
++	}
++}
++
+ .integrationsContainer {
+ 	display: grid;
+ 	grid-gap: var(--size-large);
+-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
++	grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
++}
++
++.emptyState {
++	align-items: center;
++	background: var(--color-gray-100, #faf9fb);
++	border: 1px dashed var(--color-gray-300, #e4e2e4);
++	border-radius: 12px;
++	display: flex;
++	flex-direction: column;
++	gap: 8px;
++	padding: 40px 24px;
++	text-align: center;
++}
++
++.emptyStateTitle {
++	color: var(--color-gray-900, #1a1523);
++	font-size: 15px;
++	font-weight: 600;
++	margin: 0;
++}
++
++.emptyStateDescription {
++	color: var(--color-gray-500, #86848d);
++	font-size: 13px;
++	margin: 0;
++}
++
++.resetFiltersButton {
++	background: var(--color-white, #ffffff);
++	border: 1px solid var(--color-gray-300, #e4e2e4);
++	border-radius: 6px;
++	color: var(--color-gray-800, #231f2a);
++	cursor: pointer;
++	font-size: 13px;
++	font-weight: 500;
++	margin-top: 8px;
++	padding: 6px 14px;
++
++	&:hover {
++		border-color: var(--color-purple-500, #7444f2);
++		color: var(--color-purple-700, #5d21d0);
++	}
+ }
++
+ .modalBtn {
+ 	padding-bottom: 4px !important;
+ 	padding-top: 4px !important;
+diff --git a/frontend/src/pages/IntegrationsPage/IntegrationsPage.tsx b/frontend/src/pages/IntegrationsPage/IntegrationsPage.tsx
+index 895e439..89c058c 100644
+--- a/frontend/src/pages/IntegrationsPage/IntegrationsPage.tsx
++++ b/frontend/src/pages/IntegrationsPage/IntegrationsPage.tsx
+@@ -13,10 +13,18 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
+ import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
+ import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
+ import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
++import {
++	filterAndSortIntegrations,
++	getCategoryCounts,
++	getConnectedCount,
++	INTEGRATION_CATEGORIES,
++	IntegrationCategory,
++} from '@pages/IntegrationsPage/integrationsUtils'
+ import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
+ import analytics from '@util/analytics'
+ import { useParams } from '@util/react-router/useParams'
+-import { useEffect, useMemo } from 'react'
++import clsx from 'clsx'
++import { useEffect, useMemo, useState } from 'react'
+ import { Helmet } from 'react-helmet'
+ import { StringParam, useQueryParam } from 'use-query-params'
+ 
+@@ -179,6 +187,28 @@ const IntegrationsPage = () => {
+ 		isCloudflareConnectedToWorkspace,
+ 	])
+ 
++	const [selectedCategory, setSelectedCategory] =
++		useState<IntegrationCategory>('all')
++	const [searchQuery, setSearchQuery] = useState('')
++
++	const visibleIntegrations = useMemo(() => {
++		return filterAndSortIntegrations(integrations, {
++			category: selectedCategory,
++			searchQuery,
++			connectedFirst: true,
++		})
++	}, [integrations, selectedCategory, searchQuery])
++
++	const categoryCounts = useMemo(
++		() => getCategoryCounts(integrations, searchQuery),
++		[integrations, searchQuery],
++	)
++
++	const connectedCount = useMemo(
++		() => getConnectedCount(integrations),
++		[integrations],
++	)
++
+ 	useEffect(() => analytics.page('Integrations'), [])
+ 
+ 	return (
+@@ -186,25 +216,114 @@ const IntegrationsPage = () => {
+ 			<Helmet>
+ 				<title>Integrations</title>
+ 			</Helmet>
+-			<LeadAlignLayout>
+-				<h2>Integrations</h2>
+-				<p className={layoutStyles.subTitle}>
+-					Supercharge your workflows and attach Highlight with the
+-					tools you use everyday.
+-				</p>
+-				<div className={styles.integrationsContainer}>
+-					{integrations.map((integration) => (
+-						<Integration
+-							integration={integration}
+-							key={integration.key}
+-							showModalDefault={popUpModal === integration.key}
+-							showSettingsDefault={
+-								configureIntegration === integration.key
+-							}
+-							loading={loading}
++			<LeadAlignLayout fullWidth>
++				<div className={styles.pageHeader}>
++					<div>
++						<div className={styles.pageTitleRow}>
++							<h2>Integrations</h2>
++							<span className={styles.connectedSummary}>
++								<span className={styles.connectedDot} />
++								{connectedCount} of {integrations.length}{' '}
++								connected
++							</span>
++						</div>
++						<p className={layoutStyles.subTitle}>
++							Supercharge your workflows and attach Highlight with
++							the tools you use everyday.
++						</p>
++					</div>
++				</div>
++
++				<div className={styles.toolbar}>
++					<div
++						className={styles.categoryTabs}
++						role="tablist"
++						aria-label="Integration categories"
++					>
++						{INTEGRATION_CATEGORIES.map((category) => {
++							const isActive = selectedCategory === category.id
++							const count = categoryCounts[category.id]
++							return (
++								<button
++									key={category.id}
++									type="button"
++									role="tab"
++									aria-selected={isActive}
++									className={clsx(styles.categoryTab, {
++										[styles.categoryTabActive]: isActive,
++									})}
++									onClick={() =>
++										setSelectedCategory(category.id)
++									}
++								>
++									<span>{category.label}</span>
++									<span className={styles.categoryCount}>
++										{count}
++									</span>
++								</button>
++							)
++						})}
++					</div>
++
++					<div className={styles.searchWrapper}>
++						<input
++							type="search"
++							value={searchQuery}
++							onChange={(e) => setSearchQuery(e.target.value)}
++							placeholder="Search integrations..."
++							aria-label="Search integrations"
++							className={styles.searchInput}
+ 						/>
+-					))}
++						{searchQuery && (
++							<button
++								type="button"
++								className={styles.clearButton}
++								onClick={() => setSearchQuery('')}
++								aria-label="Clear search"
++							>
++								Clear
++							</button>
++						)}
++					</div>
+ 				</div>
++
++				{visibleIntegrations.length === 0 ? (
++					<div className={styles.emptyState}>
++						<p className={styles.emptyStateTitle}>
++							No integrations match your filters
++						</p>
++						<p className={styles.emptyStateDescription}>
++							Try adjusting your search query or switching to
++							another category.
++						</p>
++						<button
++							type="button"
++							className={styles.resetFiltersButton}
++							onClick={() => {
++								setSelectedCategory('all')
++								setSearchQuery('')
++							}}
++						>
++							Reset filters
++						</button>
++					</div>
++				) : (
++					<div className={styles.integrationsContainer}>
++						{visibleIntegrations.map((integration) => (
++							<Integration
++								integration={integration}
++								key={integration.key}
++								showModalDefault={
++									popUpModal === integration.key
++								}
++								showSettingsDefault={
++									configureIntegration === integration.key
++								}
++								loading={loading}
++							/>
++						))}
++					</div>
++				)}
+ 			</LeadAlignLayout>
+ 		</>
+ 	)
+diff --git a/frontend/src/pages/IntegrationsPage/components/Integration.module.css b/frontend/src/pages/IntegrationsPage/components/Integration.module.css
+index 0acdd8a..4a542fc 100644
+--- a/frontend/src/pages/IntegrationsPage/components/Integration.module.css
++++ b/frontend/src/pages/IntegrationsPage/components/Integration.module.css
+@@ -1,15 +1,85 @@
+ .integration {
++	border: 1px solid var(--color-gray-300, #e4e2e4);
++	border-radius: 12px;
++	display: flex;
++	flex-direction: column;
++	height: 100%;
++	justify-content: space-between;
++	transition: border-color 0.15s ease, box-shadow 0.15s ease,
++		transform 0.15s ease;
++
++	&:hover {
++		border-color: var(--color-gray-400, #c8c7cb);
++		box-shadow: 0 6px 18px rgba(26, 21, 35, 0.06);
++	}
++
+ 	& .logo {
+-		border-radius: 50%;
++		border-radius: 10px;
+ 		height: var(--size-xxLarge);
++		object-fit: contain;
+ 		width: var(--size-xxLarge);
+ 	}
+ 
+ 	& .header {
+ 		align-items: flex-start;
+ 		display: flex;
++		gap: var(--size-small);
+ 		justify-content: space-between;
+-		padding-bottom: var(--size-small);
++		padding-bottom: var(--size-medium);
++	}
++
++	& .identity {
++		align-items: center;
++		display: flex;
++		gap: 12px;
++	}
++
++	& .metaColumn {
++		display: flex;
++		flex-direction: column;
++		gap: 4px;
++	}
++
++	& .categoryTag {
++		color: var(--color-gray-500, #86848d);
++		font-size: 11px;
++		font-weight: 500;
++		letter-spacing: 0.02em;
++	}
++
++	& .statusBadge {
++		align-items: center;
++		border-radius: 999px;
++		display: inline-flex;
++		font-size: 11px;
++		font-weight: 600;
++		gap: 5px;
++		padding: 3px 9px;
++		white-space: nowrap;
++	}
++
++	& .statusConnected {
++		background: rgba(34, 197, 94, 0.12);
++		color: #15803d;
++	}
++
++	& .statusAvailable {
++		background: var(--color-gray-200, #f3f2f4);
++		color: var(--color-gray-600, #6f6e77);
++	}
++
++	& .statusDot {
++		border-radius: 50%;
++		height: 6px;
++		width: 6px;
++	}
++
++	& .statusDotConnected {
++		background: #22c55e;
++	}
++
++	& .statusDotAvailable {
++		background: var(--color-gray-400, #a1a0a8);
+ 	}
+ 
+ 	& .connectButton {
+@@ -17,10 +87,43 @@
+ 	}
+ 
+ 	& .title {
+-		margin-bottom: var(--size-small) !important;
++		font-size: 16px;
++		font-weight: 600;
++		margin-bottom: 2px !important;
+ 	}
+ 
+ 	& .description {
++		color: var(--color-gray-600, #6f6e77);
++		font-size: 13px;
++		line-height: 1.45;
+ 		margin-bottom: 0 !important;
+ 	}
+-}
+\ No newline at end of file
++
++	& .docsLink {
++		color: var(--color-purple-700, #5d21d0);
++		display: inline-block;
++		font-size: 12px;
++		font-weight: 500;
++		margin-top: 8px;
++		text-decoration: none;
++
++		&:hover {
++			text-decoration: underline;
++		}
++	}
++
++	& .footer {
++		align-items: center;
++		border-top: 1px solid var(--color-gray-200, #f0eff2);
++		display: flex;
++		gap: 8px;
++		justify-content: space-between;
++		margin-top: var(--size-medium);
++		padding-top: var(--size-small);
++	}
++}
++
++.connectedCard {
++	border-color: rgba(116, 68, 242, 0.32);
++	box-shadow: 0 2px 10px rgba(116, 68, 242, 0.06);
++}
+diff --git a/frontend/src/pages/IntegrationsPage/components/Integration.tsx b/frontend/src/pages/IntegrationsPage/components/Integration.tsx
+index b0677de..eeda981 100644
+--- a/frontend/src/pages/IntegrationsPage/components/Integration.tsx
++++ b/frontend/src/pages/IntegrationsPage/components/Integration.tsx
+@@ -4,13 +4,18 @@ import LoadingBox from '@components/LoadingBox'
+ import Switch from '@components/Switch/Switch'
+ import SettingsIcon from '@icons/SettingsIcon'
+ import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
++import {
++	CATEGORY_LABELS,
++	getIntegrationCategory,
++	getIntegrationStatus,
++} from '@pages/IntegrationsPage/integrationsUtils'
+ import clsx from 'clsx'
+ import { useEffect, useState } from 'react'
+ 
++import EnterpriseFeatureButton from '@/components/Billing/EnterpriseFeatureButton'
+ import { IntegrationModal } from '@/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
+ 
+ import styles from './Integration.module.css'
+-import EnterpriseFeatureButton from '@/components/Billing/EnterpriseFeatureButton'
+ 
+ export enum IntegrationAction {
+ 	Setup,
+@@ -33,6 +38,7 @@ interface Props {
+ 
+ const Integration = ({
+ 	integration: {
++		key,
+ 		icon,
+ 		noRoundedIcon,
+ 		name,
+@@ -42,6 +48,7 @@ const Integration = ({
+ 		hasSettings,
+ 		modalWidth,
+ 		docs,
++		category,
+ 	},
+ 	showModalDefault,
+ 	showSettingsDefault,
+@@ -59,112 +66,103 @@ const Integration = ({
+ 	useEffect(() => {
+ 		setIntegrationEnabled(defaultEnable)
+ 	}, [defaultEnable, setIntegrationEnabled])
++
+ 	if (loading) {
+ 		return (
+ 			<Card>
+-				<LoadingBox height={156} />
++				<LoadingBox height={180} />
+ 			</Card>
+ 		)
+ 	}
+ 
++	const resolvedCategory = getIntegrationCategory(key, category)
++	const categoryLabel = CATEGORY_LABELS[resolvedCategory]
++	const statusLabel = getIntegrationStatus(integrationEnabled)
++	const isConnected = statusLabel === 'Connected'
++
+ 	const isGated = name === 'Jira' || name === 'Microsoft Teams'
+ 	const enterpriseSetting =
+ 		name === 'Jira' ? 'enable_jira_integration' : 'enable_teams_integration'
+ 	const enterpriseName =
+ 		name === 'Jira' ? 'Jira Integration' : 'Teams Integration'
+ 
++	const toggleIntegration = () => {
++		const newValue = !integrationEnabled
++		if (newValue) {
++			setShowConfiguration(true)
++		} else {
++			setShowDeleteConfirmation(true)
++		}
++		setIntegrationEnabled(newValue)
++	}
++
++	const switchControl = (
++		<Switch
++			trackingId={`IntegrationConnect-${name}`}
++			label={
++				!showConfiguration && integrationEnabled
++					? 'Connected'
++					: 'Connect'
++			}
++			loading={
++				(showConfiguration && integrationEnabled) ||
++				(showDeleteConfirmation && !integrationEnabled)
++			}
++			onChange={isGated ? undefined : toggleIntegration}
++			size="default"
++			checked={integrationEnabled}
++		/>
++	)
++
+ 	return (
+ 		<>
+-			<Card className={styles.integration} interactable>
+-				<div className={styles.header}>
+-					<img
+-						src={icon}
+-						alt=""
+-						className={clsx(styles.logo, {
+-							['rounded-none']: noRoundedIcon,
+-						})}
+-					/>
+-					<div className="flex flex-col gap-2">
+-						{isGated ? (
+-							<EnterpriseFeatureButton
+-								setting={enterpriseSetting}
+-								name={enterpriseName}
+-								fn={async () => {
+-									const newValue = !integrationEnabled
+-									if (newValue) {
+-										setShowConfiguration(true)
+-									} else {
+-										setShowDeleteConfirmation(true)
+-									}
+-									setIntegrationEnabled(newValue)
+-								}}
+-								variant="basic"
+-							>
+-								<Switch
+-									trackingId={`IntegrationConnect-${name}`}
+-									label={
+-										!showConfiguration && integrationEnabled
+-											? 'Connected'
+-											: 'Connect'
+-									}
+-									loading={
+-										(showConfiguration &&
+-											integrationEnabled) ||
+-										(showDeleteConfirmation &&
+-											!integrationEnabled)
+-									}
+-									size="default"
+-									checked={integrationEnabled}
+-								/>
+-							</EnterpriseFeatureButton>
+-						) : (
+-							<Switch
+-								trackingId={`IntegrationConnect-${name}`}
+-								label={
+-									!showConfiguration && integrationEnabled
+-										? 'Connected'
+-										: 'Connect'
+-								}
+-								loading={
+-									(showConfiguration && integrationEnabled) ||
+-									(showDeleteConfirmation &&
+-										!integrationEnabled)
+-								}
+-								onChange={() => {
+-									const newValue = !integrationEnabled
+-									if (newValue) {
+-										setShowConfiguration(true)
+-									} else {
+-										setShowDeleteConfirmation(true)
+-									}
+-									setIntegrationEnabled(newValue)
+-								}}
+-								size="default"
+-								checked={integrationEnabled}
++			<Card
++				className={clsx(styles.integration, {
++					[styles.connectedCard]: isConnected,
++				})}
++				interactable
++			>
++				<div>
++					<div className={styles.header}>
++						<div className={styles.identity}>
++							<img
++								src={icon}
++								alt=""
++								className={clsx(styles.logo, {
++									['rounded-none']: noRoundedIcon,
++								})}
+ 							/>
+-						)}
+-						{hasSettings && (
+-							<div className="flex h-[18px] w-full justify-end">
+-								<Button
+-									trackingId="IntegrationSettings"
+-									iconButton
+-									onClick={() => {
+-										setShowUpdateSettings(true)
+-									}}
+-									disabled={!integrationEnabled}
+-								>
+-									<SettingsIcon />
+-								</Button>
++							<div className={styles.metaColumn}>
++								<h2 className={styles.title}>{name}</h2>
++								<span className={styles.categoryTag}>
++									{categoryLabel}
++								</span>
+ 							</div>
+-						)}
++						</div>
++						<span
++							className={clsx(
++								styles.statusBadge,
++								isConnected
++									? styles.statusConnected
++									: styles.statusAvailable,
++							)}
++						>
++							<span
++								className={clsx(
++									styles.statusDot,
++									isConnected
++										? styles.statusDotConnected
++										: styles.statusDotAvailable,
++								)}
++							/>
++							{statusLabel}
++						</span>
+ 					</div>
+-				</div>
+-				<div>
+-					<h2 className={styles.title}>{name}</h2>
++
+ 					<p className={styles.description}>{description}</p>
+ 					{docs && (
+ 						<a
+-							className={styles.description}
++							className={styles.docsLink}
+ 							href={docs}
+ 							target="_blank"
+ 							rel="noopener noreferrer"
+@@ -173,10 +171,44 @@ const Integration = ({
+ 						</a>
+ 					)}
+ 				</div>
++
++				<div className={styles.footer}>
++					{isGated ? (
++						<EnterpriseFeatureButton
++							setting={enterpriseSetting}
++							name={enterpriseName}
++							fn={async () => {
++								toggleIntegration()
++							}}
++							variant="basic"
++						>
++							{switchControl}
++						</EnterpriseFeatureButton>
++					) : (
++						switchControl
++					)}
++
++					{hasSettings && (
++						<Button
++							trackingId="IntegrationSettings"
++							iconButton
++							onClick={() => {
++								setShowUpdateSettings(true)
++							}}
++							disabled={!integrationEnabled}
++							aria-label={`Configure ${name} settings`}
++						>
++							<SettingsIcon />
++						</Button>
++					)}
++				</div>
+ 			</Card>
+ 
+ 			<IntegrationModal
+ 				width={modalWidth}
++				integrationIcon={icon}
++				integrationName={name}
++				statusLabel={statusLabel}
+ 				visible={
+ 					showConfiguration ||
+ 					showDeleteConfirmation ||
+@@ -195,7 +227,7 @@ const Integration = ({
+ 				}}
+ 				title={
+ 					showDeleteConfirmation
+-						? 'Are you sure?'
++						? `Disconnect ${name}?`
+ 						: `Configuring ${name} Integration`
+ 				}
+ 				configurationPage={() => {
+diff --git a/frontend/src/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal.module.css b/frontend/src/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal.module.css
+index 459bf0b..a9af52b 100644
+--- a/frontend/src/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal.module.css
++++ b/frontend/src/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal.module.css
+@@ -1,8 +1,57 @@
+ .modal {
+-  & footer {
+-    column-gap: var(--size-medium);
+-    display: flex;
+-    justify-content: flex-end;
+-    padding-top: var(--size-large);
+-  }
+-}
+\ No newline at end of file
++	& footer {
++		column-gap: var(--size-medium);
++		display: flex;
++		justify-content: flex-end;
++		padding-top: var(--size-large);
++	}
++}
++
++.modalHeader {
++	align-items: center;
++	border-bottom: 1px solid var(--color-gray-200, #f0eff2);
++	display: flex;
++	gap: 10px;
++	justify-content: space-between;
++	margin-bottom: var(--size-medium);
++	padding-bottom: var(--size-small);
++}
++
++.modalIdentity {
++	align-items: center;
++	display: flex;
++	gap: 10px;
++}
++
++.modalIcon {
++	border-radius: 6px;
++	height: 24px;
++	object-fit: contain;
++	width: 24px;
++}
++
++.modalIntegrationName {
++	color: var(--color-gray-900, #1a1523);
++	font-size: 14px;
++	font-weight: 600;
++}
++
++.modalStatus {
++	background: var(--color-gray-200, #f3f2f4);
++	border-radius: 999px;
++	color: var(--color-gray-600, #6f6e77);
++	font-size: 11px;
++	font-weight: 600;
++	padding: 2px 8px;
++}
++
++.modalStatusConnected {
++	background: rgba(34, 197, 94, 0.12);
++	color: #15803d;
++}
++
++.modalBody {
++	display: flex;
++	flex-direction: column;
++	gap: var(--size-small);
++}
+diff --git a/frontend/src/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal.tsx b/frontend/src/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal.tsx
+index d761db5..b07f648 100644
+--- a/frontend/src/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal.tsx
++++ b/frontend/src/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal.tsx
+@@ -1,4 +1,6 @@
+ import Modal from '@components/Modal/Modal'
++import { IntegrationStatus } from '@pages/IntegrationsPage/integrationsUtils'
++import clsx from 'clsx'
+ import React from 'react'
+ 
+ import styles from './IntegrationModal.module.css'
+@@ -7,6 +9,9 @@ interface Props {
+ 	title: string
+ 	visible: boolean
+ 	width?: number
++	integrationName?: string
++	integrationIcon?: string
++	statusLabel?: IntegrationStatus
+ 	onCancel: () => void
+ 	configurationPage: () => React.ReactNode
+ }
+@@ -14,6 +19,9 @@ interface Props {
+ export const IntegrationModal = ({
+ 	title,
+ 	width,
++	integrationName,
++	integrationIcon,
++	statusLabel,
+ 	configurationPage,
+ 	onCancel,
+ 	visible,
+@@ -27,7 +35,35 @@ export const IntegrationModal = ({
+ 			onCancel={onCancel}
+ 			destroyOnClose
+ 		>
+-			{configurationPage()}
++			{(integrationName || integrationIcon || statusLabel) && (
++				<div className={styles.modalHeader}>
++					<div className={styles.modalIdentity}>
++						{integrationIcon && (
++							<img
++								src={integrationIcon}
++								alt=""
++								className={styles.modalIcon}
++							/>
++						)}
++						{integrationName && (
++							<span className={styles.modalIntegrationName}>
++								{integrationName}
++							</span>
++						)}
++					</div>
++					{statusLabel && (
++						<span
++							className={clsx(styles.modalStatus, {
++								[styles.modalStatusConnected]:
++									statusLabel === 'Connected',
++							})}
++						>
++							{statusLabel}
++						</span>
++					)}
++				</div>
++			)}
++			<div className={styles.modalBody}>{configurationPage()}</div>
+ 		</Modal>
+ 	)
+ }
+diff --git a/frontend/src/pages/IntegrationsPage/integrationsUtils.test.ts b/frontend/src/pages/IntegrationsPage/integrationsUtils.test.ts
+new file mode 100644
+index 0000000..e7dadd0
+--- /dev/null
++++ b/frontend/src/pages/IntegrationsPage/integrationsUtils.test.ts
+@@ -0,0 +1,227 @@
++import assert from 'node:assert/strict'
++import { describe, it } from 'node:test'
++import {
++	filterAndSortIntegrations,
++	getCategoryCounts,
++	getConnectedCount,
++	getIntegrationCategory,
++	getIntegrationStatus,
++	INTEGRATION_CATEGORIES,
++	type IntegrationSummary,
++} from './integrationsUtils.ts'
++
++const SAMPLE_INTEGRATIONS: IntegrationSummary[] = [
++	{
++		key: 'slack',
++		name: 'Slack',
++		description: 'Bring your highlight.io comments and alerts to Slack.',
++		defaultEnable: false,
++	},
++	{
++		key: 'linear',
++		name: 'Linear',
++		description: 'Bring your highlight.io comments to Linear as issues.',
++		defaultEnable: true,
++	},
++	{
++		key: 'vercel',
++		name: 'Vercel',
++		description: 'Configuration for your Vercel projects.',
++		defaultEnable: false,
++	},
++	{
++		key: 'github',
++		name: 'GitHub',
++		description:
++			'Create GitHub issues from comments and enhance your stacktraces.',
++		defaultEnable: true,
++	},
++	{
++		key: 'discord',
++		name: 'Discord',
++		description: 'Bring your highlight.io alerts to Discord as messages.',
++		defaultEnable: false,
++	},
++	{
++		key: 'clearbit',
++		name: 'Clearbit',
++		description: 'Collect enhanced user analytics.',
++		defaultEnable: false,
++	},
++	{
++		key: 'cloudflare',
++		name: 'Cloudflare',
++		description: 'Setup a Cloudflare Proxy.',
++		defaultEnable: true,
++	},
++]
++
++describe('integrationsUtils', () => {
++	it('1. defines all expected category tabs in order', () => {
++		assert.deepEqual(
++			INTEGRATION_CATEGORIES.map((c) => c.id),
++			[
++				'all',
++				'issue_tracking',
++				'messaging',
++				'infrastructure',
++				'analytics_automation',
++			],
++		)
++	})
++
++	it('2. resolves integration categories by key and respects explicit override', () => {
++		assert.equal(getIntegrationCategory('linear'), 'issue_tracking')
++		assert.equal(getIntegrationCategory('slack'), 'messaging')
++		assert.equal(getIntegrationCategory('vercel'), 'infrastructure')
++		assert.equal(
++			getIntegrationCategory('clearbit'),
++			'analytics_automation',
++		)
++		assert.equal(
++			getIntegrationCategory('slack', 'infrastructure'),
++			'infrastructure',
++		)
++	})
++
++	it('3. falls back safely to analytics_automation for unknown integration keys', () => {
++		assert.equal(
++			getIntegrationCategory('custom_unknown_tool'),
++			'analytics_automation',
++		)
++	})
++
++	it('4. returns Connected or Available status labels accurately', () => {
++		assert.equal(getIntegrationStatus(true), 'Connected')
++		assert.equal(getIntegrationStatus(false), 'Available')
++		assert.equal(getIntegrationStatus(undefined), 'Available')
++	})
++
++	it('5. returns all integrations when category is all', () => {
++		const result = filterAndSortIntegrations(SAMPLE_INTEGRATIONS, {
++			category: 'all',
++			connectedFirst: false,
++		})
++		assert.equal(result.length, SAMPLE_INTEGRATIONS.length)
++	})
++
++	it('6. filters integrations by specific category', () => {
++		const issueTrackers = filterAndSortIntegrations(SAMPLE_INTEGRATIONS, {
++			category: 'issue_tracking',
++		})
++		assert.deepEqual(
++			issueTrackers.map((i) => i.key),
++			['linear', 'github'],
++		)
++
++		const infra = filterAndSortIntegrations(SAMPLE_INTEGRATIONS, {
++			category: 'infrastructure',
++		})
++		assert.deepEqual(
++			infra.map((i) => i.key),
++			['cloudflare', 'vercel'],
++		)
++	})
++
++	it('7. filters integrations by instant search query on name (case-insensitive)', () => {
++		const result = filterAndSortIntegrations(SAMPLE_INTEGRATIONS, {
++			searchQuery: '  sLaCk ',
++		})
++		assert.deepEqual(
++			result.map((i) => i.key),
++			['slack'],
++		)
++	})
++
++	it('8. filters integrations by description and category label in search query', () => {
++		const byDescription = filterAndSortIntegrations(SAMPLE_INTEGRATIONS, {
++			searchQuery: 'stacktraces',
++		})
++		assert.deepEqual(
++			byDescription.map((i) => i.key),
++			['github'],
++		)
++
++		const byCategoryLabel = filterAndSortIntegrations(SAMPLE_INTEGRATIONS, {
++			searchQuery: 'messaging',
++		})
++		assert.deepEqual(
++			byCategoryLabel.map((i) => i.key),
++			['slack', 'discord'],
++		)
++	})
++
++	it('9. combines category tab filter and search query simultaneously', () => {
++		const result = filterAndSortIntegrations(SAMPLE_INTEGRATIONS, {
++			category: 'messaging',
++			searchQuery: 'alerts',
++		})
++		assert.deepEqual(
++			result.map((i) => i.key),
++			['slack', 'discord'],
++		)
++
++		const empty = filterAndSortIntegrations(SAMPLE_INTEGRATIONS, {
++			category: 'infrastructure',
++			searchQuery: 'slack',
++		})
++		assert.deepEqual(empty, [])
++	})
++
++	it('10. prioritizes connected integrations first while preserving relative order', () => {
++		const result = filterAndSortIntegrations(SAMPLE_INTEGRATIONS, {
++			category: 'all',
++			connectedFirst: true,
++		})
++		assert.deepEqual(
++			result.map((i) => i.key),
++			[
++				'linear',
++				'github',
++				'cloudflare',
++				'slack',
++				'vercel',
++				'discord',
++				'clearbit',
++			],
++		)
++	})
++
++	it('11. preserves original order when connectedFirst is false', () => {
++		const result = filterAndSortIntegrations(SAMPLE_INTEGRATIONS, {
++			category: 'all',
++			connectedFirst: false,
++		})
++		assert.deepEqual(
++			result.map((i) => i.key),
++			SAMPLE_INTEGRATIONS.map((i) => i.key),
++		)
++	})
++
++	it('12. computes category counts accurately without search query', () => {
++		const counts = getCategoryCounts(SAMPLE_INTEGRATIONS)
++		assert.deepEqual(counts, {
++			all: 7,
++			issue_tracking: 2,
++			messaging: 2,
++			infrastructure: 2,
++			analytics_automation: 1,
++		})
++	})
++
++	it('13. updates category counts dynamically when search query is active', () => {
++		const counts = getCategoryCounts(SAMPLE_INTEGRATIONS, 'issues')
++		assert.deepEqual(counts, {
++			all: 2,
++			issue_tracking: 2,
++			messaging: 0,
++			infrastructure: 0,
++			analytics_automation: 0,
++		})
++	})
++
++	it('14. counts connected integrations accurately', () => {
++		assert.equal(getConnectedCount(SAMPLE_INTEGRATIONS), 3)
++		assert.equal(getConnectedCount([]), 0)
++	})
++})
+diff --git a/frontend/src/pages/IntegrationsPage/integrationsUtils.ts b/frontend/src/pages/IntegrationsPage/integrationsUtils.ts
+new file mode 100644
+index 0000000..f731f84
+--- /dev/null
++++ b/frontend/src/pages/IntegrationsPage/integrationsUtils.ts
+@@ -0,0 +1,163 @@
++export type IntegrationCategory =
++	| 'all'
++	| 'issue_tracking'
++	| 'messaging'
++	| 'infrastructure'
++	| 'analytics_automation'
++
++export type IntegrationSpecificCategory = Exclude<IntegrationCategory, 'all'>
++
++export type IntegrationStatus = 'Connected' | 'Available'
++
++export interface IntegrationSummary {
++	key: string
++	name: string
++	description: string
++	defaultEnable?: boolean
++	category?: IntegrationSpecificCategory
++}
++
++export interface CategoryDefinition {
++	id: IntegrationCategory
++	label: string
++}
++
++export const INTEGRATION_CATEGORIES: CategoryDefinition[] = [
++	{ id: 'all', label: 'All' },
++	{ id: 'issue_tracking', label: 'Issue Tracking' },
++	{ id: 'messaging', label: 'Messaging & Alerts' },
++	{ id: 'infrastructure', label: 'Infrastructure' },
++	{ id: 'analytics_automation', label: 'Analytics & Automation' },
++]
++
++const CATEGORY_MAP: Record<string, IntegrationSpecificCategory> = {
++	linear: 'issue_tracking',
++	jira: 'issue_tracking',
++	gitlab: 'issue_tracking',
++	clickup: 'issue_tracking',
++	height: 'issue_tracking',
++	github: 'issue_tracking',
++	slack: 'messaging',
++	microsoft_teams: 'messaging',
++	discord: 'messaging',
++	vercel: 'infrastructure',
++	heroku: 'infrastructure',
++	cloudflare: 'infrastructure',
++	zapier: 'analytics_automation',
++	clearbit: 'analytics_automation',
++}
++
++export const CATEGORY_LABELS: Record<IntegrationCategory, string> = {
++	all: 'All',
++	issue_tracking: 'Issue Tracking',
++	messaging: 'Messaging & Alerts',
++	infrastructure: 'Infrastructure',
++	analytics_automation: 'Analytics & Automation',
++}
++
++export function getIntegrationCategory(
++	key: string,
++	explicitCategory?: IntegrationSpecificCategory,
++): IntegrationSpecificCategory {
++	if (explicitCategory) {
++		return explicitCategory
++	}
++	return CATEGORY_MAP[key] ?? 'analytics_automation'
++}
++
++export function getIntegrationStatus(enabled?: boolean): IntegrationStatus {
++	return enabled ? 'Connected' : 'Available'
++}
++
++function matchesSearchQuery(
++	item: IntegrationSummary,
++	normalizedQuery: string,
++): boolean {
++	if (!normalizedQuery) {
++		return true
++	}
++
++	const category = getIntegrationCategory(item.key, item.category)
++	const categoryLabel = CATEGORY_LABELS[category].toLowerCase()
++
++	return (
++		item.name.toLowerCase().includes(normalizedQuery) ||
++		item.description.toLowerCase().includes(normalizedQuery) ||
++		item.key.toLowerCase().includes(normalizedQuery) ||
++		categoryLabel.includes(normalizedQuery)
++	)
++}
++
++export interface FilterIntegrationsOptions {
++	category?: IntegrationCategory
++	searchQuery?: string
++	connectedFirst?: boolean
++}
++
++export function filterAndSortIntegrations<T extends IntegrationSummary>(
++	items: readonly T[],
++	options: FilterIntegrationsOptions = {},
++): T[] {
++	const {
++		category = 'all',
++		searchQuery = '',
++		connectedFirst = true,
++	} = options
++	const normalizedQuery = searchQuery.trim().toLowerCase()
++
++	const filtered = items.filter((item) => {
++		const itemCategory = getIntegrationCategory(item.key, item.category)
++		const categoryMatch = category === 'all' || itemCategory === category
++		return categoryMatch && matchesSearchQuery(item, normalizedQuery)
++	})
++
++	if (!connectedFirst) {
++		return [...filtered]
++	}
++
++	return filtered
++		.map((item, index) => ({ item, index }))
++		.sort((a, b) => {
++			const aConnected = a.item.defaultEnable ? 1 : 0
++			const bConnected = b.item.defaultEnable ? 1 : 0
++			if (aConnected !== bConnected) {
++				return bConnected - aConnected
++			}
++			return a.index - b.index
++		})
++		.map(({ item }) => item)
++}
++
++export function getCategoryCounts<T extends IntegrationSummary>(
++	items: readonly T[],
++	searchQuery = '',
++): Record<IntegrationCategory, number> {
++	const normalizedQuery = searchQuery.trim().toLowerCase()
++	const counts: Record<IntegrationCategory, number> = {
++		all: 0,
++		issue_tracking: 0,
++		messaging: 0,
++		infrastructure: 0,
++		analytics_automation: 0,
++	}
++
++	for (const item of items) {
++		if (!matchesSearchQuery(item, normalizedQuery)) {
++			continue
++		}
++		const category = getIntegrationCategory(item.key, item.category)
++		counts.all += 1
++		counts[category] += 1
++	}
++
++	return counts
++}
++
++export function getConnectedCount<T extends IntegrationSummary>(
++	items: readonly T[],
++): number {
++	return items.reduce(
++		(total, item) => total + (item.defaultEnable ? 1 : 0),
++		0,
++	)
++}

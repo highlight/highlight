@@ -13,10 +13,18 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
+import {
+	filterAndSortIntegrations,
+	getCategoryCounts,
+	getConnectedCount,
+	INTEGRATION_CATEGORIES,
+	IntegrationCategory,
+} from '@pages/IntegrationsPage/integrationsUtils'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
-import { useEffect, useMemo } from 'react'
+import clsx from 'clsx'
+import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
@@ -179,6 +187,28 @@ const IntegrationsPage = () => {
 		isCloudflareConnectedToWorkspace,
 	])
 
+	const [selectedCategory, setSelectedCategory] =
+		useState<IntegrationCategory>('all')
+	const [searchQuery, setSearchQuery] = useState('')
+
+	const visibleIntegrations = useMemo(() => {
+		return filterAndSortIntegrations(integrations, {
+			category: selectedCategory,
+			searchQuery,
+			connectedFirst: true,
+		})
+	}, [integrations, selectedCategory, searchQuery])
+
+	const categoryCounts = useMemo(
+		() => getCategoryCounts(integrations, searchQuery),
+		[integrations, searchQuery],
+	)
+
+	const connectedCount = useMemo(
+		() => getConnectedCount(integrations),
+		[integrations],
+	)
+
 	useEffect(() => analytics.page('Integrations'), [])
 
 	return (
@@ -186,25 +216,114 @@ const IntegrationsPage = () => {
 			<Helmet>
 				<title>Integrations</title>
 			</Helmet>
-			<LeadAlignLayout>
-				<h2>Integrations</h2>
-				<p className={layoutStyles.subTitle}>
-					Supercharge your workflows and attach Highlight with the
-					tools you use everyday.
-				</p>
-				<div className={styles.integrationsContainer}>
-					{integrations.map((integration) => (
-						<Integration
-							integration={integration}
-							key={integration.key}
-							showModalDefault={popUpModal === integration.key}
-							showSettingsDefault={
-								configureIntegration === integration.key
-							}
-							loading={loading}
-						/>
-					))}
+			<LeadAlignLayout fullWidth>
+				<div className={styles.pageHeader}>
+					<div>
+						<div className={styles.pageTitleRow}>
+							<h2>Integrations</h2>
+							<span className={styles.connectedSummary}>
+								<span className={styles.connectedDot} />
+								{connectedCount} of {integrations.length}{' '}
+								connected
+							</span>
+						</div>
+						<p className={layoutStyles.subTitle}>
+							Supercharge your workflows and attach Highlight with
+							the tools you use everyday.
+						</p>
+					</div>
 				</div>
+
+				<div className={styles.toolbar}>
+					<div
+						className={styles.categoryTabs}
+						role="tablist"
+						aria-label="Integration categories"
+					>
+						{INTEGRATION_CATEGORIES.map((category) => {
+							const isActive = selectedCategory === category.id
+							const count = categoryCounts[category.id]
+							return (
+								<button
+									key={category.id}
+									type="button"
+									role="tab"
+									aria-selected={isActive}
+									className={clsx(styles.categoryTab, {
+										[styles.categoryTabActive]: isActive,
+									})}
+									onClick={() =>
+										setSelectedCategory(category.id)
+									}
+								>
+									<span>{category.label}</span>
+									<span className={styles.categoryCount}>
+										{count}
+									</span>
+								</button>
+							)
+						})}
+					</div>
+
+					<div className={styles.searchWrapper}>
+						<input
+							type="search"
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							placeholder="Search integrations..."
+							aria-label="Search integrations"
+							className={styles.searchInput}
+						/>
+						{searchQuery && (
+							<button
+								type="button"
+								className={styles.clearButton}
+								onClick={() => setSearchQuery('')}
+								aria-label="Clear search"
+							>
+								Clear
+							</button>
+						)}
+					</div>
+				</div>
+
+				{visibleIntegrations.length === 0 ? (
+					<div className={styles.emptyState}>
+						<p className={styles.emptyStateTitle}>
+							No integrations match your filters
+						</p>
+						<p className={styles.emptyStateDescription}>
+							Try adjusting your search query or switching to
+							another category.
+						</p>
+						<button
+							type="button"
+							className={styles.resetFiltersButton}
+							onClick={() => {
+								setSelectedCategory('all')
+								setSearchQuery('')
+							}}
+						>
+							Reset filters
+						</button>
+					</div>
+				) : (
+					<div className={styles.integrationsContainer}>
+						{visibleIntegrations.map((integration) => (
+							<Integration
+								integration={integration}
+								key={integration.key}
+								showModalDefault={
+									popUpModal === integration.key
+								}
+								showSettingsDefault={
+									configureIntegration === integration.key
+								}
+								loading={loading}
+							/>
+						))}
+					</div>
+				)}
 			</LeadAlignLayout>
 		</>
 	)
