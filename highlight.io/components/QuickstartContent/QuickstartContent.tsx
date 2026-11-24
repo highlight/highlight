@@ -106,6 +106,7 @@ import { JSFirebaseReorganizedContent } from './server/js/firebase'
 import { JSHonoReorganizedContent } from './server/js/hono'
 import { JSNodeReorganizedContent } from './server/js/nodejs'
 import { JSNestReorganizedContent } from './server/js/nestjs'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { JStRPCReorganizedContent } from './server/js/trpc'
 import { JSPinoHTTPJSONLogReorganizedContent } from './server/js/pino'
 import { JSWinstonHTTPJSONLogReorganizedContent } from './server/js/winston'
@@ -457,6 +458,7 @@ export const quickStartContent = {
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
@@ -602,6 +604,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
+			[QuickStartType.SvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JSPino]: JSPinoHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogReorganizedContent,
 			[QuickStartType.JSManual]: JSManualTracesReorganizedContent,
