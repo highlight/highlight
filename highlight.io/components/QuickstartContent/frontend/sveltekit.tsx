@@ -3,9 +3,10 @@ import {
 	identifySnippet,
 	initializeSnippet,
 	packageInstallSnippet,
-	setupBackendSnippet,
 	verifySnippet,
 } from './shared-snippets'
+
+import { siteUrl } from '../../../utils/urls'
 
 import { QuickStartContent } from '../QuickstartContent'
 
@@ -79,6 +80,9 @@ export default config;`,
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),
-		setupBackendSnippet,
+		{
+			title: 'Instrument your SvelteKit backend.',
+			content: `The next step is instrumenting your SvelteKit server hooks to tie backend logs, traces, and errors to your frontend sessions. Read more in our [SvelteKit backend instrumentation](${siteUrl('/docs/getting-started/server/js/sveltekit')}) guide.`,
+		},
 	],
 }
