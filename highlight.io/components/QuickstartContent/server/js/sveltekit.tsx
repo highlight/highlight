@@ -25,25 +25,32 @@ export const JSSvelteKitReorganizedContent: QuickStartContent = {
 		{
 			title: 'Initialize and wrap requests in `hooks.server.ts`.',
 			content:
-				"Initialize `@highlight-run/node` once when the server module loads, then wrap SvelteKit's `handle` hook with `H.runWithHeaders`. Convert the web `Headers` object to a plain object so Highlight can read and propagate the `x-highlight-request` correlation header.",
+				"Initialize `@highlight-run/node` once when the server module loads outside SvelteKit's build and prerender passes, then wrap SvelteKit's `handle` hook with `H.runWithHeaders`. Convert the web `Headers` object to a plain object so Highlight can read and propagate the `x-highlight-request` correlation header.",
 			code: [
 				{
 					text: `// src/hooks.server.ts
+import { building } from '$app/environment'
 import { env } from '$env/dynamic/private'
 import type { Handle, HandleServerError } from '@sveltejs/kit'
 import { H } from '@highlight-run/node'
 
-H.init({
-	projectID: env.HIGHLIGHT_PROJECT_ID ?? '<YOUR_PROJECT_ID>',
-	serviceName: 'my-sveltekit-app',
-	serviceVersion: env.HIGHLIGHT_SERVICE_VERSION,
-	environment: env.NODE_ENV ?? 'development',
-})
+if (!building) {
+	H.init({
+		projectID: env.HIGHLIGHT_PROJECT_ID ?? '<YOUR_PROJECT_ID>',
+		serviceName: 'my-sveltekit-app',
+		serviceVersion: env.HIGHLIGHT_SERVICE_VERSION,
+		environment: env.NODE_ENV ?? 'development',
+	})
+}
 
 const requestHeaders = (headers: Headers) =>
 	Object.fromEntries(headers.entries())
 
 export const handle: Handle = async ({ event, resolve }) => {
+	if (building || !H.isInitialized()) {
+		return resolve(event)
+	}
+
 	return H.runWithHeaders(
 		\`\${event.request.method} \${event.url.pathname}\`,
 		requestHeaders(event.request.headers),
@@ -63,22 +70,24 @@ export const handle: Handle = async ({ event, resolve }) => {
 		{
 			title: 'Report unhandled server errors with `handleError`.',
 			content:
-				'SvelteKit invokes `handleError` for unexpected server-side errors. Parse the incoming Highlight headers and consume the error so it is associated with the correct frontend session and request trace. Flushing is useful in serverless deployments where the process may freeze or exit after the response.',
+				'SvelteKit invokes `handleError` for unexpected server-side errors. Outside build and prerender passes, parse the incoming Highlight headers and consume the error so it is associated with the correct frontend session and request trace. Flushing is useful in serverless deployments where the process may freeze or exit after the response.',
 			code: [
 				{
 					text: `export const handleError: HandleServerError = async ({
 	error,
 	event,
 }) => {
-	const { secureSessionId, requestId } = H.parseHeaders(
-		requestHeaders(event.request.headers),
-	)
-	const exception = error instanceof Error ? error : new Error(String(error))
+	if (!building && H.isInitialized()) {
+		const { secureSessionId, requestId } = H.parseHeaders(
+			requestHeaders(event.request.headers),
+		)
+		const exception = error instanceof Error ? error : new Error(String(error))
 
-	await H.consumeAndFlush(exception, secureSessionId, requestId, {
-		'http.request.method': event.request.method,
-		'http.route': event.route.id ?? event.url.pathname,
-	})
+		await H.consumeAndFlush(exception, secureSessionId, requestId, {
+			'http.request.method': event.request.method,
+			'http.route': event.route.id ?? event.url.pathname,
+		})
+	}
 
 	return {
 		message: 'An unexpected server error occurred.',
