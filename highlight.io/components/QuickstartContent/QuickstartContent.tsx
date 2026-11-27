@@ -88,6 +88,7 @@ import { RubyOtherTracesContent } from './traces/ruby/other'
 import { RustTracesContent } from './traces/rust'
 import { AWSLambdaContent } from './traces/serverless/lambda'
 import { JSHonoContent } from './backend/js/hono'
+import { JSSvelteKitContent } from './backend/js/sveltekit'
 import { GoFiberReorganizedContent } from './server/go/fiber'
 import { GoChiReorganizedContent } from './server/go/chi'
 import { GoEchoReorganizedContent } from './server/go/echo'
@@ -104,6 +105,7 @@ import { JSCloudflareReorganizedContent } from './server/js/cloudflare'
 import { JSExpressReorganizedContent } from './server/js/express'
 import { JSFirebaseReorganizedContent } from './server/js/firebase'
 import { JSHonoReorganizedContent } from './server/js/hono'
+import { JSSvelteKitReorganizedContent } from './server/js/sveltekit'
 import { JSNodeReorganizedContent } from './server/js/nodejs'
 import { JSNestReorganizedContent } from './server/js/nestjs'
 import { JStRPCReorganizedContent } from './server/js/trpc'
@@ -197,6 +199,7 @@ export enum QuickStartType {
 	GoLogrus = 'logrus',
 	GoOther = 'other',
 	JSHono = 'hono',
+	JSSvelteKit = 'sveltekit',
 	JSApollo = 'apollo',
 	JSAWSFn = 'aws-lambda-node',
 	JSCloudflare = 'cloudflare',
@@ -271,6 +274,7 @@ export const quickStartContent = {
 			[QuickStartType.JSExpress]: JSExpressContent,
 			[QuickStartType.JSFirebase]: JSFirebaseContent,
 			[QuickStartType.JSHono]: JSHonoContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitContent,
 			[QuickStartType.JSNodejs]: JSNodeContent,
 			[QuickStartType.JSNestjs]: JSNestContent,
 			[QuickStartType.JStRPC]: JStRPCContent,
@@ -454,6 +458,7 @@ export const quickStartContent = {
 			[QuickStartType.JSExpress]: JSExpressReorganizedContent,
 			[QuickStartType.JSFirebase]: JSFirebaseReorganizedContent,
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
@@ -599,6 +604,7 @@ export const quickStartContentReorganized = {
 			[QuickStartType.JSExpress]: JSExpressReorganizedContent,
 			[QuickStartType.JSFirebase]: JSFirebaseReorganizedContent,
 			[QuickStartType.JSHono]: JSHonoReorganizedContent,
+			[QuickStartType.JSSvelteKit]: JSSvelteKitReorganizedContent,
 			[QuickStartType.JSNodejs]: JSNodeReorganizedContent,
 			[QuickStartType.JSNestjs]: JSNestReorganizedContent,
 			[QuickStartType.JStRPC]: JStRPCReorganizedContent,
